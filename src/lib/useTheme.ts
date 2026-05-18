@@ -13,10 +13,12 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--sidebar", t.bgMain);
   r.style.setProperty("--sidebar-border", hexToRgba(t.primaryGreen, 0.3));
   r.style.setProperty("--border", hexToRgba(t.primaryGreen, 0.25));
+  r.style.setProperty("--foreground", t.textColor ?? "#e8f5e9");
   r.style.setProperty("--theme-bg-main", t.bgMain);
   r.style.setProperty("--theme-bg-card", t.bgCard);
   r.style.setProperty("--theme-primary", t.primaryGreen);
   r.style.setProperty("--theme-accent", t.accentGreen);
+  r.style.setProperty("--theme-text", t.textColor ?? "#e8f5e9");
 }
 
 function hexToRgba(hex: string, alpha: number): string {

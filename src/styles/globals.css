@@ -3,6 +3,7 @@
 /* ── Dynamic theme overrides (applied via JS CSS variables) ── */
 body {
   background-color: var(--theme-bg-main, #0e0e0e) !important;
+  color: var(--theme-text, #e8f5e9) !important;
 }
 
 /* Card backgrounds — !important overrides inline styles */

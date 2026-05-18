@@ -1102,13 +1102,14 @@ const COLOR_OPTIONS = [
   { key: "bgCard",       label: "لون خلفية البطاقات",       hint: "البطاقات والأقسام الداخلية" },
   { key: "primaryGreen", label: "اللون الأخضر الرئيسي",     hint: "الحدود والأيقونات" },
   { key: "accentGreen",  label: "اللون الأخضر المُضيء",     hint: "الأزرار والتمييزات" },
+  { key: "textColor",    label: "لون الخطوط والنصوص",       hint: "لون النص الرئيسي في الموقع" },
 ] as const;
 
 const PRESETS: { label: string; theme: ThemeSettings }[] = [
-  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355" } },
-  { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00" } },
-  { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc" } },
-  { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888" } },
+  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "#e8f5e9" } },
+  { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00", textColor: "#f5ede0" } },
+  { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc", textColor: "#e0f0ff" } },
+  { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888", textColor: "#dddddd" } },
 ];
 
 function AppearanceSection() {
@@ -1223,7 +1224,7 @@ function AppearanceSection() {
       <div className="rounded-xl p-6 overflow-hidden relative" style={{ background: form.bgMain, border: `1px solid ${form.primaryGreen}55` }}>
         <div style={{ color: "#6aad6a", fontSize: "0.7rem", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>معاينة مباشرة</div>
         <div className="rounded-lg p-4 mb-3" style={{ background: form.bgCard, border: `1px solid ${form.primaryGreen}44` }}>
-          <div style={{ color: "#e8f5e9", fontSize: "0.875rem", marginBottom: "0.5rem" }}>عنوان البطاقة</div>
+          <div style={{ color: form.textColor, fontSize: "0.875rem", marginBottom: "0.5rem" }}>عنوان البطاقة — لون الخطوط</div>
           <div style={{ color: form.primaryGreen, fontSize: "0.75rem" }}>نص ثانوي بالأخضر الرئيسي</div>
         </div>
         <button

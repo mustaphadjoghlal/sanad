@@ -81,6 +81,7 @@ export interface ThemeSettings {
   bgCard: string;
   primaryGreen: string;
   accentGreen: string;
+  textColor: string;
 }
 
 export const DEFAULT_THEME: ThemeSettings = {
@@ -88,6 +89,7 @@ export const DEFAULT_THEME: ThemeSettings = {
   bgCard: "#141414",
   primaryGreen: "#006233",
   accentGreen: "#00a355",
+  textColor: "#e8f5e9",
 };
 
 export interface UserProfile {
