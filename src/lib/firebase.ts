@@ -3,15 +3,15 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDagcs68MqIBVuUt_EzrbSpswWGgTAuQRM",
-  authDomain: "sanad-dz-f14df.firebaseapp.com",
-  projectId: "sanad-dz-f14df",
-  storageBucket: "sanad-dz-f14df.firebasestorage.app",
-  messagingSenderId: "856869700906",
-  appId: "1:856869700906:web:3c7fa812c02f1af2484a53",
-  measurementId: "G-PK8CF07ZHP",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string | undefined;

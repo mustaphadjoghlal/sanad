@@ -17,7 +17,8 @@ export default function Jobs() {
 
   const filtered = items.filter((j) => {
     const isVisible = j.status === "approved" || !j.status;
-    const matchSearch = j.title.includes(search) || j.company.includes(search);
+    const q = search.toLowerCase();
+    const matchSearch = j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
     const matchLoc = locationFilter ? j.location === locationFilter : true;
     const matchType = typeFilter ? j.jobType === typeFilter : true;
     return isVisible && matchSearch && matchLoc && matchType;

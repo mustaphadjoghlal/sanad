@@ -17,6 +17,7 @@ import {
   addVoiceArtist, updateVoiceArtist, deleteVoiceArtist,
   approveItem, rejectItem, toggleFeatured,
   saveThemeSettings, subscribeToTheme,
+  getUserProfile,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings } from "../../../lib/types";
@@ -227,8 +228,18 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) navigate("/sanad-admin");
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        navigate("/sanad-admin");
+        return;
+      }
+      // Verify this is actually an admin (no regular user profile)
+      const profile = await getUserProfile(user.uid);
+      if (profile) {
+        // Regular user — not an admin
+        await signOut(auth);
+        navigate("/sanad-admin");
+      }
     });
     return unsub;
   }, [navigate]);

@@ -19,7 +19,8 @@ export default function Courses() {
 
   const filtered = items.filter((c) => {
     const isVisible = c.status === "approved" || !c.status;
-    const matchSearch = c.title.includes(search) || c.instructor.includes(search) || c.description.includes(search);
+    const q = search.toLowerCase();
+    const matchSearch = c.title.toLowerCase().includes(q) || c.instructor.toLowerCase().includes(q) || c.description.toLowerCase().includes(q);
     const matchType = typeFilter ? c.type === typeFilter : true;
     return isVisible && matchSearch && matchType;
   });

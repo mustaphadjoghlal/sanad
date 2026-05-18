@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Store, ShoppingCart, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
 import type { Equipment } from "../../lib/types";
 
@@ -16,7 +17,8 @@ export default function EquipmentPage() {
 
   const filtered = items.filter((eq) => {
     const isVisible = eq.status === "approved" || !eq.status;
-    const matchSearch = eq.name.includes(search) || eq.description.includes(search);
+    const q = search.toLowerCase();
+    const matchSearch = eq.name.toLowerCase().includes(q) || eq.description.toLowerCase().includes(q);
     const matchCat = catFilter ? eq.category === catFilter : true;
     return isVisible && matchSearch && matchCat;
   });
@@ -45,7 +47,7 @@ export default function EquipmentPage() {
           <div>
             <h3 className="text-xl font-semibold mb-2" style={{ color: "#c8e6c9" }}>هل أنت بائع محترف؟</h3>
             <p className="mb-4 text-sm" style={{ color: "#6aad6a" }}>افتح متجرك الخاص على منصة سند وابدأ البيع للآلاف من المحترفين</p>
-            <button className="btn-dz px-6 py-2.5 rounded-lg text-sm"><span>افتح متجرك الآن</span></button>
+            <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}><span>افتح متجرك الآن</span></Link>
           </div>
         </div>
 

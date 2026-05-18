@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
+import { getUserProfile } from "../../../lib/firestore";
 import { Lock, Mail, Radio, AlertCircle } from "lucide-react";
 
 export default function AdminLogin() {
@@ -16,7 +17,15 @@ export default function AdminLogin() {
     setLoading(true);
     setError("");
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      // Verify it's not a regular user
+      const profile = await getUserProfile(cred.user.uid);
+      if (profile) {
+        await auth.signOut();
+        setError("هذا الحساب حساب مستخدم عادي. استخدم صفحة تسجيل الدخول العادية.");
+        setLoading(false);
+        return;
+      }
       navigate("/sanad-admin/dashboard");
     } catch {
       setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");

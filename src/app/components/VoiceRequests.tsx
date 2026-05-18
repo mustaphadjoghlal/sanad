@@ -69,7 +69,8 @@ export default function VoiceRequests() {
   const allEntries: VoiceEntry[] = [...approvedArtists, ...approvedVoiceProfiles];
 
   const filtered = allEntries.filter((v) => {
-    const matchSearch = v.name.includes(search) || (v.description || "").includes(search);
+    const q = search.toLowerCase();
+    const matchSearch = v.name.toLowerCase().includes(q) || (v.description || "").toLowerCase().includes(q);
     const matchSpec = specFilter ? v.specialty === specFilter : true;
     return matchSearch && matchSpec;
   });

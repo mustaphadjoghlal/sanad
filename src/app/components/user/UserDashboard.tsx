@@ -6,6 +6,7 @@ import { auth } from "../../../lib/firebase";
 import {
   subscribeToUserProfile,
   saveUserProfile,
+  resubmitProfile,
   subscribeToCollection,
   addEquipment,
 } from "../../../lib/firestore";
@@ -178,6 +179,9 @@ export default function UserDashboard() {
         phone: editForm.phone || undefined,
         experience: editForm.experience || undefined,
       });
+      if (profile.status === "rejected") {
+        await resubmitProfile(uid);
+      }
       setEditing(false);
     } catch {
       setEditError("حدث خطأ أثناء الحفظ");

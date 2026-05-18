@@ -159,6 +159,10 @@ export function subscribeToUserProfile(
   });
 }
 
+export async function resubmitProfile(uid: string): Promise<void> {
+  return updateDoc(doc(db, "users", uid), { status: "pending", rejectionNote: "" });
+}
+
 export function subscribeToAllProfiles(
   callback: (profiles: UserProfile[]) => void
 ): () => void {

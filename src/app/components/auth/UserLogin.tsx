@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Radio, LogIn } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
 
@@ -11,6 +11,8 @@ export default function UserLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetMode, setResetMode] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,12 +135,37 @@ export default function UserLogin() {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 text-center" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
-            <p style={{ color: "#4a7a4a", fontSize: "0.875rem" }}>
+          <div className="mt-6 pt-5 space-y-3" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
+            <p style={{ color: "#4a7a4a", fontSize: "0.875rem", textAlign: "center" }}>
               ليس لديك حساب؟{" "}
               <Link to="/register" style={{ color: "#00a355", textDecoration: "none" }}>
                 سجّل الآن
               </Link>
+            </p>
+            <p style={{ textAlign: "center" }}>
+              {resetSent ? (
+                <span style={{ color: "#4ade80", fontSize: "0.85rem" }}>✓ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) { setError("أدخل بريدك الإلكتروني أولاً"); return; }
+                    setLoading(true);
+                    try {
+                      await sendPasswordResetEmail(auth, email);
+                      setResetSent(true);
+                      setError("");
+                    } catch {
+                      setError("البريد الإلكتروني غير موجود");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  style={{ color: "#6aad6a", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem" }}
+                >
+                  نسيت كلمة المرور؟
+                </button>
+              )}
             </p>
           </div>
         </div>
