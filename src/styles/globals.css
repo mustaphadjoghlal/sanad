@@ -1,19 +1,52 @@
 /* Algeria-themed dark design system */
 
-/* Custom scrollbar */
+/* ── Dynamic theme overrides (applied via JS CSS variables) ── */
+body {
+  background-color: var(--theme-bg-main, #0e0e0e) !important;
+}
+
+/* Card backgrounds — !important overrides inline styles */
+.card-glow {
+  background: linear-gradient(145deg, var(--theme-bg-card, #141414), var(--theme-bg-main, #0e0e0e)) !important;
+}
+
+/* Buttons use theme accent */
+.btn-dz {
+  background: linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #00ff80)) !important;
+  border-color: color-mix(in srgb, var(--theme-accent, #00a355) 40%, transparent) !important;
+}
+
+.btn-dz::before {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--theme-primary, #006233) 70%, #00ff80), var(--theme-accent, #00a355)) !important;
+}
+
+/* Input/Select borders use theme primary */
+.input-dz,
+.select-dz {
+  border-color: color-mix(in srgb, var(--theme-primary, #006233) 30%, transparent) !important;
+  background: var(--theme-bg-card, #141414) !important;
+}
+
+.input-dz:focus,
+.select-dz:focus {
+  border-color: var(--theme-primary, #006233) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary, #006233) 15%, transparent) !important;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0e0e0e;
+  background: var(--theme-bg-main, #0e0e0e);
 }
 ::-webkit-scrollbar-thumb {
-  background: #006233;
+  background: var(--theme-primary, #006233);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #008545;
+  background: var(--theme-accent, #00a355);
 }
 
 /* Keyframe animations */

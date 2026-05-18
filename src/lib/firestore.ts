@@ -12,7 +12,8 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings } from "./types";
+import { DEFAULT_THEME } from "./types";
 
 // Generic helpers
 function col(name: string) {
@@ -165,5 +166,28 @@ export function subscribeToAllProfiles(
   return onSnapshot(q, (snap) => {
     const profiles = snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile));
     callback(profiles);
+  });
+}
+
+// --- THEME SETTINGS ---
+const THEME_DOC = () => doc(db, "settings", "theme");
+
+export async function saveThemeSettings(settings: ThemeSettings): Promise<void> {
+  await setDoc(THEME_DOC(), settings);
+}
+
+export async function getThemeSettings(): Promise<ThemeSettings> {
+  const snap = await getDoc(THEME_DOC());
+  if (!snap.exists()) return DEFAULT_THEME;
+  return { ...DEFAULT_THEME, ...(snap.data() as Partial<ThemeSettings>) };
+}
+
+export function subscribeToTheme(callback: (theme: ThemeSettings) => void): () => void {
+  return onSnapshot(THEME_DOC(), (snap) => {
+    if (!snap.exists()) {
+      callback(DEFAULT_THEME);
+    } else {
+      callback({ ...DEFAULT_THEME, ...(snap.data() as Partial<ThemeSettings>) });
+    }
   });
 }

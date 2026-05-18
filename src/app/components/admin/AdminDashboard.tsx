@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle,
+  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -16,10 +16,13 @@ import {
   addCompetition, updateCompetition, deleteCompetition,
   addVoiceArtist, updateVoiceArtist, deleteVoiceArtist,
   approveItem, rejectItem, toggleFeatured,
+  saveThemeSettings, subscribeToTheme,
 } from "../../../lib/firestore";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile } from "../../../lib/types";
+import { applyTheme } from "../../../lib/useTheme";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings } from "../../../lib/types";
+import { DEFAULT_THEME } from "../../../lib/types";
 
-type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "settings";
+type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "appearance" | "settings";
 type StatusFilter = "all" | "pending" | "approved";
 
 // ── Shared styles ───────────────────────────────────────────────
@@ -238,7 +241,8 @@ export default function AdminDashboard() {
     { id: "competitions" as Section, label: "المسابقات", icon: Trophy },
     { id: "voice"    as Section, label: "المنشطون",  icon: Mic },
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
-    { id: "settings" as Section, label: "الإعدادات", icon: Settings },
+    { id: "appearance"   as Section, label: "المظهر",    icon: Palette },
+    { id: "settings"     as Section, label: "الإعدادات", icon: Settings },
   ];
 
   const handleLogout = async () => {
@@ -337,6 +341,7 @@ export default function AdminDashboard() {
           {activeSection === "competitions"   && <CompetitionsSection />}
           {activeSection === "voice"          && <VoiceSection />}
           {activeSection === "professionals"  && <ProfessionalsSection />}
+          {activeSection === "appearance"     && <AppearanceSection />}
           {activeSection === "settings"       && <SettingsSection />}
         </div>
       </main>
@@ -1087,6 +1092,165 @@ function ProfessionalsSection() {
           onClose={() => setRejectTarget(null)}
         />
       )}
+    </div>
+  );
+}
+
+// ── APPEARANCE ──────────────────────────────────────────────────
+const COLOR_OPTIONS = [
+  { key: "bgMain",       label: "لون الخلفية الرئيسية",    hint: "الخلفية العامة للموقع" },
+  { key: "bgCard",       label: "لون خلفية البطاقات",       hint: "البطاقات والأقسام الداخلية" },
+  { key: "primaryGreen", label: "اللون الأخضر الرئيسي",     hint: "الحدود والأيقونات" },
+  { key: "accentGreen",  label: "اللون الأخضر المُضيء",     hint: "الأزرار والتمييزات" },
+] as const;
+
+const PRESETS: { label: string; theme: ThemeSettings }[] = [
+  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355" } },
+  { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00" } },
+  { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc" } },
+  { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888" } },
+];
+
+function AppearanceSection() {
+  const [form, setForm] = useState<ThemeSettings>(DEFAULT_THEME);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribeToTheme((t) => setForm(t));
+    return unsub;
+  }, []);
+
+  const handleChange = (key: keyof ThemeSettings, value: string) => {
+    const updated = { ...form, [key]: value };
+    setForm(updated);
+    applyTheme(updated); // live preview
+  };
+
+  const handlePreset = (theme: ThemeSettings) => {
+    setForm(theme);
+    applyTheme(theme);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await saveThemeSettings(form);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+    setSaving(false);
+  };
+
+  const handleReset = () => {
+    setForm(DEFAULT_THEME);
+    applyTheme(DEFAULT_THEME);
+  };
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      {/* Presets */}
+      <div className="rounded-xl p-6" style={S.card}>
+        <h3 style={{ color: "#c8e6c9", fontWeight: 600, marginBottom: "1rem" }}>ثيمات جاهزة</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {PRESETS.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => handlePreset(p.theme)}
+              className="flex items-center gap-3 p-3 rounded-lg text-right transition-all duration-200"
+              style={{
+                background: p.theme.bgMain,
+                border: `2px solid ${p.theme.primaryGreen}`,
+                cursor: "pointer",
+              }}
+            >
+              <div className="flex gap-1 flex-shrink-0">
+                {[p.theme.primaryGreen, p.theme.accentGreen, p.theme.bgCard].map((c) => (
+                  <span key={c} className="w-4 h-4 rounded-full" style={{ background: c, border: "1px solid rgba(255,255,255,0.1)" }} />
+                ))}
+              </div>
+              <span style={{ color: "#e8f5e9", fontSize: "0.8rem" }}>{p.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Color pickers */}
+      <div className="rounded-xl p-6" style={S.card}>
+        <h3 style={{ color: "#c8e6c9", fontWeight: 600, marginBottom: "1.25rem" }}>تخصيص الألوان</h3>
+        <div className="space-y-5">
+          {COLOR_OPTIONS.map(({ key, label, hint }) => (
+            <div key={key} className="flex items-center gap-4">
+              {/* Color preview + picker */}
+              <div className="relative flex-shrink-0">
+                <div
+                  className="w-12 h-12 rounded-xl"
+                  style={{ background: form[key], border: "2px solid rgba(255,255,255,0.1)", cursor: "pointer" }}
+                  onClick={() => document.getElementById(`picker-${key}`)?.click()}
+                />
+                <input
+                  id={`picker-${key}`}
+                  type="color"
+                  value={form[key]}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  style={{ position: "absolute", opacity: 0, width: "1px", height: "1px", top: 0, left: 0 }}
+                />
+              </div>
+              <div className="flex-1">
+                <div style={{ color: "#c8e6c9", fontSize: "0.875rem", fontWeight: 500 }}>{label}</div>
+                <div style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{hint}</div>
+              </div>
+              {/* Hex input */}
+              <input
+                type="text"
+                value={form[key]}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (/^#[0-9a-fA-F]{0,6}$/.test(v)) handleChange(key, v);
+                }}
+                style={{
+                  ...S.input,
+                  width: "110px",
+                  fontFamily: "monospace",
+                  fontSize: "0.8rem",
+                  textTransform: "lowercase",
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Live preview */}
+      <div className="rounded-xl p-6 overflow-hidden relative" style={{ background: form.bgMain, border: `1px solid ${form.primaryGreen}55` }}>
+        <div style={{ color: "#6aad6a", fontSize: "0.7rem", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>معاينة مباشرة</div>
+        <div className="rounded-lg p-4 mb-3" style={{ background: form.bgCard, border: `1px solid ${form.primaryGreen}44` }}>
+          <div style={{ color: "#e8f5e9", fontSize: "0.875rem", marginBottom: "0.5rem" }}>عنوان البطاقة</div>
+          <div style={{ color: form.primaryGreen, fontSize: "0.75rem" }}>نص ثانوي بالأخضر الرئيسي</div>
+        </div>
+        <button
+          className="px-4 py-2 rounded-lg text-sm text-white"
+          style={{ background: `linear-gradient(135deg, ${form.primaryGreen}, ${form.accentGreen})` }}
+        >
+          زر نموذجي
+        </button>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="btn-dz flex-1 py-3 rounded-xl font-medium disabled:opacity-60"
+        >
+          <span>{saved ? "✓ تم الحفظ!" : saving ? "جاري الحفظ..." : "حفظ وتطبيق على الموقع"}</span>
+        </button>
+        <button
+          onClick={handleReset}
+          className="px-6 py-3 rounded-xl text-sm"
+          style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#6aad6a" }}
+        >
+          إعادة الافتراضي
+        </button>
+      </div>
     </div>
   );
 }

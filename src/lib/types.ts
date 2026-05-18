@@ -76,6 +76,20 @@ export interface VoiceArtist {
   rejectionNote?: string;
 }
 
+export interface ThemeSettings {
+  bgMain: string;
+  bgCard: string;
+  primaryGreen: string;
+  accentGreen: string;
+}
+
+export const DEFAULT_THEME: ThemeSettings = {
+  bgMain: "#0e0e0e",
+  bgCard: "#141414",
+  primaryGreen: "#006233",
+  accentGreen: "#00a355",
+};
+
 export interface UserProfile {
   id: string;
   email: string;
