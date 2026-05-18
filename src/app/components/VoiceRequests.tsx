@@ -1,26 +1,80 @@
 import { useState, useEffect } from "react";
-import { Search, Mic, Phone } from "lucide-react";
-import { subscribeToCollection } from "../../lib/firestore";
-import type { VoiceArtist } from "../../lib/types";
+import { Search, Mic, Phone, MapPin, Link as LinkIcon } from "lucide-react";
+import { subscribeToCollection, subscribeToAllProfiles } from "../../lib/firestore";
+import type { VoiceArtist, UserProfile } from "../../lib/types";
+import { Link } from "react-router-dom";
+
+type VoiceEntry = {
+  id: string;
+  name: string;
+  specialty: string;
+  experience?: string;
+  description?: string;
+  contact?: string;
+  location?: string;
+  source: "artist" | "profile";
+};
 
 export default function VoiceRequests() {
-  const [items, setItems] = useState<VoiceArtist[]>([]);
+  const [artists, setArtists] = useState<VoiceArtist[]>([]);
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [search, setSearch] = useState("");
   const [specFilter, setSpecFilter] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = subscribeToCollection<VoiceArtist>("voice", (data) => { setItems(data); setLoading(false); });
-    return unsub;
+    let artistsLoaded = false;
+    let profilesLoaded = false;
+    const checkDone = () => { if (artistsLoaded && profilesLoaded) setLoading(false); };
+
+    const unsubArtists = subscribeToCollection<VoiceArtist>("voice", (data) => {
+      setArtists(data);
+      artistsLoaded = true;
+      checkDone();
+    });
+    const unsubProfiles = subscribeToAllProfiles((data) => {
+      setProfiles(data);
+      profilesLoaded = true;
+      checkDone();
+    });
+    return () => { unsubArtists(); unsubProfiles(); };
   }, []);
 
-  const filtered = items.filter((v) => {
-    const matchSearch = v.name.includes(search) || v.description.includes(search);
+  const approvedArtists: VoiceEntry[] = artists
+    .filter((v) => v.status === "approved" || !v.status)
+    .map((v) => ({
+      id: v.id,
+      name: v.name,
+      specialty: v.specialty,
+      experience: v.experience,
+      description: v.description,
+      contact: v.contact,
+      source: "artist",
+    }));
+
+  const approvedVoiceProfiles: VoiceEntry[] = profiles
+    .filter((p) => p.type === "voice" && p.status === "approved")
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      specialty: p.specialty || "",
+      experience: p.experience,
+      description: p.bio,
+      contact: p.phone,
+      location: p.location,
+      source: "profile",
+    }));
+
+  // Merge and deduplicate by id
+  const allEntries: VoiceEntry[] = [...approvedArtists, ...approvedVoiceProfiles];
+
+  const filtered = allEntries.filter((v) => {
+    const matchSearch = v.name.includes(search) || (v.description || "").includes(search);
     const matchSpec = specFilter ? v.specialty === specFilter : true;
     return matchSearch && matchSpec;
   });
 
-  const specialties = [...new Set(items.map((v) => v.specialty).filter(Boolean))];
+  const specialties = [...new Set(allEntries.map((v) => v.specialty).filter(Boolean))];
 
   return (
     <div style={{ background: "#0b0f0b", minHeight: "100vh" }}>
@@ -42,7 +96,9 @@ export default function VoiceRequests() {
           <div>
             <h3 className="text-xl font-semibold mb-2" style={{ color: "#c8e6c9" }}>هل أنت منشط أو معلق صوتي؟</h3>
             <p className="mb-4 text-sm" style={{ color: "#6aad6a" }}>انضم إلى منصة سند وابدأ في استقبال العروض من العملاء</p>
-            <button className="btn-dz px-6 py-2.5 rounded-lg text-sm"><span>انضم كمنشط</span></button>
+            <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}>
+              <span>انضم كمنشط</span>
+            </Link>
           </div>
         </div>
 
@@ -68,12 +124,12 @@ export default function VoiceRequests() {
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <Mic size={28} style={{ color: "#006233" }} />
             </div>
-            <p style={{ color: "#4a7a4a" }}>{items.length === 0 ? "لا يوجد منشطون بعد." : "لا توجد نتائج."}</p>
+            <p style={{ color: "#4a7a4a" }}>{allEntries.length === 0 ? "لا يوجد منشطون بعد." : "لا توجد نتائج."}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((v, i) => (
-              <div key={v.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #0f1a0f, #0b150b)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
+              <div key={`${v.source}-${v.id}`} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #0f1a0f, #0b150b)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
                     <Mic size={18} style={{ color: "#00a355" }} />
@@ -85,9 +141,23 @@ export default function VoiceRequests() {
                 </div>
                 {v.experience && <p style={{ color: "#4a7a4a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>الخبرة: {v.experience}</p>}
                 {v.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{v.description}</p>}
-                {v.contact && (
-                  <div className="flex items-center gap-1" style={{ color: "#6aad6a", fontSize: "0.8rem" }}>
-                    <Phone size={13} />{v.contact}
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {v.contact && (
+                    <div className="flex items-center gap-1" style={{ color: "#6aad6a", fontSize: "0.8rem" }}>
+                      <Phone size={13} />{v.contact}
+                    </div>
+                  )}
+                  {v.location && (
+                    <div className="flex items-center gap-1" style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>
+                      <MapPin size={12} />{v.location}
+                    </div>
+                  )}
+                </div>
+                {v.source === "profile" && (
+                  <div className="mt-2 pt-2" style={{ borderTop: "1px solid rgba(0,98,51,0.1)" }}>
+                    <span style={{ color: "#3a5e3a", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <LinkIcon size={11} />مسجّل في المنصة
+                    </span>
                   </div>
                 )}
               </div>

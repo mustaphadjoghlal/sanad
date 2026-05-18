@@ -2,22 +2,25 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink,
+  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import {
   subscribeToCollection,
+  subscribeToAllProfiles,
   addCourse, updateCourse, deleteCourse,
   addJob, updateJob, deleteJob,
   addEquipment, updateEquipment, deleteEquipment,
   addCompetition, updateCompetition, deleteCompetition,
   addVoiceArtist, updateVoiceArtist, deleteVoiceArtist,
+  approveItem, rejectItem, toggleFeatured,
 } from "../../../lib/firestore";
-import type { Course, Job, Equipment, Competition, VoiceArtist } from "../../../lib/types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile } from "../../../lib/types";
 
-type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "settings";
+type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "settings";
+type StatusFilter = "all" | "pending" | "approved";
 
 // ── Shared styles ───────────────────────────────────────────────
 const S = {
@@ -46,7 +49,19 @@ const S = {
     display: "inline-block", padding: "0.2rem 0.6rem", borderRadius: "9999px",
     fontSize: "0.72rem", background: color,
   }),
+  statusBadge: (status: string) => ({
+    display: "inline-block", padding: "0.2rem 0.6rem", borderRadius: "9999px", fontSize: "0.72rem",
+    background: status === "pending" ? "rgba(180,120,0,0.2)" : status === "approved" ? "rgba(0,98,51,0.2)" : "rgba(198,40,40,0.1)",
+    color: status === "pending" ? "#fbbf24" : status === "approved" ? "#4ade80" : "#f87171",
+    border: `1px solid ${status === "pending" ? "rgba(180,120,0,0.3)" : status === "approved" ? "rgba(0,98,51,0.3)" : "rgba(198,40,40,0.3)"}`,
+  } as React.CSSProperties),
 };
+
+function statusLabel(s?: string) {
+  if (s === "pending") return "قيد الانتظار";
+  if (s === "rejected") return "مرفوض";
+  return "مُعتمد";
+}
 
 // ── Modal wrapper ───────────────────────────────────────────────
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -91,6 +106,117 @@ function ConfirmDelete({ label, onConfirm, onClose }: { label: string; onConfirm
   );
 }
 
+// ── Reject modal ────────────────────────────────────────────────
+function RejectModal({ label, onConfirm, onClose }: { label: string; onConfirm: (note: string) => void; onClose: () => void }) {
+  const [note, setNote] = useState("");
+  return (
+    <Modal title="رفض العنصر" onClose={onClose}>
+      <p style={{ color: "#a5d6a7", marginBottom: "1rem" }}>
+        سبب رفض <strong style={{ color: "#ef9a9a" }}>{label}</strong>:
+      </p>
+      <textarea
+        style={{ ...S.input, minHeight: "80px", resize: "vertical" }}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="اذكر سبب الرفض للمستخدم..."
+      />
+      <div className="flex gap-3 justify-end mt-4">
+        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784" }}>
+          إلغاء
+        </button>
+        <button onClick={() => onConfirm(note)} disabled={!note.trim()} className="px-4 py-2 rounded-lg text-sm disabled:opacity-50" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
+          تأكيد الرفض
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Status filter tabs ──────────────────────────────────────────
+function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: StatusFilter) => void }) {
+  const tabs: { v: StatusFilter; label: string }[] = [
+    { v: "all", label: "الكل" },
+    { v: "pending", label: "قيد الانتظار" },
+    { v: "approved", label: "مُعتمد" },
+  ];
+  return (
+    <div className="flex gap-1 mb-4">
+      {tabs.map(({ v, label }) => (
+        <button
+          key={v}
+          onClick={() => onChange(v)}
+          className="px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
+          style={{
+            background: value === v ? (v === "pending" ? "rgba(180,120,0,0.2)" : "rgba(0,98,51,0.2)") : "transparent",
+            color: value === v ? (v === "pending" ? "#fbbf24" : "#4ade80") : "#4a7a4a",
+            border: `1px solid ${value === v ? (v === "pending" ? "rgba(180,120,0,0.3)" : "rgba(0,98,51,0.3)") : "rgba(0,98,51,0.15)"}`,
+          }}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Action buttons for items ────────────────────────────────────
+function ItemActions({
+  colName, id, status, featured, label,
+  onEdit, onDelete,
+}: {
+  colName: string; id: string; status?: string; featured?: boolean; label: string;
+  onEdit: () => void; onDelete: () => void;
+}) {
+  const [rejecting, setRejecting] = useState(false);
+
+  return (
+    <>
+      <div className="flex gap-1.5 justify-end items-center flex-wrap">
+        {/* Feature toggle */}
+        <button
+          onClick={() => toggleFeatured(colName, id, !!featured)}
+          title={featured ? "إلغاء التمييز" : "تمييز"}
+          className="p-1.5 rounded transition-colors"
+          style={{ color: featured ? "#fbbf24" : "#4a7a4a", background: featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+        >
+          <Star size={14} fill={featured ? "#fbbf24" : "none"} />
+        </button>
+        {/* Approve */}
+        {(status === "pending" || status === "rejected" || !status) && (
+          <button
+            onClick={() => approveItem(colName, id)}
+            title="موافقة"
+            className="p-1.5 rounded transition-colors"
+            style={{ color: "#4ade80", background: "rgba(0,98,51,0.15)" }}
+          >
+            <Check size={14} />
+          </button>
+        )}
+        {/* Reject */}
+        {(status === "pending" || status === "approved" || !status) && (
+          <button
+            onClick={() => setRejecting(true)}
+            title="رفض"
+            className="p-1.5 rounded transition-colors"
+            style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}
+          >
+            <AlertTriangle size={14} />
+          </button>
+        )}
+        <button onClick={onEdit} style={{ color: "#6aad6a" }}><Pencil size={15} /></button>
+        <button onClick={onDelete} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
+      </div>
+      {rejecting && (
+        <RejectModal
+          label={label}
+          onConfirm={async (note) => { await rejectItem(colName, id, note); setRejecting(false); }}
+          onClose={() => setRejecting(false)}
+        />
+      )}
+    </>
+  );
+}
+
 // ── Main Dashboard ──────────────────────────────────────────────
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<Section>("overview");
@@ -111,6 +237,7 @@ export default function AdminDashboard() {
     { id: "jobs"     as Section, label: "الوظائف",   icon: Briefcase },
     { id: "competitions" as Section, label: "المسابقات", icon: Trophy },
     { id: "voice"    as Section, label: "المنشطون",  icon: Mic },
+    { id: "professionals" as Section, label: "المحترفون", icon: Users },
     { id: "settings" as Section, label: "الإعدادات", icon: Settings },
   ];
 
@@ -203,13 +330,14 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex-1 p-6 overflow-auto">
-          {activeSection === "overview"    && <OverviewSection onNavigate={setActiveSection} />}
-          {activeSection === "courses"     && <CoursesSection />}
-          {activeSection === "equipment"   && <EquipmentSection />}
-          {activeSection === "jobs"        && <JobsSection />}
-          {activeSection === "competitions"&& <CompetitionsSection />}
-          {activeSection === "voice"       && <VoiceSection />}
-          {activeSection === "settings"    && <SettingsSection />}
+          {activeSection === "overview"       && <OverviewSection onNavigate={setActiveSection} />}
+          {activeSection === "courses"        && <CoursesSection />}
+          {activeSection === "equipment"      && <EquipmentSection />}
+          {activeSection === "jobs"           && <JobsSection />}
+          {activeSection === "competitions"   && <CompetitionsSection />}
+          {activeSection === "voice"          && <VoiceSection />}
+          {activeSection === "professionals"  && <ProfessionalsSection />}
+          {activeSection === "settings"       && <SettingsSection />}
         </div>
       </main>
     </div>
@@ -218,40 +346,81 @@ export default function AdminDashboard() {
 
 // ── Overview ────────────────────────────────────────────────────
 function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
-  const [counts, setCounts] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, voice: 0 });
+  const [counts, setCounts] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, voice: 0, profiles: 0 });
+  const [pending, setPending] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, voice: 0, profiles: 0 });
 
   useEffect(() => {
     const unsubs = [
-      subscribeToCollection<Course>("courses",      (d) => setCounts((c) => ({ ...c, courses: d.length }))),
-      subscribeToCollection<Job>("jobs",             (d) => setCounts((c) => ({ ...c, jobs: d.length }))),
-      subscribeToCollection<Equipment>("equipment",  (d) => setCounts((c) => ({ ...c, equipment: d.length }))),
-      subscribeToCollection<Competition>("competitions", (d) => setCounts((c) => ({ ...c, competitions: d.length }))),
-      subscribeToCollection<VoiceArtist>("voice",   (d) => setCounts((c) => ({ ...c, voice: d.length }))),
+      subscribeToCollection<Course>("courses", (d) => {
+        setCounts((c) => ({ ...c, courses: d.length }));
+        setPending((p) => ({ ...p, courses: d.filter((x) => x.status === "pending").length }));
+      }),
+      subscribeToCollection<Job>("jobs", (d) => {
+        setCounts((c) => ({ ...c, jobs: d.length }));
+        setPending((p) => ({ ...p, jobs: d.filter((x) => x.status === "pending").length }));
+      }),
+      subscribeToCollection<Equipment>("equipment", (d) => {
+        setCounts((c) => ({ ...c, equipment: d.length }));
+        setPending((p) => ({ ...p, equipment: d.filter((x) => x.status === "pending").length }));
+      }),
+      subscribeToCollection<Competition>("competitions", (d) => {
+        setCounts((c) => ({ ...c, competitions: d.length }));
+        setPending((p) => ({ ...p, competitions: d.filter((x) => x.status === "pending").length }));
+      }),
+      subscribeToCollection<VoiceArtist>("voice", (d) => {
+        setCounts((c) => ({ ...c, voice: d.length }));
+        setPending((p) => ({ ...p, voice: d.filter((x) => x.status === "pending").length }));
+      }),
+      subscribeToAllProfiles((d) => {
+        setCounts((c) => ({ ...c, profiles: d.length }));
+        setPending((p) => ({ ...p, profiles: d.filter((x) => x.status === "pending").length }));
+      }),
     ];
     return () => unsubs.forEach((u) => u());
   }, []);
 
   const stats = [
-    { label: "الدورات",     value: counts.courses,      icon: BookOpen,      sec: "courses" as Section,      color: "#006233" },
-    { label: "العتاد",      value: counts.equipment,    icon: ShoppingCart,  sec: "equipment" as Section,    color: "#1a5276" },
-    { label: "الوظائف",     value: counts.jobs,         icon: Briefcase,     sec: "jobs" as Section,         color: "#7d3c98" },
-    { label: "المسابقات",   value: counts.competitions, icon: Trophy,        sec: "competitions" as Section, color: "#784212" },
-    { label: "المنشطون",    value: counts.voice,        icon: Mic,           sec: "voice" as Section,        color: "#1a6b47" },
+    { label: "الدورات",     value: counts.courses,      pendingCount: pending.courses,      icon: BookOpen,      sec: "courses" as Section,      color: "#006233" },
+    { label: "العتاد",      value: counts.equipment,    pendingCount: pending.equipment,    icon: ShoppingCart,  sec: "equipment" as Section,    color: "#1a5276" },
+    { label: "الوظائف",     value: counts.jobs,         pendingCount: pending.jobs,         icon: Briefcase,     sec: "jobs" as Section,         color: "#7d3c98" },
+    { label: "المسابقات",   value: counts.competitions, pendingCount: pending.competitions, icon: Trophy,        sec: "competitions" as Section, color: "#784212" },
+    { label: "المنشطون",    value: counts.voice,        pendingCount: pending.voice,        icon: Mic,           sec: "voice" as Section,        color: "#1a6b47" },
+    { label: "المحترفون",   value: counts.profiles,     pendingCount: pending.profiles,     icon: Users,         sec: "professionals" as Section, color: "#4a235a" },
   ];
+
+  const totalPending = Object.values(pending).reduce((a, b) => a + b, 0);
 
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        {stats.map(({ label, value, icon: Icon, sec, color }) => (
+      {totalPending > 0 && (
+        <div
+          className="mb-6 p-4 rounded-xl flex items-center gap-3"
+          style={{ background: "rgba(180,120,0,0.1)", border: "1px solid rgba(180,120,0,0.3)" }}
+        >
+          <AlertTriangle size={18} style={{ color: "#fbbf24" }} />
+          <span style={{ color: "#fbbf24", fontSize: "0.875rem" }}>
+            يوجد <strong>{totalPending}</strong> عنصر قيد الانتظار يحتاج مراجعة
+          </span>
+        </div>
+      )}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-8">
+        {stats.map(({ label, value, pendingCount, icon: Icon, sec, color }) => (
           <button
             key={label}
             onClick={() => onNavigate(sec)}
             className="p-5 rounded-xl text-right transition-all duration-200 card-glow"
             style={S.card}
           >
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
-              style={{ background: `${color}33`, border: `1px solid ${color}66` }}>
-              <Icon size={20} style={{ color }} />
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{ background: `${color}33`, border: `1px solid ${color}66` }}>
+                <Icon size={20} style={{ color }} />
+              </div>
+              {pendingCount > 0 && (
+                <span style={{ background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)", padding: "0.1rem 0.5rem", borderRadius: "9999px", fontSize: "0.7rem" }}>
+                  {pendingCount} انتظار
+                </span>
+              )}
             </div>
             <div style={{ color: "#e8f5e9", fontSize: "1.75rem", fontWeight: 700, lineHeight: 1 }}>{value}</div>
             <div style={{ color: "#4a7a4a", fontSize: "0.8rem", marginTop: "0.25rem" }}>{label}</div>
@@ -266,7 +435,7 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
 }
 
 // ── COURSES SECTION ─────────────────────────────────────────────
-type CourseForm = Omit<Course, "id" | "createdAt">;
+type CourseForm = Omit<Course, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
 const emptyCourse: CourseForm = { title: "", type: "free", duration: "", description: "", instructor: "", link: "", price: 0 };
 
 function CoursesSection() {
@@ -276,8 +445,15 @@ function CoursesSection() {
   const [editId, setEditId] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Course | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => subscribeToCollection<Course>("courses", setItems), []);
+
+  const filtered = items.filter((c) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return c.status === "pending";
+    return c.status === "approved" || !c.status;
+  });
 
   const openAdd = () => { setForm(emptyCourse); setModal("add"); };
   const openEdit = (c: Course) => { setEditId(c.id); setForm({ title: c.title, type: c.type, duration: c.duration, description: c.description, instructor: c.instructor, link: c.link || "", price: c.price || 0 }); setModal("edit"); };
@@ -291,34 +467,37 @@ function CoursesSection() {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async () => {
-    if (deleteTarget) { await deleteCourse(deleteTarget.id); setDeleteTarget(null); }
-  };
+  const pendingCount = items.filter((c) => c.status === "pending").length;
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-5">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} دورة مسجلة</span>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} دورة مسجلة {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة دورة</span>
         </button>
       </div>
+      <StatusTabs value={filter} onChange={setFilter} />
 
       <div style={S.card} className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr>
-                {["العنوان", "المدرب", "النوع", "المدة", ""].map((h) => (
+                {["العنوان", "المدرب", "النوع", "الحالة", "مميز", ""].map((h) => (
                   <th key={h} style={S.th}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد دورات بعد</td></tr>
-              ) : items.map((c) => (
-                <tr key={c.id} className="hover:bg-green-950/20 transition-colors">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد دورات</td></tr>
+              ) : filtered.map((c) => (
+                <tr
+                  key={c.id}
+                  className="hover:bg-green-950/20 transition-colors"
+                  style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}
+                >
                   <td style={S.td}>{c.title}</td>
                   <td style={S.td}>{c.instructor}</td>
                   <td style={S.td}>
@@ -326,12 +505,10 @@ function CoursesSection() {
                       {c.type === "free" ? "مجانية" : `${c.price} دج`}
                     </span>
                   </td>
-                  <td style={S.td}>{c.duration}</td>
-                  <td style={{ ...S.td, width: "80px" }}>
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(c)} style={{ color: "#6aad6a" }}><Pencil size={15} /></button>
-                      <button onClick={() => setDeleteTarget(c)} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
-                    </div>
+                  <td style={S.td}><span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span></td>
+                  <td style={S.td}>{c.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
+                  <td style={{ ...S.td, width: "140px" }}>
+                    <ItemActions colName="courses" id={c.id} status={c.status} featured={c.featured} label={c.title} onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)} />
                   </td>
                 </tr>
               ))}
@@ -370,13 +547,13 @@ function CoursesSection() {
         </Modal>
       )}
 
-      {deleteTarget && <ConfirmDelete label={deleteTarget.title} onConfirm={handleDelete} onClose={() => setDeleteTarget(null)} />}
+      {deleteTarget && <ConfirmDelete label={deleteTarget.title} onConfirm={async () => { await deleteCourse(deleteTarget.id); setDeleteTarget(null); }} onClose={() => setDeleteTarget(null)} />}
     </div>
   );
 }
 
 // ── JOBS SECTION ────────────────────────────────────────────────
-type JobForm = Omit<Job, "id" | "createdAt">;
+type JobForm = Omit<Job, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
 const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", description: "", deadline: "", contact: "" };
 
 function JobsSection() {
@@ -386,8 +563,15 @@ function JobsSection() {
   const [editId, setEditId] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Job | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => subscribeToCollection<Job>("jobs", setItems), []);
+
+  const filtered = items.filter((j) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return j.status === "pending";
+    return j.status === "approved" || !j.status;
+  });
 
   const openAdd = () => { setForm(emptyJob); setModal("add"); };
   const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, description: j.description, deadline: j.deadline || "", contact: j.contact }); setModal("edit"); };
@@ -401,35 +585,35 @@ function JobsSection() {
     } finally { setSaving(false); }
   };
 
+  const pendingCount = items.filter((j) => j.status === "pending").length;
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-5">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} عرض توظيف</span>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} عرض توظيف {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة وظيفة</span>
         </button>
       </div>
+      <StatusTabs value={filter} onChange={setFilter} />
 
       <div style={S.card} className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr>{["المسمى الوظيفي", "الجهة", "الموقع", "الموعد النهائي", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              <tr>{["المسمى الوظيفي", "الجهة", "الموقع", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد عروض بعد</td></tr>
-              ) : items.map((j) => (
-                <tr key={j.id} className="hover:bg-green-950/20 transition-colors">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد عروض</td></tr>
+              ) : filtered.map((j) => (
+                <tr key={j.id} className="hover:bg-green-950/20 transition-colors" style={j.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{j.title}</td>
                   <td style={S.td}>{j.company}</td>
                   <td style={S.td}>{j.location}</td>
-                  <td style={S.td}>{j.deadline || "—"}</td>
-                  <td style={{ ...S.td, width: "80px" }}>
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(j)} style={{ color: "#6aad6a" }}><Pencil size={15} /></button>
-                      <button onClick={() => setDeleteTarget(j)} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
-                    </div>
+                  <td style={S.td}><span style={S.statusBadge(j.status || "approved")}>{statusLabel(j.status)}</span></td>
+                  <td style={{ ...S.td, width: "140px" }}>
+                    <ItemActions colName="jobs" id={j.id} status={j.status} featured={j.featured} label={j.title} onEdit={() => openEdit(j)} onDelete={() => setDeleteTarget(j)} />
                   </td>
                 </tr>
               ))}
@@ -482,7 +666,7 @@ function JobsSection() {
 }
 
 // ── EQUIPMENT SECTION ───────────────────────────────────────────
-type EquipmentForm = Omit<Equipment, "id" | "createdAt">;
+type EquipmentForm = Omit<Equipment, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
 const emptyEquip: EquipmentForm = { name: "", category: "", price: 0, seller: "", description: "", condition: "used", contact: "" };
 
 function EquipmentSection() {
@@ -492,8 +676,15 @@ function EquipmentSection() {
   const [editId, setEditId] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Equipment | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => subscribeToCollection<Equipment>("equipment", setItems), []);
+
+  const filtered = items.filter((eq) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return eq.status === "pending";
+    return eq.status === "approved" || !eq.status;
+  });
 
   const openAdd = () => { setForm(emptyEquip); setModal("add"); };
   const openEdit = (eq: Equipment) => { setEditId(eq.id); setForm({ name: eq.name, category: eq.category, price: eq.price, seller: eq.seller, description: eq.description, condition: eq.condition, contact: eq.contact }); setModal("edit"); };
@@ -507,36 +698,36 @@ function EquipmentSection() {
     } finally { setSaving(false); }
   };
 
+  const pendingCount = items.filter((eq) => eq.status === "pending").length;
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-5">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} منتج</span>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} منتج {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة منتج</span>
         </button>
       </div>
+      <StatusTabs value={filter} onChange={setFilter} />
 
       <div style={S.card} className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr>{["المنتج", "الفئة", "السعر (دج)", "الحالة", "البائع", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              <tr>{["المنتج", "الفئة", "السعر (دج)", "الحالة الفيزيائية", "موافقة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد منتجات بعد</td></tr>
-              ) : items.map((eq) => (
-                <tr key={eq.id} className="hover:bg-green-950/20 transition-colors">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد منتجات</td></tr>
+              ) : filtered.map((eq) => (
+                <tr key={eq.id} className="hover:bg-green-950/20 transition-colors" style={eq.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{eq.name}</td>
                   <td style={S.td}>{eq.category}</td>
                   <td style={S.td}>{eq.price.toLocaleString()}</td>
                   <td style={S.td}><span style={S.badge(eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)")}>{eq.condition === "new" ? "جديد" : "مستعمل"}</span></td>
-                  <td style={S.td}>{eq.seller}</td>
-                  <td style={{ ...S.td, width: "80px" }}>
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(eq)} style={{ color: "#6aad6a" }}><Pencil size={15} /></button>
-                      <button onClick={() => setDeleteTarget(eq)} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
-                    </div>
+                  <td style={S.td}><span style={S.statusBadge(eq.status || "approved")}>{statusLabel(eq.status)}</span></td>
+                  <td style={{ ...S.td, width: "140px" }}>
+                    <ItemActions colName="equipment" id={eq.id} status={eq.status} featured={eq.featured} label={eq.name} onEdit={() => openEdit(eq)} onDelete={() => setDeleteTarget(eq)} />
                   </td>
                 </tr>
               ))}
@@ -589,7 +780,7 @@ function EquipmentSection() {
 }
 
 // ── COMPETITIONS SECTION ────────────────────────────────────────
-type CompForm = Omit<Competition, "id" | "createdAt">;
+type CompForm = Omit<Competition, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
 const emptyComp: CompForm = { name: "", type: "national", startDate: "", endDate: "", description: "", organizer: "", link: "" };
 
 function CompetitionsSection() {
@@ -599,44 +790,59 @@ function CompetitionsSection() {
   const [editId, setEditId] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Competition | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => subscribeToCollection<Competition>("competitions", setItems), []);
+
+  const filtered = items.filter((c) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return c.status === "pending";
+    return c.status === "approved" || !c.status;
+  });
 
   const openAdd = () => { setForm(emptyComp); setModal("add"); };
   const openEdit = (c: Competition) => { setEditId(c.id); setForm({ name: c.name, type: c.type, startDate: c.startDate, endDate: c.endDate, description: c.description, organizer: c.organizer, link: c.link || "" }); setModal("edit"); };
 
-  const typeLabel = { university: "جامعية", national: "وطنية", international: "دولية" };
+  const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      if (modal === "add") await addCompetition(form);
+      else await updateCompetition(editId, form);
+      setModal(null);
+    } finally { setSaving(false); }
+  };
+
+  const pendingCount = items.filter((c) => c.status === "pending").length;
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-5">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} مسابقة</span>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} مسابقة {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة مسابقة</span>
         </button>
       </div>
+      <StatusTabs value={filter} onChange={setFilter} />
 
       <div style={S.card} className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr>{["المسابقة", "النوع", "تاريخ البداية", "تاريخ النهاية", "المنظم", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              <tr>{["المسابقة", "النوع", "البداية", "النهاية", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد مسابقات بعد</td></tr>
-              ) : items.map((c) => (
-                <tr key={c.id} className="hover:bg-green-950/20 transition-colors">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد مسابقات</td></tr>
+              ) : filtered.map((c) => (
+                <tr key={c.id} className="hover:bg-green-950/20 transition-colors" style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{c.name}</td>
                   <td style={S.td}><span style={S.badge("rgba(0,98,51,0.25)")}>{typeLabel[c.type]}</span></td>
                   <td style={S.td}>{c.startDate}</td>
                   <td style={S.td}>{c.endDate}</td>
-                  <td style={S.td}>{c.organizer}</td>
-                  <td style={{ ...S.td, width: "80px" }}>
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(c)} style={{ color: "#6aad6a" }}><Pencil size={15} /></button>
-                      <button onClick={() => setDeleteTarget(c)} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
-                    </div>
+                  <td style={S.td}><span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span></td>
+                  <td style={{ ...S.td, width: "140px" }}>
+                    <ItemActions colName="competitions" id={c.id} status={c.status} featured={c.featured} label={c.name} onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)} />
                   </td>
                 </tr>
               ))}
@@ -680,7 +886,7 @@ function CompetitionsSection() {
 }
 
 // ── VOICE SECTION ───────────────────────────────────────────────
-type VoiceForm = Omit<VoiceArtist, "id" | "createdAt">;
+type VoiceForm = Omit<VoiceArtist, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
 const emptyVoice: VoiceForm = { name: "", specialty: "", experience: "", description: "", contact: "" };
 
 function VoiceSection() {
@@ -690,8 +896,15 @@ function VoiceSection() {
   const [editId, setEditId] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<VoiceArtist | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => subscribeToCollection<VoiceArtist>("voice", setItems), []);
+
+  const filtered = items.filter((v) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return v.status === "pending";
+    return v.status === "approved" || !v.status;
+  });
 
   const openAdd = () => { setForm(emptyVoice); setModal("add"); };
   const openEdit = (v: VoiceArtist) => { setEditId(v.id); setForm({ name: v.name, specialty: v.specialty, experience: v.experience, description: v.description, contact: v.contact }); setModal("edit"); };
@@ -705,35 +918,35 @@ function VoiceSection() {
     } finally { setSaving(false); }
   };
 
+  const pendingCount = items.filter((v) => v.status === "pending").length;
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-5">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} منشط</span>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} منشط {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة منشط</span>
         </button>
       </div>
+      <StatusTabs value={filter} onChange={setFilter} />
 
       <div style={S.card} className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr>{["الاسم", "التخصص", "الخبرة", "التواصل", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              <tr>{["الاسم", "التخصص", "الخبرة", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا يوجد منشطون بعد</td></tr>
-              ) : items.map((v) => (
-                <tr key={v.id} className="hover:bg-green-950/20 transition-colors">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا يوجد منشطون</td></tr>
+              ) : filtered.map((v) => (
+                <tr key={v.id} className="hover:bg-green-950/20 transition-colors" style={v.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{v.name}</td>
                   <td style={S.td}><span style={S.badge("rgba(0,98,51,0.25)")}>{v.specialty}</span></td>
                   <td style={S.td}>{v.experience}</td>
-                  <td style={S.td}>{v.contact}</td>
-                  <td style={{ ...S.td, width: "80px" }}>
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(v)} style={{ color: "#6aad6a" }}><Pencil size={15} /></button>
-                      <button onClick={() => setDeleteTarget(v)} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
-                    </div>
+                  <td style={S.td}><span style={S.statusBadge(v.status || "approved")}>{statusLabel(v.status)}</span></td>
+                  <td style={{ ...S.td, width: "140px" }}>
+                    <ItemActions colName="voice" id={v.id} status={v.status} featured={v.featured} label={v.name} onEdit={() => openEdit(v)} onDelete={() => setDeleteTarget(v)} />
                   </td>
                 </tr>
               ))}
@@ -772,6 +985,108 @@ function VoiceSection() {
       )}
 
       {deleteTarget && <ConfirmDelete label={deleteTarget.name} onConfirm={async () => { await deleteVoiceArtist(deleteTarget.id); setDeleteTarget(null); }} onClose={() => setDeleteTarget(null)} />}
+    </div>
+  );
+}
+
+// ── PROFESSIONALS SECTION ───────────────────────────────────────
+function ProfessionalsSection() {
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [filter, setFilter] = useState<StatusFilter>("all");
+
+  useEffect(() => subscribeToAllProfiles(setProfiles), []);
+
+  const filtered = profiles.filter((p) => {
+    if (filter === "all") return true;
+    if (filter === "pending") return p.status === "pending";
+    return p.status === "approved";
+  });
+
+  const typeLabel: Record<string, string> = {
+    journalist: "صحفي",
+    voice: "منشط صوتي",
+    vendor: "بائع عتاد",
+  };
+
+  const pendingCount = profiles.filter((p) => p.status === "pending").length;
+
+  const [rejectTarget, setRejectTarget] = useState<UserProfile | null>(null);
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>
+          {profiles.length} محترف مسجل{pendingCount > 0 && <span style={{ color: "#fbbf24" }}> ({pendingCount} انتظار)</span>}
+        </span>
+      </div>
+      <StatusTabs value={filter} onChange={setFilter} />
+
+      <div style={S.card} className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr>{["الاسم", "النوع", "التخصص", "الولاية", "الحالة", "مميز", "الإجراءات"].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</td></tr>
+              ) : filtered.map((p) => (
+                <tr key={p.id} className="hover:bg-green-950/20 transition-colors" style={p.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
+                  <td style={S.td}>
+                    <div>{p.name}</div>
+                    <div style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{p.email}</div>
+                  </td>
+                  <td style={S.td}><span style={S.badge("rgba(0,98,51,0.2)")}>{typeLabel[p.type] || p.type}</span></td>
+                  <td style={S.td}>{p.specialty || "—"}</td>
+                  <td style={S.td}>{p.location || "—"}</td>
+                  <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
+                  <td style={S.td}>{p.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
+                  <td style={{ ...S.td, width: "160px" }}>
+                    <div className="flex gap-1.5 justify-end items-center flex-wrap">
+                      <button
+                        onClick={() => toggleFeatured("users", p.id, p.featured)}
+                        title={p.featured ? "إلغاء التمييز" : "تمييز"}
+                        className="p-1.5 rounded transition-colors"
+                        style={{ color: p.featured ? "#fbbf24" : "#4a7a4a", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+                      >
+                        <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
+                      </button>
+                      {p.status !== "approved" && (
+                        <button
+                          onClick={() => approveItem("users", p.id)}
+                          title="موافقة"
+                          className="p-1.5 rounded"
+                          style={{ color: "#4ade80", background: "rgba(0,98,51,0.15)" }}
+                        >
+                          <Check size={14} />
+                        </button>
+                      )}
+                      {p.status !== "rejected" && (
+                        <button
+                          onClick={() => setRejectTarget(p)}
+                          title="رفض"
+                          className="p-1.5 rounded"
+                          style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}
+                        >
+                          <AlertTriangle size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {rejectTarget && (
+        <RejectModal
+          label={rejectTarget.name}
+          onConfirm={async (note) => { await rejectItem("users", rejectTarget.id, note); setRejectTarget(null); }}
+          onClose={() => setRejectTarget(null)}
+        />
+      )}
     </div>
   );
 }

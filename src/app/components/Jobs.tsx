@@ -16,10 +16,11 @@ export default function Jobs() {
   }, []);
 
   const filtered = items.filter((j) => {
+    const isVisible = j.status === "approved" || !j.status;
     const matchSearch = j.title.includes(search) || j.company.includes(search);
     const matchLoc = locationFilter ? j.location === locationFilter : true;
     const matchType = typeFilter ? j.jobType === typeFilter : true;
-    return matchSearch && matchLoc && matchType;
+    return isVisible && matchSearch && matchLoc && matchType;
   });
 
   const wilayas = [...new Set(items.map((j) => j.location).filter(Boolean))];

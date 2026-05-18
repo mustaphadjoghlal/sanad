@@ -4,13 +4,15 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
+  setDoc,
   onSnapshot,
   query,
   orderBy,
-  serverTimestamp,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile } from "./types";
 
 // Generic helpers
 function col(name: string) {
@@ -33,9 +35,24 @@ export function subscribeToCollection<T extends { id: string }>(
   });
 }
 
+// Subscribe to featured items (featured === true AND status === 'approved' or no status)
+export function subscribeToFeatured<T extends { id: string }>(
+  colName: string,
+  callback: (items: T[]) => void
+): () => void {
+  const q = query(col(colName), where("featured", "==", true), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    const items = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as T & { status?: string })
+      )
+      .filter((item) => item.status === "approved" || !item.status);
+    callback(items as T[]);
+  });
+}
+
 // --- COURSES ---
 export async function addCourse(data: Omit<Course, "id" | "createdAt">) {
-  return addDoc(col("courses"), { ...data, createdAt: Date.now() });
+  return addDoc(col("courses"), { ...data, createdAt: Date.now(), status: "approved", featured: false });
 }
 export async function updateCourse(id: string, data: Partial<Omit<Course, "id">>) {
   return updateDoc(docRef("courses", id), data);
@@ -46,7 +63,7 @@ export async function deleteCourse(id: string) {
 
 // --- JOBS ---
 export async function addJob(data: Omit<Job, "id" | "createdAt">) {
-  return addDoc(col("jobs"), { ...data, createdAt: Date.now() });
+  return addDoc(col("jobs"), { ...data, createdAt: Date.now(), status: "approved", featured: false });
 }
 export async function updateJob(id: string, data: Partial<Omit<Job, "id">>) {
   return updateDoc(docRef("jobs", id), data);
@@ -57,7 +74,7 @@ export async function deleteJob(id: string) {
 
 // --- EQUIPMENT ---
 export async function addEquipment(data: Omit<Equipment, "id" | "createdAt">) {
-  return addDoc(col("equipment"), { ...data, createdAt: Date.now() });
+  return addDoc(col("equipment"), { ...data, createdAt: Date.now(), status: "approved", featured: false });
 }
 export async function updateEquipment(id: string, data: Partial<Omit<Equipment, "id">>) {
   return updateDoc(docRef("equipment", id), data);
@@ -68,7 +85,7 @@ export async function deleteEquipment(id: string) {
 
 // --- COMPETITIONS ---
 export async function addCompetition(data: Omit<Competition, "id" | "createdAt">) {
-  return addDoc(col("competitions"), { ...data, createdAt: Date.now() });
+  return addDoc(col("competitions"), { ...data, createdAt: Date.now(), status: "approved", featured: false });
 }
 export async function updateCompetition(id: string, data: Partial<Omit<Competition, "id">>) {
   return updateDoc(docRef("competitions", id), data);
@@ -79,11 +96,74 @@ export async function deleteCompetition(id: string) {
 
 // --- VOICE ARTISTS ---
 export async function addVoiceArtist(data: Omit<VoiceArtist, "id" | "createdAt">) {
-  return addDoc(col("voice"), { ...data, createdAt: Date.now() });
+  return addDoc(col("voice"), { ...data, createdAt: Date.now(), status: "approved", featured: false });
 }
 export async function updateVoiceArtist(id: string, data: Partial<Omit<VoiceArtist, "id">>) {
   return updateDoc(docRef("voice", id), data);
 }
 export async function deleteVoiceArtist(id: string) {
   return deleteDoc(docRef("voice", id));
+}
+
+// --- APPROVAL / REJECTION / FEATURED ---
+export async function approveItem(colName: string, id: string) {
+  return updateDoc(docRef(colName, id), { status: "approved", rejectionNote: "" });
+}
+
+export async function rejectItem(colName: string, id: string, note: string) {
+  return updateDoc(docRef(colName, id), { status: "rejected", rejectionNote: note });
+}
+
+export async function toggleFeatured(colName: string, id: string, current: boolean) {
+  return updateDoc(docRef(colName, id), { featured: !current });
+}
+
+// --- USER PROFILES ---
+export async function saveUserProfile(
+  uid: string,
+  data: Omit<UserProfile, "id" | "createdAt" | "status" | "featured">
+) {
+  const ref = docRef("users", uid);
+  const existing = await getDoc(ref);
+  if (existing.exists()) {
+    // Update existing profile, preserve status if already set
+    return updateDoc(ref, { ...data });
+  } else {
+    return setDoc(ref, {
+      ...data,
+      id: uid,
+      status: "pending",
+      featured: false,
+      createdAt: Date.now(),
+    });
+  }
+}
+
+export async function getUserProfile(uid: string): Promise<UserProfile | null> {
+  const snap = await getDoc(docRef("users", uid));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as UserProfile;
+}
+
+export function subscribeToUserProfile(
+  uid: string,
+  callback: (profile: UserProfile | null) => void
+): () => void {
+  return onSnapshot(docRef("users", uid), (snap) => {
+    if (!snap.exists()) {
+      callback(null);
+    } else {
+      callback({ id: snap.id, ...snap.data() } as UserProfile);
+    }
+  });
+}
+
+export function subscribeToAllProfiles(
+  callback: (profiles: UserProfile[]) => void
+): () => void {
+  const q = query(col("users"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    const profiles = snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile));
+    callback(profiles);
+  });
 }

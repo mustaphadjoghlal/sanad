@@ -8,6 +8,10 @@ export interface Course {
   instructor: string;
   link?: string;
   createdAt: number;
+  status?: 'pending' | 'approved' | 'rejected';
+  featured?: boolean;
+  submittedBy?: string;
+  rejectionNote?: string;
 }
 
 export interface Job {
@@ -20,6 +24,10 @@ export interface Job {
   deadline?: string;
   contact: string;
   createdAt: number;
+  status?: 'pending' | 'approved' | 'rejected';
+  featured?: boolean;
+  submittedBy?: string;
+  rejectionNote?: string;
 }
 
 export interface Equipment {
@@ -32,6 +40,10 @@ export interface Equipment {
   condition: "new" | "used";
   contact: string;
   createdAt: number;
+  status?: 'pending' | 'approved' | 'rejected';
+  featured?: boolean;
+  submittedBy?: string;
+  rejectionNote?: string;
 }
 
 export interface Competition {
@@ -44,6 +56,10 @@ export interface Competition {
   organizer: string;
   link?: string;
   createdAt: number;
+  status?: 'pending' | 'approved' | 'rejected';
+  featured?: boolean;
+  submittedBy?: string;
+  rejectionNote?: string;
 }
 
 export interface VoiceArtist {
@@ -53,5 +69,25 @@ export interface VoiceArtist {
   experience: string;
   description: string;
   contact: string;
+  createdAt: number;
+  status?: 'pending' | 'approved' | 'rejected';
+  featured?: boolean;
+  submittedBy?: string;
+  rejectionNote?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  type: 'journalist' | 'voice' | 'vendor';
+  bio: string;
+  specialty?: string;
+  location?: string;
+  phone?: string;
+  experience?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  featured: boolean;
+  rejectionNote?: string;
   createdAt: number;
 }
