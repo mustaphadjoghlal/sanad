@@ -1110,42 +1110,6 @@ function ProfessionalsSection() {
   );
 }
 
-// ── CHANNELS SEED DATA ──────────────────────────────────────────
-const SEED_CHANNELS: Omit<Channel, "id" | "createdAt">[] = [
-  // TV - وطنية
-  { name: "القناة الأولى", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.entv.dz", email: "webmaster@entv.dz", address: "21 Boulevard des Martyrs, Alger", facebook: "https://www.facebook.com/entvalgerie", youtube: "https://www.youtube.com/@algerie1tv" },
-  { name: "قناة كنال الجزائر", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.canalalgerie.dz", email: "info@canalalgerie.dz", address: "21 Boulevard des Martyrs, Alger", youtube: "https://www.youtube.com/@CanalAlgerie" },
-  { name: "قناة A3 (الجزائر 3)", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.a3.dz", youtube: "https://www.youtube.com/@A3Algerie" },
-  { name: "الجزائر الدولية", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.algerie-internationale.dz" },
-  { name: "الجزائر الرياضية (A4)", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.entv.dz" },
-  // TV - خاصة
-  { name: "الشروق تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.echorouktv.com", email: "contact@echorouktv.com", address: "Route Nationale N°11, Cheraga, Alger", facebook: "https://www.facebook.com/EchourkTV", youtube: "https://www.youtube.com/@EchourkTV" },
-  { name: "نهار تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.ennaharonline.com", facebook: "https://www.facebook.com/EnnaharTV", youtube: "https://www.youtube.com/@EnnaharTV" },
-  { name: "الجزائر تيفي (Dzair TV)", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.dzairtv.com", facebook: "https://www.facebook.com/DzairTV", youtube: "https://www.youtube.com/@DzairTV" },
-  { name: "تيفي البلاد", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 10853 H 27500", website: "https://www.elbilad.net", facebook: "https://www.facebook.com/ElbiladTV", youtube: "https://www.youtube.com/@ElbiladTV" },
-  { name: "هقار تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", website: "https://www.hoggartv.com" },
-  { name: "KBC (كيبي سي)", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", website: "https://www.kbc.dz", facebook: "https://www.facebook.com/KBCTV.Algeria" },
-  { name: "الخبر تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", facebook: "https://www.facebook.com/ElkhabarTV", youtube: "https://www.youtube.com/@ElKhabarTV" },
-  { name: "Numidia News", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", facebook: "https://www.facebook.com/NumidiaNews", youtube: "https://www.youtube.com/@NumidiaNews" },
-  // TV - متخصصة
-  { name: "سميرة تيفي", type: "tv", category: "متخصصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.samiratv.net", facebook: "https://www.facebook.com/SamiraTVofficiel", youtube: "https://www.youtube.com/@SamiraTV" },
-  { name: "الجزائرية للقرآن الكريم", type: "tv", category: "دينية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.entv.dz" },
-  // RADIO - وطنية
-  { name: "الإذاعة الوطنية — الأولى", type: "radio", category: "وطنية", frequency: "AM 531 كيلوهرتز / FM 98.1 الجزائر", website: "https://www.radioalgerie.dz", email: "chaine1@radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger", facebook: "https://www.facebook.com/radioalgerie1" },
-  { name: "إذاعة القبائل — الثانية", type: "radio", category: "وطنية", frequency: "FM 96.5 الجزائر", website: "https://www.radioalgerie.dz", email: "chaine2@radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger" },
-  { name: "إذاعة الثالثة — Chaîne 3", type: "radio", category: "وطنية", frequency: "FM 106.7 الجزائر", website: "https://www.radioalgerie.dz", email: "chaine3@radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger", facebook: "https://www.facebook.com/Chaine3RadioAlgerienne" },
-  { name: "إذاعة القرآن الكريم", type: "radio", category: "دينية", frequency: "FM 97.7 الجزائر", website: "https://www.radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger" },
-  { name: "الإذاعة الدولية الجزائرية", type: "radio", category: "وطنية", frequency: "FM — بث دولي متعدد اللغات", website: "https://www.radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger" },
-  // RADIO - خاصة / محلية
-  { name: "إذاعة البهجة", type: "radio", category: "محلية", frequency: "FM 100.5 الجزائر العاصمة", facebook: "https://www.facebook.com/RadioBahdja", youtube: "https://www.youtube.com/@RadioBahdja" },
-  { name: "جيل إف إم (Jil FM)", type: "radio", category: "خاصة", frequency: "FM 103.5 الجزائر", website: "https://www.jilfm.net", facebook: "https://www.facebook.com/jilfm", youtube: "https://www.youtube.com/@JilFM" },
-  { name: "راديو الشروق", type: "radio", category: "خاصة", frequency: "FM 104.7 الجزائر", website: "https://www.echoroukonline.com", facebook: "https://www.facebook.com/radioechourouk" },
-  { name: "إذاعة وهران الجهوية", type: "radio", category: "محلية", frequency: "FM 100.8 وهران", address: "وهران" },
-  { name: "إذاعة قسنطينة الجهوية", type: "radio", category: "محلية", frequency: "FM 104.2 قسنطينة", address: "قسنطينة" },
-  { name: "إذاعة عنابة الجهوية", type: "radio", category: "محلية", frequency: "FM 105.4 عنابة", address: "عنابة" },
-  { name: "إذاعة تيزي وزو الجهوية", type: "radio", category: "محلية", frequency: "FM 99.2 تيزي وزو", address: "تيزي وزو" },
-];
-
 // ── CHANNELS SECTION ────────────────────────────────────────────
 type ChForm = Omit<Channel, "id" | "createdAt">;
 const emptyChannel: ChForm = { name: "", type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
@@ -1157,7 +1121,6 @@ function ChannelsSection() {
   const [form, setForm] = useState<ChForm>(emptyChannel);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [seeding, setSeeding] = useState(false);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio">("");
 
@@ -1190,16 +1153,6 @@ function ChannelsSection() {
     setShowForm(true);
   };
 
-  const handleSeed = async () => {
-    if (channels.length > 0) return;
-    setSeeding(true);
-    try {
-      await Promise.all(SEED_CHANNELS.map((ch) => addChannel(ch)));
-    } finally {
-      setSeeding(false);
-    }
-  };
-
   const q = search.toLowerCase();
   const filtered = channels.filter((ch) => {
     const matchSearch = !q || ch.name.toLowerCase().includes(q);
@@ -1228,16 +1181,6 @@ function ChannelsSection() {
           <option value="tv">📺 تلفزيون</option>
           <option value="radio">📻 إذاعة</option>
         </select>
-        {channels.length === 0 && (
-          <button
-            onClick={handleSeed}
-            disabled={seeding}
-            className="px-4 py-2 rounded-lg text-sm disabled:opacity-60"
-            style={{ background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)" }}
-          >
-            {seeding ? "جاري الاستيراد..." : "⬇️ استيراد القنوات الافتراضية"}
-          </button>
-        )}
         <button
           onClick={() => { setShowForm(true); setEditId(null); setForm(emptyChannel); }}
           className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm"
@@ -1268,7 +1211,7 @@ function ChannelsSection() {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>
-                    {channels.length === 0 ? 'لا توجد قنوات. اضغط "استيراد القنوات الافتراضية" للبدء.' : "لا توجد نتائج."}
+                    {channels.length === 0 ? 'لا توجد قنوات بعد.' : "لا توجد نتائج."}
                   </td>
                 </tr>
               ) : filtered.map((ch) => (
