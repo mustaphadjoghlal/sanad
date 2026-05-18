@@ -53,7 +53,12 @@ export interface Competition {
   startDate: string;
   endDate: string;
   description: string;
+  content?: string;
   organizer: string;
+  organizerDescription?: string;
+  targetAudience?: string;
+  source?: string;
+  image?: string;
   link?: string;
   createdAt: number;
   status?: 'pending' | 'approved' | 'rejected';

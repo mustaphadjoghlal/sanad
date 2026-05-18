@@ -800,7 +800,7 @@ function EquipmentSection() {
 
 // ── COMPETITIONS SECTION ────────────────────────────────────────
 type CompForm = Omit<Competition, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyComp: CompForm = { name: "", type: "national", startDate: "", endDate: "", description: "", organizer: "", link: "" };
+const emptyComp: CompForm = { name: "", type: "national", startDate: "", endDate: "", description: "", content: "", organizer: "", organizerDescription: "", targetAudience: "", source: "", image: "", link: "" };
 
 function CompetitionsSection() {
   const [items, setItems] = useState<Competition[]>([]);
@@ -820,7 +820,7 @@ function CompetitionsSection() {
   });
 
   const openAdd = () => { setForm(emptyComp); setModal("add"); };
-  const openEdit = (c: Competition) => { setEditId(c.id); setForm({ name: c.name, type: c.type, startDate: c.startDate, endDate: c.endDate, description: c.description, organizer: c.organizer, link: c.link || "" }); setModal("edit"); };
+  const openEdit = (c: Competition) => { setEditId(c.id); setForm({ name: c.name, type: c.type, startDate: c.startDate, endDate: c.endDate, description: c.description, content: c.content || "", organizer: c.organizer, organizerDescription: c.organizerDescription || "", targetAudience: c.targetAudience || "", source: c.source || "", image: c.image || "", link: c.link || "" }); setModal("edit"); };
 
   const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
   const handleSave = async () => {
@@ -887,8 +887,15 @@ function CompetitionsSection() {
               <div><label style={S.label}>تاريخ البداية</label><input type="date" style={S.input} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
               <div><label style={S.label}>تاريخ النهاية</label><input type="date" style={S.input} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
             </div>
-            <div><label style={S.label}>الرابط (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
-            <div><label style={S.label}>الوصف</label><textarea style={{ ...S.input, minHeight: "80px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div><label style={S.label}>صورة الغلاف (رابط)</label><input style={S.input} value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="https://..." dir="ltr" /></div>
+            <div><label style={S.label}>مقدمة / وصف مختصر</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div><label style={S.label}>محتوى المقال</label><textarea style={{ ...S.input, minHeight: "140px", resize: "vertical" }} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="اكتب تفاصيل المسابقة كاملة هنا..." /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label style={S.label}>الفئة المستهدفة</label><input style={S.input} value={form.targetAudience} onChange={(e) => setForm({ ...form, targetAudience: e.target.value })} placeholder="مثال: طلبة جامعيون، صحفيون..." /></div>
+              <div><label style={S.label}>المصدر</label><input style={S.input} value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="مثال: وزارة الاتصال" /></div>
+            </div>
+            <div><label style={S.label}>تعريف الجهة المنظمة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.organizerDescription} onChange={(e) => setForm({ ...form, organizerDescription: e.target.value })} /></div>
+            <div><label style={S.label}>الرابط الرسمي (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." dir="ltr" /></div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">

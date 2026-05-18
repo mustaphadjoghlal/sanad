@@ -5,6 +5,7 @@ import Courses from "./components/Courses";
 import Equipment from "./components/Equipment";
 import Jobs from "./components/Jobs";
 import Competitions from "./components/Competitions";
+import CompetitionDetail from "./components/CompetitionDetail";
 import VoiceRequests from "./components/VoiceRequests";
 import Channels from "./components/Channels";
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: "equipment", Component: Equipment },
       { path: "jobs", Component: Jobs },
       { path: "competitions", Component: Competitions },
+      { path: "competitions/:id", Component: CompetitionDetail },
       { path: "voice-requests", Component: VoiceRequests },
       { path: "channels", Component: Channels },
       { path: "*", Component: NotFound },
