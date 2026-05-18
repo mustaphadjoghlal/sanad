@@ -25,9 +25,9 @@ export default function Courses() {
   });
 
   return (
-    <div style={{ background: "#0b0f0b", minHeight: "100vh" }}>
+    <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
       {/* Page header */}
-      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #060a06 0%, #0b0f0b 100%)", borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
+      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(0,98,51,0.15) 0%, transparent 60%)" }} />
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
@@ -44,7 +44,7 @@ export default function Courses() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Search */}
-        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #0f1a0f, #0b150b)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
+        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "#4a7a4a" }} />
@@ -78,7 +78,7 @@ export default function Courses() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((c, i) => (
-              <div key={c.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #0f1a0f, #0b150b)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
+              <div key={c.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
                 <div className="flex items-start justify-between mb-3">
                   <span style={{ background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "#81c784" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                     {c.type === "free" ? "مجانية" : `${c.price?.toLocaleString()} دج`}

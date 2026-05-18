@@ -30,8 +30,8 @@ export default function AdminLogin() {
       className="min-h-screen flex items-center justify-center p-4"
       dir="rtl"
       style={{
-        background: "radial-gradient(ellipse at 50% 0%, rgba(0,98,51,0.18) 0%, #060a06 60%)",
-        backgroundColor: "#0b0f0b",
+        background: "radial-gradient(ellipse at 50% 0%, rgba(0,98,51,0.18) 0%, #080808 60%)",
+        backgroundColor: "#0e0e0e",
       }}
     >
       {/* Background grid */}
@@ -67,7 +67,7 @@ export default function AdminLogin() {
         <div
           className="rounded-2xl p-8"
           style={{
-            background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+            background: "linear-gradient(145deg, #141414, #101010)",
             border: "1px solid rgba(0,98,51,0.3)",
             boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
           }}

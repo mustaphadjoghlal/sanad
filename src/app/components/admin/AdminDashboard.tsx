@@ -25,7 +25,7 @@ type StatusFilter = "all" | "pending" | "approved";
 // ── Shared styles ───────────────────────────────────────────────
 const S = {
   card: {
-    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+    background: "linear-gradient(145deg, #141414, #101010)",
     border: "1px solid rgba(0,98,51,0.25)",
     borderRadius: "0.75rem",
   } as React.CSSProperties,
@@ -40,7 +40,7 @@ const S = {
     borderBottom: "1px solid rgba(0,98,51,0.08)",
   },
   input: {
-    background: "#111e11", border: "1px solid rgba(0,98,51,0.3)",
+    background: "#161616", border: "1px solid rgba(0,98,51,0.3)",
     color: "#e8f5e9", borderRadius: "0.5rem",
     padding: "0.6rem 0.85rem", width: "100%", fontSize: "0.875rem",
   } as React.CSSProperties,
@@ -247,14 +247,14 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen flex" dir="rtl" style={{ background: "#0b0f0b" }}>
+    <div className="min-h-screen flex" dir="rtl" style={{ background: "#0e0e0e" }}>
       {/* Sidebar */}
       <aside
         className="flex flex-col"
         style={{
           width: sidebarOpen ? "240px" : "64px",
           minHeight: "100vh",
-          background: "linear-gradient(180deg, #0d1a0d 0%, #060a06 100%)",
+          background: "linear-gradient(180deg, #131313 0%, #080808 100%)",
           borderLeft: "1px solid rgba(0,98,51,0.2)",
           transition: "width 0.3s ease",
           flexShrink: 0,

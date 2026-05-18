@@ -69,7 +69,7 @@ export default function Layout() {
   const isLoggedOut = !currentUser;
 
   return (
-    <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0b0f0b" }}>
+    <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0e0e0e" }}>
       {/* Header */}
       <header
         className="sticky top-0 z-50 transition-all duration-300"
@@ -292,7 +292,7 @@ export default function Layout() {
       {/* Footer */}
       <footer
         style={{
-          background: "linear-gradient(180deg, #0b0f0b 0%, #060a06 100%)",
+          background: "linear-gradient(180deg, #0e0e0e 0%, #080808 100%)",
           borderTop: "1px solid rgba(0,98,51,0.2)",
         }}
       >

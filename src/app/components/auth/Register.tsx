@@ -90,11 +90,11 @@ export default function Register() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" dir="rtl" style={{ background: "#0b0f0b" }}>
+      <div className="min-h-screen flex items-center justify-center px-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <div
           className="w-full max-w-md text-center p-8 rounded-2xl animate-fade-in-up"
           style={{
-            background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+            background: "linear-gradient(145deg, #141414, #101010)",
             border: "1px solid rgba(0,163,85,0.35)",
             opacity: 0,
             animationFillMode: "forwards",
@@ -119,7 +119,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" dir="rtl" style={{ background: "#0b0f0b" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12" dir="rtl" style={{ background: "#0e0e0e" }}>
       {/* Background glow */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -154,7 +154,7 @@ export default function Register() {
         <div
           className="rounded-2xl overflow-hidden animate-fade-in-up"
           style={{
-            background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+            background: "linear-gradient(145deg, #141414, #101010)",
             border: "1px solid rgba(0,98,51,0.25)",
             boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
             animationDelay: "0.1s",

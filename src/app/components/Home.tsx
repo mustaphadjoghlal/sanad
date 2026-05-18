@@ -90,12 +90,12 @@ export default function Home() {
   }, []);
 
   return (
-    <div style={{ background: "#0b0f0b", minHeight: "100vh" }}>
+    <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
       {/* Hero Section */}
       <section
         className="relative overflow-hidden py-24 px-4"
         style={{
-          background: "linear-gradient(180deg, #060a06 0%, #0b0f0b 100%)",
+          background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)",
         }}
       >
         {/* Grid background */}
@@ -235,7 +235,7 @@ export default function Home() {
                   key={c.id}
                   className="card-glow rounded-xl p-5 flex-shrink-0 animate-fade-in-up"
                   style={{
-                    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                    background: "linear-gradient(145deg, #141414, #101010)",
                     width: "280px",
                     animationDelay: `${i * 0.07}s`,
                     opacity: 0,
@@ -269,7 +269,7 @@ export default function Home() {
                   key={p.id}
                   className="card-glow rounded-xl p-5 animate-fade-in-up"
                   style={{
-                    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                    background: "linear-gradient(145deg, #141414, #101010)",
                     animationDelay: `${i * 0.07}s`,
                     opacity: 0,
                     animationFillMode: "forwards",
@@ -316,7 +316,7 @@ export default function Home() {
                   key={j.id}
                   className="card-glow rounded-xl p-5 animate-fade-in-up"
                   style={{
-                    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                    background: "linear-gradient(145deg, #141414, #101010)",
                     animationDelay: `${i * 0.07}s`,
                     opacity: 0,
                     animationFillMode: "forwards",
@@ -360,7 +360,7 @@ export default function Home() {
                     key={c.id}
                     className="card-glow rounded-xl p-5 animate-fade-in-up"
                     style={{
-                      background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                      background: "linear-gradient(145deg, #141414, #101010)",
                       animationDelay: `${i * 0.07}s`,
                       opacity: 0,
                       animationFillMode: "forwards",
@@ -411,7 +411,7 @@ export default function Home() {
                   to={feature.link}
                   className="group card-glow rounded-xl p-6 animate-fade-in-up"
                   style={{
-                    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                    background: "linear-gradient(145deg, #141414, #101010)",
                     textDecoration: "none",
                     animationDelay: feature.delay,
                     opacity: 0,
@@ -464,7 +464,7 @@ export default function Home() {
       <section
         className="py-12 px-4"
         style={{
-          background: "linear-gradient(135deg, #060a06, #0b150b)",
+          background: "linear-gradient(135deg, #080808, #101010)",
           borderTop: "1px solid rgba(0,98,51,0.15)",
           borderBottom: "1px solid rgba(0,98,51,0.15)",
         }}

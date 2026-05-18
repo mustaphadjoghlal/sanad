@@ -45,7 +45,7 @@ export default function UserLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" dir="rtl" style={{ background: "#0b0f0b" }}>
+    <div className="min-h-screen flex items-center justify-center px-4" dir="rtl" style={{ background: "#0e0e0e" }}>
       {/* Background glow */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -80,7 +80,7 @@ export default function UserLogin() {
         <div
           className="rounded-2xl p-8 animate-fade-in-up"
           style={{
-            background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+            background: "linear-gradient(145deg, #141414, #101010)",
             border: "1px solid rgba(0,98,51,0.25)",
             boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
             animationDelay: "0.1s",

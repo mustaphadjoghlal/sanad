@@ -6,7 +6,7 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f0b;
+  background: #0e0e0e;
 }
 ::-webkit-scrollbar-thumb {
   background: #006233;
@@ -169,11 +169,11 @@
 
 /* DZ green gradient backgrounds */
 .bg-dz-gradient {
-  background: linear-gradient(135deg, #060a06 0%, #0b1a0b 50%, #060a06 100%);
+  background: linear-gradient(135deg, #080808 0%, #0b1a0b 50%, #080808 100%);
 }
 
 .bg-dz-card {
-  background: linear-gradient(145deg, #0f1a0f, #0b150b);
+  background: linear-gradient(145deg, #141414, #101010);
 }
 
 /* Noise texture overlay for depth */
@@ -227,7 +227,7 @@
 
 /* Input dark style */
 .input-dz {
-  background: #0f1a0f;
+  background: #141414;
   border: 1px solid rgba(0, 98, 51, 0.3);
   color: #e8f5e9;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -245,14 +245,14 @@
 
 /* Select dark style */
 .select-dz {
-  background: #0f1a0f;
+  background: #141414;
   border: 1px solid rgba(0, 98, 51, 0.3);
   color: #e8f5e9;
   transition: border-color 0.3s ease;
 }
 
 .select-dz option {
-  background: #0f1a0f;
+  background: #141414;
   color: #e8f5e9;
 }
 

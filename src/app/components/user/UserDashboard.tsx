@@ -37,12 +37,12 @@ const statusLabel: Record<string, string> = {
 
 const S = {
   card: {
-    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+    background: "linear-gradient(145deg, #141414, #101010)",
     border: "1px solid rgba(0,98,51,0.25)",
     borderRadius: "0.75rem",
   } as React.CSSProperties,
   input: {
-    background: "#111e11",
+    background: "#161616",
     border: "1px solid rgba(0,98,51,0.3)",
     color: "#e8f5e9",
     borderRadius: "0.5rem",
@@ -208,7 +208,7 @@ export default function UserDashboard() {
 
   if (authLoading || !profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center" dir="rtl" style={{ background: "#0b0f0b" }}>
+      <div className="min-h-screen flex items-center justify-center" dir="rtl" style={{ background: "#0e0e0e" }}>
         <div style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
       </div>
     );
@@ -217,7 +217,7 @@ export default function UserDashboard() {
   const TypeIcon = typeIcon[profile.type] || User;
 
   return (
-    <div className="min-h-screen" dir="rtl" style={{ background: "#0b0f0b" }}>
+    <div className="min-h-screen" dir="rtl" style={{ background: "#0e0e0e" }}>
       {/* Header */}
       <div
         className="px-6 py-4 flex items-center justify-between"
