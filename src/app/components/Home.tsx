@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
-import { BookOpen, ShoppingCart, Briefcase, Trophy, Mic, ArrowLeft } from "lucide-react";
+import { BookOpen, ShoppingCart, Briefcase, Trophy, Mic, ArrowLeft, MapPin, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { subscribeToFeatured, subscribeToCollection } from "../../lib/firestore";
+import type { Course, Job, Competition, UserProfile } from "../../lib/types";
 
 const features = [
   {
@@ -39,7 +42,53 @@ const features = [
   },
 ];
 
+const typeLabel: Record<string, string> = {
+  journalist: "صحفي",
+  voice: "منشط صوتي",
+  vendor: "بائع عتاد",
+};
+
+function SectionHeader({ title, link, linkLabel }: { title: string; link: string; linkLabel: string }) {
+  return (
+    <div className="flex items-center justify-between mb-8">
+      <div>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: "#e8f5e9" }}>{title}</h2>
+        <div className="h-px w-20" style={{ background: "linear-gradient(90deg, #006233, #00a355, transparent)" }} />
+      </div>
+      <Link
+        to={link}
+        className="flex items-center gap-1.5 text-sm transition-colors"
+        style={{ color: "#006233", textDecoration: "none" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#00a355"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#006233"; }}
+      >
+        <span>{linkLabel}</span>
+        <ArrowLeft size={14} />
+      </Link>
+    </div>
+  );
+}
+
 export default function Home() {
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
+  const [featuredProfiles, setFeaturedProfiles] = useState<UserProfile[]>([]);
+  const [featuredJobs, setFeaturedJobs] = useState<Job[]>([]);
+  const [upcomingCompetitions, setUpcomingCompetitions] = useState<Competition[]>([]);
+
+  useEffect(() => {
+    const unsubs = [
+      subscribeToFeatured<Course>("courses", setFeaturedCourses),
+      subscribeToFeatured<UserProfile>("users", setFeaturedProfiles),
+      subscribeToFeatured<Job>("jobs", (jobs) => setFeaturedJobs(jobs.slice(0, 3))),
+      subscribeToCollection<Competition>("competitions", (comps) => {
+        const approved = comps.filter((c) => c.status === "approved" || !c.status);
+        const sorted = [...approved].sort((a, b) => a.startDate.localeCompare(b.startDate));
+        setUpcomingCompetitions(sorted.slice(0, 3));
+      }),
+    ];
+    return () => unsubs.forEach((u) => u());
+  }, []);
+
   return (
     <div style={{ background: "#0b0f0b", minHeight: "100vh" }}>
       {/* Hero Section */}
@@ -144,7 +193,7 @@ export default function Home() {
               <ArrowLeft size={18} />
             </Link>
             <Link
-              to="/jobs"
+              to="/register"
               className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-medium transition-all duration-300"
               style={{
                 border: "1px solid rgba(0,98,51,0.4)",
@@ -161,7 +210,7 @@ export default function Home() {
                 (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,98,51,0.4)";
               }}
             >
-              اكتشف الفرص
+              انضم الآن
             </Link>
           </div>
         </div>
@@ -174,6 +223,164 @@ export default function Home() {
           }}
         />
       </section>
+
+      {/* Featured Courses */}
+      {featuredCourses.length > 0 && (
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+          <div className="container mx-auto">
+            <SectionHeader title="الدورات المميزة" link="/courses" linkLabel="عرض الكل" />
+            <div className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,98,51,0.3) transparent" }}>
+              {featuredCourses.map((c, i) => (
+                <div
+                  key={c.id}
+                  className="card-glow rounded-xl p-5 flex-shrink-0 animate-fade-in-up"
+                  style={{
+                    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                    width: "280px",
+                    animationDelay: `${i * 0.07}s`,
+                    opacity: 0,
+                    animationFillMode: "forwards",
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span style={{ background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "#81c784" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                      {c.type === "free" ? "مجانية" : `${c.price?.toLocaleString()} دج`}
+                    </span>
+                    {c.duration && <span style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{c.duration}</span>}
+                  </div>
+                  <h3 className="font-semibold mb-1" style={{ color: "#c8e6c9" }}>{c.title}</h3>
+                  <p style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>المدرب: {c.instructor}</p>
+                  {c.description && <p style={{ color: "#3a5e3a", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.5rem" }}>{c.description.slice(0, 80)}{c.description.length > 80 ? "..." : ""}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Professionals */}
+      {featuredProfiles.length > 0 && (
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+          <div className="container mx-auto">
+            <SectionHeader title="محترفون مميزون" link="/voice-requests" linkLabel="عرض الكل" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {featuredProfiles.map((p, i) => (
+                <div
+                  key={p.id}
+                  className="card-glow rounded-xl p-5 animate-fade-in-up"
+                  style={{
+                    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                    animationDelay: `${i * 0.07}s`,
+                    opacity: 0,
+                    animationFillMode: "forwards",
+                  }}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}
+                    >
+                      <span style={{ color: "#00a355", fontSize: "1rem", fontWeight: 700 }}>
+                        {p.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{p.name}</h3>
+                      <span style={{ background: "rgba(0,98,51,0.2)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>
+                        {typeLabel[p.type] || p.type}
+                      </span>
+                    </div>
+                  </div>
+                  {p.specialty && <p style={{ color: "#6aad6a", fontSize: "0.8rem", marginBottom: "0.25rem" }}>{p.specialty}</p>}
+                  {p.location && (
+                    <div className="flex items-center gap-1" style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>
+                      <MapPin size={12} />
+                      <span>{p.location}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Jobs */}
+      {featuredJobs.length > 0 && (
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+          <div className="container mx-auto">
+            <SectionHeader title="أحدث الفرص" link="/jobs" linkLabel="عرض الكل" />
+            <div className="space-y-4">
+              {featuredJobs.map((j, i) => (
+                <div
+                  key={j.id}
+                  className="card-glow rounded-xl p-5 animate-fade-in-up"
+                  style={{
+                    background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                    animationDelay: `${i * 0.07}s`,
+                    opacity: 0,
+                    animationFillMode: "forwards",
+                  }}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold mb-1" style={{ color: "#c8e6c9" }}>{j.title}</h3>
+                      <p style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{j.company}</p>
+                      <div className="flex flex-wrap gap-3 mt-1 text-xs" style={{ color: "#4a7a4a" }}>
+                        {j.location && <span className="flex items-center gap-1"><MapPin size={11} />{j.location}</span>}
+                        {j.jobType && <span style={{ background: "rgba(0,98,51,0.2)", padding: "0.1rem 0.45rem", borderRadius: "9999px", color: "#81c784" }}>{j.jobType}</span>}
+                        {j.deadline && <span className="flex items-center gap-1"><Calendar size={11} />آخر أجل: {j.deadline}</span>}
+                      </div>
+                    </div>
+                    {j.contact && (
+                      <div style={{ border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.4rem 0.85rem", color: "#6aad6a", fontSize: "0.8rem", whiteSpace: "nowrap", flexShrink: 0 }}>
+                        {j.contact}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Upcoming Competitions */}
+      {upcomingCompetitions.length > 0 && (
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+          <div className="container mx-auto">
+            <SectionHeader title="مسابقات قادمة" link="/competitions" linkLabel="عرض الكل" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {upcomingCompetitions.map((c, i) => {
+                const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "rgba(0,98,51,0.3)", international: "rgba(120,66,18,0.3)" };
+                const typeColor2: Record<string, string> = { university: "#7fb3d3", national: "#81c784", international: "#f0b27a" };
+                const typeLabelMap: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
+                return (
+                  <div
+                    key={c.id}
+                    className="card-glow rounded-xl p-5 animate-fade-in-up"
+                    style={{
+                      background: "linear-gradient(145deg, #0f1a0f, #0b150b)",
+                      animationDelay: `${i * 0.07}s`,
+                      opacity: 0,
+                      animationFillMode: "forwards",
+                    }}
+                  >
+                    <span style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor2[c.type] || "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                      {typeLabelMap[c.type]}
+                    </span>
+                    <h3 className="font-semibold mt-3 mb-1" style={{ color: "#c8e6c9" }}>{c.name}</h3>
+                    <p style={{ color: "#6aad6a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{c.organizer}</p>
+                    <div className="flex gap-3 text-xs" style={{ color: "#4a7a4a" }}>
+                      {c.startDate && <span className="flex items-center gap-1"><Calendar size={11} />{c.startDate}</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Features Section */}
       <section className="py-20 px-4">

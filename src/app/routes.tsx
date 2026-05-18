@@ -8,6 +8,9 @@ import Competitions from "./components/Competitions";
 import VoiceRequests from "./components/VoiceRequests";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/AdminLogin";
+import Register from "./components/auth/Register";
+import UserLogin from "./components/auth/UserLogin";
+import UserDashboard from "./components/user/UserDashboard";
 import NotFound from "./components/NotFound";
 
 export const router = createBrowserRouter([
@@ -31,5 +34,17 @@ export const router = createBrowserRouter([
   {
     path: "/sanad-admin/dashboard",
     Component: AdminDashboard,
+  },
+  {
+    path: "/register",
+    Component: Register,
+  },
+  {
+    path: "/login",
+    Component: UserLogin,
+  },
+  {
+    path: "/user/dashboard",
+    Component: UserDashboard,
   },
 ]);

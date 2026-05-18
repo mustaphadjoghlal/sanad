@@ -1,11 +1,18 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, X, Radio } from "lucide-react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Radio, LogOut, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../../lib/firebase";
+import { subscribeToUserProfile } from "../../lib/firestore";
+import type { UserProfile } from "../../lib/types";
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ uid: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null | "admin">(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navLinks = [
     { to: "/", label: "الرئيسية" },
@@ -25,6 +32,41 @@ export default function Layout() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user ? { uid: user.uid } : null);
+      if (!user) {
+        setUserProfile(null);
+      }
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setUserProfile(null);
+      return;
+    }
+    const unsub = subscribeToUserProfile(currentUser.uid, (profile) => {
+      if (profile) {
+        setUserProfile(profile);
+      } else {
+        // No profile doc in users/ = admin user
+        setUserProfile("admin");
+      }
+    });
+    return unsub;
+  }, [currentUser]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/");
+  };
+
+  const isRegularUser = userProfile && userProfile !== "admin";
+  const isAdmin = userProfile === "admin" && currentUser;
+  const isLoggedOut = !currentUser;
 
   return (
     <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0b0f0b" }}>
@@ -111,6 +153,60 @@ export default function Layout() {
               })}
             </nav>
 
+            {/* Right side: Auth buttons */}
+            <div className="hidden md:flex items-center gap-2">
+              {isLoggedOut && (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-4 py-1.5 rounded-lg text-sm transition-all duration-200"
+                    style={{
+                      color: "#81c784",
+                      border: "1px solid rgba(0,98,51,0.35)",
+                      textDecoration: "none",
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.12)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >
+                    دخول
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="btn-dz px-4 py-1.5 rounded-lg text-sm"
+                    style={{ textDecoration: "none" }}
+                  >
+                    تسجيل
+                  </Link>
+                </>
+              )}
+              {isRegularUser && (
+                <>
+                  <Link
+                    to="/user/dashboard"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
+                    style={{ color: "#81c784", border: "1px solid rgba(0,98,51,0.35)", textDecoration: "none" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.12)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >
+                    <LayoutDashboard size={14} />
+                    <span>لوحتي</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                    style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}
+                  >
+                    <LogOut size={14} />
+                    <span>خروج</span>
+                  </button>
+                </>
+              )}
+              {isAdmin && (
+                // Admin has separate UI, show nothing in public nav
+                null
+              )}
+            </div>
+
             {/* Mobile menu button */}
             <button
               className="md:hidden p-2 rounded-lg transition-all duration-200"
@@ -151,6 +247,31 @@ export default function Layout() {
                   </Link>
                 );
               })}
+              {/* Mobile auth */}
+              <div className="mt-2 pt-2 flex flex-col gap-1.5" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
+                {isLoggedOut && (
+                  <>
+                    <Link to="/login" className="px-4 py-2.5 rounded-lg text-sm text-center" style={{ color: "#81c784", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
+                      دخول
+                    </Link>
+                    <Link to="/register" className="btn-dz px-4 py-2.5 rounded-lg text-sm text-center" style={{ textDecoration: "none" }}>
+                      تسجيل
+                    </Link>
+                  </>
+                )}
+                {isRegularUser && (
+                  <>
+                    <Link to="/user/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "#81c784", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
+                      <LayoutDashboard size={14} />
+                      <span>لوحتي</span>
+                    </Link>
+                    <button onClick={handleLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
+                      <LogOut size={14} />
+                      <span>خروج</span>
+                    </button>
+                  </>
+                )}
+              </div>
             </nav>
           )}
         </div>

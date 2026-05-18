@@ -15,9 +15,10 @@ export default function EquipmentPage() {
   }, []);
 
   const filtered = items.filter((eq) => {
+    const isVisible = eq.status === "approved" || !eq.status;
     const matchSearch = eq.name.includes(search) || eq.description.includes(search);
     const matchCat = catFilter ? eq.category === catFilter : true;
-    return matchSearch && matchCat;
+    return isVisible && matchSearch && matchCat;
   });
 
   const categories = [...new Set(items.map((eq) => eq.category).filter(Boolean))];
