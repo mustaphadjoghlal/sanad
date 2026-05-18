@@ -6,6 +6,7 @@ import Equipment from "./components/Equipment";
 import Jobs from "./components/Jobs";
 import Competitions from "./components/Competitions";
 import VoiceRequests from "./components/VoiceRequests";
+import Channels from "./components/Channels";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/AdminLogin";
 import Register from "./components/auth/Register";
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: "jobs", Component: Jobs },
       { path: "competitions", Component: Competitions },
       { path: "voice-requests", Component: VoiceRequests },
+      { path: "channels", Component: Channels },
       { path: "*", Component: NotFound },
     ],
   },

@@ -16,6 +16,7 @@ export default function Layout() {
 
   const navLinks = [
     { to: "/", label: "الرئيسية" },
+    { to: "/channels", label: "دليل القنوات" },
     { to: "/courses", label: "الدورات التدريبية" },
     { to: "/equipment", label: "متجر العتاد" },
     { to: "/jobs", label: "عروض التوظيف" },

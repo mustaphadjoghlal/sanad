@@ -92,6 +92,23 @@ export const DEFAULT_THEME: ThemeSettings = {
   textColor: "#e8f5e9",
 };
 
+export interface Channel {
+  id: string;
+  name: string;
+  type: 'tv' | 'radio';
+  category: 'وطنية' | 'خاصة' | 'محلية' | 'دينية' | 'متخصصة';
+  frequency?: string;
+  email?: string;
+  address?: string;
+  website?: string;
+  phone?: string;
+  facebook?: string;
+  youtube?: string;
+  instagram?: string;
+  twitter?: string;
+  createdAt: number;
+}
+
 export interface UserProfile {
   id: string;
   email: string;

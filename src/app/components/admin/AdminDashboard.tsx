@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette,
+  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -18,12 +18,13 @@ import {
   approveItem, rejectItem, toggleFeatured,
   saveThemeSettings, subscribeToTheme,
   getUserProfile,
+  addChannel, updateChannel, deleteChannel, subscribeToChannels,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings } from "../../../lib/types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel } from "../../../lib/types";
 import { DEFAULT_THEME } from "../../../lib/types";
 
-type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "appearance" | "settings";
+type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "appearance" | "settings";
 type StatusFilter = "all" | "pending" | "approved";
 
 // ── Shared styles ───────────────────────────────────────────────
@@ -252,6 +253,7 @@ export default function AdminDashboard() {
     { id: "competitions" as Section, label: "المسابقات", icon: Trophy },
     { id: "voice"    as Section, label: "المنشطون",  icon: Mic },
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
+    { id: "channels"     as Section, label: "القنوات",   icon: Tv },
     { id: "appearance"   as Section, label: "المظهر",    icon: Palette },
     { id: "settings"     as Section, label: "الإعدادات", icon: Settings },
   ];
@@ -352,6 +354,7 @@ export default function AdminDashboard() {
           {activeSection === "competitions"   && <CompetitionsSection />}
           {activeSection === "voice"          && <VoiceSection />}
           {activeSection === "professionals"  && <ProfessionalsSection />}
+          {activeSection === "channels"       && <ChannelsSection />}
           {activeSection === "appearance"     && <AppearanceSection />}
           {activeSection === "settings"       && <SettingsSection />}
         </div>
@@ -1101,6 +1104,280 @@ function ProfessionalsSection() {
           label={rejectTarget.name}
           onConfirm={async (note) => { await rejectItem("users", rejectTarget.id, note); setRejectTarget(null); }}
           onClose={() => setRejectTarget(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── CHANNELS SEED DATA ──────────────────────────────────────────
+const SEED_CHANNELS: Omit<Channel, "id" | "createdAt">[] = [
+  // TV - وطنية
+  { name: "القناة الأولى", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.entv.dz", email: "webmaster@entv.dz", address: "21 Boulevard des Martyrs, Alger", facebook: "https://www.facebook.com/entvalgerie", youtube: "https://www.youtube.com/@algerie1tv" },
+  { name: "قناة كنال الجزائر", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.canalalgerie.dz", email: "info@canalalgerie.dz", address: "21 Boulevard des Martyrs, Alger", youtube: "https://www.youtube.com/@CanalAlgerie" },
+  { name: "قناة A3 (الجزائر 3)", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.a3.dz", youtube: "https://www.youtube.com/@A3Algerie" },
+  { name: "الجزائر الدولية", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.algerie-internationale.dz" },
+  { name: "الجزائر الرياضية (A4)", type: "tv", category: "وطنية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.entv.dz" },
+  // TV - خاصة
+  { name: "الشروق تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.echorouktv.com", email: "contact@echorouktv.com", address: "Route Nationale N°11, Cheraga, Alger", facebook: "https://www.facebook.com/EchourkTV", youtube: "https://www.youtube.com/@EchourkTV" },
+  { name: "نهار تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.ennaharonline.com", facebook: "https://www.facebook.com/EnnaharTV", youtube: "https://www.youtube.com/@EnnaharTV" },
+  { name: "الجزائر تيفي (Dzair TV)", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.dzairtv.com", facebook: "https://www.facebook.com/DzairTV", youtube: "https://www.youtube.com/@DzairTV" },
+  { name: "تيفي البلاد", type: "tv", category: "خاصة", frequency: "Nilesat 7°W — 10853 H 27500", website: "https://www.elbilad.net", facebook: "https://www.facebook.com/ElbiladTV", youtube: "https://www.youtube.com/@ElbiladTV" },
+  { name: "هقار تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", website: "https://www.hoggartv.com" },
+  { name: "KBC (كيبي سي)", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", website: "https://www.kbc.dz", facebook: "https://www.facebook.com/KBCTV.Algeria" },
+  { name: "الخبر تيفي", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", facebook: "https://www.facebook.com/ElkhabarTV", youtube: "https://www.youtube.com/@ElKhabarTV" },
+  { name: "Numidia News", type: "tv", category: "خاصة", frequency: "Nilesat 7°W", facebook: "https://www.facebook.com/NumidiaNews", youtube: "https://www.youtube.com/@NumidiaNews" },
+  // TV - متخصصة
+  { name: "سميرة تيفي", type: "tv", category: "متخصصة", frequency: "Nilesat 7°W — 11938 H 27500", website: "https://www.samiratv.net", facebook: "https://www.facebook.com/SamiraTVofficiel", youtube: "https://www.youtube.com/@SamiraTV" },
+  { name: "الجزائرية للقرآن الكريم", type: "tv", category: "دينية", frequency: "Arabsat BADR-4 26°E — 11785 H 27500", website: "https://www.entv.dz" },
+  // RADIO - وطنية
+  { name: "الإذاعة الوطنية — الأولى", type: "radio", category: "وطنية", frequency: "AM 531 كيلوهرتز / FM 98.1 الجزائر", website: "https://www.radioalgerie.dz", email: "chaine1@radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger", facebook: "https://www.facebook.com/radioalgerie1" },
+  { name: "إذاعة القبائل — الثانية", type: "radio", category: "وطنية", frequency: "FM 96.5 الجزائر", website: "https://www.radioalgerie.dz", email: "chaine2@radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger" },
+  { name: "إذاعة الثالثة — Chaîne 3", type: "radio", category: "وطنية", frequency: "FM 106.7 الجزائر", website: "https://www.radioalgerie.dz", email: "chaine3@radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger", facebook: "https://www.facebook.com/Chaine3RadioAlgerienne" },
+  { name: "إذاعة القرآن الكريم", type: "radio", category: "دينية", frequency: "FM 97.7 الجزائر", website: "https://www.radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger" },
+  { name: "الإذاعة الدولية الجزائرية", type: "radio", category: "وطنية", frequency: "FM — بث دولي متعدد اللغات", website: "https://www.radioalgerie.dz", address: "21 Boulevard des Martyrs, Alger" },
+  // RADIO - خاصة / محلية
+  { name: "إذاعة البهجة", type: "radio", category: "محلية", frequency: "FM 100.5 الجزائر العاصمة", facebook: "https://www.facebook.com/RadioBahdja", youtube: "https://www.youtube.com/@RadioBahdja" },
+  { name: "جيل إف إم (Jil FM)", type: "radio", category: "خاصة", frequency: "FM 103.5 الجزائر", website: "https://www.jilfm.net", facebook: "https://www.facebook.com/jilfm", youtube: "https://www.youtube.com/@JilFM" },
+  { name: "راديو الشروق", type: "radio", category: "خاصة", frequency: "FM 104.7 الجزائر", website: "https://www.echoroukonline.com", facebook: "https://www.facebook.com/radioechourouk" },
+  { name: "إذاعة وهران الجهوية", type: "radio", category: "محلية", frequency: "FM 100.8 وهران", address: "وهران" },
+  { name: "إذاعة قسنطينة الجهوية", type: "radio", category: "محلية", frequency: "FM 104.2 قسنطينة", address: "قسنطينة" },
+  { name: "إذاعة عنابة الجهوية", type: "radio", category: "محلية", frequency: "FM 105.4 عنابة", address: "عنابة" },
+  { name: "إذاعة تيزي وزو الجهوية", type: "radio", category: "محلية", frequency: "FM 99.2 تيزي وزو", address: "تيزي وزو" },
+];
+
+// ── CHANNELS SECTION ────────────────────────────────────────────
+type ChForm = Omit<Channel, "id" | "createdAt">;
+const emptyChannel: ChForm = { name: "", type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
+
+function ChannelsSection() {
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState<ChForm>(emptyChannel);
+  const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio">("");
+
+  useEffect(() => {
+    return subscribeToChannels(setChannels);
+  }, []);
+
+  const cf = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return;
+    setSaving(true);
+    try {
+      if (editId) {
+        await updateChannel(editId, form);
+      } else {
+        await addChannel(form);
+      }
+      setShowForm(false);
+      setEditId(null);
+      setForm(emptyChannel);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEdit = (ch: Channel) => {
+    setForm({ name: ch.name, type: ch.type, category: ch.category, frequency: ch.frequency || "", email: ch.email || "", address: ch.address || "", website: ch.website || "", phone: ch.phone || "", facebook: ch.facebook || "", youtube: ch.youtube || "", instagram: ch.instagram || "", twitter: ch.twitter || "" });
+    setEditId(ch.id);
+    setShowForm(true);
+  };
+
+  const handleSeed = async () => {
+    if (channels.length > 0) return;
+    setSeeding(true);
+    try {
+      await Promise.all(SEED_CHANNELS.map((ch) => addChannel(ch)));
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const q = search.toLowerCase();
+  const filtered = channels.filter((ch) => {
+    const matchSearch = !q || ch.name.toLowerCase().includes(q);
+    const matchType = !typeFilter || ch.type === typeFilter;
+    return matchSearch && matchType;
+  });
+
+  const inputStyle = S.input;
+  const labelStyle = S.label;
+
+  return (
+    <div className="space-y-5">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[200px] relative">
+          <input
+            type="text"
+            placeholder="بحث عن قناة..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ ...inputStyle, paddingRight: "2.5rem" }}
+          />
+        </div>
+        <select style={{ ...inputStyle, width: "140px" }} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as "" | "tv" | "radio")}>
+          <option value="">الكل</option>
+          <option value="tv">📺 تلفزيون</option>
+          <option value="radio">📻 إذاعة</option>
+        </select>
+        {channels.length === 0 && (
+          <button
+            onClick={handleSeed}
+            disabled={seeding}
+            className="px-4 py-2 rounded-lg text-sm disabled:opacity-60"
+            style={{ background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)" }}
+          >
+            {seeding ? "جاري الاستيراد..." : "⬇️ استيراد القنوات الافتراضية"}
+          </button>
+        )}
+        <button
+          onClick={() => { setShowForm(true); setEditId(null); setForm(emptyChannel); }}
+          className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm"
+        >
+          <Plus size={15} />
+          <span>إضافة قناة</span>
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="flex gap-4 text-sm" style={{ color: "#4a7a4a" }}>
+        <span>📺 {channels.filter((c) => c.type === "tv").length} قناة تلفزيونية</span>
+        <span>📻 {channels.filter((c) => c.type === "radio").length} محطة إذاعية</span>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-xl overflow-hidden" style={S.card}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr>
+                {["القناة", "النوع", "التردد", "البريد", "الإجراءات"].map((h) => (
+                  <th key={h} style={S.th}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>
+                    {channels.length === 0 ? 'لا توجد قنوات. اضغط "استيراد القنوات الافتراضية" للبدء.' : "لا توجد نتائج."}
+                  </td>
+                </tr>
+              ) : filtered.map((ch) => (
+                <tr key={ch.id} className="hover:bg-green-950/10 transition-colors">
+                  <td style={S.td}>
+                    <div className="font-medium" style={{ color: "#c8e6c9" }}>{ch.name}</div>
+                    <div style={{ color: "#4a7a4a", fontSize: "0.72rem" }}>{ch.category}</div>
+                  </td>
+                  <td style={S.td}>
+                    <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "#00a355" : "#64b5f6" }}>
+                      {ch.type === "tv" ? "📺 تلفزيون" : "📻 إذاعة"}
+                    </span>
+                  </td>
+                  <td style={{ ...S.td, fontFamily: "monospace", fontSize: "0.78rem", color: "#81c784" }} dir="ltr">
+                    {ch.frequency || "—"}
+                  </td>
+                  <td style={{ ...S.td, fontSize: "0.78rem" }} dir="ltr">{ch.email || "—"}</td>
+                  <td style={S.td}>
+                    <div className="flex gap-2">
+                      <button onClick={() => startEdit(ch)} style={{ color: "#81c784" }}><Pencil size={15} /></button>
+                      <button onClick={() => setDeleteId(ch.id)} style={{ color: "#f87171" }}><Trash2 size={15} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {showForm && (
+        <Modal title={editId ? "تعديل القناة" : "إضافة قناة"} onClose={() => { setShowForm(false); setEditId(null); }}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label style={labelStyle}>اسم القناة *</label>
+                <input style={inputStyle} value={form.name} onChange={(e) => cf("name", e.target.value)} placeholder="مثال: الشروق تيفي" />
+              </div>
+              <div>
+                <label style={labelStyle}>النوع</label>
+                <select style={inputStyle} value={form.type} onChange={(e) => cf("type", e.target.value)}>
+                  <option value="tv">📺 تلفزيون</option>
+                  <option value="radio">📻 إذاعة</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>الفئة</label>
+                <select style={inputStyle} value={form.category} onChange={(e) => cf("category", e.target.value)}>
+                  <option value="وطنية">وطنية</option>
+                  <option value="خاصة">خاصة</option>
+                  <option value="محلية">محلية</option>
+                  <option value="دينية">دينية</option>
+                  <option value="متخصصة">متخصصة</option>
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label style={labelStyle}>التردد</label>
+                <input style={inputStyle} value={form.frequency} onChange={(e) => cf("frequency", e.target.value)} placeholder="مثال: Nilesat 7°W — 10853 H 27500 أو FM 106.7 الجزائر" dir="ltr" />
+              </div>
+              <div>
+                <label style={labelStyle}>البريد الإلكتروني</label>
+                <input style={inputStyle} value={form.email} onChange={(e) => cf("email", e.target.value)} dir="ltr" />
+              </div>
+              <div>
+                <label style={labelStyle}>الهاتف</label>
+                <input style={inputStyle} value={form.phone} onChange={(e) => cf("phone", e.target.value)} dir="ltr" />
+              </div>
+              <div className="col-span-2">
+                <label style={labelStyle}>العنوان</label>
+                <input style={inputStyle} value={form.address} onChange={(e) => cf("address", e.target.value)} />
+              </div>
+              <div className="col-span-2">
+                <label style={labelStyle}>الموقع الإلكتروني</label>
+                <input style={inputStyle} value={form.website} onChange={(e) => cf("website", e.target.value)} dir="ltr" placeholder="https://..." />
+              </div>
+              <div>
+                <label style={labelStyle}>فيسبوك</label>
+                <input style={inputStyle} value={form.facebook} onChange={(e) => cf("facebook", e.target.value)} dir="ltr" placeholder="https://facebook.com/..." />
+              </div>
+              <div>
+                <label style={labelStyle}>يوتيوب</label>
+                <input style={inputStyle} value={form.youtube} onChange={(e) => cf("youtube", e.target.value)} dir="ltr" placeholder="https://youtube.com/..." />
+              </div>
+              <div>
+                <label style={labelStyle}>إنستغرام</label>
+                <input style={inputStyle} value={form.instagram} onChange={(e) => cf("instagram", e.target.value)} dir="ltr" placeholder="https://instagram.com/..." />
+              </div>
+              <div>
+                <label style={labelStyle}>تويتر/X</label>
+                <input style={inputStyle} value={form.twitter} onChange={(e) => cf("twitter", e.target.value)} dir="ltr" placeholder="https://x.com/..." />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button onClick={() => { setShowForm(false); setEditId(null); }} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={handleSave} disabled={saving || !form.name.trim()} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
+                <span>{saving ? "جاري الحفظ..." : editId ? "حفظ التعديلات" : "إضافة"}</span>
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Delete confirm */}
+      {deleteId && (
+        <ConfirmDelete
+          label={channels.find((c) => c.id === deleteId)?.name || ""}
+          onConfirm={async () => { await deleteChannel(deleteId); setDeleteId(null); }}
+          onClose={() => setDeleteId(null)}
         />
       )}
     </div>

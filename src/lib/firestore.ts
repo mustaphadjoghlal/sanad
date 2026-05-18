@@ -12,7 +12,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel } from "./types";
 import { DEFAULT_THEME } from "./types";
 
 // Generic helpers
@@ -161,6 +161,23 @@ export function subscribeToUserProfile(
 
 export async function resubmitProfile(uid: string): Promise<void> {
   return updateDoc(doc(db, "users", uid), { status: "pending", rejectionNote: "" });
+}
+
+// --- CHANNELS ---
+export async function addChannel(data: Omit<Channel, "id" | "createdAt">) {
+  return addDoc(col("channels"), { ...data, createdAt: Date.now() });
+}
+export async function updateChannel(id: string, data: Partial<Omit<Channel, "id">>) {
+  return updateDoc(docRef("channels", id), data);
+}
+export async function deleteChannel(id: string) {
+  return deleteDoc(docRef("channels", id));
+}
+export function subscribeToChannels(callback: (items: Channel[]) => void): () => void {
+  const q = query(col("channels"), orderBy("name", "asc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Channel)));
+  });
 }
 
 export function subscribeToAllProfiles(
