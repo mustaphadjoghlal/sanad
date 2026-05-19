@@ -28,9 +28,9 @@ export default function UserLogin() {
       if (profile) {
         navigate("/user/dashboard");
       } else {
-        // Admin or no profile - redirect to admin
-        setError("هذا الحساب ليس حساب مستخدم عادي. جرّب لوحة الإدارة.");
+        setError("لم يكتمل تسجيل حسابك. يرجى التسجيل مجدداً بنفس البريد الإلكتروني.");
         await auth.signOut();
+        await cred.user.delete().catch(() => {});
       }
     } catch (err: unknown) {
       const e = err as { code?: string };

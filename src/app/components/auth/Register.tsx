@@ -140,13 +140,16 @@ export default function Register() {
     }
 
     setSaving(true);
+    let createdUser = null;
     try {
       const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      createdUser = cred.user;
       const uid = cred.user.uid;
 
+      // Photo upload is best-effort — don't block registration if it fails
       let photoUrl: string | undefined;
       if (photoFile) {
-        photoUrl = await uploadProfilePhoto(uid, photoFile);
+        photoUrl = await uploadProfilePhoto(uid, photoFile).catch(() => undefined);
       }
 
       const accountType: AccountType =
@@ -164,21 +167,19 @@ export default function Register() {
       };
 
       if (mainType === "individual") {
-        const individualProfile = {
+        await saveUserProfile(uid, {
           ...baseProfile,
           achievements: form.achievements || undefined,
           portfolio: portfolioLinks.length > 0 ? portfolioLinks : undefined,
           experience: individualSubType !== "student" ? (form.experience || undefined) : undefined,
           otherType: individualSubType === "other" ? form.otherTypeText || undefined : undefined,
-        };
-        await saveUserProfile(uid, individualProfile);
+        });
       } else {
-        const storeProfile = {
+        await saveUserProfile(uid, {
           ...baseProfile,
           storeStatus: form.storePlan as "trial" | "paid",
           whatsapp: form.whatsapp || undefined,
-        };
-        await saveUserProfile(uid, storeProfile);
+        });
       }
 
       setSuccess(true);
@@ -190,9 +191,8 @@ export default function Register() {
       } else if (e.code === "auth/invalid-email") {
         setError("البريد الإلكتروني غير صالح");
       } else {
-        // Delete the created auth user so they can retry with same email
-        if (auth.currentUser) {
-          await deleteUser(auth.currentUser).catch(() => {});
+        if (createdUser) {
+          await deleteUser(createdUser).catch(() => {});
         }
         setError(e.message ?? "حدث خطأ. يرجى المحاولة مجدداً.");
       }
