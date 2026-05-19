@@ -1774,8 +1774,7 @@ function ChannelsSection() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio" | "website">("");
-  const [catFilter, setCatFilter] = useState("");
+  const [tabFilter, setTabFilter] = useState<"tv" | "electronic" | "radio" | "news" | "club">("tv");
 
   useEffect(() => {
     return subscribeToChannels((data) => {
@@ -1830,63 +1829,69 @@ function ChannelsSection() {
     setShowForm(true);
   };
 
+  const chTabFn: Record<typeof tabFilter, (c: Channel) => boolean> = {
+    tv:         (c) => c.type === "tv",
+    electronic: (c) => c.category === "قنوات الكترونية",
+    radio:      (c) => c.type === "radio",
+    news:       (c) => (c.type === "website" || (c.type !== "tv" && c.type !== "radio")) && c.category !== "قنوات الكترونية" && c.category !== "نوادي إعلامية",
+    club:       (c) => c.category === "نوادي إعلامية",
+  };
+  const chTabs: { key: typeof tabFilter; label: string; icon: string }[] = [
+    { key: "tv",         label: "قنوات تلفزيونية", icon: "📺" },
+    { key: "electronic", label: "قنوات الكترونية",  icon: "📡" },
+    { key: "radio",      label: "محطات إذاعية",    icon: "📻" },
+    { key: "news",       label: "مواقع إخبارية",   icon: "🌐" },
+    { key: "club",       label: "نوادي إعلامية",   icon: "🎙️" },
+  ];
+
   const q = search.toLowerCase();
   const filtered = channels.filter((ch) => {
+    const matchTab = chTabFn[tabFilter](ch);
     const matchSearch = !q || ch.name.toLowerCase().includes(q);
-    const matchType = !typeFilter || ch.type === typeFilter;
-    const matchCat = !catFilter || ch.category === catFilter;
-    return matchSearch && matchType && matchCat;
+    return matchTab && matchSearch;
   });
 
   const inputStyle = S.input;
   const labelStyle = S.label;
 
   return (
-    <div className="space-y-5">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-[200px] relative">
-          <input
-            type="text"
-            placeholder="بحث عن قناة..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ ...inputStyle, paddingRight: "2.5rem" }}
-          />
-        </div>
-        <select style={{ ...inputStyle, width: "140px" }} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as "" | "tv" | "radio" | "website")}>
-          <option value="">الكل</option>
-          <option value="tv">📺 تلفزيون</option>
-          <option value="radio">📻 إذاعة</option>
-          <option value="website">🌐 مواقع إلكترونية</option>
-        </select>
-        <select style={{ ...inputStyle, width: "160px" }} value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
-          <option value="">كل التصنيفات</option>
-          <option value="وطنية">وطنية</option>
-          <option value="خاصة">خاصة</option>
-          <option value="محلية">محلية</option>
-          <option value="دينية">دينية</option>
-          <option value="متخصصة">متخصصة</option>
-          <option value="إخبارية">إخبارية</option>
-          <option value="رياضية">رياضية</option>
-          <option value="ثقافية">ثقافية</option>
-          <option value="قنوات الكترونية">قنوات الكترونية</option>
-          <option value="نوادي إعلامية">نوادي إعلامية</option>
-        </select>
-        <button
-          onClick={() => { setShowForm(true); setEditId(null); setForm(emptyChannel); }}
-          className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm"
-        >
-          <Plus size={15} />
-          <span>إضافة قناة</span>
-        </button>
+    <div className="space-y-4">
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2">
+        {chTabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => { setTabFilter(t.key); setSearch(""); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{
+              background: tabFilter === t.key ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-10)",
+              color: tabFilter === t.key ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
+              border: tabFilter === t.key ? "none" : "1px solid var(--p-20)",
+            }}
+          >
+            <span>{t.icon}</span>
+            <span>{t.label}</span>
+            <span style={{ opacity: 0.7, fontSize: "0.75rem" }}>({channels.filter(chTabFn[t.key]).length})</span>
+          </button>
+        ))}
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-4 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-        <span>📺 {channels.filter((c) => c.type === "tv").length} قناة تلفزيونية</span>
-        <span>📻 {channels.filter((c) => c.type === "radio").length} محطة إذاعية</span>
-        <span>🌐 {channels.filter((c) => c.type === "website").length} موقع إخباري</span>
+      {/* Search + Add */}
+      <div className="flex gap-3">
+        <input
+          type="text"
+          placeholder="بحث..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ ...inputStyle, flex: 1 }}
+        />
+        <button
+          onClick={() => { setShowForm(true); setEditId(null); setForm(emptyChannel); }}
+          className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm flex-shrink-0"
+        >
+          <Plus size={15} />
+          <span>إضافة</span>
+        </button>
       </div>
 
       {/* Table / Cards */}
