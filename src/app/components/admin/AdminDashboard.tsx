@@ -1527,6 +1527,22 @@ function ChannelsSection() {
   useEffect(() => {
     return subscribeToChannels((data) => {
       setChannels(data);
+
+      // Auto-deduplicate: keep only the first occurrence of each (name+type) pair
+      const seen = new Map<string, boolean>();
+      const toDelete: string[] = [];
+      for (const ch of data) {
+        const key = `${ch.name.trim().toLowerCase()}__${ch.type}`;
+        if (seen.has(key)) {
+          toDelete.push(ch.id);
+        } else {
+          seen.set(key, true);
+        }
+      }
+      if (toDelete.length > 0) {
+        toDelete.forEach((id) => deleteChannel(id));
+      }
+
       // Auto-seed websites once if none exist yet
       const hasWebsites = data.some((c) => c.type !== "tv" && c.type !== "radio");
       if (!hasWebsites && !localStorage.getItem("sanad-websites-seeded")) {
