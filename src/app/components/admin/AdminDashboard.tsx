@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv,
+  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -26,7 +26,7 @@ import { uploadImage } from "../../../lib/storage";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
 
-type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "appearance" | "settings";
+type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "appearance" | "content" | "settings";
 type StatusFilter = "all" | "pending" | "approved";
 
 // ── Shared styles ───────────────────────────────────────────────
@@ -256,8 +256,9 @@ export default function AdminDashboard() {
     { id: "voice"    as Section, label: "المنشطون",  icon: Mic },
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
     { id: "channels"     as Section, label: "القنوات",   icon: Tv },
-    { id: "appearance"   as Section, label: "المظهر",    icon: Palette },
-    { id: "settings"     as Section, label: "الإعدادات", icon: Settings },
+    { id: "appearance"   as Section, label: "المظهر",        icon: Palette },
+    { id: "content"      as Section, label: "محتوى الصفحة", icon: FileText },
+    { id: "settings"     as Section, label: "الإعدادات",    icon: Settings },
   ];
 
   const handleLogout = async () => {
@@ -358,6 +359,7 @@ export default function AdminDashboard() {
           {activeSection === "professionals"  && <ProfessionalsSection />}
           {activeSection === "channels"       && <ChannelsSection />}
           {activeSection === "appearance"     && <AppearanceSection />}
+          {activeSection === "content"        && <SiteContentSection />}
           {activeSection === "settings"       && <SettingsSection />}
         </div>
       </main>
@@ -1545,6 +1547,103 @@ function ChannelsSection() {
           onClose={() => setDeleteId(null)}
         />
       )}
+    </div>
+  );
+}
+
+// ── SITE CONTENT ────────────────────────────────────────────────
+const CONTENT_FIELDS: { key: keyof SiteContent; label: string; multiline?: boolean }[] = [
+  { key: "siteName",       label: "اسم الموقع" },
+  { key: "heroBadge",      label: "نص الشارة (Hero Badge)" },
+  { key: "heroTitle",      label: "بداية العنوان الرئيسي" },
+  { key: "heroSubtitle",   label: "العنوان الفرعي" },
+  { key: "heroDescription",label: "وصف الصفحة الرئيسية", multiline: true },
+  { key: "heroCta1",       label: "زر الاستكشاف" },
+  { key: "heroCta2",       label: "زر الانضمام (Hero)" },
+  { key: "servicesLabel",  label: "تسمية قسم الخدمات" },
+  { key: "servicesTitle",  label: "عنوان قسم الخدمات" },
+  { key: "ctaTitle",       label: "عنوان قسم الانضمام" },
+  { key: "ctaSubtitle",    label: "وصف قسم الانضمام", multiline: true },
+  { key: "ctaButton",      label: "زر الانضمام" },
+  { key: "ctaButton2",     label: "زر تصفح الدورات" },
+];
+
+const contentInputStyle: React.CSSProperties = {
+  width: "100%",
+  background: "var(--p-08)",
+  border: "1px solid var(--p-25)",
+  borderRadius: "8px",
+  padding: "8px 12px",
+  color: "var(--theme-text)",
+  fontSize: "0.9rem",
+  outline: "none",
+};
+
+function SiteContentSection() {
+  const [contentForm, setContentForm] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribeToSiteContent((c) => setContentForm(c));
+    return unsub;
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await saveSiteContent(contentForm);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+    setSaving(false);
+  };
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      <div className="rounded-xl p-6" style={S.card}>
+        <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1.25rem" }}>
+          تعديل نصوص الصفحة الرئيسية
+        </h3>
+        <div className="space-y-5">
+          {CONTENT_FIELDS.map(({ key, label, multiline }) => (
+            <div key={key}>
+              <label style={S.label}>{label}</label>
+              {multiline ? (
+                <textarea
+                  rows={3}
+                  value={contentForm[key]}
+                  onChange={(e) => setContentForm({ ...contentForm, [key]: e.target.value })}
+                  style={{ ...contentInputStyle, resize: "vertical" }}
+                  dir="rtl"
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={contentForm[key]}
+                  onChange={(e) => setContentForm({ ...contentForm, [key]: e.target.value })}
+                  style={contentInputStyle}
+                  dir="rtl"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="btn-dz flex-1 py-3 rounded-xl font-medium disabled:opacity-60"
+        >
+          <span>{saved ? "✓ تم الحفظ!" : saving ? "جاري الحفظ..." : "حفظ النصوص"}</span>
+        </button>
+        <button
+          onClick={() => setContentForm(DEFAULT_SITE_CONTENT)}
+          className="px-6 py-3 rounded-xl text-sm"
+          style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary, #6aad6a)" }}
+        >
+          إعادة الافتراضي
+        </button>
+      </div>
     </div>
   );
 }
