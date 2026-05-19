@@ -1558,7 +1558,7 @@ const COLOR_OPTIONS = [
 ] as const;
 
 const PRESETS: { label: string; theme: ThemeSettings }[] = [
-  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "var(--theme-text, #e8f5e9)" } },
+  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "#e8f5e9" } },
   { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00", textColor: "#f5ede0" } },
   { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc", textColor: "#e0f0ff" } },
   { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888", textColor: "#dddddd" } },

@@ -214,14 +214,14 @@ export default function Register() {
           className="w-full max-w-md text-center p-8 rounded-2xl animate-fade-in-up"
           style={{
             background: "linear-gradient(145deg, #141414, #101010)",
-            border: "1px solid rgba(0,163,85,0.35)",
+            border: "1px solid var(--p-35)",
             opacity: 0,
             animationFillMode: "forwards",
           }}
         >
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ background: "var(--p-20)", border: "2px solid rgba(0,163,85,0.5)" }}
+            style={{ background: "var(--p-20)", border: "2px solid var(--p-40)" }}
           >
             <Check size={36} style={{ color: "var(--theme-accent, #00a355)" }} />
           </div>
@@ -328,7 +328,7 @@ export default function Register() {
                         ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                         : "rgba(0,0,0,0.2)",
                       border: mainType === "individual"
-                        ? "2px solid rgba(0,163,85,0.6)"
+                        ? "2px solid var(--p-60)"
                         : "1px solid var(--p-20)",
                       cursor: "pointer",
                     }}
@@ -337,7 +337,7 @@ export default function Register() {
                       className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                       style={{
                         background: mainType === "individual" ? "rgba(0,163,85,0.25)" : "var(--p-15)",
-                        border: `1px solid ${mainType === "individual" ? "rgba(0,163,85,0.5)" : "var(--p-30)"}`,
+                        border: `1px solid ${mainType === "individual" ? "var(--p-40)" : "var(--p-30)"}`,
                       }}
                     >
                       <User size={22} style={{ color: mainType === "individual" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
@@ -357,7 +357,7 @@ export default function Register() {
                         ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                         : "rgba(0,0,0,0.2)",
                       border: mainType === "store"
-                        ? "2px solid rgba(0,163,85,0.6)"
+                        ? "2px solid var(--p-60)"
                         : "1px solid var(--p-20)",
                       cursor: "pointer",
                     }}
@@ -366,7 +366,7 @@ export default function Register() {
                       className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                       style={{
                         background: mainType === "store" ? "rgba(0,163,85,0.25)" : "var(--p-15)",
-                        border: `1px solid ${mainType === "store" ? "rgba(0,163,85,0.5)" : "var(--p-30)"}`,
+                        border: `1px solid ${mainType === "store" ? "var(--p-40)" : "var(--p-30)"}`,
                       }}
                     >
                       <Store size={22} style={{ color: mainType === "store" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
@@ -393,7 +393,7 @@ export default function Register() {
                               ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))"
                               : "var(--p-12)",
                             border: individualSubType === type
-                              ? "1px solid rgba(0,163,85,0.7)"
+                              ? "1px solid var(--p-60)"
                               : "1px solid var(--p-30)",
                             color: individualSubType === type ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
                             cursor: "pointer",
@@ -430,7 +430,7 @@ export default function Register() {
                             ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                             : "rgba(0,0,0,0.2)",
                           border: form.storePlan === "trial"
-                            ? "2px solid rgba(0,163,85,0.6)"
+                            ? "2px solid var(--p-60)"
                             : "1px solid var(--p-20)",
                           cursor: "pointer",
                         }}
@@ -448,7 +448,7 @@ export default function Register() {
                             ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                             : "rgba(0,0,0,0.2)",
                           border: form.storePlan === "paid"
-                            ? "2px solid rgba(0,163,85,0.6)"
+                            ? "2px solid var(--p-60)"
                             : "1px solid var(--p-20)",
                           cursor: "pointer",
                         }}
@@ -586,7 +586,7 @@ export default function Register() {
                             src={photoPreview}
                             alt="preview"
                             className="w-16 h-16 rounded-full object-cover"
-                            style={{ border: "2px solid rgba(0,163,85,0.5)" }}
+                            style={{ border: "2px solid var(--p-40)" }}
                           />
                         ) : (
                           <div

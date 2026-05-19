@@ -207,7 +207,7 @@ export default function Home() {
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.background = "var(--p-12)";
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,163,85,0.6)";
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--p-60)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.background = "transparent";
