@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight } from "lucide-react";
+import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight, Globe } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Job } from "../../lib/types";
@@ -129,6 +129,12 @@ export default function JobDetail() {
               <span style={{ color: "#4a7a4a" }}>التواصل:</span> {j.contact}
             </div>
           )}
+          {j.source && (
+            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+              <Globe size={15} style={{ color: "#00a355" }} />
+              <span style={{ color: "#4a7a4a" }}>المصدر:</span> {j.source}
+            </div>
+          )}
         </div>
 
         {/* Content images gallery */}
@@ -151,6 +157,20 @@ export default function JobDetail() {
                 />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Company description */}
+        {j.companyDescription && (
+          <div
+            className="p-5 rounded-xl mb-6"
+            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 size={16} style={{ color: "#00a355" }} />
+              <h3 className="font-semibold" style={{ color: "#c8e6c9" }}>عن {j.company}</h3>
+            </div>
+            <p className="text-sm leading-relaxed" style={{ color: "#6aad6a" }}>{j.companyDescription}</p>
           </div>
         )}
 

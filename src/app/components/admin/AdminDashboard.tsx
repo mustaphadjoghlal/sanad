@@ -626,7 +626,7 @@ function CoursesSection() {
 
 // ── JOBS SECTION ────────────────────────────────────────────────
 type JobForm = Omit<Job, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", description: "", deadline: "", contact: "", image: "", contentImages: [] };
+const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", description: "", deadline: "", contact: "", source: "", companyDescription: "", image: "", contentImages: [] };
 
 function JobsSection() {
   const [items, setItems] = useState<Job[]>([]);
@@ -649,7 +649,7 @@ function JobsSection() {
   });
 
   const openAdd = () => { setForm(emptyJob); setModal("add"); };
-  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, description: j.description, deadline: j.deadline || "", contact: j.contact, image: j.image || "", contentImages: j.contentImages || [] }); setModal("edit"); };
+  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, description: j.description, deadline: j.deadline || "", contact: j.contact, source: j.source || "", companyDescription: j.companyDescription || "", image: j.image || "", contentImages: j.contentImages || [] }); setModal("edit"); };
 
   const handleImageUpload = async (file: File) => {
     setImgUploading(true);
@@ -745,7 +745,9 @@ function JobsSection() {
               <div><label style={S.label}>الموعد النهائي</label><input type="date" style={S.input} value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>
             </div>
             <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} placeholder="بريد / هاتف" /></div>
+            <div><label style={S.label}>المصدر</label><input style={S.input} value={form.source || ""} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="مثال: وزارة الاتصال، موقع LinkedIn..." /></div>
             <div><label style={S.label}>تفاصيل الوظيفة</label><textarea style={{ ...S.input, minHeight: "80px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div><label style={S.label}>تعريف بالجهة المُوظِّفة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.companyDescription || ""} onChange={(e) => setForm({ ...form, companyDescription: e.target.value })} placeholder="نبذة عن المؤسسة أو القناة أو الجهة..." /></div>
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

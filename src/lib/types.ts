@@ -25,6 +25,8 @@ export interface Job {
   description: string;
   deadline?: string;
   contact: string;
+  source?: string;
+  companyDescription?: string;
   image?: string;
   contentImages?: string[];
   createdAt: number;
