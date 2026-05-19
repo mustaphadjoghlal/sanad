@@ -17,13 +17,14 @@ import {
   addVoiceArtist, updateVoiceArtist, deleteVoiceArtist,
   approveItem, rejectItem, toggleFeatured,
   saveThemeSettings, subscribeToTheme,
+  saveSiteContent, subscribeToSiteContent,
   getUserProfile,
   addChannel, updateChannel, deleteChannel, subscribeToChannels,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel } from "../../../lib/types";
-import { DEFAULT_THEME } from "../../../lib/types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent } from "../../../lib/types";
+import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
 
 type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "appearance" | "settings";
 type StatusFilter = "all" | "pending" | "approved";

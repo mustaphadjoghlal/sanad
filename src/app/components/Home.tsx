@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { BookOpen, ShoppingCart, Briefcase, Trophy, Mic, ArrowLeft, MapPin, Calendar, Camera, Radio, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { subscribeToFeatured, subscribeToCollection } from "../../lib/firestore";
-import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist } from "../../lib/types";
+import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent } from "../../lib/firestore";
+import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist, SiteContent } from "../../lib/types";
+import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
 const services = [
   { icon: BookOpen,    title: "الدورات التدريبية",    desc: "دورات مجانية ومدفوعة في جميع مجالات الإعلام",       link: "/courses",        delay: "0.05s" },
@@ -71,6 +72,7 @@ export default function Home() {
   const [featuredEquipment,  setFeaturedEquipment]  = useState<Equipment[]>([]);
   const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
   const [upcomingComps,      setUpcomingComps]      = useState<Competition[]>([]);
+  const [content,            setContent]            = useState<SiteContent>(DEFAULT_SITE_CONTENT);
 
   useEffect(() => {
     const unsubs = [
@@ -83,6 +85,7 @@ export default function Home() {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
         setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 3));
       }),
+      subscribeToSiteContent(setContent),
     ];
     return () => unsubs.forEach((u) => u());
   }, []);
@@ -134,7 +137,7 @@ export default function Home() {
             style={{ border: "1px solid var(--p-30)", background: "var(--p-08)", color: "var(--theme-accent)", fontSize: "0.78rem" }}
           >
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--theme-accent)" }} />
-            المنصة الجزائرية الإعلامية الشاملة
+            {content.heroBadge}
           </div>
 
           {/* Heading */}
@@ -142,11 +145,11 @@ export default function Home() {
             className="font-black mb-6 animate-fade-in-up"
             style={{ fontSize: "clamp(2.8rem, 8vw, 5.5rem)", lineHeight: 1.1, color: "var(--theme-text, #e8f5e9)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}
           >
-            منصة{" "}
-            <span className="text-shimmer">سند</span>
+            {content.heroTitle}{" "}
+            <span className="text-shimmer">{content.siteName}</span>
             <br />
             <span style={{ fontSize: "clamp(1.4rem, 4vw, 2.5rem)", fontWeight: 400, color: "var(--theme-text-secondary)" }}>
-              لكل إعلامي جزائري
+              {content.heroSubtitle}
             </span>
           </h1>
 
@@ -155,13 +158,13 @@ export default function Home() {
             className="max-w-xl mx-auto mb-10 animate-fade-in-up"
             style={{ fontSize: "1.05rem", color: "var(--theme-text-secondary)", lineHeight: 1.8, animationDelay: "0.22s", opacity: 0, animationFillMode: "forwards" }}
           >
-            دورات تدريبية، فرص عمل، معدات، مسابقات، ومنشطون —<br />كل ما تحتاجه في مكان واحد
+            {content.heroDescription}
           </p>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-in-up" style={{ animationDelay: "0.35s", opacity: 0, animationFillMode: "forwards" }}>
             <Link to="/courses" className="btn-dz inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-base" style={{ textDecoration: "none" }}>
-              <span>ابدأ الاستكشاف</span>
+              <span>{content.heroCta1}</span>
               <ArrowLeft size={18} />
             </Link>
             <Link
@@ -172,7 +175,7 @@ export default function Home() {
               onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "transparent"; el.style.borderColor = "var(--p-40)"; }}
             >
               <Users size={17} />
-              انضم إلى سند
+              {content.heroCta2}
             </Link>
           </div>
 
@@ -212,8 +215,8 @@ export default function Home() {
       <section className="py-20 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>ما الذي تجده في سند؟</p>
-            <h2 className="text-3xl font-bold" style={{ color: "var(--theme-text)" }}>خدمات المنصة</h2>
+            <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>{content.servicesLabel}</p>
+            <h2 className="text-3xl font-bold" style={{ color: "var(--theme-text)" }}>{content.servicesTitle}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {services.map((s) => {
@@ -462,15 +465,15 @@ export default function Home() {
             <Radio size={28} color="#fff" />
           </div>
           <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--theme-text)" }}>
-            انضم إلى مجتمع سند
+            {content.ctaTitle}
           </h2>
           <p className="mb-8" style={{ color: "var(--theme-text-secondary)", fontSize: "1rem", lineHeight: 1.8 }}>
-            سجّل حسابك المجاني الآن وكن جزءاً من أول منصة إعلامية جزائرية شاملة
+            {content.ctaSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/register" className="btn-dz inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold" style={{ textDecoration: "none" }}>
               <Users size={17} />
-              <span>إنشاء حساب مجاني</span>
+              <span>{content.ctaButton}</span>
             </Link>
             <Link
               to="/courses"
@@ -479,7 +482,7 @@ export default function Home() {
               onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "var(--p-10)"; el.style.borderColor = "var(--p-50)"; }}
               onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = ""; el.style.borderColor = "var(--p-30)"; }}
             >
-              تصفح الدورات
+              {content.ctaButton2}
             </Link>
           </div>
         </div>

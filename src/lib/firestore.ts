@@ -12,8 +12,8 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel } from "./types";
-import { DEFAULT_THEME } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent } from "./types";
+import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
 // Generic helpers
 function col(name: string) {
@@ -214,6 +214,23 @@ export function subscribeToTheme(callback: (theme: ThemeSettings) => void): () =
       callback(DEFAULT_THEME);
     } else {
       callback({ ...DEFAULT_THEME, ...(snap.data() as Partial<ThemeSettings>) });
+    }
+  });
+}
+
+// --- SITE CONTENT ---
+const CONTENT_DOC = () => doc(db, "settings", "content");
+
+export async function saveSiteContent(content: SiteContent): Promise<void> {
+  await setDoc(CONTENT_DOC(), content);
+}
+
+export function subscribeToSiteContent(callback: (content: SiteContent) => void): () => void {
+  return onSnapshot(CONTENT_DOC(), (snap) => {
+    if (!snap.exists()) {
+      callback(DEFAULT_SITE_CONTENT);
+    } else {
+      callback({ ...DEFAULT_SITE_CONTENT, ...(snap.data() as Partial<SiteContent>) });
     }
   });
 }

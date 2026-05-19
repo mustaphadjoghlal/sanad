@@ -109,6 +109,38 @@ export const DEFAULT_THEME: ThemeSettings = {
   cardTextColor: "#c8e6c9",
 };
 
+export interface SiteContent {
+  siteName: string;
+  heroBadge: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroDescription: string;
+  heroCta1: string;
+  heroCta2: string;
+  servicesLabel: string;
+  servicesTitle: string;
+  ctaTitle: string;
+  ctaSubtitle: string;
+  ctaButton: string;
+  ctaButton2: string;
+}
+
+export const DEFAULT_SITE_CONTENT: SiteContent = {
+  siteName: "سند",
+  heroBadge: "المنصة الجزائرية الإعلامية الشاملة",
+  heroTitle: "منصة",
+  heroSubtitle: "لكل إعلامي جزائري",
+  heroDescription: "دورات تدريبية، فرص عمل، معدات، مسابقات، ومنشطون — كل ما تحتاجه في مكان واحد",
+  heroCta1: "ابدأ الاستكشاف",
+  heroCta2: "انضم إلى سند",
+  servicesLabel: "ما الذي تجده في سند؟",
+  servicesTitle: "خدمات المنصة",
+  ctaTitle: "انضم إلى مجتمع سند",
+  ctaSubtitle: "سجّل حسابك المجاني الآن وكن جزءاً من أول منصة إعلامية جزائرية شاملة",
+  ctaButton: "إنشاء حساب مجاني",
+  ctaButton2: "تصفح الدورات",
+};
+
 export interface Channel {
   id: string;
   name: string;
