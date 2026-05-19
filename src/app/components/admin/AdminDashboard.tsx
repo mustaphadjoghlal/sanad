@@ -581,6 +581,34 @@ function CoursesSection() {
             </div>
             <div><label style={S.label}>وصف الدورة</label><textarea style={{ ...S.input, minHeight: "80px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div><label style={S.label}>رابط الدورة (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
+            <div>
+              <label style={S.label}>صورة الغلاف</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
+                  {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
+                </label>
+              </div>
+            </div>
+            <div>
+              <label style={S.label}>صور المحتوى</label>
+              {form.contentImages && form.contentImages.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {form.contentImages.map((img, idx) => (
+                    <div key={idx} style={{ position: "relative" }}>
+                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
+                        style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
+                {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
+              </label>
+            </div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
@@ -598,7 +626,7 @@ function CoursesSection() {
 
 // ── JOBS SECTION ────────────────────────────────────────────────
 type JobForm = Omit<Job, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", description: "", deadline: "", contact: "" };
+const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", description: "", deadline: "", contact: "", image: "", contentImages: [] };
 
 function JobsSection() {
   const [items, setItems] = useState<Job[]>([]);
@@ -608,6 +636,9 @@ function JobsSection() {
   const [deleteTarget, setDeleteTarget] = useState<Job | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [imgUploading, setImgUploading] = useState(false);
+  const [imgProgress, setImgProgress] = useState(0);
+  const [contentImgUploading, setContentImgUploading] = useState(false);
 
   useEffect(() => subscribeToCollection<Job>("jobs", setItems), []);
 
@@ -618,7 +649,28 @@ function JobsSection() {
   });
 
   const openAdd = () => { setForm(emptyJob); setModal("add"); };
-  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, description: j.description, deadline: j.deadline || "", contact: j.contact }); setModal("edit"); };
+  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, description: j.description, deadline: j.deadline || "", contact: j.contact, image: j.image || "", contentImages: j.contentImages || [] }); setModal("edit"); };
+
+  const handleImageUpload = async (file: File) => {
+    setImgUploading(true);
+    setImgProgress(0);
+    try {
+      const url = await uploadImage("jobs", file, setImgProgress);
+      setForm((f) => ({ ...f, image: url }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setImgUploading(false); }
+  };
+
+  const handleContentImageUpload = async (file: File) => {
+    setContentImgUploading(true);
+    try {
+      const url = await uploadImage("jobs/content", file);
+      setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setContentImgUploading(false); }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -694,6 +746,34 @@ function JobsSection() {
             </div>
             <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} placeholder="بريد / هاتف" /></div>
             <div><label style={S.label}>تفاصيل الوظيفة</label><textarea style={{ ...S.input, minHeight: "80px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div>
+              <label style={S.label}>صورة الغلاف</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
+                  {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
+                </label>
+              </div>
+            </div>
+            <div>
+              <label style={S.label}>صور المحتوى</label>
+              {form.contentImages && form.contentImages.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {form.contentImages.map((img, idx) => (
+                    <div key={idx} style={{ position: "relative" }}>
+                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
+                        style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
+                {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
+              </label>
+            </div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
@@ -711,7 +791,7 @@ function JobsSection() {
 
 // ── EQUIPMENT SECTION ───────────────────────────────────────────
 type EquipmentForm = Omit<Equipment, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyEquip: EquipmentForm = { name: "", category: "", price: 0, seller: "", description: "", condition: "used", contact: "" };
+const emptyEquip: EquipmentForm = { name: "", category: "", price: 0, seller: "", description: "", condition: "used", contact: "", image: "", contentImages: [] };
 
 function EquipmentSection() {
   const [items, setItems] = useState<Equipment[]>([]);
@@ -721,6 +801,9 @@ function EquipmentSection() {
   const [deleteTarget, setDeleteTarget] = useState<Equipment | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [imgUploading, setImgUploading] = useState(false);
+  const [imgProgress, setImgProgress] = useState(0);
+  const [contentImgUploading, setContentImgUploading] = useState(false);
 
   useEffect(() => subscribeToCollection<Equipment>("equipment", setItems), []);
 
@@ -731,7 +814,28 @@ function EquipmentSection() {
   });
 
   const openAdd = () => { setForm(emptyEquip); setModal("add"); };
-  const openEdit = (eq: Equipment) => { setEditId(eq.id); setForm({ name: eq.name, category: eq.category, price: eq.price, seller: eq.seller, description: eq.description, condition: eq.condition, contact: eq.contact }); setModal("edit"); };
+  const openEdit = (eq: Equipment) => { setEditId(eq.id); setForm({ name: eq.name, category: eq.category, price: eq.price, seller: eq.seller, description: eq.description, condition: eq.condition, contact: eq.contact, image: eq.image || "", contentImages: eq.contentImages || [] }); setModal("edit"); };
+
+  const handleImageUpload = async (file: File) => {
+    setImgUploading(true);
+    setImgProgress(0);
+    try {
+      const url = await uploadImage("equipment", file, setImgProgress);
+      setForm((f) => ({ ...f, image: url }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setImgUploading(false); }
+  };
+
+  const handleContentImageUpload = async (file: File) => {
+    setContentImgUploading(true);
+    try {
+      const url = await uploadImage("equipment/content", file);
+      setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setContentImgUploading(false); }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -808,6 +912,34 @@ function EquipmentSection() {
             </div>
             <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
             <div><label style={S.label}>الوصف</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div>
+              <label style={S.label}>صورة الغلاف</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
+                  {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
+                </label>
+              </div>
+            </div>
+            <div>
+              <label style={S.label}>صور المحتوى</label>
+              {form.contentImages && form.contentImages.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {form.contentImages.map((img, idx) => (
+                    <div key={idx} style={{ position: "relative" }}>
+                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
+                        style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
+                {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
+              </label>
+            </div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
