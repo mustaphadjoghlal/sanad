@@ -59,6 +59,7 @@ export default function Register() {
   const [mainType, setMainType] = useState<MainType>(null);
   const [individualSubType, setIndividualSubType] = useState<IndividualSubType>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -149,7 +150,7 @@ export default function Register() {
       // Photo upload is best-effort — don't block registration if it fails
       let photoUrl: string | undefined;
       if (photoFile) {
-        photoUrl = await uploadProfilePhoto(uid, photoFile).catch(() => undefined);
+        photoUrl = await uploadProfilePhoto(uid, photoFile, setUploadProgress).catch(() => undefined);
       }
 
       const accountType: AccountType =
@@ -867,13 +868,29 @@ export default function Register() {
                     <ArrowLeft size={15} />
                     <span>رجوع</span>
                   </button>
-                  <button
-                    onClick={handleRegister}
-                    disabled={saving}
-                    className="btn-dz px-8 py-2.5 rounded-xl text-sm disabled:opacity-50"
-                  >
-                    <span>{saving ? "جاري التسجيل..." : "إنشاء الحساب"}</span>
-                  </button>
+                  <div className="flex flex-col items-end gap-2">
+                    {saving && photoFile && uploadProgress > 0 && uploadProgress < 100 && (
+                      <div className="w-40">
+                        <div className="flex justify-between mb-1" style={{ fontSize: "0.75rem", color: "#81c784" }}>
+                          <span>رفع الصورة...</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full rounded-full h-1.5" style={{ background: "rgba(0,98,51,0.2)" }}>
+                          <div
+                            className="h-1.5 rounded-full transition-all"
+                            style={{ width: `${uploadProgress}%`, background: "linear-gradient(90deg, #006233, #00a355)" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <button
+                      onClick={handleRegister}
+                      disabled={saving}
+                      className="btn-dz px-8 py-2.5 rounded-xl text-sm disabled:opacity-50"
+                    >
+                      <span>{saving ? (photoFile && uploadProgress > 0 && uploadProgress < 100 ? `${uploadProgress}%` : "جاري التسجيل...") : "إنشاء الحساب"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
