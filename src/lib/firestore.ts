@@ -120,18 +120,22 @@ export async function toggleFeatured(colName: string, id: string, current: boole
 }
 
 // --- USER PROFILES ---
+function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+}
+
 export async function saveUserProfile(
   uid: string,
   data: Omit<UserProfile, "id" | "createdAt" | "status" | "featured">
 ) {
+  const clean = stripUndefined(data as Record<string, unknown>);
   const ref = docRef("users", uid);
   const existing = await getDoc(ref);
   if (existing.exists()) {
-    // Update existing profile, preserve status if already set
-    return updateDoc(ref, { ...data });
+    return updateDoc(ref, clean);
   } else {
     return setDoc(ref, {
-      ...data,
+      ...clean,
       id: uid,
       status: "pending",
       featured: false,
