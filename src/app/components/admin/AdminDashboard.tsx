@@ -456,7 +456,7 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
 
 // ── COURSES SECTION ─────────────────────────────────────────────
 type CourseForm = Omit<Course, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyCourse: CourseForm = { title: "", type: "free", duration: "", description: "", instructor: "", link: "", price: 0 };
+const emptyCourse: CourseForm = { title: "", type: "free", duration: "", description: "", instructor: "", link: "", price: 0, image: "", contentImages: [] };
 
 function CoursesSection() {
   const [items, setItems] = useState<Course[]>([]);
@@ -466,6 +466,9 @@ function CoursesSection() {
   const [deleteTarget, setDeleteTarget] = useState<Course | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [imgUploading, setImgUploading] = useState(false);
+  const [imgProgress, setImgProgress] = useState(0);
+  const [contentImgUploading, setContentImgUploading] = useState(false);
 
   useEffect(() => subscribeToCollection<Course>("courses", setItems), []);
 
@@ -476,7 +479,28 @@ function CoursesSection() {
   });
 
   const openAdd = () => { setForm(emptyCourse); setModal("add"); };
-  const openEdit = (c: Course) => { setEditId(c.id); setForm({ title: c.title, type: c.type, duration: c.duration, description: c.description, instructor: c.instructor, link: c.link || "", price: c.price || 0 }); setModal("edit"); };
+  const openEdit = (c: Course) => { setEditId(c.id); setForm({ title: c.title, type: c.type, duration: c.duration, description: c.description, instructor: c.instructor, link: c.link || "", price: c.price || 0, image: c.image || "", contentImages: c.contentImages || [] }); setModal("edit"); };
+
+  const handleImageUpload = async (file: File) => {
+    setImgUploading(true);
+    setImgProgress(0);
+    try {
+      const url = await uploadImage("courses", file, setImgProgress);
+      setForm((f) => ({ ...f, image: url }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setImgUploading(false); }
+  };
+
+  const handleContentImageUpload = async (file: File) => {
+    setContentImgUploading(true);
+    try {
+      const url = await uploadImage("courses/content", file);
+      setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setContentImgUploading(false); }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -801,7 +825,7 @@ function EquipmentSection() {
 
 // ── COMPETITIONS SECTION ────────────────────────────────────────
 type CompForm = Omit<Competition, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyComp: CompForm = { name: "", type: "national", startDate: "", endDate: "", description: "", content: "", organizer: "", organizerDescription: "", targetAudience: "", source: "", image: "", link: "" };
+const emptyComp: CompForm = { name: "", type: "national", startDate: "", endDate: "", description: "", content: "", organizer: "", organizerDescription: "", targetAudience: "", source: "", image: "", contentImages: [], link: "" };
 
 function CompetitionsSection() {
   const [items, setItems] = useState<Competition[]>([]);
@@ -813,6 +837,7 @@ function CompetitionsSection() {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [imgUploading, setImgUploading] = useState(false);
   const [imgProgress, setImgProgress] = useState(0);
+  const [contentImgUploading, setContentImgUploading] = useState(false);
 
   useEffect(() => subscribeToCollection<Competition>("competitions", setItems), []);
 
@@ -823,7 +848,7 @@ function CompetitionsSection() {
   });
 
   const openAdd = () => { setForm(emptyComp); setModal("add"); };
-  const openEdit = (c: Competition) => { setEditId(c.id); setForm({ name: c.name, type: c.type, startDate: c.startDate, endDate: c.endDate, description: c.description, content: c.content || "", organizer: c.organizer, organizerDescription: c.organizerDescription || "", targetAudience: c.targetAudience || "", source: c.source || "", image: c.image || "", link: c.link || "" }); setModal("edit"); };
+  const openEdit = (c: Competition) => { setEditId(c.id); setForm({ name: c.name, type: c.type, startDate: c.startDate, endDate: c.endDate, description: c.description, content: c.content || "", organizer: c.organizer, organizerDescription: c.organizerDescription || "", targetAudience: c.targetAudience || "", source: c.source || "", image: c.image || "", contentImages: c.contentImages || [], link: c.link || "" }); setModal("edit"); };
 
   const handleImageUpload = async (file: File) => {
     setImgUploading(true);
@@ -835,6 +860,18 @@ function CompetitionsSection() {
       alert(e instanceof Error ? e.message : "فشل رفع الصورة");
     } finally {
       setImgUploading(false);
+    }
+  };
+
+  const handleContentImageUpload = async (file: File) => {
+    setContentImgUploading(true);
+    try {
+      const url = await uploadImage("competitions/content", file);
+      setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally {
+      setContentImgUploading(false);
     }
   };
 
@@ -912,6 +949,24 @@ function CompetitionsSection() {
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
                 </label>
               </div>
+            </div>
+            <div>
+              <label style={S.label}>صور المحتوى</label>
+              {form.contentImages && form.contentImages.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {form.contentImages.map((img, idx) => (
+                    <div key={idx} style={{ position: "relative" }}>
+                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
+                        style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
+                {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
+              </label>
             </div>
             <div><label style={S.label}>مقدمة / وصف مختصر</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div><label style={S.label}>محتوى المقال</label><textarea style={{ ...S.input, minHeight: "140px", resize: "vertical" }} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="اكتب تفاصيل المسابقة كاملة هنا..." /></div>

@@ -231,8 +231,9 @@ export default function Home() {
             <SectionHeader title="الدورات المميزة" link="/courses" linkLabel="عرض الكل" />
             <div className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,98,51,0.3) transparent" }}>
               {featuredCourses.map((c, i) => (
-                <div
+                <Link
                   key={c.id}
+                  to={`/courses/${c.id}`}
                   className="card-glow rounded-xl p-5 flex-shrink-0 animate-fade-in-up"
                   style={{
                     background: "linear-gradient(145deg, #141414, #101010)",
@@ -240,6 +241,8 @@ export default function Home() {
                     animationDelay: `${i * 0.07}s`,
                     opacity: 0,
                     animationFillMode: "forwards",
+                    textDecoration: "none",
+                    display: "block",
                   }}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -251,7 +254,7 @@ export default function Home() {
                   <h3 className="font-semibold mb-1" style={{ color: "#c8e6c9" }}>{c.title}</h3>
                   <p style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>المدرب: {c.instructor}</p>
                   {c.description && <p style={{ color: "#3a5e3a", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.5rem" }}>{c.description.slice(0, 80)}{c.description.length > 80 ? "..." : ""}</p>}
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -312,14 +315,17 @@ export default function Home() {
             <SectionHeader title="أحدث الفرص" link="/jobs" linkLabel="عرض الكل" />
             <div className="space-y-4">
               {featuredJobs.map((j, i) => (
-                <div
+                <Link
                   key={j.id}
+                  to={`/jobs/${j.id}`}
                   className="card-glow rounded-xl p-5 animate-fade-in-up"
                   style={{
                     background: "linear-gradient(145deg, #141414, #101010)",
                     animationDelay: `${i * 0.07}s`,
                     opacity: 0,
                     animationFillMode: "forwards",
+                    textDecoration: "none",
+                    display: "block",
                   }}
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -338,7 +344,7 @@ export default function Home() {
                       </div>
                     )}
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -356,25 +362,37 @@ export default function Home() {
                 const typeColor2: Record<string, string> = { university: "#7fb3d3", national: "#81c784", international: "#f0b27a" };
                 const typeLabelMap: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
                 return (
-                  <div
+                  <Link
                     key={c.id}
-                    className="card-glow rounded-xl p-5 animate-fade-in-up"
+                    to={`/competitions/${c.id}`}
+                    className="card-glow rounded-xl overflow-hidden animate-fade-in-up"
                     style={{
                       background: "linear-gradient(145deg, #141414, #101010)",
                       animationDelay: `${i * 0.07}s`,
                       opacity: 0,
                       animationFillMode: "forwards",
+                      textDecoration: "none",
+                      display: "block",
                     }}
                   >
-                    <span style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor2[c.type] || "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
-                      {typeLabelMap[c.type]}
-                    </span>
-                    <h3 className="font-semibold mt-3 mb-1" style={{ color: "#c8e6c9" }}>{c.name}</h3>
-                    <p style={{ color: "#6aad6a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{c.organizer}</p>
-                    <div className="flex gap-3 text-xs" style={{ color: "#4a7a4a" }}>
-                      {c.startDate && <span className="flex items-center gap-1"><Calendar size={11} />{c.startDate}</span>}
+                    {c.image ? (
+                      <img src={c.image} alt={c.name} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
+                    ) : (
+                      <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Trophy size={32} style={{ color: "rgba(0,98,51,0.4)" }} />
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <span style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor2[c.type] || "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                        {typeLabelMap[c.type]}
+                      </span>
+                      <h3 className="font-semibold mt-3 mb-1" style={{ color: "#c8e6c9" }}>{c.name}</h3>
+                      <p style={{ color: "#6aad6a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{c.organizer}</p>
+                      <div className="flex gap-3 text-xs" style={{ color: "#4a7a4a" }}>
+                        {c.startDate && <span className="flex items-center gap-1"><Calendar size={11} />{c.startDate}</span>}
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

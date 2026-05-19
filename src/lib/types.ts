@@ -7,6 +7,8 @@ export interface Course {
   description: string;
   instructor: string;
   link?: string;
+  image?: string;
+  contentImages?: string[];
   createdAt: number;
   status?: 'pending' | 'approved' | 'rejected';
   featured?: boolean;
@@ -23,6 +25,8 @@ export interface Job {
   description: string;
   deadline?: string;
   contact: string;
+  image?: string;
+  contentImages?: string[];
   createdAt: number;
   status?: 'pending' | 'approved' | 'rejected';
   featured?: boolean;
@@ -39,6 +43,8 @@ export interface Equipment {
   description: string;
   condition: "new" | "used";
   contact: string;
+  image?: string;
+  contentImages?: string[];
   createdAt: number;
   status?: 'pending' | 'approved' | 'rejected';
   featured?: boolean;
@@ -59,6 +65,7 @@ export interface Competition {
   targetAudience?: string;
   source?: string;
   image?: string;
+  contentImages?: string[];
   link?: string;
   createdAt: number;
   status?: 'pending' | 'approved' | 'rejected';
