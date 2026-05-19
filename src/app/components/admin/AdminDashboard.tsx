@@ -1522,11 +1522,18 @@ function ChannelsSection() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [seeding, setSeeding] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio" | "website">("");
 
   useEffect(() => {
-    return subscribeToChannels(setChannels);
+    return subscribeToChannels((data) => {
+      setChannels(data);
+      // Auto-seed websites once if none exist yet
+      const hasWebsites = data.some((c) => c.type !== "tv" && c.type !== "radio");
+      if (!hasWebsites && !localStorage.getItem("sanad-websites-seeded")) {
+        localStorage.setItem("sanad-websites-seeded", "1");
+        seedWebsites(() => {});
+      }
+    });
   }, []);
 
   const cf = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
@@ -1590,16 +1597,6 @@ function ChannelsSection() {
           <Plus size={15} />
           <span>إضافة قناة</span>
         </button>
-        <button
-          onClick={() => seedWebsites(setSeeding)}
-          disabled={seeding}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-          style={{ background: "rgba(255,183,77,0.15)", border: "1px solid rgba(255,183,77,0.4)", color: "#ffb74d" }}
-        >
-          <Globe size={15} />
-          <span>{seeding ? `جاري الإضافة... (${SEED_WEBSITES.length} موقع)` : `⚡ إضافة ${SEED_WEBSITES.length} موقع إعلامي`}</span>
-        </button>
-
       </div>
 
       {/* Stats */}
