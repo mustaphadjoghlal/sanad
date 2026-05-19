@@ -216,8 +216,9 @@ export default function UserDashboard() {
     try {
       const url = await uploadProfilePhoto(uid, file);
       setPhotoUrl(url);
-    } catch {
-      setEditError("فشل رفع الصورة، حاول مرة أخرى");
+    } catch (err: unknown) {
+      const msg = (err as Error)?.message ?? "خطأ غير معروف";
+      setEditError(`فشل رفع الصورة: ${msg}`);
     } finally {
       setUploadingPhoto(false);
     }
