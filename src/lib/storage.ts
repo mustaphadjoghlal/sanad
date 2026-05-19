@@ -10,7 +10,6 @@ export async function uploadProfilePhoto(
   formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
   formData.append("folder", "profile-photos");
-  formData.append("public_id", uid);
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();

@@ -150,7 +150,10 @@ export default function Register() {
       // Photo upload is best-effort — don't block registration if it fails
       let photoUrl: string | undefined;
       if (photoFile) {
-        photoUrl = await uploadProfilePhoto(uid, photoFile, setUploadProgress).catch(() => undefined);
+        photoUrl = await uploadProfilePhoto(uid, photoFile, setUploadProgress).catch((e) => {
+          console.error("Photo upload failed:", e?.message);
+          return undefined;
+        });
       }
 
       const accountType: AccountType =
