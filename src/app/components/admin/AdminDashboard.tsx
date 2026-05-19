@@ -1551,7 +1551,8 @@ function ChannelsSection() {
 // ── APPEARANCE ──────────────────────────────────────────────────
 const COLOR_OPTIONS = [
   { key: "bgMain",        label: "لون الخلفية الرئيسية",    hint: "الخلفية العامة للموقع" },
-  { key: "bgCard",        label: "لون خلفية البطاقات",       hint: "البطاقات والأقسام الداخلية" },
+  { key: "bgCard",        label: "لون خلفية البطاقات (بداية التدرج)", hint: "اللون الأساسي للبطاقات" },
+  { key: "bgCardEnd",     label: "لون خلفية البطاقات (نهاية التدرج)", hint: "اتركه مساوياً للبداية للون موحد" },
   { key: "primaryGreen",  label: "اللون الرئيسي",            hint: "الحدود والأيقونات" },
   { key: "accentGreen",   label: "اللون المُضيء",            hint: "الأزرار والتمييزات" },
   { key: "textColor",     label: "لون نصوص الصفحات",        hint: "العناوين والنصوص خارج البطاقات" },
@@ -1559,10 +1560,10 @@ const COLOR_OPTIONS = [
 ] as const;
 
 const PRESETS: { label: string; theme: ThemeSettings }[] = [
-  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "#e8f5e9", cardTextColor: "#c8e6c9" } },
-  { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00", textColor: "#f5ede0", cardTextColor: "#ffe0b2" } },
-  { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc", textColor: "#e0f0ff", cardTextColor: "#b3e5fc" } },
-  { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888", textColor: "#dddddd", cardTextColor: "#cccccc" } },
+  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", bgCardEnd: "#101010", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "#e8f5e9", cardTextColor: "#c8e6c9" } },
+  { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", bgCardEnd: "#130f0a", primaryGreen: "#7a4f00", accentGreen: "#c47d00", textColor: "#f5ede0", cardTextColor: "#ffe0b2" } },
+  { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", bgCardEnd: "#0a1520", primaryGreen: "#005f8a", accentGreen: "#0099cc", textColor: "#e0f0ff", cardTextColor: "#b3e5fc" } },
+  { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", bgCardEnd: "#141414", primaryGreen: "#4a4a4a", accentGreen: "#888888", textColor: "#dddddd", cardTextColor: "#cccccc" } },
 ];
 
 function AppearanceSection() {
@@ -1632,7 +1633,7 @@ function AppearanceSection() {
         <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1.25rem" }}>تخصيص الألوان</h3>
         <div className="space-y-5">
           {COLOR_OPTIONS.map(({ key, label, hint }) => {
-            const colorVal = (form[key] ?? form.textColor) as string;
+            const colorVal = (form[key] ?? (key === "bgCardEnd" ? form.bgCard : form.textColor)) as string;
             return (
             <div key={key} className="flex items-center gap-4">
               {/* Color preview + picker */}

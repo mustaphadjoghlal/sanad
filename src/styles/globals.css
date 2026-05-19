@@ -8,7 +8,7 @@ body {
 
 /* Card backgrounds — !important overrides inline styles */
 .card-glow {
-  background: linear-gradient(145deg, var(--theme-bg-card, #141414), var(--theme-bg-main, #0e0e0e)) !important;
+  background: linear-gradient(145deg, var(--theme-bg-card, #141414), var(--theme-bg-card-end, var(--theme-bg-card, #141414))) !important;
 }
 
 /* Buttons use theme accent */

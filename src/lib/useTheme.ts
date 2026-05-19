@@ -30,6 +30,7 @@ export function applyTheme(t: ThemeSettings) {
 
   r.style.setProperty("--theme-bg-main", t.bgMain);
   r.style.setProperty("--theme-bg-card", t.bgCard);
+  r.style.setProperty("--theme-bg-card-end", t.bgCardEnd ?? t.bgCard);
   r.style.setProperty("--theme-primary", t.primaryGreen);
   r.style.setProperty("--theme-accent", t.accentGreen);
   r.style.setProperty("--theme-text", textColor);

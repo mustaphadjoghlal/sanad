@@ -189,7 +189,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             {[
               { target: 6,   suffix: "",   label: "خدمات متكاملة",  icon: Star },
-              { target: 48,  suffix: "",   label: "ولاية جزائرية",  icon: MapPin },
+              { target: 58,  suffix: "",   label: "ولاية جزائرية",  icon: MapPin },
               { target: 100, suffix: "٪",  label: "محتوى جزائري",   icon: Radio },
               { target: 24,  suffix: "/٧", label: "متاح دائماً",    icon: Calendar },
             ].map((s, i) => (
