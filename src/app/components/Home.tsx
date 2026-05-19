@@ -317,36 +317,31 @@ export default function Home() {
         <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
           <div className="container mx-auto">
             <SectionHeader title="أحدث الفرص" link="/jobs" linkLabel="عرض الكل" />
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {featuredJobs.map((j, i) => (
                 <Link
                   key={j.id}
                   to={`/jobs/${j.id}`}
-                  className="card-glow rounded-xl p-5 animate-fade-in-up"
-                  style={{
-                    background: "linear-gradient(145deg, #141414, #101010)",
-                    animationDelay: `${i * 0.07}s`,
-                    opacity: 0,
-                    animationFillMode: "forwards",
-                    textDecoration: "none",
-                    display: "block",
-                  }}
+                  className="card-glow rounded-xl overflow-hidden animate-fade-in-up"
+                  style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards", textDecoration: "none", display: "block" }}
                 >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold mb-1" style={{ color: "#c8e6c9" }}>{j.title}</h3>
-                      <p style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{j.company}</p>
-                      <div className="flex flex-wrap gap-3 mt-1 text-xs" style={{ color: "#4a7a4a" }}>
-                        {j.location && <span className="flex items-center gap-1"><MapPin size={11} />{j.location}</span>}
-                        {j.jobType && <span style={{ background: "rgba(0,98,51,0.2)", padding: "0.1rem 0.45rem", borderRadius: "9999px", color: "#81c784" }}>{j.jobType}</span>}
-                        {j.deadline && <span className="flex items-center gap-1"><Calendar size={11} />آخر أجل: {j.deadline}</span>}
-                      </div>
+                  {j.image ? (
+                    <img src={j.image} alt={j.title} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Briefcase size={32} style={{ color: "rgba(0,98,51,0.4)" }} />
                     </div>
-                    {j.contact && (
-                      <div style={{ border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.4rem 0.85rem", color: "#6aad6a", fontSize: "0.8rem", whiteSpace: "nowrap", flexShrink: 0 }}>
-                        {j.contact}
-                      </div>
+                  )}
+                  <div className="p-4">
+                    {j.jobType && (
+                      <span style={{ background: "rgba(0,98,51,0.3)", color: "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>{j.jobType}</span>
                     )}
+                    <h3 className="font-semibold mt-2 mb-1" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{j.title}</h3>
+                    <p style={{ color: "#6aad6a", fontSize: "0.8rem" }}>{j.company}</p>
+                    <div className="flex flex-wrap gap-2 mt-2 text-xs" style={{ color: "#4a7a4a" }}>
+                      {j.location && <span className="flex items-center gap-1"><MapPin size={11} />{j.location}</span>}
+                      {j.deadline && <span className="flex items-center gap-1"><Calendar size={11} />آخر أجل: {j.deadline}</span>}
+                    </div>
                   </div>
                 </Link>
               ))}
