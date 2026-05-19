@@ -21,6 +21,7 @@ import {
   addChannel, updateChannel, deleteChannel, subscribeToChannels,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
+import { uploadImage } from "../../../lib/storage";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel } from "../../../lib/types";
 import { DEFAULT_THEME } from "../../../lib/types";
 
@@ -810,6 +811,8 @@ function CompetitionsSection() {
   const [deleteTarget, setDeleteTarget] = useState<Competition | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [imgUploading, setImgUploading] = useState(false);
+  const [imgProgress, setImgProgress] = useState(0);
 
   useEffect(() => subscribeToCollection<Competition>("competitions", setItems), []);
 
@@ -821,6 +824,19 @@ function CompetitionsSection() {
 
   const openAdd = () => { setForm(emptyComp); setModal("add"); };
   const openEdit = (c: Competition) => { setEditId(c.id); setForm({ name: c.name, type: c.type, startDate: c.startDate, endDate: c.endDate, description: c.description, content: c.content || "", organizer: c.organizer, organizerDescription: c.organizerDescription || "", targetAudience: c.targetAudience || "", source: c.source || "", image: c.image || "", link: c.link || "" }); setModal("edit"); };
+
+  const handleImageUpload = async (file: File) => {
+    setImgUploading(true);
+    setImgProgress(0);
+    try {
+      const url = await uploadImage("competitions", file, setImgProgress);
+      setForm((f) => ({ ...f, image: url }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally {
+      setImgUploading(false);
+    }
+  };
 
   const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
   const handleSave = async () => {
@@ -887,7 +903,16 @@ function CompetitionsSection() {
               <div><label style={S.label}>تاريخ البداية</label><input type="date" style={S.input} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
               <div><label style={S.label}>تاريخ النهاية</label><input type="date" style={S.input} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
             </div>
-            <div><label style={S.label}>صورة الغلاف (رابط)</label><input style={S.input} value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="https://..." dir="ltr" /></div>
+            <div>
+              <label style={S.label}>صورة الغلاف</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
+                  {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
+                </label>
+              </div>
+            </div>
             <div><label style={S.label}>مقدمة / وصف مختصر</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div><label style={S.label}>محتوى المقال</label><textarea style={{ ...S.input, minHeight: "140px", resize: "vertical" }} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="اكتب تفاصيل المسابقة كاملة هنا..." /></div>
             <div className="grid grid-cols-2 gap-3">
