@@ -20,12 +20,13 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--theme-accent", t.accentGreen);
   r.style.setProperty("--theme-text", t.textColor ?? "#e8f5e9");
 
-  // Derived secondary colors from accent
-  r.style.setProperty("--theme-text-secondary", mixHex(t.accentGreen, "#ffffff", 0.65));
-  r.style.setProperty("--theme-text-muted", mixHex(t.primaryGreen, "#ffffff", 0.5));
-  r.style.setProperty("--theme-text-dim", mixHex(t.primaryGreen, "#ffffff", 0.35));
+  // Derived secondary colors from textColor
+  const text = t.textColor ?? "#e8f5e9";
+  r.style.setProperty("--theme-text-secondary", mixHex(text, "#000000", 0.25));
+  r.style.setProperty("--theme-text-muted",     mixHex(text, "#000000", 0.50));
+  r.style.setProperty("--theme-text-dim",       mixHex(text, "#000000", 0.65));
+  r.style.setProperty("--theme-badge-text",     mixHex(text, "#ffffff", 0.15));
   r.style.setProperty("--theme-badge-bg", hexToRgba(t.primaryGreen, 0.25));
-  r.style.setProperty("--theme-badge-text", mixHex(t.accentGreen, "#ffffff", 0.8));
 }
 
 function hexToRgba(hex: string, alpha: number): string {
