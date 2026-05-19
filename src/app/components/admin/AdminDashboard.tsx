@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Globe,
+  X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Globe,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -228,8 +228,20 @@ function ItemActions({
 // ── Main Dashboard ──────────────────────────────────────────────
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<Section>("overview");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(true);
+      else setSidebarOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -268,18 +280,43 @@ export default function AdminDashboard() {
     navigate("/sanad-admin");
   };
 
+  const handleNavClick = (id: Section) => {
+    setActiveSection(id);
+    if (isMobile) setSidebarOpen(false);
+  };
+
   return (
-    <div className="min-h-screen flex" dir="rtl" style={{ background: "#0e0e0e" }}>
+    <div className="min-h-screen flex" dir="rtl" style={{ background: "#0e0e0e", position: "relative", overflow: "hidden" }}>
+
+      {/* Mobile backdrop */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+            zIndex: 40, backdropFilter: "blur(2px)",
+          }}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className="flex flex-col"
         style={{
-          width: sidebarOpen ? "240px" : "64px",
+          width: isMobile ? "260px" : sidebarOpen ? "240px" : "64px",
           minHeight: "100vh",
           background: "linear-gradient(180deg, #131313 0%, #080808 100%)",
           borderLeft: "1px solid var(--p-20)",
-          transition: "width 0.3s ease",
+          transition: "transform 0.3s ease, width 0.3s ease",
           flexShrink: 0,
+          ...(isMobile ? {
+            position: "fixed",
+            top: 0,
+            right: 0,
+            height: "100%",
+            zIndex: 50,
+            transform: sidebarOpen ? "translateX(0)" : "translateX(100%)",
+          } : {}),
         }}
       >
         {/* Logo */}
@@ -288,28 +325,33 @@ export default function AdminDashboard() {
             style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))", boxShadow: "0 0 10px var(--p-40)" }}>
             <Radio size={16} color="#fff" />
           </div>
-          {sidebarOpen && (
+          {(sidebarOpen || isMobile) && (
             <span className="font-bold" style={{ background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               سند Admin
             </span>
           )}
+          {isMobile && (
+            <button onClick={() => setSidebarOpen(false)} className="mr-auto" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
+              <X size={20} />
+            </button>
+          )}
         </div>
 
-        <nav className="flex-1 p-2 space-y-1">
+        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {menuItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveSection(id)}
-              title={!sidebarOpen ? label : undefined}
+              onClick={() => handleNavClick(id)}
+              title={!sidebarOpen && !isMobile ? label : undefined}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200"
               style={{
                 color: activeSection === id ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #6aad6a)",
                 background: activeSection === id ? "var(--p-18)" : "transparent",
-                justifyContent: sidebarOpen ? "flex-start" : "center",
+                justifyContent: (sidebarOpen || isMobile) ? "flex-start" : "center",
               }}
             >
               <Icon size={18} style={{ flexShrink: 0 }} />
-              {sidebarOpen && <span style={{ fontSize: "0.875rem" }}>{label}</span>}
+              {(sidebarOpen || isMobile) && <span style={{ fontSize: "0.875rem" }}>{label}</span>}
             </button>
           ))}
         </nav>
@@ -318,40 +360,38 @@ export default function AdminDashboard() {
           <Link
             to="/"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
-            style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textDecoration: "none", justifyContent: sidebarOpen ? "flex-start" : "center" }}
+            style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textDecoration: "none", justifyContent: (sidebarOpen || isMobile) ? "flex-start" : "center" }}
           >
             <ExternalLink size={18} style={{ flexShrink: 0 }} />
-            {sidebarOpen && "عرض الموقع"}
+            {(sidebarOpen || isMobile) && "عرض الموقع"}
           </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            style={{ color: "#ef9a9a", fontSize: "0.875rem", justifyContent: sidebarOpen ? "flex-start" : "center" }}
+            style={{ color: "#ef9a9a", fontSize: "0.875rem", justifyContent: (sidebarOpen || isMobile) ? "flex-start" : "center" }}
           >
             <LogOut size={18} style={{ flexShrink: 0 }} />
-            {sidebarOpen && "تسجيل الخروج"}
+            {(sidebarOpen || isMobile) && "تسجيل الخروج"}
           </button>
         </div>
       </aside>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0" style={{ minHeight: "100vh" }}>
         {/* Top bar */}
         <div
-          className="flex items-center gap-4 px-6 py-4"
-          style={{ borderBottom: "1px solid var(--p-15)", background: "rgba(11,15,11,0.8)", backdropFilter: "blur(8px)" }}
+          className="flex items-center gap-3 px-4 py-3"
+          style={{ borderBottom: "1px solid var(--p-15)", background: "rgba(11,15,11,0.9)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 30 }}
         >
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-            <LayoutDashboard size={20} />
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "var(--theme-text-muted, #4a7a4a)", flexShrink: 0 }}>
+            <Menu size={22} />
           </button>
-          <div>
-            <h1 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "1.1rem" }}>
-              {menuItems.find((m) => m.id === activeSection)?.label}
-            </h1>
-          </div>
+          <h1 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "1rem" }}>
+            {menuItems.find((m) => m.id === activeSection)?.label}
+          </h1>
         </div>
 
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 p-3 md:p-6 overflow-auto">
           {activeSection === "overview"       && <OverviewSection onNavigate={setActiveSection} />}
           {activeSection === "courses"        && <CoursesSection />}
           {activeSection === "equipment"      && <EquipmentSection />}
