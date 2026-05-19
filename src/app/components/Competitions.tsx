@@ -5,8 +5,8 @@ import { subscribeToCollection } from "../../lib/firestore";
 import type { Competition } from "../../lib/types";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
-const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "var(--p-30)", international: "rgba(120,66,18,0.3)" };
-const typeColor: Record<string, string> = { university: "#7fb3d3", national: "var(--theme-badge-text, #81c784)", international: "#f0b27a" };
+const typeBg: Record<string, string>    = { university: "rgba(30,100,180,0.55)", national: "rgba(0,100,50,0.55)", international: "rgba(160,80,0,0.55)" };
+const typeColor: Record<string, string> = { university: "#90caf9",               national: "#a5d6a7",            international: "#ffcc80" };
 
 export default function Competitions() {
   const [items, setItems] = useState<Competition[]>([]);
