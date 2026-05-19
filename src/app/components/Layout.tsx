@@ -1,16 +1,19 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Radio, LogOut, LayoutDashboard } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Menu, X, Radio, LogOut, LayoutDashboard, Bell } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
-import { subscribeToUserProfile } from "../../lib/firestore";
-import type { UserProfile } from "../../lib/types";
+import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead } from "../../lib/firestore";
+import type { UserProfile, AppNotification } from "../../lib/types";
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ uid: string } | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null | "admin">(null);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -53,12 +56,45 @@ export default function Layout() {
       if (profile) {
         setUserProfile(profile);
       } else {
-        // No profile doc in users/ = admin user
         setUserProfile("admin");
       }
     });
     return unsub;
   }, [currentUser]);
+
+  // Subscribe to notifications for logged-in users
+  useEffect(() => {
+    if (!currentUser) { setNotifications([]); return; }
+    const unsub = subscribeToNotifications((notifs) => {
+      const prev = notifications;
+      // Show browser notification for new ones
+      if (prev.length > 0 && notifs.length > prev.length) {
+        const newest = notifs[0];
+        if (Notification.permission === "granted") {
+          new Notification(newest.title, { body: newest.body, icon: "/icon.svg", dir: "rtl", lang: "ar" });
+        }
+      }
+      setNotifications(notifs);
+    });
+    return unsub;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
+
+  // Request notification permission after login
+  useEffect(() => {
+    if (currentUser && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, [currentUser]);
+
+  // Close notif dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -68,6 +104,9 @@ export default function Layout() {
   const isRegularUser = userProfile && userProfile !== "admin";
   const isAdmin = userProfile === "admin" && currentUser;
   const isLoggedOut = !currentUser;
+  const unreadCount = currentUser
+    ? notifications.filter((n) => !n.readBy?.includes(currentUser.uid)).length
+    : 0;
 
   return (
     <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0e0e0e" }}>
@@ -207,6 +246,71 @@ export default function Layout() {
                 null
               )}
             </div>
+
+            {/* Notification Bell */}
+            {currentUser && (
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => {
+                    setNotifOpen((o) => !o);
+                    if (!notifOpen && unreadCount > 0 && currentUser) {
+                      markAllNotificationsRead(notifications.map((n) => n.id), currentUser.uid);
+                    }
+                  }}
+                  className="relative p-2 rounded-lg transition-all duration-200"
+                  style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--p-25)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span
+                      className="absolute -top-1 -left-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-xs font-bold"
+                      style={{ background: "var(--theme-accent)", color: "#fff", fontSize: "0.65rem", padding: "0 4px" }}
+                    >
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div
+                    className="absolute left-0 mt-2 w-80 rounded-xl overflow-hidden animate-fade-in-down z-50"
+                    style={{ background: "var(--theme-bg-card, #141414)", border: "1px solid var(--p-30)", boxShadow: "0 16px 40px rgba(0,0,0,0.6)" }}
+                  >
+                    <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--p-15)" }}>
+                      <span className="font-semibold text-sm" style={{ color: "var(--theme-text)" }}>الإشعارات</span>
+                    </div>
+                    <div className="max-h-72 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="py-8 text-center text-sm" style={{ color: "var(--theme-text-muted)" }}>لا توجد إشعارات</div>
+                      ) : (
+                        notifications.map((n) => {
+                          const isUnread = !n.readBy?.includes(currentUser.uid);
+                          return (
+                            <div
+                              key={n.id}
+                              className="px-4 py-3 transition-colors"
+                              style={{ borderBottom: "1px solid var(--p-10)", background: isUnread ? "var(--p-08)" : "transparent" }}
+                            >
+                              <div className="flex items-start gap-2">
+                                {isUnread && <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: "var(--theme-accent)" }} />}
+                                <div className={isUnread ? "" : "pr-4"}>
+                                  <p className="text-sm font-medium" style={{ color: "var(--theme-text)" }}>{n.title}</p>
+                                  <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>{n.body}</p>
+                                  <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>
+                                    {new Date(n.createdAt).toLocaleDateString("ar-DZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Mobile menu button */}
             <button

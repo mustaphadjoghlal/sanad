@@ -10,9 +10,10 @@ import {
   query,
   orderBy,
   where,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
 // Generic helpers
@@ -233,4 +234,26 @@ export function subscribeToSiteContent(callback: (content: SiteContent) => void)
       callback({ ...DEFAULT_SITE_CONTENT, ...(snap.data() as Partial<SiteContent>) });
     }
   });
+}
+
+// --- APP NOTIFICATIONS ---
+export async function sendNotification(notif: Omit<AppNotification, "id" | "readBy">): Promise<void> {
+  await addDoc(col("notifications"), { ...notif, readBy: [] });
+}
+
+export function subscribeToNotifications(callback: (notifs: AppNotification[]) => void): () => void {
+  const q = query(col("notifications"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppNotification)));
+  });
+}
+
+export async function markNotificationRead(notifId: string, uid: string): Promise<void> {
+  await updateDoc(doc(db, "notifications", notifId), { readBy: arrayUnion(uid) });
+}
+
+export async function markAllNotificationsRead(notifIds: string[], uid: string): Promise<void> {
+  await Promise.all(
+    notifIds.map((id) => updateDoc(doc(db, "notifications", id), { readBy: arrayUnion(uid) }))
+  );
 }

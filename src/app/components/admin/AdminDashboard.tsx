@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText,
+  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -20,13 +20,14 @@ import {
   saveSiteContent, subscribeToSiteContent,
   getUserProfile,
   addChannel, updateChannel, deleteChannel, subscribeToChannels,
+  sendNotification, subscribeToNotifications,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent } from "../../../lib/types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
 
-type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "appearance" | "content" | "settings";
+type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "appearance" | "content" | "notifications" | "settings";
 type StatusFilter = "all" | "pending" | "approved";
 
 // ── Shared styles ───────────────────────────────────────────────
@@ -257,8 +258,9 @@ export default function AdminDashboard() {
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
     { id: "channels"     as Section, label: "القنوات",   icon: Tv },
     { id: "appearance"   as Section, label: "المظهر",        icon: Palette },
-    { id: "content"      as Section, label: "محتوى الصفحة", icon: FileText },
-    { id: "settings"     as Section, label: "الإعدادات",    icon: Settings },
+    { id: "content"        as Section, label: "محتوى الصفحة", icon: FileText },
+    { id: "notifications"  as Section, label: "الإشعارات",    icon: Bell },
+    { id: "settings"       as Section, label: "الإعدادات",    icon: Settings },
   ];
 
   const handleLogout = async () => {
@@ -360,6 +362,7 @@ export default function AdminDashboard() {
           {activeSection === "channels"       && <ChannelsSection />}
           {activeSection === "appearance"     && <AppearanceSection />}
           {activeSection === "content"        && <SiteContentSection />}
+          {activeSection === "notifications"  && <NotificationsSection />}
           {activeSection === "settings"       && <SettingsSection />}
         </div>
       </main>
@@ -1643,6 +1646,99 @@ function SiteContentSection() {
         >
           إعادة الافتراضي
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ── NOTIFICATIONS ───────────────────────────────────────────────
+function NotificationsSection() {
+  const [notifs, setNotifs] = useState<AppNotification[]>([]);
+  const [form, setForm] = useState({ title: "", body: "", link: "" });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  useEffect(() => {
+    return subscribeToNotifications(setNotifs);
+  }, []);
+
+  const handleSend = async () => {
+    if (!form.title.trim() || !form.body.trim()) return;
+    setSending(true);
+    await sendNotification({ title: form.title.trim(), body: form.body.trim(), link: form.link.trim() || undefined, createdAt: Date.now() });
+    setForm({ title: "", body: "", link: "" });
+    setSent(true);
+    setTimeout(() => setSent(false), 2500);
+    setSending(false);
+  };
+
+  const inputStyle: React.CSSProperties = { width: "100%", background: "var(--p-08)", border: "1px solid var(--p-25)", borderRadius: "8px", padding: "8px 12px", color: "var(--theme-text)", fontSize: "0.9rem", outline: "none" };
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      {/* Compose */}
+      <div className="rounded-xl p-6" style={S.card}>
+        <h3 className="font-semibold mb-5" style={{ color: "var(--theme-text)" }}>إرسال إشعار جديد</h3>
+        <div className="space-y-4">
+          <div>
+            <label style={S.label}>عنوان الإشعار *</label>
+            <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} style={inputStyle} dir="rtl" placeholder="مثال: دورة جديدة متاحة!" />
+          </div>
+          <div>
+            <label style={S.label}>نص الإشعار *</label>
+            <textarea rows={3} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} style={{ ...inputStyle, resize: "vertical" }} dir="rtl" placeholder="اكتب تفاصيل الإشعار هنا..." />
+          </div>
+          <div>
+            <label style={S.label}>رابط (اختياري)</label>
+            <input type="text" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} style={inputStyle} dir="ltr" placeholder="/courses" />
+          </div>
+        </div>
+        <button
+          onClick={handleSend}
+          disabled={sending || !form.title.trim() || !form.body.trim()}
+          className="btn-dz mt-5 flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm disabled:opacity-50"
+        >
+          <Send size={15} />
+          <span>{sent ? "✓ تم الإرسال!" : sending ? "جاري الإرسال..." : "إرسال للجميع"}</span>
+        </button>
+      </div>
+
+      {/* History */}
+      <div className="rounded-xl p-6" style={S.card}>
+        <h3 className="font-semibold mb-4" style={{ color: "var(--theme-text)" }}>سجل الإشعارات ({notifs.length})</h3>
+        {notifs.length === 0 ? (
+          <p className="text-sm text-center py-6" style={{ color: "var(--theme-text-muted)" }}>لا توجد إشعارات مرسلة بعد</p>
+        ) : (
+          <div className="space-y-3">
+            {notifs.map((n) => (
+              <div key={n.id} className="flex items-start justify-between gap-3 p-3 rounded-lg" style={{ background: "var(--p-05)", border: "1px solid var(--p-15)" }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium" style={{ color: "var(--theme-text)" }}>{n.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>{n.body}</p>
+                  <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>
+                    {new Date(n.createdAt).toLocaleDateString("ar-DZ", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {" · "}{n.readBy?.length ?? 0} قراءة
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    setDeleting(n.id);
+                    const { deleteDoc, doc } = await import("firebase/firestore");
+                    const { db } = await import("../../../lib/firebase");
+                    await deleteDoc(doc(db, "notifications", n.id));
+                    setDeleting(null);
+                  }}
+                  disabled={deleting === n.id}
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}
+                >
+                  <Trash size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

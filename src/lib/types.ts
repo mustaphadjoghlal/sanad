@@ -141,6 +141,15 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   ctaButton2: "تصفح الدورات",
 };
 
+export interface AppNotification {
+  id: string;
+  title: string;
+  body: string;
+  link?: string;
+  createdAt: number;
+  readBy?: string[];
+}
+
 export interface Channel {
   id: string;
   name: string;
