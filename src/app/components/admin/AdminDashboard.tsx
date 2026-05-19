@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash,
+  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Globe,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -1503,6 +1503,17 @@ const SEED_CHANNELS: Omit<Channel, "id" | "createdAt">[] = [
   { name: "الشروق الاقتصادي", type: "website", category: "متخصصة", website: "https://www.echoroukonline.com/economie" },
 ];
 
+const SEED_WEBSITES = SEED_CHANNELS.filter((c) => c.type === "website");
+
+async function seedWebsites(setCb: (v: boolean) => void) {
+  setCb(true);
+  for (const ch of SEED_WEBSITES) {
+    try { await addChannel(ch); } catch { /* skip */ }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  setCb(false);
+}
+
 function ChannelsSection() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -1511,6 +1522,7 @@ function ChannelsSection() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [seeding, setSeeding] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio" | "website">("");
 
   useEffect(() => {
@@ -1577,6 +1589,15 @@ function ChannelsSection() {
         >
           <Plus size={15} />
           <span>إضافة قناة</span>
+        </button>
+        <button
+          onClick={() => seedWebsites(setSeeding)}
+          disabled={seeding}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+          style={{ background: "rgba(255,183,77,0.15)", border: "1px solid rgba(255,183,77,0.4)", color: "#ffb74d" }}
+        >
+          <Globe size={15} />
+          <span>{seeding ? `جاري الإضافة... (${SEED_WEBSITES.length} موقع)` : `⚡ إضافة ${SEED_WEBSITES.length} موقع إعلامي`}</span>
         </button>
 
       </div>
