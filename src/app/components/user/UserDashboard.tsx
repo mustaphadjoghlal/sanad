@@ -36,7 +36,7 @@ const typeIcon: Record<string, React.ElementType> = {
 
 const statusStyle: Record<string, React.CSSProperties> = {
   pending: { background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)", padding: "0.2rem 0.7rem", borderRadius: "9999px", fontSize: "0.75rem" },
-  approved: { background: "rgba(0,98,51,0.2)", color: "#4ade80", border: "1px solid rgba(0,98,51,0.3)", padding: "0.2rem 0.7rem", borderRadius: "9999px", fontSize: "0.75rem" },
+  approved: { background: "var(--p-20)", color: "#4ade80", border: "1px solid var(--p-30)", padding: "0.2rem 0.7rem", borderRadius: "9999px", fontSize: "0.75rem" },
   rejected: { background: "rgba(198,40,40,0.1)", color: "#f87171", border: "1px solid rgba(198,40,40,0.3)", padding: "0.2rem 0.7rem", borderRadius: "9999px", fontSize: "0.75rem" },
 };
 
@@ -49,12 +49,12 @@ const statusLabel: Record<string, string> = {
 const S = {
   card: {
     background: "linear-gradient(145deg, #141414, #101010)",
-    border: "1px solid rgba(0,98,51,0.25)",
+    border: "1px solid var(--p-25)",
     borderRadius: "0.75rem",
   } as React.CSSProperties,
   input: {
     background: "#161616",
-    border: "1px solid rgba(0,98,51,0.3)",
+    border: "1px solid var(--p-30)",
     color: "var(--theme-text, #e8f5e9)",
     borderRadius: "0.5rem",
     padding: "0.6rem 0.85rem",
@@ -62,8 +62,8 @@ const S = {
     fontSize: "0.875rem",
   } as React.CSSProperties,
   label: { color: "var(--theme-badge-text, #81c784)", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" } as React.CSSProperties,
-  th: { color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem", fontWeight: 500, padding: "0.75rem 1rem", textAlign: "right" as const, borderBottom: "1px solid rgba(0,98,51,0.15)" },
-  td: { color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", padding: "0.85rem 1rem", textAlign: "right" as const, borderBottom: "1px solid rgba(0,98,51,0.08)" },
+  th: { color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem", fontWeight: 500, padding: "0.75rem 1rem", textAlign: "right" as const, borderBottom: "1px solid var(--p-15)" },
+  td: { color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", padding: "0.85rem 1rem", textAlign: "right" as const, borderBottom: "1px solid var(--p-08)" },
 };
 
 const wilayas = [
@@ -106,7 +106,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up"
         style={{ ...S.card, boxShadow: "0 24px 60px rgba(0,0,0,0.6)", opacity: 0, animationFillMode: "forwards" }}
       >
-        <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
+        <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid var(--p-20)" }}>
           <h3 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600 }}>{title}</h3>
           <button onClick={onClose} style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
             <X size={20} />
@@ -308,7 +308,7 @@ export default function UserDashboard() {
       {/* Header */}
       <div
         className="px-6 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid rgba(0,98,51,0.2)", background: "rgba(11,15,11,0.9)", backdropFilter: "blur(8px)" }}
+        style={{ borderBottom: "1px solid var(--p-20)", background: "rgba(11,15,11,0.9)", backdropFilter: "blur(8px)" }}
       >
         <Link to="/" style={{ textDecoration: "none" }}>
           <span className="font-bold text-xl" style={{ background: "linear-gradient(90deg, #00a355, #4caf50)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
@@ -342,12 +342,12 @@ export default function UserDashboard() {
                   <img
                     src={profile.photo}
                     alt={profile.name}
-                    style={{ width: 60, height: 60, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,98,51,0.4)" }}
+                    style={{ width: 60, height: 60, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--p-40)" }}
                   />
                 ) : (
                   <div
                     className="flex items-center justify-center"
-                    style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.35)" }}
+                    style={{ width: 60, height: 60, borderRadius: "50%", background: "var(--p-20)", border: "1px solid var(--p-35)" }}
                   >
                     <TypeIcon size={26} style={{ color: "var(--theme-accent, #00a355)" }} />
                   </div>
@@ -362,8 +362,8 @@ export default function UserDashboard() {
                   <div className="flex flex-wrap items-center gap-3 mb-2">
                     <h2 className="text-xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>{profile.name}</h2>
                     <span style={{
-                      background: "rgba(0,98,51,0.15)", color: "var(--theme-badge-text, #81c784)",
-                      border: "1px solid rgba(0,98,51,0.3)", padding: "0.15rem 0.6rem",
+                      background: "var(--p-15)", color: "var(--theme-badge-text, #81c784)",
+                      border: "1px solid var(--p-30)", padding: "0.15rem 0.6rem",
                       borderRadius: "9999px", fontSize: "0.75rem"
                     }}>
                       {typeLabel[profile.type] ?? profile.type}
@@ -402,8 +402,8 @@ export default function UserDashboard() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 transition-colors"
                             style={{
-                              background: "rgba(0,98,51,0.12)",
-                              border: "1px solid rgba(0,98,51,0.3)",
+                              background: "var(--p-12)",
+                              border: "1px solid var(--p-30)",
                               color: "var(--theme-badge-text, #81c784)",
                               padding: "0.2rem 0.65rem",
                               borderRadius: "9999px",
@@ -443,7 +443,7 @@ export default function UserDashboard() {
                   <button
                     onClick={startEdit}
                     className="mt-4 flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-colors"
-                    style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}
+                    style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}
                   >
                     <Pencil size={14} />
                     <span>تعديل الملف</span>
@@ -464,12 +464,12 @@ export default function UserDashboard() {
                         <img
                           src={photoUrl}
                           alt="preview"
-                          style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,98,51,0.4)", flexShrink: 0 }}
+                          style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--p-40)", flexShrink: 0 }}
                         />
                       ) : (
                         <div
                           className="flex items-center justify-center flex-shrink-0"
-                          style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}
+                          style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--p-15)", border: "1px solid var(--p-30)" }}
                         >
                           <ImageIcon size={22} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
                         </div>
@@ -479,8 +479,8 @@ export default function UserDashboard() {
                           htmlFor="photo-upload"
                           style={{
                             cursor: uploadingPhoto ? "not-allowed" : "pointer",
-                            background: "rgba(0,98,51,0.12)",
-                            border: "1px solid rgba(0,98,51,0.3)",
+                            background: "var(--p-12)",
+                            border: "1px solid var(--p-30)",
                             color: uploadingPhoto ? "var(--theme-text-muted, #4a7a4a)" : "var(--theme-badge-text, #81c784)",
                             padding: "0.35rem 0.85rem",
                             borderRadius: "0.5rem",
@@ -551,7 +551,7 @@ export default function UserDashboard() {
                           <div
                             key={i}
                             className="flex items-center gap-2"
-                            style={{ background: "#161616", border: "1px solid rgba(0,98,51,0.25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
+                            style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
                           >
                             <LinkIcon2 size={13} style={{ color: "var(--theme-text-muted, #4a7a4a)", flexShrink: 0 }} />
                             <span style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -574,7 +574,7 @@ export default function UserDashboard() {
                     {showAddLink ? (
                       <div
                         className="space-y-2"
-                        style={{ background: "#161616", border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.75rem" }}
+                        style={{ background: "#161616", border: "1px solid var(--p-30)", borderRadius: "0.5rem", padding: "0.75rem" }}
                       >
                         <div className="grid grid-cols-2 gap-2">
                           <div>
@@ -608,7 +608,7 @@ export default function UserDashboard() {
                           </button>
                           <button
                             onClick={() => { setShowAddLink(false); setNewLinkLabel(""); setNewLinkUrl(""); }}
-                            style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-text-secondary, #6aad6a)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem" }}
+                            style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary, #6aad6a)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem" }}
                           >
                             إلغاء
                           </button>
@@ -618,7 +618,7 @@ export default function UserDashboard() {
                       <button
                         onClick={() => setShowAddLink(true)}
                         className="flex items-center gap-1.5 text-sm"
-                        style={{ color: "var(--theme-text-secondary, #6aad6a)", border: "1px solid rgba(0,98,51,0.3)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem" }}
+                        style={{ color: "var(--theme-text-secondary, #6aad6a)", border: "1px solid var(--p-30)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem" }}
                       >
                         <Plus size={13} />
                         <span>إضافة رابط</span>
@@ -629,7 +629,7 @@ export default function UserDashboard() {
                   <div className="flex gap-3 pt-2">
                     <button
                       onClick={() => setEditing(false)}
-                      style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.4rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}
+                      style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.4rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}
                     >
                       إلغاء
                     </button>
@@ -663,7 +663,7 @@ export default function UserDashboard() {
                 </span>
               )}
               {profile.storeStatus === "paid" && (
-                <span style={{ background: "rgba(0,98,51,0.2)", color: "#4ade80", border: "1px solid rgba(0,98,51,0.3)", padding: "0.15rem 0.65rem", borderRadius: "9999px", fontSize: "0.73rem" }}>
+                <span style={{ background: "var(--p-20)", color: "#4ade80", border: "1px solid var(--p-30)", padding: "0.15rem 0.65rem", borderRadius: "9999px", fontSize: "0.73rem" }}>
                   مفعّل
                 </span>
               )}
@@ -715,7 +715,7 @@ export default function UserDashboard() {
                         <td style={S.td}>{eq.category}</td>
                         <td style={S.td}>{eq.price.toLocaleString()}</td>
                         <td style={S.td}>
-                          <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                          <span style={{ background: eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                             {eq.condition === "new" ? "جديد" : "مستعمل"}
                           </span>
                         </td>
@@ -737,7 +737,7 @@ export default function UserDashboard() {
         {profile.type === "voice" && profile.status === "approved" && (
           <div
             className="p-5 rounded-xl animate-fade-in-up"
-            style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
+            style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "var(--p-30)" }}
           >
             <div className="flex items-center gap-2 mb-2">
               <Mic size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
@@ -756,7 +756,7 @@ export default function UserDashboard() {
         {profile.type === "journalist" && profile.status === "approved" && (
           <div
             className="p-5 rounded-xl animate-fade-in-up"
-            style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
+            style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "var(--p-30)" }}
           >
             <div className="flex items-center gap-2 mb-2">
               <BookOpen size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
@@ -816,7 +816,7 @@ export default function UserDashboard() {
               سيتم مراجعة إعلانك من قِبل الإدارة قبل نشره.
             </div>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setAddEquipModal(false)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>
+              <button onClick={() => setAddEquipModal(false)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>
                 إلغاء
               </button>
               <button onClick={handleAddEquipment} disabled={addingEquip || !equipForm.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">

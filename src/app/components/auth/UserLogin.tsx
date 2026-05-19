@@ -51,7 +51,7 @@ export default function UserLogin() {
       {/* Background glow */}
       <div
         className="fixed inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at 50% -10%, rgba(0,98,51,0.12) 0%, transparent 60%)" }}
+        style={{ background: "radial-gradient(ellipse at 50% -10%, var(--p-12) 0%, transparent 60%)" }}
       />
 
       <div className="w-full max-w-md relative z-10">
@@ -60,7 +60,7 @@ export default function UserLogin() {
           <Link to="/" className="inline-flex items-center gap-2" style={{ textDecoration: "none" }}>
             <div
               className="p-2.5 rounded-xl"
-              style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 16px rgba(0,98,51,0.4)" }}
+              style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 16px var(--p-40)" }}
             >
               <Radio size={22} color="#fff" />
             </div>
@@ -83,7 +83,7 @@ export default function UserLogin() {
           className="rounded-2xl p-8 animate-fade-in-up"
           style={{
             background: "linear-gradient(145deg, #141414, #101010)",
-            border: "1px solid rgba(0,98,51,0.25)",
+            border: "1px solid var(--p-25)",
             boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
             animationDelay: "0.1s",
             opacity: 0,
@@ -135,7 +135,7 @@ export default function UserLogin() {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 space-y-3" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
+          <div className="mt-6 pt-5 space-y-3" style={{ borderTop: "1px solid var(--p-15)" }}>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textAlign: "center" }}>
               ليس لديك حساب؟{" "}
               <Link to="/register" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>

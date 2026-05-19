@@ -221,7 +221,7 @@ export default function Register() {
         >
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ background: "rgba(0,98,51,0.2)", border: "2px solid rgba(0,163,85,0.5)" }}
+            style={{ background: "var(--p-20)", border: "2px solid rgba(0,163,85,0.5)" }}
           >
             <Check size={36} style={{ color: "var(--theme-accent, #00a355)" }} />
           </div>
@@ -241,7 +241,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12" dir="rtl" style={{ background: "#0e0e0e" }}>
       <div
         className="fixed inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at 50% -10%, rgba(0,98,51,0.12) 0%, transparent 60%)" }}
+        style={{ background: "radial-gradient(ellipse at 50% -10%, var(--p-12) 0%, transparent 60%)" }}
       />
 
       <div className="w-full max-w-2xl relative z-10">
@@ -250,7 +250,7 @@ export default function Register() {
           <Link to="/" className="inline-flex items-center gap-2" style={{ textDecoration: "none" }}>
             <div
               className="p-2.5 rounded-xl"
-              style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 16px rgba(0,98,51,0.4)" }}
+              style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 16px var(--p-40)" }}
             >
               <Radio size={22} color="#fff" />
             </div>
@@ -273,7 +273,7 @@ export default function Register() {
           className="rounded-2xl overflow-hidden animate-fade-in-up"
           style={{
             background: "linear-gradient(145deg, #141414, #101010)",
-            border: "1px solid rgba(0,98,51,0.25)",
+            border: "1px solid var(--p-25)",
             boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
             animationDelay: "0.1s",
             opacity: 0,
@@ -283,16 +283,16 @@ export default function Register() {
           {/* Step indicators */}
           <div
             className="flex items-center gap-2 px-6 pt-6 pb-5"
-            style={{ borderBottom: "1px solid rgba(0,98,51,0.15)" }}
+            style={{ borderBottom: "1px solid var(--p-15)" }}
           >
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center gap-2">
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300"
                   style={{
-                    background: step >= s ? "linear-gradient(135deg, #006233, #00a355)" : "rgba(0,98,51,0.15)",
+                    background: step >= s ? "linear-gradient(135deg, #006233, #00a355)" : "var(--p-15)",
                     color: step >= s ? "#fff" : "var(--theme-text-dim, #3a5e3a)",
-                    border: step >= s ? "none" : "1px solid rgba(0,98,51,0.2)",
+                    border: step >= s ? "none" : "1px solid var(--p-20)",
                     flexShrink: 0,
                   }}
                 >
@@ -304,7 +304,7 @@ export default function Register() {
                 {s < 3 && (
                   <div
                     className="w-6 h-px mx-1"
-                    style={{ background: step > s ? "#006233" : "rgba(0,98,51,0.2)", flexShrink: 0 }}
+                    style={{ background: step > s ? "#006233" : "var(--p-20)", flexShrink: 0 }}
                   />
                 )}
               </div>
@@ -325,19 +325,19 @@ export default function Register() {
                     className="p-5 rounded-xl text-right transition-all duration-200"
                     style={{
                       background: mainType === "individual"
-                        ? "linear-gradient(145deg, rgba(0,98,51,0.25), rgba(0,133,69,0.15))"
+                        ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                         : "rgba(0,0,0,0.2)",
                       border: mainType === "individual"
                         ? "2px solid rgba(0,163,85,0.6)"
-                        : "1px solid rgba(0,98,51,0.2)",
+                        : "1px solid var(--p-20)",
                       cursor: "pointer",
                     }}
                   >
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                       style={{
-                        background: mainType === "individual" ? "rgba(0,163,85,0.25)" : "rgba(0,98,51,0.15)",
-                        border: `1px solid ${mainType === "individual" ? "rgba(0,163,85,0.5)" : "rgba(0,98,51,0.3)"}`,
+                        background: mainType === "individual" ? "rgba(0,163,85,0.25)" : "var(--p-15)",
+                        border: `1px solid ${mainType === "individual" ? "rgba(0,163,85,0.5)" : "var(--p-30)"}`,
                       }}
                     >
                       <User size={22} style={{ color: mainType === "individual" ? "#00a355" : "var(--theme-text-muted, #4a7a4a)" }} />
@@ -354,19 +354,19 @@ export default function Register() {
                     className="p-5 rounded-xl text-right transition-all duration-200"
                     style={{
                       background: mainType === "store"
-                        ? "linear-gradient(145deg, rgba(0,98,51,0.25), rgba(0,133,69,0.15))"
+                        ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                         : "rgba(0,0,0,0.2)",
                       border: mainType === "store"
                         ? "2px solid rgba(0,163,85,0.6)"
-                        : "1px solid rgba(0,98,51,0.2)",
+                        : "1px solid var(--p-20)",
                       cursor: "pointer",
                     }}
                   >
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                       style={{
-                        background: mainType === "store" ? "rgba(0,163,85,0.25)" : "rgba(0,98,51,0.15)",
-                        border: `1px solid ${mainType === "store" ? "rgba(0,163,85,0.5)" : "rgba(0,98,51,0.3)"}`,
+                        background: mainType === "store" ? "rgba(0,163,85,0.25)" : "var(--p-15)",
+                        border: `1px solid ${mainType === "store" ? "rgba(0,163,85,0.5)" : "var(--p-30)"}`,
                       }}
                     >
                       <Store size={22} style={{ color: mainType === "store" ? "#00a355" : "var(--theme-text-muted, #4a7a4a)" }} />
@@ -391,10 +391,10 @@ export default function Register() {
                           style={{
                             background: individualSubType === type
                               ? "linear-gradient(135deg, #006233, #00a355)"
-                              : "rgba(0,98,51,0.12)",
+                              : "var(--p-12)",
                             border: individualSubType === type
                               ? "1px solid rgba(0,163,85,0.7)"
-                              : "1px solid rgba(0,98,51,0.3)",
+                              : "1px solid var(--p-30)",
                             color: individualSubType === type ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
                             cursor: "pointer",
                           }}
@@ -427,11 +427,11 @@ export default function Register() {
                         className="p-4 rounded-xl text-right transition-all duration-200"
                         style={{
                           background: form.storePlan === "trial"
-                            ? "linear-gradient(145deg, rgba(0,98,51,0.25), rgba(0,133,69,0.15))"
+                            ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                             : "rgba(0,0,0,0.2)",
                           border: form.storePlan === "trial"
                             ? "2px solid rgba(0,163,85,0.6)"
-                            : "1px solid rgba(0,98,51,0.2)",
+                            : "1px solid var(--p-20)",
                           cursor: "pointer",
                         }}
                       >
@@ -445,11 +445,11 @@ export default function Register() {
                         className="p-4 rounded-xl text-right transition-all duration-200"
                         style={{
                           background: form.storePlan === "paid"
-                            ? "linear-gradient(145deg, rgba(0,98,51,0.25), rgba(0,133,69,0.15))"
+                            ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
                             : "rgba(0,0,0,0.2)",
                           border: form.storePlan === "paid"
                             ? "2px solid rgba(0,163,85,0.6)"
-                            : "1px solid rgba(0,98,51,0.2)",
+                            : "1px solid var(--p-20)",
                           cursor: "pointer",
                         }}
                       >
@@ -591,7 +591,7 @@ export default function Register() {
                         ) : (
                           <div
                             className="w-16 h-16 rounded-full flex items-center justify-center"
-                            style={{ background: "rgba(0,98,51,0.15)", border: "2px dashed rgba(0,98,51,0.4)" }}
+                            style={{ background: "var(--p-15)", border: "2px dashed var(--p-40)" }}
                           >
                             <User size={24} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
                           </div>
@@ -601,8 +601,8 @@ export default function Register() {
                           onClick={() => fileInputRef.current?.click()}
                           className="px-4 py-2 rounded-lg text-sm transition-all duration-200"
                           style={{
-                            background: "rgba(0,98,51,0.15)",
-                            border: "1px solid rgba(0,98,51,0.4)",
+                            background: "var(--p-15)",
+                            border: "1px solid var(--p-40)",
                             color: "var(--theme-text-secondary, #6aad6a)",
                             cursor: "pointer",
                           }}
@@ -710,7 +710,7 @@ export default function Register() {
                             <div
                               key={idx}
                               className="flex items-center justify-between px-3 py-2 rounded-lg"
-                              style={{ background: "rgba(0,98,51,0.1)", border: "1px solid rgba(0,98,51,0.25)" }}
+                              style={{ background: "var(--p-10)", border: "1px solid var(--p-25)" }}
                             >
                               <div className="flex flex-col min-w-0">
                                 <span className="text-sm font-medium truncate" style={{ color: "var(--theme-text, #c8e6c9)" }}>{link.label}</span>
@@ -732,7 +732,7 @@ export default function Register() {
                       {showAddLink ? (
                         <div
                           className="p-4 rounded-lg space-y-3"
-                          style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(0,98,51,0.2)" }}
+                          style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--p-20)" }}
                         >
                           <div>
                             <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>التسمية</label>
@@ -767,7 +767,7 @@ export default function Register() {
                               type="button"
                               onClick={() => { setShowAddLink(false); setNewLink({ label: "", url: "" }); }}
                               className="px-4 py-1.5 rounded-lg text-sm"
-                              style={{ background: "none", border: "1px solid rgba(0,98,51,0.2)", color: "var(--theme-text-muted, #4a7a4a)", cursor: "pointer" }}
+                              style={{ background: "none", border: "1px solid var(--p-20)", color: "var(--theme-text-muted, #4a7a4a)", cursor: "pointer" }}
                             >
                               إلغاء
                             </button>
@@ -779,8 +779,8 @@ export default function Register() {
                           onClick={() => setShowAddLink(true)}
                           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200"
                           style={{
-                            background: "rgba(0,98,51,0.1)",
-                            border: "1px dashed rgba(0,98,51,0.4)",
+                            background: "var(--p-10)",
+                            border: "1px dashed var(--p-40)",
                             color: "var(--theme-text-secondary, #6aad6a)",
                             cursor: "pointer",
                           }}
@@ -878,7 +878,7 @@ export default function Register() {
                           <span>رفع الصورة...</span>
                           <span>{uploadProgress}%</span>
                         </div>
-                        <div className="w-full rounded-full h-1.5" style={{ background: "rgba(0,98,51,0.2)" }}>
+                        <div className="w-full rounded-full h-1.5" style={{ background: "var(--p-20)" }}>
                           <div
                             className="h-1.5 rounded-full transition-all"
                             style={{ width: `${uploadProgress}%`, background: "linear-gradient(90deg, #006233, #00a355)" }}

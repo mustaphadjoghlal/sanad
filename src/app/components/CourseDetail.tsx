@@ -70,9 +70,9 @@ export default function CourseDetail() {
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"
-          style={{ height: "200px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", borderBottom: "1px solid rgba(0,98,51,0.2)" }}
+          style={{ height: "200px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", borderBottom: "1px solid var(--p-20)" }}
         >
-          <BookOpen size={64} style={{ color: "rgba(0,98,51,0.3)" }} />
+          <BookOpen size={64} style={{ color: "var(--p-30)" }} />
         </div>
       )}
 
@@ -82,7 +82,7 @@ export default function CourseDetail() {
           <span
             className="text-xs px-3 py-1 rounded-full"
             style={{
-              background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.3)",
+              background: c.type === "free" ? "var(--p-30)" : "rgba(26,82,118,0.3)",
               color: c.type === "free" ? "var(--theme-badge-text, #81c784)" : "#7fb3d3",
             }}
           >
@@ -101,7 +101,7 @@ export default function CourseDetail() {
         {/* Meta row */}
         <div
           className="flex flex-wrap gap-4 p-4 rounded-xl mb-8"
-          style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
+          style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
         >
           {c.instructor && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
@@ -122,7 +122,7 @@ export default function CourseDetail() {
           <div className="mb-8">
             <div
               className="h-px mb-6"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(0,98,51,0.4), transparent)" }}
+              style={{ background: "linear-gradient(90deg, transparent, var(--p-40), transparent)" }}
             />
             <div
               className="grid gap-3"
@@ -133,7 +133,7 @@ export default function CourseDetail() {
                   key={idx}
                   src={img}
                   alt={`صورة ${idx + 1}`}
-                  style={{ width: "100%", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.2)" }}
+                  style={{ width: "100%", borderRadius: "0.5rem", border: "1px solid var(--p-20)" }}
                 />
               ))}
             </div>
@@ -151,7 +151,7 @@ export default function CourseDetail() {
               background: "linear-gradient(135deg, #006233, #00a355)",
               color: "#fff",
               textDecoration: "none",
-              boxShadow: "0 4px 16px rgba(0,98,51,0.3)",
+              boxShadow: "0 4px 16px var(--p-30)",
             }}
           >
             <span>الانتقال إلى الدورة</span>

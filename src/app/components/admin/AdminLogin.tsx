@@ -39,7 +39,7 @@ export default function AdminLogin() {
       className="min-h-screen flex items-center justify-center p-4"
       dir="rtl"
       style={{
-        background: "radial-gradient(ellipse at 50% 0%, rgba(0,98,51,0.18) 0%, #080808 60%)",
+        background: "radial-gradient(ellipse at 50% 0%, var(--p-18) 0%, #080808 60%)",
         backgroundColor: "#0e0e0e",
       }}
     >
@@ -59,7 +59,7 @@ export default function AdminLogin() {
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 animate-float"
             style={{
               background: "linear-gradient(135deg, #006233, #008545)",
-              boxShadow: "0 0 32px rgba(0,98,51,0.4)",
+              boxShadow: "0 0 32px var(--p-40)",
             }}
           >
             <Radio size={30} color="#ffffff" />
@@ -77,7 +77,7 @@ export default function AdminLogin() {
           className="rounded-2xl p-8"
           style={{
             background: "linear-gradient(145deg, #141414, #101010)",
-            border: "1px solid rgba(0,98,51,0.3)",
+            border: "1px solid var(--p-30)",
             boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
           }}
         >

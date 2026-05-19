@@ -30,11 +30,11 @@ export default function Jobs() {
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
-      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(0,98,51,0.15) 0%, transparent 60%)" }} />
+      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, var(--p-15) 0%, transparent 60%)" }} />
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Briefcase size={20} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
+            <div className="p-2 rounded-lg" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}><Briefcase size={20} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>عروض التوظيف</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>فرص عمل إعلامية وصحفية في الجزائر</p>
@@ -42,7 +42,7 @@ export default function Jobs() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
+        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-25)", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
@@ -65,7 +65,7 @@ export default function Jobs() {
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
               <Briefcase size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد عروض توظيف حالياً." : "لا توجد نتائج."}</p>
@@ -80,11 +80,11 @@ export default function Jobs() {
                 style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards", textDecoration: "none", display: "flex" }}
               >
                 {/* Thumbnail */}
-                <div style={{ width: "100px", minWidth: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: "100px", minWidth: "100px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   {j.image ? (
                     <img src={j.image} alt={j.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
-                    <Briefcase size={28} style={{ color: "rgba(0,98,51,0.4)" }} />
+                    <Briefcase size={28} style={{ color: "var(--p-40)" }} />
                   )}
                 </div>
 
@@ -95,13 +95,13 @@ export default function Jobs() {
                     <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem", marginBottom: "0.5rem" }}>{j.company}</p>
                     <div className="flex flex-wrap gap-3 text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
                       {j.location && <span className="flex items-center gap-1"><MapPin size={12} />{j.location}</span>}
-                      {j.jobType && <span style={{ background: "rgba(0,98,51,0.2)", padding: "0.15rem 0.5rem", borderRadius: "9999px", color: "var(--theme-badge-text, #81c784)" }}>{j.jobType}</span>}
+                      {j.jobType && <span style={{ background: "var(--p-20)", padding: "0.15rem 0.5rem", borderRadius: "9999px", color: "var(--theme-badge-text, #81c784)" }}>{j.jobType}</span>}
                       {j.deadline && <span className="flex items-center gap-1"><Calendar size={12} />آخر أجل: {j.deadline}</span>}
                     </div>
                     {j.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", marginTop: "0.75rem", lineHeight: 1.6 }}>{j.description.slice(0, 120)}{j.description.length > 120 ? "..." : ""}</p>}
                   </div>
                   {j.contact && (
-                    <div style={{ border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.5rem 1rem", color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    <div style={{ border: "1px solid var(--p-30)", borderRadius: "0.5rem", padding: "0.5rem 1rem", color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem", whiteSpace: "nowrap", flexShrink: 0 }}>
                       {j.contact}
                     </div>
                   )}

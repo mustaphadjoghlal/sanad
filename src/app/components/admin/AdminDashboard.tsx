@@ -32,21 +32,21 @@ type StatusFilter = "all" | "pending" | "approved";
 const S = {
   card: {
     background: "linear-gradient(145deg, #141414, #101010)",
-    border: "1px solid rgba(0,98,51,0.25)",
+    border: "1px solid var(--p-25)",
     borderRadius: "0.75rem",
   } as React.CSSProperties,
   th: {
     color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem", fontWeight: 500,
     padding: "0.75rem 1rem", textAlign: "right" as const,
-    borderBottom: "1px solid rgba(0,98,51,0.15)",
+    borderBottom: "1px solid var(--p-15)",
   },
   td: {
     color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem",
     padding: "0.85rem 1rem", textAlign: "right" as const,
-    borderBottom: "1px solid rgba(0,98,51,0.08)",
+    borderBottom: "1px solid var(--p-08)",
   },
   input: {
-    background: "#161616", border: "1px solid rgba(0,98,51,0.3)",
+    background: "#161616", border: "1px solid var(--p-30)",
     color: "var(--theme-text, #e8f5e9)", borderRadius: "0.5rem",
     padding: "0.6rem 0.85rem", width: "100%", fontSize: "0.875rem",
   } as React.CSSProperties,
@@ -57,9 +57,9 @@ const S = {
   }),
   statusBadge: (status: string) => ({
     display: "inline-block", padding: "0.2rem 0.6rem", borderRadius: "9999px", fontSize: "0.72rem",
-    background: status === "pending" ? "rgba(180,120,0,0.2)" : status === "approved" ? "rgba(0,98,51,0.2)" : "rgba(198,40,40,0.1)",
+    background: status === "pending" ? "rgba(180,120,0,0.2)" : status === "approved" ? "var(--p-20)" : "rgba(198,40,40,0.1)",
     color: status === "pending" ? "#fbbf24" : status === "approved" ? "#4ade80" : "#f87171",
-    border: `1px solid ${status === "pending" ? "rgba(180,120,0,0.3)" : status === "approved" ? "rgba(0,98,51,0.3)" : "rgba(198,40,40,0.3)"}`,
+    border: `1px solid ${status === "pending" ? "rgba(180,120,0,0.3)" : status === "approved" ? "var(--p-30)" : "rgba(198,40,40,0.3)"}`,
   } as React.CSSProperties),
 };
 
@@ -81,7 +81,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up"
         style={{ ...S.card, boxShadow: "0 24px 60px rgba(0,0,0,0.6)", opacity: 0, animationFillMode: "forwards" }}
       >
-        <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
+        <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid var(--p-20)" }}>
           <h3 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600 }}>{title}</h3>
           <button onClick={onClose} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} className="hover:text-white transition-colors">
             <X size={20} />
@@ -101,7 +101,7 @@ function ConfirmDelete({ label, onConfirm, onClose }: { label: string; onConfirm
         هل أنت متأكد من حذف <strong style={{ color: "#ef9a9a" }}>{label}</strong>؟ لا يمكن التراجع عن هذا الإجراء.
       </p>
       <div className="flex gap-3 justify-end">
-        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}>
+        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
           إلغاء
         </button>
         <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
@@ -127,7 +127,7 @@ function RejectModal({ label, onConfirm, onClose }: { label: string; onConfirm: 
         placeholder="اذكر سبب الرفض للمستخدم..."
       />
       <div className="flex gap-3 justify-end mt-4">
-        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}>
+        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
           إلغاء
         </button>
         <button onClick={() => onConfirm(note)} disabled={!note.trim()} className="px-4 py-2 rounded-lg text-sm disabled:opacity-50" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
@@ -153,9 +153,9 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
           onClick={() => onChange(v)}
           className="px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
           style={{
-            background: value === v ? (v === "pending" ? "rgba(180,120,0,0.2)" : "rgba(0,98,51,0.2)") : "transparent",
+            background: value === v ? (v === "pending" ? "rgba(180,120,0,0.2)" : "var(--p-20)") : "transparent",
             color: value === v ? (v === "pending" ? "#fbbf24" : "#4ade80") : "var(--theme-text-muted, #4a7a4a)",
-            border: `1px solid ${value === v ? (v === "pending" ? "rgba(180,120,0,0.3)" : "rgba(0,98,51,0.3)") : "rgba(0,98,51,0.15)"}`,
+            border: `1px solid ${value === v ? (v === "pending" ? "rgba(180,120,0,0.3)" : "var(--p-30)") : "var(--p-15)"}`,
           }}
         >
           {label}
@@ -193,7 +193,7 @@ function ItemActions({
             onClick={() => approveItem(colName, id)}
             title="موافقة"
             className="p-1.5 rounded transition-colors"
-            style={{ color: "#4ade80", background: "rgba(0,98,51,0.15)" }}
+            style={{ color: "#4ade80", background: "var(--p-15)" }}
           >
             <Check size={14} />
           </button>
@@ -273,15 +273,15 @@ export default function AdminDashboard() {
           width: sidebarOpen ? "240px" : "64px",
           minHeight: "100vh",
           background: "linear-gradient(180deg, #131313 0%, #080808 100%)",
-          borderLeft: "1px solid rgba(0,98,51,0.2)",
+          borderLeft: "1px solid var(--p-20)",
           transition: "width 0.3s ease",
           flexShrink: 0,
         }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 p-4 mb-2" style={{ borderBottom: "1px solid rgba(0,98,51,0.15)" }}>
+        <div className="flex items-center gap-2 p-4 mb-2" style={{ borderBottom: "1px solid var(--p-15)" }}>
           <div className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 10px rgba(0,98,51,0.4)" }}>
+            style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 10px var(--p-40)" }}>
             <Radio size={16} color="#fff" />
           </div>
           {sidebarOpen && (
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200"
               style={{
                 color: activeSection === id ? "#00a355" : "var(--theme-text-secondary, #6aad6a)",
-                background: activeSection === id ? "rgba(0,98,51,0.18)" : "transparent",
+                background: activeSection === id ? "var(--p-18)" : "transparent",
                 justifyContent: sidebarOpen ? "flex-start" : "center",
               }}
             >
@@ -310,7 +310,7 @@ export default function AdminDashboard() {
           ))}
         </nav>
 
-        <div className="p-2 space-y-1" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
+        <div className="p-2 space-y-1" style={{ borderTop: "1px solid var(--p-15)" }}>
           <Link
             to="/"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
@@ -335,7 +335,7 @@ export default function AdminDashboard() {
         {/* Top bar */}
         <div
           className="flex items-center gap-4 px-6 py-4"
-          style={{ borderBottom: "1px solid rgba(0,98,51,0.15)", background: "rgba(11,15,11,0.8)", backdropFilter: "blur(8px)" }}
+          style={{ borderBottom: "1px solid var(--p-15)", background: "rgba(11,15,11,0.8)", backdropFilter: "blur(8px)" }}
         >
           <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
             <LayoutDashboard size={20} />
@@ -545,7 +545,7 @@ function CoursesSection() {
                   <td style={S.td}>{c.title}</td>
                   <td style={S.td}>{c.instructor}</td>
                   <td style={S.td}>
-                    <span style={S.badge(c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.3)")}>
+                    <span style={S.badge(c.type === "free" ? "var(--p-30)" : "rgba(26,82,118,0.3)")}>
                       {c.type === "free" ? "مجانية" : `${c.price} دج`}
                     </span>
                   </td>
@@ -584,7 +584,7 @@ function CoursesSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -610,7 +610,7 @@ function CoursesSection() {
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -751,7 +751,7 @@ function JobsSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -777,7 +777,7 @@ function JobsSection() {
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -874,7 +874,7 @@ function EquipmentSection() {
                   <td style={S.td}>{eq.name}</td>
                   <td style={S.td}>{eq.category}</td>
                   <td style={S.td}>{eq.price.toLocaleString()}</td>
-                  <td style={S.td}><span style={S.badge(eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)")}>{eq.condition === "new" ? "جديد" : "مستعمل"}</span></td>
+                  <td style={S.td}><span style={S.badge(eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)")}>{eq.condition === "new" ? "جديد" : "مستعمل"}</span></td>
                   <td style={S.td}><span style={S.statusBadge(eq.status || "approved")}>{statusLabel(eq.status)}</span></td>
                   <td style={{ ...S.td, width: "140px" }}>
                     <ItemActions colName="equipment" id={eq.id} status={eq.status} featured={eq.featured} label={eq.name} onEdit={() => openEdit(eq)} onDelete={() => setDeleteTarget(eq)} />
@@ -917,7 +917,7 @@ function EquipmentSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -943,7 +943,7 @@ function EquipmentSection() {
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -1043,7 +1043,7 @@ function CompetitionsSection() {
               ) : filtered.map((c) => (
                 <tr key={c.id} className="hover:bg-green-950/20 transition-colors" style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{c.name}</td>
-                  <td style={S.td}><span style={S.badge("rgba(0,98,51,0.25)")}>{typeLabel[c.type]}</span></td>
+                  <td style={S.td}><span style={S.badge("var(--p-25)")}>{typeLabel[c.type]}</span></td>
                   <td style={S.td}>{c.startDate}</td>
                   <td style={S.td}>{c.endDate}</td>
                   <td style={S.td}><span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span></td>
@@ -1077,7 +1077,7 @@ function CompetitionsSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
+                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -1111,7 +1111,7 @@ function CompetitionsSection() {
             <div><label style={S.label}>تعريف الجهة المنظمة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.organizerDescription} onChange={(e) => setForm({ ...form, organizerDescription: e.target.value })} /></div>
             <div><label style={S.label}>الرابط الرسمي (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." dir="ltr" /></div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -1182,7 +1182,7 @@ function VoiceSection() {
               ) : filtered.map((v) => (
                 <tr key={v.id} className="hover:bg-green-950/20 transition-colors" style={v.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{v.name}</td>
-                  <td style={S.td}><span style={S.badge("rgba(0,98,51,0.25)")}>{v.specialty}</span></td>
+                  <td style={S.td}><span style={S.badge("var(--p-25)")}>{v.specialty}</span></td>
                   <td style={S.td}>{v.experience}</td>
                   <td style={S.td}><span style={S.statusBadge(v.status || "approved")}>{statusLabel(v.status)}</span></td>
                   <td style={{ ...S.td, width: "140px" }}>
@@ -1215,7 +1215,7 @@ function VoiceSection() {
             <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
             <div><label style={S.label}>نبذة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -1276,7 +1276,7 @@ function ProfessionalsSection() {
                     <div>{p.name}</div>
                     <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{p.email}</div>
                   </td>
-                  <td style={S.td}><span style={S.badge("rgba(0,98,51,0.2)")}>{typeLabel[p.type] || p.type}</span></td>
+                  <td style={S.td}><span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span></td>
                   <td style={S.td}>{p.specialty || "—"}</td>
                   <td style={S.td}>{p.location || "—"}</td>
                   <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
@@ -1296,7 +1296,7 @@ function ProfessionalsSection() {
                           onClick={() => approveItem("users", p.id)}
                           title="موافقة"
                           className="p-1.5 rounded"
-                          style={{ color: "#4ade80", background: "rgba(0,98,51,0.15)" }}
+                          style={{ color: "#4ade80", background: "var(--p-15)" }}
                         >
                           <Check size={14} />
                         </button>
@@ -1527,7 +1527,7 @@ function ChannelsSection() {
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => { setShowForm(false); setEditId(null); }} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => { setShowForm(false); setEditId(null); }} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name.trim()} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : editId ? "حفظ التعديلات" : "إضافة"}</span>
               </button>
@@ -1699,7 +1699,7 @@ function AppearanceSection() {
         <button
           onClick={handleReset}
           className="px-6 py-3 rounded-xl text-sm"
-          style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-text-secondary, #6aad6a)" }}
+          style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary, #6aad6a)" }}
         >
           إعادة الافتراضي
         </button>

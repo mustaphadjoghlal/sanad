@@ -53,7 +53,7 @@ function SectionHeader({ title, link, linkLabel }: { title: string; link: string
     <div className="flex items-center justify-between mb-8">
       <div>
         <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
-        <div className="h-px w-20" style={{ background: "linear-gradient(90deg, #006233, #00a355, transparent)" }} />
+        <div className="h-px w-20" style={{ background: "linear-gradient(90deg, var(--theme-primary), var(--theme-accent), transparent)" }} />
       </div>
       <Link
         to={link}
@@ -112,7 +112,7 @@ export default function Home() {
         <div
           className="absolute inset-0"
           style={{
-            background: "radial-gradient(ellipse at 50% -10%, rgba(0,98,51,0.2) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse at 50% -10%, var(--p-20) 0%, transparent 65%)",
           }}
         />
 
@@ -120,14 +120,14 @@ export default function Home() {
         <div
           className="absolute top-16 left-1/4 w-64 h-64 rounded-full opacity-5"
           style={{
-            background: "radial-gradient(circle, #00a355, transparent 70%)",
+            background: "radial-gradient(circle, var(--theme-accent, #00a355), transparent 70%)",
             filter: "blur(40px)",
           }}
         />
         <div
           className="absolute bottom-0 right-1/3 w-48 h-48 rounded-full opacity-5"
           style={{
-            background: "radial-gradient(circle, #006233, transparent 70%)",
+            background: "radial-gradient(circle, var(--theme-primary, #006233), transparent 70%)",
             filter: "blur(30px)",
           }}
         />
@@ -137,8 +137,8 @@ export default function Home() {
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 animate-fade-in"
             style={{
-              border: "1px solid rgba(0,163,85,0.3)",
-              background: "rgba(0,98,51,0.1)",
+              border: "1px solid var(--p-30)",
+              background: "var(--p-10)",
               color: "var(--theme-accent, #4caf50)",
               fontSize: "0.8rem",
             }}
@@ -200,18 +200,18 @@ export default function Home() {
               to="/register"
               className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-medium transition-all duration-300"
               style={{
-                border: "1px solid rgba(0,98,51,0.4)",
+                border: "1px solid var(--p-40)",
                 color: "var(--theme-badge-text, #81c784)",
                 background: "transparent",
                 textDecoration: "none",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.12)";
+                (e.currentTarget as HTMLElement).style.background = "var(--p-12)";
                 (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,163,85,0.6)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.background = "transparent";
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,98,51,0.4)";
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--p-40)";
               }}
             >
               انضم الآن
@@ -223,17 +223,17 @@ export default function Home() {
         <div
           className="absolute bottom-0 right-0 left-0 h-px"
           style={{
-            background: "linear-gradient(90deg, transparent, rgba(0,98,51,0.4), transparent)",
+            background: "linear-gradient(90deg, transparent, var(--p-40), transparent)",
           }}
         />
       </section>
 
       {/* Featured Courses */}
       {featuredCourses.length > 0 && (
-        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
           <div className="container mx-auto">
             <SectionHeader title="الدورات المميزة" link="/courses" linkLabel="عرض الكل" />
-            <div className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(0,98,51,0.3) transparent" }}>
+            <div className="flex gap-5 overflow-x-auto pb-4" style={{ scrollbarWidth: "thin", scrollbarColor: "var(--p-30) transparent" }}>
               {featuredCourses.map((c, i) => (
                 <Link
                   key={c.id}
@@ -250,7 +250,7 @@ export default function Home() {
                   }}
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <span style={{ background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "var(--theme-badge-text, #81c784)" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                    <span style={{ background: c.type === "free" ? "var(--p-30)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "var(--theme-badge-text, #81c784)" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                       {c.type === "free" ? "مجانية" : `${c.price?.toLocaleString()} دج`}
                     </span>
                     {c.duration && <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{c.duration}</span>}
@@ -267,7 +267,7 @@ export default function Home() {
 
       {/* Featured Professionals */}
       {featuredProfiles.length > 0 && (
-        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
           <div className="container mx-auto">
             <SectionHeader title="محترفون مميزون" link="/voice-requests" linkLabel="عرض الكل" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -285,7 +285,7 @@ export default function Home() {
                   <div className="flex items-center gap-3 mb-3">
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}
+                      style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}
                     >
                       <span style={{ color: "var(--theme-accent, #00a355)", fontSize: "1rem", fontWeight: 700 }}>
                         {p.name.charAt(0)}
@@ -293,7 +293,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{p.name}</h3>
-                      <span style={{ background: "rgba(0,98,51,0.2)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>
+                      <span style={{ background: "var(--p-20)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>
                         {typeLabel[p.type] || p.type}
                       </span>
                     </div>
@@ -314,7 +314,7 @@ export default function Home() {
 
       {/* Featured Jobs */}
       {featuredJobs.length > 0 && (
-        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
           <div className="container mx-auto">
             <SectionHeader title="أحدث الفرص" link="/jobs" linkLabel="عرض الكل" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -328,13 +328,13 @@ export default function Home() {
                   {j.image ? (
                     <img src={j.image} alt={j.title} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
                   ) : (
-                    <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Briefcase size={32} style={{ color: "rgba(0,98,51,0.4)" }} />
+                    <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Briefcase size={32} style={{ color: "var(--p-40)" }} />
                     </div>
                   )}
                   <div className="p-4">
                     {j.jobType && (
-                      <span style={{ background: "rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>{j.jobType}</span>
+                      <span style={{ background: "var(--p-30)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>{j.jobType}</span>
                     )}
                     <h3 className="font-semibold mt-2 mb-1" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{j.title}</h3>
                     <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem" }}>{j.company}</p>
@@ -352,12 +352,12 @@ export default function Home() {
 
       {/* Upcoming Competitions */}
       {upcomingCompetitions.length > 0 && (
-        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
           <div className="container mx-auto">
             <SectionHeader title="مسابقات قادمة" link="/competitions" linkLabel="عرض الكل" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {upcomingCompetitions.map((c, i) => {
-                const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "rgba(0,98,51,0.3)", international: "rgba(120,66,18,0.3)" };
+                const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "var(--p-30)", international: "rgba(120,66,18,0.3)" };
                 const typeColor2: Record<string, string> = { university: "#7fb3d3", national: "var(--theme-badge-text, #81c784)", international: "#f0b27a" };
                 const typeLabelMap: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
                 return (
@@ -377,12 +377,12 @@ export default function Home() {
                     {c.image ? (
                       <img src={c.image} alt={c.name} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
                     ) : (
-                      <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Trophy size={32} style={{ color: "rgba(0,98,51,0.4)" }} />
+                      <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Trophy size={32} style={{ color: "var(--p-40)" }} />
                       </div>
                     )}
                     <div className="p-5">
-                      <span style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor2[c.type] || "var(--theme-badge-text, #81c784)", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                      <span style={{ background: typeBg[c.type] || "var(--p-30)", color: typeColor2[c.type] || "var(--theme-badge-text, #81c784)", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                         {typeLabelMap[c.type]}
                       </span>
                       <h3 className="font-semibold mt-3 mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{c.name}</h3>
@@ -401,7 +401,7 @@ export default function Home() {
 
       {/* Featured Equipment */}
       {featuredEquipment.length > 0 && (
-        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
           <div className="container mx-auto">
             <SectionHeader title="معدات مميزة للبيع" link="/equipment" linkLabel="عرض الكل" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -415,14 +415,14 @@ export default function Home() {
                   {eq.image ? (
                     <img src={eq.image} alt={eq.name} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
                   ) : (
-                    <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Camera size={32} style={{ color: "rgba(0,98,51,0.4)" }} />
+                    <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Camera size={32} style={{ color: "var(--p-40)" }} />
                     </div>
                   )}
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{eq.name}</h3>
-                      <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                      <span style={{ background: eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                         {eq.condition === "new" ? "جديد" : "مستعمل"}
                       </span>
                     </div>
@@ -438,7 +438,7 @@ export default function Home() {
 
       {/* Featured Voice Artists */}
       {featuredVoice.length > 0 && (
-        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
           <div className="container mx-auto">
             <SectionHeader title="منشطون ومعلقون مميزون" link="/voice-requests" linkLabel="عرض الكل" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -449,12 +449,12 @@ export default function Home() {
                   style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}>
                       <Mic size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
                     </div>
                     <div>
                       <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{v.name}</h3>
-                      <span style={{ background: "rgba(0,98,51,0.2)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>
+                      <span style={{ background: "var(--p-20)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>
                     </div>
                   </div>
                   {v.experience && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>الخبرة: {v.experience}</p>}
@@ -507,8 +507,8 @@ export default function Home() {
                   <div
                     className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110"
                     style={{
-                      background: "linear-gradient(135deg, rgba(0,98,51,0.3), rgba(0,133,69,0.2))",
-                      border: "1px solid rgba(0,98,51,0.4)",
+                      background: "linear-gradient(135deg, var(--p-30), rgba(0,133,69,0.2))",
+                      border: "1px solid var(--p-40)",
                     }}
                   >
                     <Icon
@@ -549,8 +549,8 @@ export default function Home() {
         className="py-12 px-4"
         style={{
           background: "linear-gradient(135deg, #080808, #101010)",
-          borderTop: "1px solid rgba(0,98,51,0.15)",
-          borderBottom: "1px solid rgba(0,98,51,0.15)",
+          borderTop: "1px solid var(--p-15)",
+          borderBottom: "1px solid var(--p-15)",
         }}
       >
         <div className="container mx-auto">

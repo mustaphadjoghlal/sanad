@@ -5,7 +5,7 @@ import { subscribeToCollection } from "../../lib/firestore";
 import type { Competition } from "../../lib/types";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
-const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "rgba(0,98,51,0.3)", international: "rgba(120,66,18,0.3)" };
+const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "var(--p-30)", international: "rgba(120,66,18,0.3)" };
 const typeColor: Record<string, string> = { university: "#7fb3d3", national: "var(--theme-badge-text, #81c784)", international: "#f0b27a" };
 
 export default function Competitions() {
@@ -33,11 +33,11 @@ export default function Competitions() {
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
       {/* Hero */}
-      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(0,98,51,0.15) 0%, transparent 60%)" }} />
+      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, var(--p-15) 0%, transparent 60%)" }} />
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
+            <div className="p-2 rounded-lg" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}>
               <Trophy size={20} style={{ color: "var(--theme-accent, #00a355)" }} />
             </div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>المسابقات الإعلامية</h1>
@@ -50,7 +50,7 @@ export default function Competitions() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Search + filter */}
-        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
+        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-25)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
@@ -76,7 +76,7 @@ export default function Competitions() {
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
               <Trophy size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد مسابقات حالياً." : "لا توجد نتائج."}</p>
@@ -107,15 +107,15 @@ export default function Competitions() {
                   ) : (
                     <div
                       className="w-full h-full flex items-center justify-center"
-                      style={{ background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))" }}
+                      style={{ background: "linear-gradient(135deg, var(--p-15), var(--p-05))" }}
                     >
-                      <Trophy size={48} style={{ color: "rgba(0,98,51,0.3)" }} />
+                      <Trophy size={48} style={{ color: "var(--p-30)" }} />
                     </div>
                   )}
                   {/* Type badge over image */}
                   <span
                     className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full"
-                    style={{ background: typeBg[c.type] || "rgba(0,98,51,0.6)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)", backdropFilter: "blur(4px)" }}
+                    style={{ background: typeBg[c.type] || "var(--p-60)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)", backdropFilter: "blur(4px)" }}
                   >
                     {typeLabel[c.type]}
                   </span>
@@ -139,7 +139,7 @@ export default function Competitions() {
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: "1px solid rgba(0,98,51,0.12)" }}>
+                  <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: "1px solid var(--p-12)" }}>
                     <div className="flex items-center gap-1 text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
                       <Calendar size={12} />
                       <span>{c.endDate || c.startDate || ""}</span>

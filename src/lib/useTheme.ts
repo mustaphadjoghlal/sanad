@@ -27,6 +27,20 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--theme-text-dim",       mixHex(text, "#000000", 0.65));
   r.style.setProperty("--theme-badge-text",     mixHex(text, "#ffffff", 0.15));
   r.style.setProperty("--theme-badge-bg", hexToRgba(t.primaryGreen, 0.25));
+
+  // Primary color overlays (replaces hardcoded rgba(0,98,51,...))
+  r.style.setProperty("--p-05",  hexToRgba(t.primaryGreen, 0.05));
+  r.style.setProperty("--p-08",  hexToRgba(t.primaryGreen, 0.08));
+  r.style.setProperty("--p-10",  hexToRgba(t.primaryGreen, 0.10));
+  r.style.setProperty("--p-12",  hexToRgba(t.primaryGreen, 0.12));
+  r.style.setProperty("--p-15",  hexToRgba(t.primaryGreen, 0.15));
+  r.style.setProperty("--p-18",  hexToRgba(t.primaryGreen, 0.18));
+  r.style.setProperty("--p-20",  hexToRgba(t.primaryGreen, 0.20));
+  r.style.setProperty("--p-25",  hexToRgba(t.primaryGreen, 0.25));
+  r.style.setProperty("--p-30",  hexToRgba(t.primaryGreen, 0.30));
+  r.style.setProperty("--p-35",  hexToRgba(t.primaryGreen, 0.35));
+  r.style.setProperty("--p-40",  hexToRgba(t.primaryGreen, 0.40));
+  r.style.setProperty("--p-60",  hexToRgba(t.primaryGreen, 0.60));
 }
 
 function hexToRgba(hex: string, alpha: number): string {

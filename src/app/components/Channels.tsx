@@ -4,7 +4,7 @@ import { subscribeToChannels } from "../../lib/firestore";
 import type { Channel } from "../../lib/types";
 
 const categoryColors: Record<string, string> = {
-  "وطنية":   "rgba(0,98,51,0.25)",
+  "وطنية":   "var(--p-25)",
   "خاصة":    "rgba(0,60,120,0.25)",
   "محلية":   "rgba(80,50,0,0.3)",
   "دينية":   "rgba(60,0,80,0.3)",
@@ -21,7 +21,7 @@ const categoryText: Record<string, string> = {
 const S = {
   card: {
     background: "linear-gradient(145deg, #141414, #101010)",
-    border: "1px solid rgba(0,98,51,0.2)",
+    border: "1px solid var(--p-20)",
     borderRadius: "0.75rem",
   } as React.CSSProperties,
 };
@@ -36,7 +36,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
         <div className="flex items-center gap-2">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: ch.type === "tv" ? "rgba(0,98,51,0.2)" : "rgba(0,60,120,0.2)", border: `1px solid ${ch.type === "tv" ? "rgba(0,98,51,0.3)" : "rgba(0,100,200,0.3)"}` }}
+            style={{ background: ch.type === "tv" ? "var(--p-20)" : "rgba(0,60,120,0.2)", border: `1px solid ${ch.type === "tv" ? "var(--p-30)" : "rgba(0,100,200,0.3)"}` }}
           >
             {ch.type === "tv"
               ? <Tv size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
@@ -47,7 +47,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
         </div>
         <span
           className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-          style={{ background: categoryColors[ch.category] || "rgba(0,98,51,0.2)", color: categoryText[ch.category] || "var(--theme-badge-text, #81c784)" }}
+          style={{ background: categoryColors[ch.category] || "var(--p-20)", color: categoryText[ch.category] || "var(--theme-badge-text, #81c784)" }}
         >
           {ch.category}
         </span>
@@ -57,7 +57,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
       {ch.frequency && (
         <div
           className="rounded-lg px-3 py-2 mb-3 text-sm font-mono"
-          style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,98,51,0.15)", color: "var(--theme-text-secondary, #a5d6a7)" }}
+          style={{ background: "rgba(0,0,0,0.3)", border: "1px solid var(--p-15)", color: "var(--theme-text-secondary, #a5d6a7)" }}
           dir="ltr"
         >
           📡 {ch.frequency}
@@ -95,7 +95,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
 
       {/* Social links */}
       {hasSocial && (
-        <div className="flex gap-2 pt-2.5" style={{ borderTop: "1px solid rgba(0,98,51,0.12)" }}>
+        <div className="flex gap-2 pt-2.5" style={{ borderTop: "1px solid var(--p-12)" }}>
           {ch.facebook && (
             <a href={ch.facebook} target="_blank" rel="noopener noreferrer"
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
@@ -161,11 +161,11 @@ export default function ChannelsPage() {
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
       {/* Hero */}
-      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(0,98,51,0.15) 0%, transparent 60%)" }} />
+      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, var(--p-15) 0%, transparent 60%)" }} />
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
+            <div className="p-2 rounded-lg" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}>
               <Tv size={20} style={{ color: "var(--theme-accent, #00a355)" }} />
             </div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>دليل القنوات الجزائرية</h1>
@@ -197,9 +197,9 @@ export default function ChannelsPage() {
               onClick={() => { setTab(t); setCatFilter(""); }}
               className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
               style={{
-                background: tab === t ? "linear-gradient(135deg, #006233, #00a355)" : "rgba(0,98,51,0.1)",
+                background: tab === t ? "linear-gradient(135deg, #006233, #00a355)" : "var(--p-10)",
                 color: tab === t ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
-                border: tab === t ? "none" : "1px solid rgba(0,98,51,0.2)",
+                border: tab === t ? "none" : "1px solid var(--p-20)",
               }}
             >
               {t === "all" ? "الكل" : t === "tv" ? "📺 تلفزيون" : "📻 إذاعة"}
@@ -208,7 +208,7 @@ export default function ChannelsPage() {
         </div>
 
         {/* Search + filter */}
-        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
+        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-25)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
@@ -236,7 +236,7 @@ export default function ChannelsPage() {
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
               <Tv size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{channels.length === 0 ? "لم يتم إضافة قنوات بعد." : "لا توجد نتائج."}</p>

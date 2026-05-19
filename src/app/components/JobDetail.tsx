@@ -70,9 +70,9 @@ export default function JobDetail() {
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"
-          style={{ height: "200px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", borderBottom: "1px solid rgba(0,98,51,0.2)" }}
+          style={{ height: "200px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", borderBottom: "1px solid var(--p-20)" }}
         >
-          <Briefcase size={64} style={{ color: "rgba(0,98,51,0.3)" }} />
+          <Briefcase size={64} style={{ color: "var(--p-30)" }} />
         </div>
       )}
 
@@ -82,7 +82,7 @@ export default function JobDetail() {
           <div className="flex items-center gap-3 mb-4">
             <span
               className="text-xs px-3 py-1 rounded-full"
-              style={{ background: "rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}
+              style={{ background: "var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}
             >
               {j.jobType}
             </span>
@@ -103,7 +103,7 @@ export default function JobDetail() {
         {/* Meta row */}
         <div
           className="flex flex-wrap gap-4 p-4 rounded-xl mb-8"
-          style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
+          style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
         >
           {j.company && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
@@ -142,7 +142,7 @@ export default function JobDetail() {
           <div className="mb-8">
             <div
               className="h-px mb-6"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(0,98,51,0.4), transparent)" }}
+              style={{ background: "linear-gradient(90deg, transparent, var(--p-40), transparent)" }}
             />
             <div
               className="grid gap-3"
@@ -153,7 +153,7 @@ export default function JobDetail() {
                   key={idx}
                   src={img}
                   alt={`صورة ${idx + 1}`}
-                  style={{ width: "100%", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.2)" }}
+                  style={{ width: "100%", borderRadius: "0.5rem", border: "1px solid var(--p-20)" }}
                 />
               ))}
             </div>
@@ -164,7 +164,7 @@ export default function JobDetail() {
         {j.companyDescription && (
           <div
             className="p-5 rounded-xl mb-6"
-            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
+            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
           >
             <div className="flex items-center gap-2 mb-3">
               <Building2 size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
@@ -178,7 +178,7 @@ export default function JobDetail() {
         {j.contact && (
           <div
             className="p-5 rounded-xl"
-            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
+            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
           >
             <div className="flex items-center gap-2 mb-2">
               <Phone size={16} style={{ color: "var(--theme-accent, #00a355)" }} />

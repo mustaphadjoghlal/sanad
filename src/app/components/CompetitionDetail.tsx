@@ -6,7 +6,7 @@ import { db } from "../../lib/firebase";
 import type { Competition } from "../../lib/types";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
-const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "rgba(0,98,51,0.3)", international: "rgba(120,66,18,0.3)" };
+const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "var(--p-30)", international: "rgba(120,66,18,0.3)" };
 const typeColor: Record<string, string> = { university: "#7fb3d3", national: "var(--theme-badge-text, #81c784)", international: "#f0b27a" };
 
 export default function CompetitionDetail() {
@@ -74,9 +74,9 @@ export default function CompetitionDetail() {
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"
-          style={{ height: "200px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", borderBottom: "1px solid rgba(0,98,51,0.2)" }}
+          style={{ height: "200px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", borderBottom: "1px solid var(--p-20)" }}
         >
-          <Trophy size={64} style={{ color: "rgba(0,98,51,0.3)" }} />
+          <Trophy size={64} style={{ color: "var(--p-30)" }} />
         </div>
       )}
 
@@ -85,7 +85,7 @@ export default function CompetitionDetail() {
         <div className="flex items-center gap-3 mb-4">
           <span
             className="text-xs px-3 py-1 rounded-full"
-            style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)" }}
+            style={{ background: typeBg[c.type] || "var(--p-30)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)" }}
           >
             {typeLabel[c.type]}
           </span>
@@ -108,7 +108,7 @@ export default function CompetitionDetail() {
         {/* Meta row */}
         <div
           className="flex flex-wrap gap-4 p-4 rounded-xl mb-8"
-          style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
+          style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
         >
           {c.startDate && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
@@ -141,7 +141,7 @@ export default function CompetitionDetail() {
           <div className="mb-8">
             <div
               className="h-px mb-6"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(0,98,51,0.4), transparent)" }}
+              style={{ background: "linear-gradient(90deg, transparent, var(--p-40), transparent)" }}
             />
             <div
               className="leading-loose text-base whitespace-pre-wrap"
@@ -156,7 +156,7 @@ export default function CompetitionDetail() {
         {c.organizerDescription && (
           <div
             className="p-5 rounded-xl mb-6"
-            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
+            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
           >
             <div className="flex items-center gap-2 mb-3">
               <Building2 size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
@@ -177,7 +177,7 @@ export default function CompetitionDetail() {
               background: "linear-gradient(135deg, #006233, #00a355)",
               color: "#fff",
               textDecoration: "none",
-              boxShadow: "0 4px 16px rgba(0,98,51,0.3)",
+              boxShadow: "0 4px 16px var(--p-30)",
             }}
           >
             <span>التقديم / التفاصيل الرسمية</span>

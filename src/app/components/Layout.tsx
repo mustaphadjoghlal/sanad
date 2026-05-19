@@ -79,7 +79,7 @@ export default function Layout() {
             ? "rgba(11,15,11,0.95)"
             : "rgba(11,15,11,0.85)",
           backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(0,98,51,0.3)",
+          borderBottom: "1px solid var(--p-30)",
           boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.5)" : "none",
         }}
       >
@@ -95,7 +95,7 @@ export default function Layout() {
                 className="p-2 rounded-lg transition-all duration-300 group-hover:scale-110"
                 style={{
                   background: "linear-gradient(135deg, #006233, #008545)",
-                  boxShadow: "0 0 12px rgba(0,98,51,0.4)",
+                  boxShadow: "0 0 12px var(--p-40)",
                 }}
               >
                 <Radio size={18} color="#ffffff" />
@@ -124,13 +124,13 @@ export default function Layout() {
                     className="relative px-3 py-2 text-sm rounded-lg transition-all duration-200"
                     style={{
                       color: isActive ? "#00a355" : "var(--theme-text-secondary, #a5d6a7)",
-                      background: isActive ? "rgba(0,98,51,0.15)" : "transparent",
+                      background: isActive ? "var(--p-15)" : "transparent",
                       textDecoration: "none",
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         (e.currentTarget as HTMLElement).style.color = "var(--theme-text, #e8f5e9)";
-                        (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.1)";
+                        (e.currentTarget as HTMLElement).style.background = "var(--p-10)";
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -163,10 +163,10 @@ export default function Layout() {
                     className="px-4 py-1.5 rounded-lg text-sm transition-all duration-200"
                     style={{
                       color: "var(--theme-badge-text, #81c784)",
-                      border: "1px solid rgba(0,98,51,0.35)",
+                      border: "1px solid var(--p-35)",
                       textDecoration: "none",
                     }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.12)"; }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   >
                     دخول
@@ -185,8 +185,8 @@ export default function Layout() {
                   <Link
                     to="/user/dashboard"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
-                    style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid rgba(0,98,51,0.35)", textDecoration: "none" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.12)"; }}
+                    style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-35)", textDecoration: "none" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   >
                     <LayoutDashboard size={14} />
@@ -213,8 +213,8 @@ export default function Layout() {
               className="md:hidden p-2 rounded-lg transition-all duration-200"
               style={{
                 color: "var(--theme-text-secondary, #a5d6a7)",
-                background: mobileMenuOpen ? "rgba(0,98,51,0.2)" : "transparent",
-                border: "1px solid rgba(0,98,51,0.3)",
+                background: mobileMenuOpen ? "var(--p-20)" : "transparent",
+                border: "1px solid var(--p-30)",
               }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -226,7 +226,7 @@ export default function Layout() {
           {mobileMenuOpen && (
             <nav
               className="md:hidden pb-4 flex flex-col gap-1 animate-fade-in-down"
-              style={{ borderTop: "1px solid rgba(0,98,51,0.2)", paddingTop: "0.75rem" }}
+              style={{ borderTop: "1px solid var(--p-20)", paddingTop: "0.75rem" }}
             >
               {navLinks.map((link, i) => {
                 const isActive = location.pathname === link.to;
@@ -237,7 +237,7 @@ export default function Layout() {
                     className="px-4 py-2.5 rounded-lg transition-all duration-200 animate-slide-in-right"
                     style={{
                       color: isActive ? "#00a355" : "var(--theme-text-secondary, #a5d6a7)",
-                      background: isActive ? "rgba(0,98,51,0.15)" : "transparent",
+                      background: isActive ? "var(--p-15)" : "transparent",
                       textDecoration: "none",
                       animationDelay: `${i * 0.05}s`,
                       opacity: 0,
@@ -249,10 +249,10 @@ export default function Layout() {
                 );
               })}
               {/* Mobile auth */}
-              <div className="mt-2 pt-2 flex flex-col gap-1.5" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
+              <div className="mt-2 pt-2 flex flex-col gap-1.5" style={{ borderTop: "1px solid var(--p-15)" }}>
                 {isLoggedOut && (
                   <>
-                    <Link to="/login" className="px-4 py-2.5 rounded-lg text-sm text-center" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
+                    <Link to="/login" className="px-4 py-2.5 rounded-lg text-sm text-center" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)", textDecoration: "none" }}>
                       دخول
                     </Link>
                     <Link to="/register" className="btn-dz px-4 py-2.5 rounded-lg text-sm text-center" style={{ textDecoration: "none" }}>
@@ -262,7 +262,7 @@ export default function Layout() {
                 )}
                 {isRegularUser && (
                   <>
-                    <Link to="/user/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
+                    <Link to="/user/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)", textDecoration: "none" }}>
                       <LayoutDashboard size={14} />
                       <span>لوحتي</span>
                     </Link>
@@ -281,7 +281,7 @@ export default function Layout() {
         <div
           className="h-px"
           style={{
-            background: "linear-gradient(90deg, transparent, rgba(0,163,85,0.4), transparent)",
+            background: "linear-gradient(90deg, transparent, var(--p-40), transparent)",
           }}
         />
       </header>
@@ -294,7 +294,7 @@ export default function Layout() {
       <footer
         style={{
           background: "linear-gradient(180deg, #0e0e0e 0%, #080808 100%)",
-          borderTop: "1px solid rgba(0,98,51,0.2)",
+          borderTop: "1px solid var(--p-20)",
         }}
       >
         <div

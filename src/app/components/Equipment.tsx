@@ -27,11 +27,11 @@ export default function EquipmentPage() {
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
-      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(0,98,51,0.15) 0%, transparent 60%)" }} />
+      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, var(--p-15) 0%, transparent 60%)" }} />
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><ShoppingCart size={20} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
+            <div className="p-2 rounded-lg" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}><ShoppingCart size={20} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>متجر عتاد الإعلام</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>تسوق معدات الإعلام الاحترافية أو افتح متجرك الخاص</p>
@@ -40,8 +40,8 @@ export default function EquipmentPage() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Seller CTA */}
-        <div className="rounded-xl p-6 mb-8 flex items-start gap-4 animate-fade-in-up" style={{ background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", border: "1px solid rgba(0,98,51,0.35)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
-          <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
+        <div className="rounded-xl p-6 mb-8 flex items-start gap-4 animate-fade-in-up" style={{ background: "linear-gradient(135deg, var(--p-15), var(--p-05))", border: "1px solid var(--p-35)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
+          <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}>
             <Store size={26} style={{ color: "var(--theme-accent, #00a355)" }} />
           </div>
           <div>
@@ -52,7 +52,7 @@ export default function EquipmentPage() {
         </div>
 
         {/* Search */}
-        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.25s", opacity: 0, animationFillMode: "forwards" }}>
+        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-25)", animationDelay: "0.25s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
@@ -70,7 +70,7 @@ export default function EquipmentPage() {
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
               <ShoppingCart size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد منتجات بعد." : "لا توجد نتائج."}</p>
@@ -80,7 +80,7 @@ export default function EquipmentPage() {
             {filtered.map((eq, i) => (
               <div key={eq.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
                 <div className="flex items-start justify-between mb-3">
-                  <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                  <span style={{ background: eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                     {eq.condition === "new" ? "جديد" : "مستعمل"}
                   </span>
                   <span style={{ color: "var(--theme-accent, #00a355)", fontWeight: 700, fontSize: "1rem" }}>{eq.price.toLocaleString()} دج</span>
@@ -88,7 +88,7 @@ export default function EquipmentPage() {
                 <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{eq.name}</h3>
                 {eq.category && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{eq.category}</p>}
                 {eq.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{eq.description}</p>}
-                <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(0,98,51,0.1)" }}>
+                <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid var(--p-10)" }}>
                   <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem" }}>{eq.seller}</span>
                   {eq.contact && (
                     <span className="flex items-center gap-1" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>
