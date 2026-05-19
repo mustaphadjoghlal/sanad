@@ -1775,6 +1775,7 @@ function ChannelsSection() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio" | "website">("");
+  const [catFilter, setCatFilter] = useState("");
 
   useEffect(() => {
     return subscribeToChannels((data) => {
@@ -1833,7 +1834,8 @@ function ChannelsSection() {
   const filtered = channels.filter((ch) => {
     const matchSearch = !q || ch.name.toLowerCase().includes(q);
     const matchType = !typeFilter || ch.type === typeFilter;
-    return matchSearch && matchType;
+    const matchCat = !catFilter || ch.category === catFilter;
+    return matchSearch && matchType && matchCat;
   });
 
   const inputStyle = S.input;
@@ -1857,6 +1859,19 @@ function ChannelsSection() {
           <option value="tv">📺 تلفزيون</option>
           <option value="radio">📻 إذاعة</option>
           <option value="website">🌐 مواقع إلكترونية</option>
+        </select>
+        <select style={{ ...inputStyle, width: "160px" }} value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
+          <option value="">كل التصنيفات</option>
+          <option value="وطنية">وطنية</option>
+          <option value="خاصة">خاصة</option>
+          <option value="محلية">محلية</option>
+          <option value="دينية">دينية</option>
+          <option value="متخصصة">متخصصة</option>
+          <option value="إخبارية">إخبارية</option>
+          <option value="رياضية">رياضية</option>
+          <option value="ثقافية">ثقافية</option>
+          <option value="قنوات الكترونية">قنوات الكترونية</option>
+          <option value="نوادي إعلامية">نوادي إعلامية</option>
         </select>
         <button
           onClick={() => { setShowForm(true); setEditId(null); setForm(emptyChannel); }}
