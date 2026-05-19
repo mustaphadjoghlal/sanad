@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { BookOpen, ShoppingCart, Briefcase, Trophy, Mic, ArrowLeft, MapPin, Calendar } from "lucide-react";
+import { BookOpen, ShoppingCart, Briefcase, Trophy, Mic, ArrowLeft, MapPin, Calendar, Camera } from "lucide-react";
 import { useState, useEffect } from "react";
 import { subscribeToFeatured, subscribeToCollection } from "../../lib/firestore";
-import type { Course, Job, Competition, UserProfile } from "../../lib/types";
+import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist } from "../../lib/types";
 
 const features = [
   {
@@ -73,6 +73,8 @@ export default function Home() {
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
   const [featuredProfiles, setFeaturedProfiles] = useState<UserProfile[]>([]);
   const [featuredJobs, setFeaturedJobs] = useState<Job[]>([]);
+  const [featuredEquipment, setFeaturedEquipment] = useState<Equipment[]>([]);
+  const [featuredVoice, setFeaturedVoice] = useState<VoiceArtist[]>([]);
   const [upcomingCompetitions, setUpcomingCompetitions] = useState<Competition[]>([]);
 
   useEffect(() => {
@@ -80,6 +82,8 @@ export default function Home() {
       subscribeToFeatured<Course>("courses", setFeaturedCourses),
       subscribeToFeatured<UserProfile>("users", setFeaturedProfiles),
       subscribeToFeatured<Job>("jobs", (jobs) => setFeaturedJobs(jobs.slice(0, 3))),
+      subscribeToFeatured<Equipment>("equipment", (eq) => setFeaturedEquipment(eq.slice(0, 3))),
+      subscribeToFeatured<VoiceArtist>("voice", (v) => setFeaturedVoice(v.slice(0, 3))),
       subscribeToCollection<Competition>("competitions", (comps) => {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
         const sorted = [...approved].sort((a, b) => a.startDate.localeCompare(b.startDate));
@@ -395,6 +399,73 @@ export default function Home() {
                   </Link>
                 );
               })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Equipment */}
+      {featuredEquipment.length > 0 && (
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+          <div className="container mx-auto">
+            <SectionHeader title="معدات مميزة للبيع" link="/equipment" linkLabel="عرض الكل" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {featuredEquipment.map((eq, i) => (
+                <Link
+                  key={eq.id}
+                  to={`/equipment/${eq.id}`}
+                  className="card-glow rounded-xl overflow-hidden animate-fade-in-up"
+                  style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards", textDecoration: "none", display: "block" }}
+                >
+                  {eq.image ? (
+                    <img src={eq.image} alt={eq.name} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Camera size={32} style={{ color: "rgba(0,98,51,0.4)" }} />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h3 className="font-semibold" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{eq.name}</h3>
+                      <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "#81c784" : "#f0b27a", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                        {eq.condition === "new" ? "جديد" : "مستعمل"}
+                      </span>
+                    </div>
+                    <p style={{ color: "#00a355", fontWeight: 600, fontSize: "0.9rem" }}>{eq.price?.toLocaleString()} دج</p>
+                    <p style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>{eq.seller}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Voice Artists */}
+      {featuredVoice.length > 0 && (
+        <section className="py-14 px-4" style={{ borderBottom: "1px solid rgba(0,98,51,0.1)" }}>
+          <div className="container mx-auto">
+            <SectionHeader title="منشطون ومعلقون مميزون" link="/voice-requests" linkLabel="عرض الكل" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {featuredVoice.map((v, i) => (
+                <div
+                  key={v.id}
+                  className="card-glow rounded-xl p-5 animate-fade-in-up"
+                  style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
+                      <Mic size={18} style={{ color: "#00a355" }} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{v.name}</h3>
+                      <span style={{ background: "rgba(0,98,51,0.2)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>
+                    </div>
+                  </div>
+                  {v.experience && <p style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>الخبرة: {v.experience}</p>}
+                  {v.description && <p style={{ color: "#3a5e3a", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.35rem" }}>{v.description.slice(0, 80)}{v.description.length > 80 ? "..." : ""}</p>}
+                </div>
+              ))}
             </div>
           </div>
         </section>

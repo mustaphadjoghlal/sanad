@@ -37,16 +37,17 @@ export function subscribeToCollection<T extends { id: string }>(
 }
 
 // Subscribe to featured items (featured === true AND status === 'approved' or no status)
-export function subscribeToFeatured<T extends { id: string }>(
+export function subscribeToFeatured<T extends { id: string; createdAt?: number }>(
   colName: string,
   callback: (items: T[]) => void
 ): () => void {
-  const q = query(col(colName), where("featured", "==", true), orderBy("createdAt", "desc"));
+  const q = query(col(colName), where("featured", "==", true));
   return onSnapshot(q, (snap) => {
     const items = snap.docs
       .map((d) => ({ id: d.id, ...d.data() } as T & { status?: string })
       )
-      .filter((item) => item.status === "approved" || !item.status);
+      .filter((item) => item.status === "approved" || !item.status)
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     callback(items as T[]);
   });
 }
