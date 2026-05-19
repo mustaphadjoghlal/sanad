@@ -8,14 +8,16 @@ const THEME_CACHE_KEY = "sanad-theme-cache";
 export function applyTheme(t: ThemeSettings) {
   // Guard: if textColor is a CSS var reference, fall back to default
   const textColor = t.textColor?.startsWith("#") ? t.textColor : "#e8f5e9";
+  // bgMain is optional — derive from bgCard if absent or invalid
+  const bgMain = t.bgMain?.startsWith("#") ? t.bgMain : mixHex(t.bgCard, "#000000", 0.25);
 
   const r = document.documentElement;
-  r.style.setProperty("--background", t.bgMain);
+  r.style.setProperty("--background", bgMain);
   r.style.setProperty("--card", t.bgCard);
   r.style.setProperty("--popover", t.bgCard);
   r.style.setProperty("--primary", t.primaryGreen);
   r.style.setProperty("--ring", t.primaryGreen);
-  r.style.setProperty("--sidebar", t.bgMain);
+  r.style.setProperty("--sidebar", bgMain);
   r.style.setProperty("--sidebar-border", hexToRgba(t.primaryGreen, 0.3));
   r.style.setProperty("--sidebar-primary", t.primaryGreen);
   r.style.setProperty("--sidebar-ring", t.primaryGreen);
@@ -28,7 +30,7 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--accent-foreground",      mixHex(textColor, "#ffffff", 0.15));
   r.style.setProperty("--sidebar-accent-foreground", mixHex(textColor, "#ffffff", 0.15));
 
-  r.style.setProperty("--theme-bg-main", t.bgMain);
+  r.style.setProperty("--theme-bg-main", bgMain);
   r.style.setProperty("--theme-bg-card", t.bgCard);
   r.style.setProperty("--theme-bg-card-end", t.bgCardEnd ?? t.bgCard);
   r.style.setProperty("--theme-primary", t.primaryGreen);
