@@ -325,8 +325,8 @@ export default function Home() {
             <SectionHeader num="03" title="مسابقات قادمة" link="/competitions" linkLabel="عرض الكل" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {upcomingComps.map((c, i) => {
-                const typeBg: Record<string,string>  = { university: "rgba(30,100,180,0.55)", national: "rgba(0,100,50,0.55)", international: "rgba(160,80,0,0.55)" };
-                const typeClr: Record<string,string> = { university: "#90caf9", national: "#a5d6a7", international: "#ffcc80" };
+                const typeBg: Record<string,string>  = { university: "#1a4f7a", national: "#1b5e35", international: "#7a3800" };
+                const typeClr: Record<string,string> = { university: "#ffffff", national: "#ffffff", international: "#ffffff" };
                 const typeLbl: Record<string,string> = { university: "جامعية", national: "وطنية", international: "دولية" };
                 return (
                   <Link
