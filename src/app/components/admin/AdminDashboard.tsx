@@ -1984,28 +1984,53 @@ function ChannelsSection() {
                 <input style={inputStyle} value={form.name} onChange={(e) => cf("name", e.target.value)} placeholder="مثال: الشروق تيفي" />
               </div>
               <div>
-                <label style={labelStyle}>النوع</label>
-                <select style={inputStyle} value={form.type} onChange={(e) => cf("type", e.target.value)}>
-                  <option value="tv">📺 تلفزيون</option>
-                  <option value="radio">📻 إذاعة</option>
-                  <option value="website">🌐 مواقع إلكترونية</option>
+                <label style={labelStyle}>التصنيف الرئيسي</label>
+                <select style={inputStyle} value={
+                  form.category === "قنوات الكترونية" ? "electronic"
+                  : form.category === "نوادي إعلامية" ? "club"
+                  : form.type === "tv" ? "tv"
+                  : form.type === "radio" ? "radio"
+                  : "news"
+                } onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "tv")         setForm((f) => ({ ...f, type: "tv",      category: "وطنية" }));
+                  else if (v === "radio") setForm((f) => ({ ...f, type: "radio",   category: "وطنية" }));
+                  else if (v === "news")  setForm((f) => ({ ...f, type: "website", category: "إخبارية" }));
+                  else if (v === "electronic") setForm((f) => ({ ...f, type: "website", category: "قنوات الكترونية" }));
+                  else if (v === "club")  setForm((f) => ({ ...f, type: "website", category: "نوادي إعلامية" }));
+                }}>
+                  <option value="tv">📺 قنوات تلفزيونية</option>
+                  <option value="electronic">📡 قنوات الكترونية</option>
+                  <option value="radio">📻 محطات إذاعية</option>
+                  <option value="news">🌐 مواقع إخبارية</option>
+                  <option value="club">🎙️ نوادي إعلامية</option>
                 </select>
               </div>
-              <div>
-                <label style={labelStyle}>الفئة</label>
-                <select style={inputStyle} value={form.category} onChange={(e) => cf("category", e.target.value)}>
-                  <option value="وطنية">وطنية</option>
-                  <option value="خاصة">خاصة</option>
-                  <option value="محلية">محلية</option>
-                  <option value="دينية">دينية</option>
-                  <option value="متخصصة">متخصصة</option>
-                  <option value="إخبارية">إخبارية</option>
-                  <option value="رياضية">رياضية</option>
-                  <option value="ثقافية">ثقافية</option>
-                  <option value="قنوات الكترونية">قنوات الكترونية</option>
-                  <option value="نوادي إعلامية">نوادي إعلامية</option>
-                </select>
-              </div>
+              {(form.type === "tv" || form.type === "radio") && (
+                <div>
+                  <label style={labelStyle}>الفئة الفرعية</label>
+                  <select style={inputStyle} value={form.category} onChange={(e) => cf("category", e.target.value)}>
+                    <option value="وطنية">وطنية</option>
+                    <option value="خاصة">خاصة</option>
+                    <option value="محلية">محلية</option>
+                    <option value="دينية">دينية</option>
+                    <option value="متخصصة">متخصصة</option>
+                    <option value="رياضية">رياضية</option>
+                    <option value="ثقافية">ثقافية</option>
+                  </select>
+                </div>
+              )}
+              {form.type === "website" && form.category !== "قنوات الكترونية" && form.category !== "نوادي إعلامية" && (
+                <div>
+                  <label style={labelStyle}>الفئة الفرعية</label>
+                  <select style={inputStyle} value={form.category} onChange={(e) => cf("category", e.target.value)}>
+                    <option value="إخبارية">إخبارية</option>
+                    <option value="رياضية">رياضية</option>
+                    <option value="ثقافية">ثقافية</option>
+                    <option value="متخصصة">متخصصة</option>
+                  </select>
+                </div>
+              )}
               <div className="col-span-2">
                 <label style={labelStyle}>التردد</label>
                 <input style={inputStyle} value={form.frequency} onChange={(e) => cf("frequency", e.target.value)} placeholder="مثال: Nilesat 7°W — 10853 H 27500 أو FM 106.7 الجزائر" dir="ltr" />
