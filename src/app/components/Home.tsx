@@ -139,13 +139,13 @@ export default function Home() {
             style={{
               border: "1px solid var(--p-30)",
               background: "var(--p-10)",
-              color: "var(--theme-accent, #4caf50)",
+              color: "var(--theme-accent, #00a355)",
               fontSize: "0.8rem",
             }}
           >
             <span
               className="w-2 h-2 rounded-full animate-pulse"
-              style={{ background: "#00a355" }}
+              style={{ background: "var(--theme-accent, #00a355)" }}
             />
             المنصة الجزائرية الإعلامية الشاملة
           </div>
@@ -480,7 +480,7 @@ export default function Home() {
             <div
               className="h-px w-24 mx-auto"
               style={{
-                background: "linear-gradient(90deg, transparent, #006233, #00a355, transparent)",
+                background: "linear-gradient(90deg, transparent, var(--theme-primary, #006233), var(--theme-accent, #00a355), transparent)",
               }}
             />
           </div>

@@ -60,14 +60,14 @@ export default function UserLogin() {
           <Link to="/" className="inline-flex items-center gap-2" style={{ textDecoration: "none" }}>
             <div
               className="p-2.5 rounded-xl"
-              style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 16px var(--p-40)" }}
+              style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))", boxShadow: "0 0 16px var(--p-40)" }}
             >
               <Radio size={22} color="#fff" />
             </div>
             <span
               className="text-3xl font-bold"
               style={{
-                background: "linear-gradient(90deg, #00a355, #4caf50)",
+                background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",

@@ -58,7 +58,7 @@ export default function AdminLogin() {
           <div
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 animate-float"
             style={{
-              background: "linear-gradient(135deg, #006233, #008545)",
+              background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))",
               boxShadow: "0 0 32px var(--p-40)",
             }}
           >

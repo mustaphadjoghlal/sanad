@@ -281,11 +281,11 @@ export default function AdminDashboard() {
         {/* Logo */}
         <div className="flex items-center gap-2 p-4 mb-2" style={{ borderBottom: "1px solid var(--p-15)" }}>
           <div className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 10px var(--p-40)" }}>
+            style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))", boxShadow: "0 0 10px var(--p-40)" }}>
             <Radio size={16} color="#fff" />
           </div>
           {sidebarOpen && (
-            <span className="font-bold" style={{ background: "linear-gradient(90deg,#00a355,#4caf50)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            <span className="font-bold" style={{ background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               سند Admin
             </span>
           )}
@@ -299,7 +299,7 @@ export default function AdminDashboard() {
               title={!sidebarOpen ? label : undefined}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200"
               style={{
-                color: activeSection === id ? "#00a355" : "var(--theme-text-secondary, #6aad6a)",
+                color: activeSection === id ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #6aad6a)",
                 background: activeSection === id ? "var(--p-18)" : "transparent",
                 justifyContent: sidebarOpen ? "flex-start" : "center",
               }}
@@ -1442,7 +1442,7 @@ function ChannelsSection() {
                     <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem" }}>{ch.category}</div>
                   </td>
                   <td style={S.td}>
-                    <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "#00a355" : "#64b5f6" }}>
+                    <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "var(--theme-accent, #00a355)" : "#64b5f6" }}>
                       {ch.type === "tv" ? "📺 تلفزيون" : "📻 إذاعة"}
                     </span>
                   </td>

@@ -94,7 +94,7 @@ export default function Layout() {
               <div
                 className="p-2 rounded-lg transition-all duration-300 group-hover:scale-110"
                 style={{
-                  background: "linear-gradient(135deg, #006233, #008545)",
+                  background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))",
                   boxShadow: "0 0 12px var(--p-40)",
                 }}
               >
@@ -103,7 +103,7 @@ export default function Layout() {
               <span
                 className="font-bold text-2xl"
                 style={{
-                  background: "linear-gradient(90deg, #00a355, #4caf50)",
+                  background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -123,7 +123,7 @@ export default function Layout() {
                     to={link.to}
                     className="relative px-3 py-2 text-sm rounded-lg transition-all duration-200"
                     style={{
-                      color: isActive ? "#00a355" : "var(--theme-text-secondary, #a5d6a7)",
+                      color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
                       background: isActive ? "var(--p-15)" : "transparent",
                       textDecoration: "none",
                     }}
@@ -145,7 +145,7 @@ export default function Layout() {
                       <span
                         className="absolute bottom-0 right-3 left-3 h-0.5 rounded-full"
                         style={{
-                          background: "linear-gradient(90deg, transparent, #00a355, transparent)",
+                          background: "linear-gradient(90deg, transparent, var(--theme-accent, #00a355), transparent)",
                         }}
                       />
                     )}
@@ -236,7 +236,7 @@ export default function Layout() {
                     to={link.to}
                     className="px-4 py-2.5 rounded-lg transition-all duration-200 animate-slide-in-right"
                     style={{
-                      color: isActive ? "#00a355" : "var(--theme-text-secondary, #a5d6a7)",
+                      color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
                       background: isActive ? "var(--p-15)" : "transparent",
                       textDecoration: "none",
                       animationDelay: `${i * 0.05}s`,
@@ -300,21 +300,21 @@ export default function Layout() {
         <div
           className="h-px mb-8"
           style={{
-            background: "linear-gradient(90deg, transparent, #006233, #00a355, #006233, transparent)",
+            background: "linear-gradient(90deg, transparent, var(--theme-primary, #006233), var(--theme-accent, #00a355), var(--theme-primary, #006233), transparent)",
           }}
         />
         <div className="container mx-auto px-4 pb-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
             <div
               className="p-1.5 rounded-md"
-              style={{ background: "linear-gradient(135deg, #006233, #008545)" }}
+              style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))" }}
             >
               <Radio size={14} color="#ffffff" />
             </div>
             <span
               className="font-bold text-lg"
               style={{
-                background: "linear-gradient(90deg, #00a355, #4caf50)",
+                background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",

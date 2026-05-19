@@ -197,7 +197,7 @@ export default function ChannelsPage() {
               onClick={() => { setTab(t); setCatFilter(""); }}
               className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
               style={{
-                background: tab === t ? "linear-gradient(135deg, #006233, #00a355)" : "var(--p-10)",
+                background: tab === t ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-10)",
                 color: tab === t ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
                 border: tab === t ? "none" : "1px solid var(--p-20)",
               }}

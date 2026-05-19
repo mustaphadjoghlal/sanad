@@ -250,14 +250,14 @@ export default function Register() {
           <Link to="/" className="inline-flex items-center gap-2" style={{ textDecoration: "none" }}>
             <div
               className="p-2.5 rounded-xl"
-              style={{ background: "linear-gradient(135deg, #006233, #008545)", boxShadow: "0 0 16px var(--p-40)" }}
+              style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))", boxShadow: "0 0 16px var(--p-40)" }}
             >
               <Radio size={22} color="#fff" />
             </div>
             <span
               className="text-3xl font-bold"
               style={{
-                background: "linear-gradient(90deg, #00a355, #4caf50)",
+                background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -290,7 +290,7 @@ export default function Register() {
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300"
                   style={{
-                    background: step >= s ? "linear-gradient(135deg, #006233, #00a355)" : "var(--p-15)",
+                    background: step >= s ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-15)",
                     color: step >= s ? "#fff" : "var(--theme-text-dim, #3a5e3a)",
                     border: step >= s ? "none" : "1px solid var(--p-20)",
                     flexShrink: 0,
@@ -304,7 +304,7 @@ export default function Register() {
                 {s < 3 && (
                   <div
                     className="w-6 h-px mx-1"
-                    style={{ background: step > s ? "#006233" : "var(--p-20)", flexShrink: 0 }}
+                    style={{ background: step > s ? "var(--theme-primary, #006233)" : "var(--p-20)", flexShrink: 0 }}
                   />
                 )}
               </div>
@@ -340,7 +340,7 @@ export default function Register() {
                         border: `1px solid ${mainType === "individual" ? "rgba(0,163,85,0.5)" : "var(--p-30)"}`,
                       }}
                     >
-                      <User size={22} style={{ color: mainType === "individual" ? "#00a355" : "var(--theme-text-muted, #4a7a4a)" }} />
+                      <User size={22} style={{ color: mainType === "individual" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
                     </div>
                     <div className="font-semibold mb-1" style={{ color: mainType === "individual" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
                       حساب فردي
@@ -369,7 +369,7 @@ export default function Register() {
                         border: `1px solid ${mainType === "store" ? "rgba(0,163,85,0.5)" : "var(--p-30)"}`,
                       }}
                     >
-                      <Store size={22} style={{ color: mainType === "store" ? "#00a355" : "var(--theme-text-muted, #4a7a4a)" }} />
+                      <Store size={22} style={{ color: mainType === "store" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
                     </div>
                     <div className="font-semibold mb-1" style={{ color: mainType === "store" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
                       متجر احترافي
@@ -390,7 +390,7 @@ export default function Register() {
                           className="px-4 py-1.5 rounded-full text-sm transition-all duration-200"
                           style={{
                             background: individualSubType === type
-                              ? "linear-gradient(135deg, #006233, #00a355)"
+                              ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))"
                               : "var(--p-12)",
                             border: individualSubType === type
                               ? "1px solid rgba(0,163,85,0.7)"
@@ -881,7 +881,7 @@ export default function Register() {
                         <div className="w-full rounded-full h-1.5" style={{ background: "var(--p-20)" }}>
                           <div
                             className="h-1.5 rounded-full transition-all"
-                            style={{ width: `${uploadProgress}%`, background: "linear-gradient(90deg, #006233, #00a355)" }}
+                            style={{ width: `${uploadProgress}%`, background: "linear-gradient(90deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" }}
                           />
                         </div>
                       </div>

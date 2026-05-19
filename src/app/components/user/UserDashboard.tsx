@@ -311,7 +311,7 @@ export default function UserDashboard() {
         style={{ borderBottom: "1px solid var(--p-20)", background: "rgba(11,15,11,0.9)", backdropFilter: "blur(8px)" }}
       >
         <Link to="/" style={{ textDecoration: "none" }}>
-          <span className="font-bold text-xl" style={{ background: "linear-gradient(90deg, #00a355, #4caf50)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+          <span className="font-bold text-xl" style={{ background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
             سند
           </span>
         </Link>

@@ -174,7 +174,7 @@ export default function CompetitionDetail() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
             style={{
-              background: "linear-gradient(135deg, #006233, #00a355)",
+              background: "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))",
               color: "#fff",
               textDecoration: "none",
               boxShadow: "0 4px 16px var(--p-30)",
