@@ -1982,6 +1982,8 @@ function ChannelsSection() {
                   <option value="إخبارية">إخبارية</option>
                   <option value="رياضية">رياضية</option>
                   <option value="ثقافية">ثقافية</option>
+                  <option value="قنوات الكترونية">قنوات الكترونية</option>
+                  <option value="نوادي إعلامية">نوادي إعلامية</option>
                 </select>
               </div>
               <div className="col-span-2">

@@ -154,7 +154,7 @@ export interface Channel {
   id: string;
   name: string;
   type: 'tv' | 'radio' | 'website';
-  category: 'وطنية' | 'خاصة' | 'محلية' | 'دينية' | 'متخصصة' | 'إخبارية' | 'رياضية' | 'ثقافية';
+  category: 'وطنية' | 'خاصة' | 'محلية' | 'دينية' | 'متخصصة' | 'إخبارية' | 'رياضية' | 'ثقافية' | 'قنوات الكترونية' | 'نوادي إعلامية';
   frequency?: string;
   email?: string;
   address?: string;
