@@ -41,13 +41,13 @@ const S = {
     borderBottom: "1px solid rgba(0,98,51,0.15)",
   },
   td: {
-    color: "#c8e6c9", fontSize: "0.875rem",
+    color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem",
     padding: "0.85rem 1rem", textAlign: "right" as const,
     borderBottom: "1px solid rgba(0,98,51,0.08)",
   },
   input: {
     background: "#161616", border: "1px solid rgba(0,98,51,0.3)",
-    color: "#e8f5e9", borderRadius: "0.5rem",
+    color: "var(--theme-text, #e8f5e9)", borderRadius: "0.5rem",
     padding: "0.6rem 0.85rem", width: "100%", fontSize: "0.875rem",
   } as React.CSSProperties,
   label: { color: "#81c784", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" } as React.CSSProperties,
@@ -82,7 +82,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
         style={{ ...S.card, boxShadow: "0 24px 60px rgba(0,0,0,0.6)", opacity: 0, animationFillMode: "forwards" }}
       >
         <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
-          <h3 style={{ color: "#e8f5e9", fontWeight: 600 }}>{title}</h3>
+          <h3 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600 }}>{title}</h3>
           <button onClick={onClose} style={{ color: "#4a7a4a" }} className="hover:text-white transition-colors">
             <X size={20} />
           </button>
@@ -341,7 +341,7 @@ export default function AdminDashboard() {
             <LayoutDashboard size={20} />
           </button>
           <div>
-            <h1 style={{ color: "#e8f5e9", fontWeight: 600, fontSize: "1.1rem" }}>
+            <h1 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "1.1rem" }}>
               {menuItems.find((m) => m.id === activeSection)?.label}
             </h1>
           </div>
@@ -442,7 +442,7 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
                 </span>
               )}
             </div>
-            <div style={{ color: "#e8f5e9", fontSize: "1.75rem", fontWeight: 700, lineHeight: 1 }}>{value}</div>
+            <div style={{ color: "var(--theme-text, #e8f5e9)", fontSize: "1.75rem", fontWeight: 700, lineHeight: 1 }}>{value}</div>
             <div style={{ color: "#4a7a4a", fontSize: "0.8rem", marginTop: "0.25rem" }}>{label}</div>
           </button>
         ))}
@@ -1438,7 +1438,7 @@ function ChannelsSection() {
               ) : filtered.map((ch) => (
                 <tr key={ch.id} className="hover:bg-green-950/10 transition-colors">
                   <td style={S.td}>
-                    <div className="font-medium" style={{ color: "#c8e6c9" }}>{ch.name}</div>
+                    <div className="font-medium" style={{ color: "var(--theme-text, #c8e6c9)" }}>{ch.name}</div>
                     <div style={{ color: "#4a7a4a", fontSize: "0.72rem" }}>{ch.category}</div>
                   </td>
                   <td style={S.td}>
@@ -1558,7 +1558,7 @@ const COLOR_OPTIONS = [
 ] as const;
 
 const PRESETS: { label: string; theme: ThemeSettings }[] = [
-  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "#e8f5e9" } },
+  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "var(--theme-text, #e8f5e9)" } },
   { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00", textColor: "#f5ede0" } },
   { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc", textColor: "#e0f0ff" } },
   { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888", textColor: "#dddddd" } },
@@ -1602,7 +1602,7 @@ function AppearanceSection() {
     <div className="max-w-2xl space-y-6">
       {/* Presets */}
       <div className="rounded-xl p-6" style={S.card}>
-        <h3 style={{ color: "#c8e6c9", fontWeight: 600, marginBottom: "1rem" }}>ثيمات جاهزة</h3>
+        <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1rem" }}>ثيمات جاهزة</h3>
         <div className="grid grid-cols-2 gap-3">
           {PRESETS.map((p) => (
             <button
@@ -1620,7 +1620,7 @@ function AppearanceSection() {
                   <span key={c} className="w-4 h-4 rounded-full" style={{ background: c, border: "1px solid rgba(255,255,255,0.1)" }} />
                 ))}
               </div>
-              <span style={{ color: "#e8f5e9", fontSize: "0.8rem" }}>{p.label}</span>
+              <span style={{ color: "var(--theme-text, #e8f5e9)", fontSize: "0.8rem" }}>{p.label}</span>
             </button>
           ))}
         </div>
@@ -1628,7 +1628,7 @@ function AppearanceSection() {
 
       {/* Color pickers */}
       <div className="rounded-xl p-6" style={S.card}>
-        <h3 style={{ color: "#c8e6c9", fontWeight: 600, marginBottom: "1.25rem" }}>تخصيص الألوان</h3>
+        <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1.25rem" }}>تخصيص الألوان</h3>
         <div className="space-y-5">
           {COLOR_OPTIONS.map(({ key, label, hint }) => (
             <div key={key} className="flex items-center gap-4">
@@ -1648,7 +1648,7 @@ function AppearanceSection() {
                 />
               </div>
               <div className="flex-1">
-                <div style={{ color: "#c8e6c9", fontSize: "0.875rem", fontWeight: 500 }}>{label}</div>
+                <div style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", fontWeight: 500 }}>{label}</div>
                 <div style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{hint}</div>
               </div>
               {/* Hex input */}
@@ -1714,14 +1714,14 @@ function SettingsSection() {
   return (
     <div className="max-w-lg space-y-6">
       <div className="rounded-xl p-6" style={S.card}>
-        <h3 style={{ color: "#c8e6c9", fontWeight: 600, marginBottom: "1rem" }}>معلومات الحساب</h3>
+        <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1rem" }}>معلومات الحساب</h3>
         <div style={{ color: "#6aad6a", fontSize: "0.875rem" }}>
           <p>البريد الإلكتروني: <span style={{ color: "#a5d6a7" }}>{user?.email}</span></p>
           <p className="mt-2">آخر تسجيل دخول: <span style={{ color: "#a5d6a7" }}>{user?.metadata.lastSignInTime}</span></p>
         </div>
       </div>
       <div className="rounded-xl p-6" style={S.card}>
-        <h3 style={{ color: "#c8e6c9", fontWeight: 600, marginBottom: "0.75rem" }}>معلومات المنصة</h3>
+        <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "0.75rem" }}>معلومات المنصة</h3>
         <p style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>
           البيانات محفوظة في Firebase Firestore ومزامنة في الوقت الحقيقي.
           أي تغيير تجريه يظهر فوراً للزوار.

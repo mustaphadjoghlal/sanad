@@ -64,7 +64,7 @@ export default function AdminLogin() {
           >
             <Radio size={30} color="#ffffff" />
           </div>
-          <h1 className="text-3xl font-bold" style={{ color: "#e8f5e9" }}>
+          <h1 className="text-3xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>
             سند <span style={{ color: "#6aad6a", fontSize: "1rem" }}>Admin</span>
           </h1>
           <p style={{ color: "#4a7a4a", fontSize: "0.875rem", marginTop: "0.25rem" }}>

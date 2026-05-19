@@ -35,7 +35,7 @@ export default function Courses() {
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <BookOpen size={20} style={{ color: "#00a355" }} />
             </div>
-            <h1 className="text-4xl font-bold" style={{ color: "#e8f5e9" }}>الدورات التدريبية</h1>
+            <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>الدورات التدريبية</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>
             اكتشف دورات تدريبية مجانية ومدفوعة في مجال الإعلام
@@ -86,7 +86,7 @@ export default function Courses() {
                   </span>
                   {c.duration && <span style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>{c.duration}</span>}
                 </div>
-                <h3 className="font-semibold mb-1" style={{ color: "#c8e6c9", fontSize: "1rem" }}>{c.title}</h3>
+                <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "1rem" }}>{c.title}</h3>
                 <p style={{ color: "#4a7a4a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>المدرب: {c.instructor}</p>
                 {c.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", lineHeight: 1.6 }}>{c.description}</p>}
                 {c.link && (

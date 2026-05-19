@@ -40,7 +40,7 @@ export default function Competitions() {
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <Trophy size={20} style={{ color: "#00a355" }} />
             </div>
-            <h1 className="text-4xl font-bold" style={{ color: "#e8f5e9" }}>المسابقات الإعلامية</h1>
+            <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>المسابقات الإعلامية</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>
             مسابقات وطنية وجامعية ودولية في مجال الإعلام والصحافة
@@ -125,7 +125,7 @@ export default function Competitions() {
                 <div className="p-4">
                   <h3
                     className="font-bold text-base mb-2 leading-snug transition-colors group-hover:text-green-400"
-                    style={{ color: "#c8e6c9" }}
+                    style={{ color: "var(--theme-text, #c8e6c9)" }}
                   >
                     {c.name}
                   </h3>

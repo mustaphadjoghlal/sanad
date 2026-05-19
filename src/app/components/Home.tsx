@@ -52,7 +52,7 @@ function SectionHeader({ title, link, linkLabel }: { title: string; link: string
   return (
     <div className="flex items-center justify-between mb-8">
       <div>
-        <h2 className="text-2xl font-bold mb-2" style={{ color: "#e8f5e9" }}>{title}</h2>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
         <div className="h-px w-20" style={{ background: "linear-gradient(90deg, #006233, #00a355, transparent)" }} />
       </div>
       <Link
@@ -154,7 +154,7 @@ export default function Home() {
           <h1
             className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in-up"
             style={{
-              color: "#e8f5e9",
+              color: "var(--theme-text, #e8f5e9)",
               lineHeight: "1.2",
               animationDelay: "0.1s",
               opacity: 0,
@@ -255,7 +255,7 @@ export default function Home() {
                     </span>
                     {c.duration && <span style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{c.duration}</span>}
                   </div>
-                  <h3 className="font-semibold mb-1" style={{ color: "#c8e6c9" }}>{c.title}</h3>
+                  <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{c.title}</h3>
                   <p style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>المدرب: {c.instructor}</p>
                   {c.description && <p style={{ color: "#3a5e3a", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.5rem" }}>{c.description.slice(0, 80)}{c.description.length > 80 ? "..." : ""}</p>}
                 </Link>
@@ -292,7 +292,7 @@ export default function Home() {
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-semibold" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{p.name}</h3>
+                      <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{p.name}</h3>
                       <span style={{ background: "rgba(0,98,51,0.2)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>
                         {typeLabel[p.type] || p.type}
                       </span>
@@ -336,7 +336,7 @@ export default function Home() {
                     {j.jobType && (
                       <span style={{ background: "rgba(0,98,51,0.3)", color: "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>{j.jobType}</span>
                     )}
-                    <h3 className="font-semibold mt-2 mb-1" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{j.title}</h3>
+                    <h3 className="font-semibold mt-2 mb-1" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{j.title}</h3>
                     <p style={{ color: "#6aad6a", fontSize: "0.8rem" }}>{j.company}</p>
                     <div className="flex flex-wrap gap-2 mt-2 text-xs" style={{ color: "#4a7a4a" }}>
                       {j.location && <span className="flex items-center gap-1"><MapPin size={11} />{j.location}</span>}
@@ -385,7 +385,7 @@ export default function Home() {
                       <span style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor2[c.type] || "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                         {typeLabelMap[c.type]}
                       </span>
-                      <h3 className="font-semibold mt-3 mb-1" style={{ color: "#c8e6c9" }}>{c.name}</h3>
+                      <h3 className="font-semibold mt-3 mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{c.name}</h3>
                       <p style={{ color: "#6aad6a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{c.organizer}</p>
                       <div className="flex gap-3 text-xs" style={{ color: "#4a7a4a" }}>
                         {c.startDate && <span className="flex items-center gap-1"><Calendar size={11} />{c.startDate}</span>}
@@ -421,7 +421,7 @@ export default function Home() {
                   )}
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-semibold" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{eq.name}</h3>
+                      <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{eq.name}</h3>
                       <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "#81c784" : "#f0b27a", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                         {eq.condition === "new" ? "جديد" : "مستعمل"}
                       </span>
@@ -453,7 +453,7 @@ export default function Home() {
                       <Mic size={18} style={{ color: "#00a355" }} />
                     </div>
                     <div>
-                      <h3 className="font-semibold" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{v.name}</h3>
+                      <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{v.name}</h3>
                       <span style={{ background: "rgba(0,98,51,0.2)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>
                     </div>
                   </div>
@@ -473,7 +473,7 @@ export default function Home() {
           <div className="text-center mb-14">
             <h2
               className="text-3xl font-bold mb-3"
-              style={{ color: "#e8f5e9" }}
+              style={{ color: "var(--theme-text, #e8f5e9)" }}
             >
               خدمات المنصة
             </h2>
@@ -521,7 +521,7 @@ export default function Home() {
                   {/* Content */}
                   <h3
                     className="text-xl font-semibold mb-2 transition-colors duration-300 group-hover:text-green-400"
-                    style={{ color: "#c8e6c9" }}
+                    style={{ color: "var(--theme-text, #c8e6c9)" }}
                   >
                     {feature.title}
                   </h3>

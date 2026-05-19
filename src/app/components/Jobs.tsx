@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Briefcase, MapPin, Calendar } from "lucide-react";
+import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
 import type { Job } from "../../lib/types";
 
@@ -34,7 +35,7 @@ export default function Jobs() {
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Briefcase size={20} style={{ color: "#00a355" }} /></div>
-            <h1 className="text-4xl font-bold" style={{ color: "#e8f5e9" }}>عروض التوظيف</h1>
+            <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>عروض التوظيف</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>فرص عمل إعلامية وصحفية في الجزائر</p>
         </div>
@@ -72,25 +73,40 @@ export default function Jobs() {
         ) : (
           <div className="space-y-4">
             {filtered.map((j, i) => (
-              <div key={j.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
+              <Link
+                key={j.id}
+                to={`/jobs/${j.id}`}
+                className="card-glow rounded-xl overflow-hidden animate-fade-in-up flex"
+                style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards", textDecoration: "none", display: "flex" }}
+              >
+                {/* Thumbnail */}
+                <div style={{ width: "100px", minWidth: "100px", background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {j.image ? (
+                    <img src={j.image} alt={j.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <Briefcase size={28} style={{ color: "rgba(0,98,51,0.4)" }} />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 p-4 flex flex-col md:flex-row md:items-start justify-between gap-3">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1" style={{ color: "#c8e6c9" }}>{j.title}</h3>
+                    <h3 className="font-semibold text-lg mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{j.title}</h3>
                     <p style={{ color: "#6aad6a", fontSize: "0.875rem", marginBottom: "0.5rem" }}>{j.company}</p>
                     <div className="flex flex-wrap gap-3 text-xs" style={{ color: "#4a7a4a" }}>
                       {j.location && <span className="flex items-center gap-1"><MapPin size={12} />{j.location}</span>}
                       {j.jobType && <span style={{ background: "rgba(0,98,51,0.2)", padding: "0.15rem 0.5rem", borderRadius: "9999px", color: "#81c784" }}>{j.jobType}</span>}
                       {j.deadline && <span className="flex items-center gap-1"><Calendar size={12} />آخر أجل: {j.deadline}</span>}
                     </div>
-                    {j.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", marginTop: "0.75rem", lineHeight: 1.6 }}>{j.description}</p>}
+                    {j.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", marginTop: "0.75rem", lineHeight: 1.6 }}>{j.description.slice(0, 120)}{j.description.length > 120 ? "..." : ""}</p>}
                   </div>
                   {j.contact && (
-                    <div style={{ border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.5rem 1rem", color: "#6aad6a", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
+                    <div style={{ border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.5rem 1rem", color: "#6aad6a", fontSize: "0.8rem", whiteSpace: "nowrap", flexShrink: 0 }}>
                       {j.contact}
                     </div>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

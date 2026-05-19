@@ -129,7 +129,7 @@ export default function Layout() {
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
-                        (e.currentTarget as HTMLElement).style.color = "#e8f5e9";
+                        (e.currentTarget as HTMLElement).style.color = "var(--theme-text, #e8f5e9)";
                         (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.1)";
                       }
                     }}

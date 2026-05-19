@@ -91,7 +91,7 @@ export default function CourseDetail() {
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold mb-3 leading-snug" style={{ color: "#e8f5e9" }}>{c.title}</h1>
+        <h1 className="text-3xl font-bold mb-3 leading-snug" style={{ color: "var(--theme-text, #e8f5e9)" }}>{c.title}</h1>
 
         {/* Description */}
         {c.description && (

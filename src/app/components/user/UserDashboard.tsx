@@ -55,7 +55,7 @@ const S = {
   input: {
     background: "#161616",
     border: "1px solid rgba(0,98,51,0.3)",
-    color: "#e8f5e9",
+    color: "var(--theme-text, #e8f5e9)",
     borderRadius: "0.5rem",
     padding: "0.6rem 0.85rem",
     width: "100%",
@@ -63,7 +63,7 @@ const S = {
   } as React.CSSProperties,
   label: { color: "#81c784", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" } as React.CSSProperties,
   th: { color: "#6aad6a", fontSize: "0.75rem", fontWeight: 500, padding: "0.75rem 1rem", textAlign: "right" as const, borderBottom: "1px solid rgba(0,98,51,0.15)" },
-  td: { color: "#c8e6c9", fontSize: "0.875rem", padding: "0.85rem 1rem", textAlign: "right" as const, borderBottom: "1px solid rgba(0,98,51,0.08)" },
+  td: { color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", padding: "0.85rem 1rem", textAlign: "right" as const, borderBottom: "1px solid rgba(0,98,51,0.08)" },
 };
 
 const wilayas = [
@@ -107,7 +107,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
         style={{ ...S.card, boxShadow: "0 24px 60px rgba(0,0,0,0.6)", opacity: 0, animationFillMode: "forwards" }}
       >
         <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
-          <h3 style={{ color: "#e8f5e9", fontWeight: 600 }}>{title}</h3>
+          <h3 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600 }}>{title}</h3>
           <button onClick={onClose} style={{ color: "#4a7a4a" }}>
             <X size={20} />
           </button>
@@ -360,7 +360,7 @@ export default function UserDashboard() {
               {!editing ? (
                 <>
                   <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <h2 className="text-xl font-bold" style={{ color: "#e8f5e9" }}>{profile.name}</h2>
+                    <h2 className="text-xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>{profile.name}</h2>
                     <span style={{
                       background: "rgba(0,98,51,0.15)", color: "#81c784",
                       border: "1px solid rgba(0,98,51,0.3)", padding: "0.15rem 0.6rem",
@@ -381,7 +381,7 @@ export default function UserDashboard() {
                       <Award size={16} style={{ color: "#fbbf24", flexShrink: 0, marginTop: "0.15rem" }} />
                       <div>
                         <p style={{ color: "#fbbf24", fontSize: "0.78rem", fontWeight: 600, marginBottom: "0.2rem" }}>أبرز الإنجازات</p>
-                        <p style={{ color: "#c8e6c9", fontSize: "0.85rem", lineHeight: 1.6 }}>{profile.achievements}</p>
+                        <p style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.85rem", lineHeight: 1.6 }}>{profile.achievements}</p>
                       </div>
                     </div>
                   )}
@@ -656,7 +656,7 @@ export default function UserDashboard() {
           >
             <div className="flex items-center gap-2 mb-3">
               <ShoppingCart size={16} style={{ color: "#00a355" }} />
-              <span style={{ color: "#c8e6c9", fontWeight: 600 }}>حالة المتجر</span>
+              <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600 }}>حالة المتجر</span>
               {profile.storeStatus === "trial" && (
                 <span style={{ background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)", padding: "0.15rem 0.65rem", borderRadius: "9999px", fontSize: "0.73rem" }}>
                   تجريبي — متبقي شهر
@@ -680,7 +680,7 @@ export default function UserDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Package size={18} style={{ color: "#00a355" }} />
-                <h3 className="text-lg font-semibold" style={{ color: "#c8e6c9" }}>معداتي للبيع</h3>
+                <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>معداتي للبيع</h3>
                 <span style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>({myEquipment.length} منتج)</span>
               </div>
               <button
@@ -741,7 +741,7 @@ export default function UserDashboard() {
           >
             <div className="flex items-center gap-2 mb-2">
               <Mic size={16} style={{ color: "#00a355" }} />
-              <span style={{ color: "#c8e6c9", fontWeight: 600 }}>ملفك في قسم المنشطين</span>
+              <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600 }}>ملفك في قسم المنشطين</span>
             </div>
             <p style={{ color: "#6aad6a", fontSize: "0.875rem" }}>
               ملفك الشخصي معتمد ويظهر في صفحة طلبات المنشطين للعملاء.
@@ -760,7 +760,7 @@ export default function UserDashboard() {
           >
             <div className="flex items-center gap-2 mb-2">
               <BookOpen size={16} style={{ color: "#00a355" }} />
-              <span style={{ color: "#c8e6c9", fontWeight: 600 }}>ملفك في دليل الصحفيين</span>
+              <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600 }}>ملفك في دليل الصحفيين</span>
             </div>
             <p style={{ color: "#6aad6a", fontSize: "0.875rem" }}>
               ملفك الشخصي معتمد ويظهر في قسم المحترفين على منصة سند.

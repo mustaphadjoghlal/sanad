@@ -90,7 +90,7 @@ export default function JobDetail() {
         )}
 
         {/* Title */}
-        <h1 className="text-3xl font-bold mb-2 leading-snug" style={{ color: "#e8f5e9" }}>{j.title}</h1>
+        <h1 className="text-3xl font-bold mb-2 leading-snug" style={{ color: "var(--theme-text, #e8f5e9)" }}>{j.title}</h1>
         {j.company && (
           <p className="text-lg mb-4" style={{ color: "#6aad6a" }}>{j.company}</p>
         )}
@@ -168,7 +168,7 @@ export default function JobDetail() {
           >
             <div className="flex items-center gap-2 mb-3">
               <Building2 size={16} style={{ color: "#00a355" }} />
-              <h3 className="font-semibold" style={{ color: "#c8e6c9" }}>عن {j.company}</h3>
+              <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>عن {j.company}</h3>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: "#6aad6a" }}>{j.companyDescription}</p>
           </div>
@@ -182,7 +182,7 @@ export default function JobDetail() {
           >
             <div className="flex items-center gap-2 mb-2">
               <Phone size={16} style={{ color: "#00a355" }} />
-              <h3 className="font-semibold" style={{ color: "#c8e6c9" }}>للتقديم والتواصل</h3>
+              <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
             </div>
             <p style={{ color: "#6aad6a", fontSize: "0.9rem" }}>{j.contact}</p>
           </div>

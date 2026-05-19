@@ -84,7 +84,7 @@ export default function VoiceRequests() {
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={20} style={{ color: "#00a355" }} /></div>
-            <h1 className="text-4xl font-bold" style={{ color: "#e8f5e9" }}>طلبات المنشطين والمعلقين</h1>
+            <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>طلبات المنشطين والمعلقين</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>ابحث عن منشطين ومعلقين صوتيين محترفين لمشاريعك</p>
         </div>
@@ -95,7 +95,7 @@ export default function VoiceRequests() {
         <div className="rounded-xl p-6 mb-8 flex items-start gap-4 animate-fade-in-up" style={{ background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", border: "1px solid rgba(0,98,51,0.35)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={26} style={{ color: "#00a355" }} /></div>
           <div>
-            <h3 className="text-xl font-semibold mb-2" style={{ color: "#c8e6c9" }}>هل أنت منشط أو معلق صوتي؟</h3>
+            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل أنت منشط أو معلق صوتي؟</h3>
             <p className="mb-4 text-sm" style={{ color: "#6aad6a" }}>انضم إلى منصة سند وابدأ في استقبال العروض من العملاء</p>
             <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}>
               <span>انضم كمنشط</span>
@@ -136,7 +136,7 @@ export default function VoiceRequests() {
                     <Mic size={18} style={{ color: "#00a355" }} />
                   </div>
                   <div>
-                    <h3 className="font-semibold" style={{ color: "#c8e6c9" }}>{v.name}</h3>
+                    <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>{v.name}</h3>
                     {v.specialty && <span style={{ background: "rgba(0,98,51,0.25)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>}
                   </div>
                 </div>

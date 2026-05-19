@@ -32,7 +32,7 @@ export default function EquipmentPage() {
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><ShoppingCart size={20} style={{ color: "#00a355" }} /></div>
-            <h1 className="text-4xl font-bold" style={{ color: "#e8f5e9" }}>متجر عتاد الإعلام</h1>
+            <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>متجر عتاد الإعلام</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>تسوق معدات الإعلام الاحترافية أو افتح متجرك الخاص</p>
         </div>
@@ -45,7 +45,7 @@ export default function EquipmentPage() {
             <Store size={26} style={{ color: "#00a355" }} />
           </div>
           <div>
-            <h3 className="text-xl font-semibold mb-2" style={{ color: "#c8e6c9" }}>هل أنت بائع محترف؟</h3>
+            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل أنت بائع محترف؟</h3>
             <p className="mb-4 text-sm" style={{ color: "#6aad6a" }}>افتح متجرك الخاص على منصة سند وابدأ البيع للآلاف من المحترفين</p>
             <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}><span>افتح متجرك الآن</span></Link>
           </div>
@@ -85,7 +85,7 @@ export default function EquipmentPage() {
                   </span>
                   <span style={{ color: "#00a355", fontWeight: 700, fontSize: "1rem" }}>{eq.price.toLocaleString()} دج</span>
                 </div>
-                <h3 className="font-semibold mb-1" style={{ color: "#c8e6c9" }}>{eq.name}</h3>
+                <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{eq.name}</h3>
                 {eq.category && <p style={{ color: "#4a7a4a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{eq.category}</p>}
                 {eq.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{eq.description}</p>}
                 <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(0,98,51,0.1)" }}>

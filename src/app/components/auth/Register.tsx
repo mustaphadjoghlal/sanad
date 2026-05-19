@@ -225,7 +225,7 @@ export default function Register() {
           >
             <Check size={36} style={{ color: "#00a355" }} />
           </div>
-          <h2 className="text-2xl font-bold mb-4" style={{ color: "#e8f5e9" }}>تم التسجيل بنجاح!</h2>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--theme-text, #e8f5e9)" }}>تم التسجيل بنجاح!</h2>
           <p style={{ color: "#6aad6a", lineHeight: 1.7 }}>
             ملفك قيد المراجعة. سيتم إشعارك عند الموافقة.
           </p>
@@ -316,7 +316,7 @@ export default function Register() {
             {/* ─── STEP 1: Account Type ─── */}
             {step === 1 && (
               <div>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "#e8f5e9" }}>اختر نوع حسابك</h2>
+                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--theme-text, #e8f5e9)" }}>اختر نوع حسابك</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   {/* Individual card */}
@@ -342,7 +342,7 @@ export default function Register() {
                     >
                       <User size={22} style={{ color: mainType === "individual" ? "#00a355" : "#4a7a4a" }} />
                     </div>
-                    <div className="font-semibold mb-1" style={{ color: mainType === "individual" ? "#c8e6c9" : "#6aad6a", fontSize: "0.95rem" }}>
+                    <div className="font-semibold mb-1" style={{ color: mainType === "individual" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.95rem" }}>
                       حساب فردي
                     </div>
                     <div style={{ color: "#3a5e3a", fontSize: "0.78rem" }}>صحفي، مصور، طالب، وغيرهم</div>
@@ -371,7 +371,7 @@ export default function Register() {
                     >
                       <Store size={22} style={{ color: mainType === "store" ? "#00a355" : "#4a7a4a" }} />
                     </div>
-                    <div className="font-semibold mb-1" style={{ color: mainType === "store" ? "#c8e6c9" : "#6aad6a", fontSize: "0.95rem" }}>
+                    <div className="font-semibold mb-1" style={{ color: mainType === "store" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.95rem" }}>
                       متجر احترافي
                     </div>
                     <div style={{ color: "#3a5e3a", fontSize: "0.78rem" }}>معدات إعلام، كاميرات، صوتيات</div>
@@ -435,7 +435,7 @@ export default function Register() {
                           cursor: "pointer",
                         }}
                       >
-                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "trial" ? "#c8e6c9" : "#6aad6a", fontSize: "0.9rem" }}>
+                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "trial" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.9rem" }}>
                           تجريبي مجاني
                         </div>
                         <div style={{ color: "#3a5e3a", fontSize: "0.75rem" }}>شهر واحد</div>
@@ -453,7 +453,7 @@ export default function Register() {
                           cursor: "pointer",
                         }}
                       >
-                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "paid" ? "#c8e6c9" : "#6aad6a", fontSize: "0.9rem" }}>
+                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "paid" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.9rem" }}>
                           مدفوع
                         </div>
                         <div style={{ color: "#3a5e3a", fontSize: "0.75rem" }}>يتم التفعيل بعد التواصل معنا</div>
@@ -485,7 +485,7 @@ export default function Register() {
             {/* ─── STEP 2: Basic Info ─── */}
             {step === 2 && (
               <div>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "#e8f5e9" }}>المعلومات الأساسية</h2>
+                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--theme-text, #e8f5e9)" }}>المعلومات الأساسية</h2>
 
                 {error && (
                   <div
@@ -563,7 +563,7 @@ export default function Register() {
             {/* ─── STEP 3: Profile Details ─── */}
             {step === 3 && (
               <div>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "#e8f5e9" }}>تفاصيل الملف الشخصي</h2>
+                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--theme-text, #e8f5e9)" }}>تفاصيل الملف الشخصي</h2>
 
                 {error && (
                   <div
@@ -713,7 +713,7 @@ export default function Register() {
                               style={{ background: "rgba(0,98,51,0.1)", border: "1px solid rgba(0,98,51,0.25)" }}
                             >
                               <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-medium truncate" style={{ color: "#c8e6c9" }}>{link.label}</span>
+                                <span className="text-sm font-medium truncate" style={{ color: "var(--theme-text, #c8e6c9)" }}>{link.label}</span>
                                 <span className="text-xs truncate" style={{ color: "#4a7a4a" }} dir="ltr">{link.url}</span>
                               </div>
                               <button

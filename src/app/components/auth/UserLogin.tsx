@@ -90,7 +90,7 @@ export default function UserLogin() {
             animationFillMode: "forwards",
           }}
         >
-          <h2 className="text-xl font-bold mb-6" style={{ color: "#e8f5e9" }}>أهلاً بعودتك</h2>
+          <h2 className="text-xl font-bold mb-6" style={{ color: "var(--theme-text, #e8f5e9)" }}>أهلاً بعودتك</h2>
 
           {error && (
             <div

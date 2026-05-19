@@ -98,7 +98,7 @@ export default function CompetitionDetail() {
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold mb-3 leading-snug" style={{ color: "#e8f5e9" }}>{c.name}</h1>
+        <h1 className="text-3xl font-bold mb-3 leading-snug" style={{ color: "var(--theme-text, #e8f5e9)" }}>{c.name}</h1>
 
         {/* Excerpt/description */}
         {c.description && (
@@ -145,7 +145,7 @@ export default function CompetitionDetail() {
             />
             <div
               className="leading-loose text-base whitespace-pre-wrap"
-              style={{ color: "#c8e6c9", lineHeight: "2" }}
+              style={{ color: "var(--theme-text, #c8e6c9)", lineHeight: "2" }}
             >
               {c.content}
             </div>
@@ -160,7 +160,7 @@ export default function CompetitionDetail() {
           >
             <div className="flex items-center gap-2 mb-3">
               <Building2 size={16} style={{ color: "#00a355" }} />
-              <h3 className="font-semibold" style={{ color: "#c8e6c9" }}>عن {c.organizer}</h3>
+              <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>عن {c.organizer}</h3>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: "#6aad6a" }}>{c.organizerDescription}</p>
           </div>

@@ -99,7 +99,7 @@ export default function EquipmentDetail() {
         </div>
 
         {/* Name */}
-        <h1 className="text-3xl font-bold mb-3 leading-snug" style={{ color: "#e8f5e9" }}>{eq.name}</h1>
+        <h1 className="text-3xl font-bold mb-3 leading-snug" style={{ color: "var(--theme-text, #e8f5e9)" }}>{eq.name}</h1>
 
         {/* Description */}
         {eq.description && (
@@ -114,7 +114,7 @@ export default function EquipmentDetail() {
           <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
             <DollarSign size={15} style={{ color: "#00a355" }} />
             <span style={{ color: "#4a7a4a" }}>السعر:</span>
-            <span style={{ color: "#e8f5e9", fontWeight: 600, fontSize: "1rem" }}>{eq.price.toLocaleString()} دج</span>
+            <span style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "1rem" }}>{eq.price.toLocaleString()} دج</span>
           </div>
           {eq.seller && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
@@ -167,7 +167,7 @@ export default function EquipmentDetail() {
           >
             <div className="flex items-center gap-2 mb-2">
               <Phone size={16} style={{ color: "#00a355" }} />
-              <h3 className="font-semibold" style={{ color: "#c8e6c9" }}>للتواصل مع البائع</h3>
+              <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتواصل مع البائع</h3>
             </div>
             <p style={{ color: "#6aad6a", fontSize: "0.9rem" }}>{eq.contact}</p>
           </div>

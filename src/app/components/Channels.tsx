@@ -43,7 +43,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
               : <Radio size={16} style={{ color: "#64b5f6" }} />
             }
           </div>
-          <h3 className="font-bold" style={{ color: "#c8e6c9", fontSize: "0.95rem" }}>{ch.name}</h3>
+          <h3 className="font-bold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{ch.name}</h3>
         </div>
         <span
           className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
@@ -168,7 +168,7 @@ export default function ChannelsPage() {
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <Tv size={20} style={{ color: "#00a355" }} />
             </div>
-            <h1 className="text-4xl font-bold" style={{ color: "#e8f5e9" }}>دليل القنوات الجزائرية</h1>
+            <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>دليل القنوات الجزائرية</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
             الترددات، البريد الإلكتروني، العناوين، ومواقع التواصل — كل ما تحتاجه في مكان واحد
