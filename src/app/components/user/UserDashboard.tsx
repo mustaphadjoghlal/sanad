@@ -12,6 +12,7 @@ import {
   resubmitProfile,
   subscribeToCollection,
   addEquipment,
+  sendNotification,
 } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
 import type { UserProfile, Equipment, PortfolioLink } from "../../../lib/types";
@@ -264,6 +265,12 @@ export default function UserDashboard() {
       });
       if (profile.status === "rejected") {
         await resubmitProfile(uid);
+        await sendNotification({
+          title: "إعادة تقديم ملف شخصي 🔄",
+          body: `${editForm.name} أعاد تقديم ملفه الشخصي بعد الرفض`,
+          link: "/sanad-admin",
+          createdAt: Date.now(),
+        }).catch(() => {});
       }
       setEditing(false);
     } catch {
@@ -284,6 +291,12 @@ export default function UserDashboard() {
         submittedBy: uid,
         seller: profile.name,
       } as Omit<Equipment, "id" | "createdAt">);
+      await sendNotification({
+        title: "طلب نشر عتاد جديد ⚙️",
+        body: `${profile.name} أضاف "${equipForm.name}" وينتظر الموافقة`,
+        link: "/sanad-admin",
+        createdAt: Date.now(),
+      }).catch(() => {});
       setAddEquipModal(false);
       setEquipForm(emptyEquip);
     } finally {
@@ -680,7 +693,7 @@ export default function UserDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Package size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
-                <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>معداتي للبيع</h3>
+                <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>معداتي الإعلامية</h3>
                 <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem" }}>({myEquipment.length} منتج)</span>
               </div>
               <button
@@ -688,7 +701,7 @@ export default function UserDashboard() {
                 className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm"
               >
                 <Plus size={15} />
-                <span>إضافة معدة جديدة</span>
+                <span>إضافة عتاد جديد</span>
               </button>
             </div>
 
@@ -706,7 +719,7 @@ export default function UserDashboard() {
                     {myEquipment.length === 0 ? (
                       <tr>
                         <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
-                          لم تضف معدات بعد. اضغط "إضافة معدة جديدة" للبدء.
+                          لم تضف أي عتاد بعد. اضغط "إضافة عتاد جديد" للبدء.
                         </td>
                       </tr>
                     ) : myEquipment.map((eq) => (
@@ -771,7 +784,7 @@ export default function UserDashboard() {
 
       {/* Add Equipment Modal */}
       {addEquipModal && (
-        <Modal title="إضافة معدة جديدة" onClose={() => setAddEquipModal(false)}>
+        <Modal title="إضافة عتاد جديد" onClose={() => setAddEquipModal(false)}>
           <div className="space-y-4">
             <div>
               <label style={S.label}>اسم المنتج *</label>

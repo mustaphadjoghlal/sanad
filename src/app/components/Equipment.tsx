@@ -45,9 +45,9 @@ export default function EquipmentPage() {
             <Store size={26} style={{ color: "var(--theme-accent, #00a355)" }} />
           </div>
           <div>
-            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل أنت بائع محترف؟</h3>
-            <p className="mb-4 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>افتح متجرك الخاص على منصة سند وابدأ البيع للآلاف من المحترفين</p>
-            <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}><span>افتح متجرك الآن</span></Link>
+            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل تمتلك معدات إعلامية؟</h3>
+            <p className="mb-4 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>سجّل في منصة سند وأضف معداتك لتصل إلى آلاف المحترفين الإعلاميين</p>
+            <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}><span>سجّل الآن</span></Link>
           </div>
         </div>
 

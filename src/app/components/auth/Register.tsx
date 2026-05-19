@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Radio, ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store } from "lucide-react";
 import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
-import { saveUserProfile } from "../../../lib/firestore";
+import { saveUserProfile, sendNotification } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
 import type { AccountType, PortfolioLink } from "../../../lib/types";
 
@@ -185,6 +185,14 @@ export default function Register() {
           whatsapp: form.whatsapp || undefined,
         });
       }
+
+      // Notify admin of new registration
+      await sendNotification({
+        title: "مستخدم جديد 🎉",
+        body: `${form.name} سجّل في المنصة كـ ${mainType === "store" ? "متجر عتاد" : "محترف إعلامي"}`,
+        link: "/sanad-admin",
+        createdAt: Date.now(),
+      }).catch(() => {});
 
       setSuccess(true);
       setTimeout(() => navigate("/login"), 3000);
@@ -807,7 +815,7 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>التخصص (ما تبيعه)</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نوع المعدات</label>
                       <input
                         type="text"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"

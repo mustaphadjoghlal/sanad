@@ -8,7 +8,7 @@ import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 const services = [
   { icon: BookOpen,    title: "الدورات التدريبية",    desc: "دورات مجانية ومدفوعة في جميع مجالات الإعلام",       link: "/courses",        delay: "0.05s" },
   { icon: Briefcase,   title: "عروض التوظيف",         desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",      link: "/jobs",           delay: "0.10s" },
-  { icon: ShoppingCart,title: "متجر العتاد",          desc: "بيع وشراء معدات الإعلام الاحترافية",                link: "/equipment",      delay: "0.15s" },
+  { icon: ShoppingCart,title: "عتاد إعلامي",           desc: "تصفح وأعلن عن معدات الإعلام الاحترافية",            link: "/equipment",      delay: "0.15s" },
   { icon: Trophy,      title: "المسابقات الإعلامية",  desc: "مواعيد المسابقات الجامعية والوطنية والدولية",        link: "/competitions",   delay: "0.20s" },
   { icon: Mic,         title: "المنشطون والمعلقون",   desc: "ابحث عن منشطين ومعلقين صوتيين محترفين لمشاريعك",    link: "/voice-requests", delay: "0.25s" },
   { icon: Radio,       title: "القنوات الإعلامية",    desc: "دليل شامل للقنوات التلفزيونية والإذاعية الجزائرية", link: "/channels",       delay: "0.30s" },
@@ -361,7 +361,7 @@ export default function Home() {
       {featuredEquipment.length > 0 && (
         <section className="py-16 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
           <div className="container mx-auto">
-            <SectionHeader num="04" title="معدات للبيع" link="/equipment" linkLabel="عرض الكل" />
+            <SectionHeader num="04" title="معدات إعلامية" link="/equipment" linkLabel="عرض الكل" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {featuredEquipment.map((eq, i) => (
                 <Link
