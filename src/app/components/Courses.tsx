@@ -37,7 +37,7 @@ export default function Courses() {
             </div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>الدورات التدريبية</h1>
           </div>
-          <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>
+          <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>
             اكتشف دورات تدريبية مجانية ومدفوعة في مجال الإعلام
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function Courses() {
         <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "#4a7a4a" }} />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
               <input type="text" placeholder="ابحث عن دورة..." className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <div className="flex gap-3">
@@ -66,13 +66,13 @@ export default function Courses() {
 
         {/* Results */}
         {loading ? (
-          <div className="text-center py-16" style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ animationDelay: "0.35s", opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <BookOpen size={28} style={{ color: "#006233" }} />
             </div>
-            <p style={{ color: "#4a7a4a" }}>
+            <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
               {items.length === 0 ? "لا توجد دورات متاحة حالياً. سيتم إضافة الدورات عبر لوحة التحكم." : "لا توجد نتائج لبحثك."}
             </p>
           </div>
@@ -81,14 +81,14 @@ export default function Courses() {
             {filtered.map((c, i) => (
               <div key={c.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
                 <div className="flex items-start justify-between mb-3">
-                  <span style={{ background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "#81c784" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                  <span style={{ background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "var(--theme-badge-text, #81c784)" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                     {c.type === "free" ? "مجانية" : `${c.price?.toLocaleString()} دج`}
                   </span>
-                  {c.duration && <span style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>{c.duration}</span>}
+                  {c.duration && <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>{c.duration}</span>}
                 </div>
                 <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "1rem" }}>{c.title}</h3>
-                <p style={{ color: "#4a7a4a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>المدرب: {c.instructor}</p>
-                {c.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", lineHeight: 1.6 }}>{c.description}</p>}
+                <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>المدرب: {c.instructor}</p>
+                {c.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", lineHeight: 1.6 }}>{c.description}</p>}
                 {c.link && (
                   <a href={c.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-3 text-sm transition-colors" style={{ color: "#006233" }}>
                     <span>سجّل الآن</span><ExternalLink size={13} />

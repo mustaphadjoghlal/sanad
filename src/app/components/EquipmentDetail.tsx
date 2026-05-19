@@ -26,7 +26,7 @@ export default function EquipmentDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" dir="rtl" style={{ background: "#0e0e0e" }}>
-        <div style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+        <div style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export default function EquipmentDetail() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <ShoppingCart size={48} style={{ color: "#2a4a2a" }} />
-        <p style={{ color: "#4a7a4a" }}>المنتج غير موجود</p>
+        <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المنتج غير موجود</p>
         <Link to="/equipment" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة لمتجر العتاد</Link>
       </div>
     );
@@ -50,7 +50,7 @@ export default function EquipmentDetail() {
         <Link
           to="/equipment"
           className="inline-flex items-center gap-2 text-sm transition-colors hover:text-green-400"
-          style={{ color: "#4a7a4a", textDecoration: "none" }}
+          style={{ color: "var(--theme-text-muted, #4a7a4a)", textDecoration: "none" }}
         >
           <ArrowRight size={15} />
           العودة إلى متجر العتاد
@@ -82,7 +82,7 @@ export default function EquipmentDetail() {
           {eq.category && (
             <span
               className="text-xs px-3 py-1 rounded-full"
-              style={{ background: "rgba(0,98,51,0.3)", color: "#81c784" }}
+              style={{ background: "rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}
             >
               {eq.category}
             </span>
@@ -91,7 +91,7 @@ export default function EquipmentDetail() {
             className="text-xs px-3 py-1 rounded-full"
             style={{
               background: eq.condition === "new" ? "rgba(0,98,51,0.25)" : "rgba(120,66,18,0.3)",
-              color: eq.condition === "new" ? "#81c784" : "#f0b27a",
+              color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a",
             }}
           >
             {eq.condition === "new" ? "جديد" : "مستعمل"}
@@ -111,27 +111,27 @@ export default function EquipmentDetail() {
           className="flex flex-wrap gap-4 p-4 rounded-xl mb-8"
           style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
         >
-          <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
             <DollarSign size={15} style={{ color: "#00a355" }} />
-            <span style={{ color: "#4a7a4a" }}>السعر:</span>
+            <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>السعر:</span>
             <span style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "1rem" }}>{eq.price.toLocaleString()} دج</span>
           </div>
           {eq.seller && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <User size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>البائع:</span> {eq.seller}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>البائع:</span> {eq.seller}
             </div>
           )}
           {eq.category && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Tag size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>الفئة:</span> {eq.category}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الفئة:</span> {eq.category}
             </div>
           )}
           {eq.contact && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Phone size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>التواصل:</span> {eq.contact}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>التواصل:</span> {eq.contact}
             </div>
           )}
         </div>
@@ -169,7 +169,7 @@ export default function EquipmentDetail() {
               <Phone size={16} style={{ color: "#00a355" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتواصل مع البائع</h3>
             </div>
-            <p style={{ color: "#6aad6a", fontSize: "0.9rem" }}>{eq.contact}</p>
+            <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>{eq.contact}</p>
           </div>
         )}
       </div>

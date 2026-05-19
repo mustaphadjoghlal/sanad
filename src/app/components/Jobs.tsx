@@ -37,7 +37,7 @@ export default function Jobs() {
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Briefcase size={20} style={{ color: "#00a355" }} /></div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>عروض التوظيف</h1>
           </div>
-          <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>فرص عمل إعلامية وصحفية في الجزائر</p>
+          <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>فرص عمل إعلامية وصحفية في الجزائر</p>
         </div>
       </div>
 
@@ -45,7 +45,7 @@ export default function Jobs() {
         <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "#4a7a4a" }} />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
               <input type="text" placeholder="ابحث عن وظيفة..." className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <div className="flex gap-3 flex-wrap">
@@ -62,13 +62,13 @@ export default function Jobs() {
         </div>
 
         {loading ? (
-          <div className="text-center py-16" style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <Briefcase size={28} style={{ color: "#006233" }} />
             </div>
-            <p style={{ color: "#4a7a4a" }}>{items.length === 0 ? "لا توجد عروض توظيف حالياً." : "لا توجد نتائج."}</p>
+            <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد عروض توظيف حالياً." : "لا توجد نتائج."}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -92,16 +92,16 @@ export default function Jobs() {
                 <div className="flex-1 p-4 flex flex-col md:flex-row md:items-start justify-between gap-3">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{j.title}</h3>
-                    <p style={{ color: "#6aad6a", fontSize: "0.875rem", marginBottom: "0.5rem" }}>{j.company}</p>
-                    <div className="flex flex-wrap gap-3 text-xs" style={{ color: "#4a7a4a" }}>
+                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem", marginBottom: "0.5rem" }}>{j.company}</p>
+                    <div className="flex flex-wrap gap-3 text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
                       {j.location && <span className="flex items-center gap-1"><MapPin size={12} />{j.location}</span>}
-                      {j.jobType && <span style={{ background: "rgba(0,98,51,0.2)", padding: "0.15rem 0.5rem", borderRadius: "9999px", color: "#81c784" }}>{j.jobType}</span>}
+                      {j.jobType && <span style={{ background: "rgba(0,98,51,0.2)", padding: "0.15rem 0.5rem", borderRadius: "9999px", color: "var(--theme-badge-text, #81c784)" }}>{j.jobType}</span>}
                       {j.deadline && <span className="flex items-center gap-1"><Calendar size={12} />آخر أجل: {j.deadline}</span>}
                     </div>
-                    {j.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", marginTop: "0.75rem", lineHeight: 1.6 }}>{j.description.slice(0, 120)}{j.description.length > 120 ? "..." : ""}</p>}
+                    {j.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", marginTop: "0.75rem", lineHeight: 1.6 }}>{j.description.slice(0, 120)}{j.description.length > 120 ? "..." : ""}</p>}
                   </div>
                   {j.contact && (
-                    <div style={{ border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.5rem 1rem", color: "#6aad6a", fontSize: "0.8rem", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    <div style={{ border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.5rem 1rem", color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem", whiteSpace: "nowrap", flexShrink: 0 }}>
                       {j.contact}
                     </div>
                   )}

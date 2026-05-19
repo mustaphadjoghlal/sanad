@@ -169,7 +169,7 @@ export default function Home() {
           <p
             className="text-lg md:text-xl max-w-2xl mx-auto mb-10 animate-fade-in-up"
             style={{
-              color: "#6aad6a",
+              color: "var(--theme-text-secondary, #6aad6a)",
               animationDelay: "0.25s",
               opacity: 0,
               animationFillMode: "forwards",
@@ -201,7 +201,7 @@ export default function Home() {
               className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-medium transition-all duration-300"
               style={{
                 border: "1px solid rgba(0,98,51,0.4)",
-                color: "#81c784",
+                color: "var(--theme-badge-text, #81c784)",
                 background: "transparent",
                 textDecoration: "none",
               }}
@@ -250,14 +250,14 @@ export default function Home() {
                   }}
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <span style={{ background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "#81c784" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                    <span style={{ background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "var(--theme-badge-text, #81c784)" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                       {c.type === "free" ? "مجانية" : `${c.price?.toLocaleString()} دج`}
                     </span>
-                    {c.duration && <span style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{c.duration}</span>}
+                    {c.duration && <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{c.duration}</span>}
                   </div>
                   <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{c.title}</h3>
-                  <p style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>المدرب: {c.instructor}</p>
-                  {c.description && <p style={{ color: "#3a5e3a", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.5rem" }}>{c.description.slice(0, 80)}{c.description.length > 80 ? "..." : ""}</p>}
+                  <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem" }}>المدرب: {c.instructor}</p>
+                  {c.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.5rem" }}>{c.description.slice(0, 80)}{c.description.length > 80 ? "..." : ""}</p>}
                 </Link>
               ))}
             </div>
@@ -293,14 +293,14 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{p.name}</h3>
-                      <span style={{ background: "rgba(0,98,51,0.2)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>
+                      <span style={{ background: "rgba(0,98,51,0.2)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>
                         {typeLabel[p.type] || p.type}
                       </span>
                     </div>
                   </div>
-                  {p.specialty && <p style={{ color: "#6aad6a", fontSize: "0.8rem", marginBottom: "0.25rem" }}>{p.specialty}</p>}
+                  {p.specialty && <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem", marginBottom: "0.25rem" }}>{p.specialty}</p>}
                   {p.location && (
-                    <div className="flex items-center gap-1" style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>
+                    <div className="flex items-center gap-1" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>
                       <MapPin size={12} />
                       <span>{p.location}</span>
                     </div>
@@ -334,11 +334,11 @@ export default function Home() {
                   )}
                   <div className="p-4">
                     {j.jobType && (
-                      <span style={{ background: "rgba(0,98,51,0.3)", color: "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>{j.jobType}</span>
+                      <span style={{ background: "rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>{j.jobType}</span>
                     )}
                     <h3 className="font-semibold mt-2 mb-1" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{j.title}</h3>
-                    <p style={{ color: "#6aad6a", fontSize: "0.8rem" }}>{j.company}</p>
-                    <div className="flex flex-wrap gap-2 mt-2 text-xs" style={{ color: "#4a7a4a" }}>
+                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem" }}>{j.company}</p>
+                    <div className="flex flex-wrap gap-2 mt-2 text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
                       {j.location && <span className="flex items-center gap-1"><MapPin size={11} />{j.location}</span>}
                       {j.deadline && <span className="flex items-center gap-1"><Calendar size={11} />آخر أجل: {j.deadline}</span>}
                     </div>
@@ -358,7 +358,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {upcomingCompetitions.map((c, i) => {
                 const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "rgba(0,98,51,0.3)", international: "rgba(120,66,18,0.3)" };
-                const typeColor2: Record<string, string> = { university: "#7fb3d3", national: "#81c784", international: "#f0b27a" };
+                const typeColor2: Record<string, string> = { university: "#7fb3d3", national: "var(--theme-badge-text, #81c784)", international: "#f0b27a" };
                 const typeLabelMap: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
                 return (
                   <Link
@@ -382,12 +382,12 @@ export default function Home() {
                       </div>
                     )}
                     <div className="p-5">
-                      <span style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor2[c.type] || "#81c784", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                      <span style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor2[c.type] || "var(--theme-badge-text, #81c784)", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                         {typeLabelMap[c.type]}
                       </span>
                       <h3 className="font-semibold mt-3 mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{c.name}</h3>
-                      <p style={{ color: "#6aad6a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{c.organizer}</p>
-                      <div className="flex gap-3 text-xs" style={{ color: "#4a7a4a" }}>
+                      <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{c.organizer}</p>
+                      <div className="flex gap-3 text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
                         {c.startDate && <span className="flex items-center gap-1"><Calendar size={11} />{c.startDate}</span>}
                       </div>
                     </div>
@@ -422,12 +422,12 @@ export default function Home() {
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{eq.name}</h3>
-                      <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "#81c784" : "#f0b27a", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
+                      <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "9999px", whiteSpace: "nowrap" }}>
                         {eq.condition === "new" ? "جديد" : "مستعمل"}
                       </span>
                     </div>
                     <p style={{ color: "#00a355", fontWeight: 600, fontSize: "0.9rem" }}>{eq.price?.toLocaleString()} دج</p>
-                    <p style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>{eq.seller}</p>
+                    <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>{eq.seller}</p>
                   </div>
                 </Link>
               ))}
@@ -454,11 +454,11 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{v.name}</h3>
-                      <span style={{ background: "rgba(0,98,51,0.2)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>
+                      <span style={{ background: "rgba(0,98,51,0.2)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>
                     </div>
                   </div>
-                  {v.experience && <p style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>الخبرة: {v.experience}</p>}
-                  {v.description && <p style={{ color: "#3a5e3a", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.35rem" }}>{v.description.slice(0, 80)}{v.description.length > 80 ? "..." : ""}</p>}
+                  {v.experience && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>الخبرة: {v.experience}</p>}
+                  {v.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.35rem" }}>{v.description.slice(0, 80)}{v.description.length > 80 ? "..." : ""}</p>}
                 </div>
               ))}
             </div>
@@ -525,7 +525,7 @@ export default function Home() {
                   >
                     {feature.title}
                   </h3>
-                  <p style={{ color: "#4a7a4a", fontSize: "0.9rem", lineHeight: "1.6" }}>
+                  <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.9rem", lineHeight: "1.6" }}>
                     {feature.description}
                   </p>
 
@@ -576,7 +576,7 @@ export default function Home() {
                 >
                   {stat.value}
                 </div>
-                <div style={{ color: "#4a7a4a", fontSize: "0.85rem" }}>
+                <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.85rem" }}>
                   {stat.label}
                 </div>
               </div>

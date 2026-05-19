@@ -36,7 +36,7 @@ const S = {
     borderRadius: "0.75rem",
   } as React.CSSProperties,
   th: {
-    color: "#6aad6a", fontSize: "0.75rem", fontWeight: 500,
+    color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem", fontWeight: 500,
     padding: "0.75rem 1rem", textAlign: "right" as const,
     borderBottom: "1px solid rgba(0,98,51,0.15)",
   },
@@ -50,7 +50,7 @@ const S = {
     color: "var(--theme-text, #e8f5e9)", borderRadius: "0.5rem",
     padding: "0.6rem 0.85rem", width: "100%", fontSize: "0.875rem",
   } as React.CSSProperties,
-  label: { color: "#81c784", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" } as React.CSSProperties,
+  label: { color: "var(--theme-badge-text, #81c784)", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" } as React.CSSProperties,
   badge: (color: string) => ({
     display: "inline-block", padding: "0.2rem 0.6rem", borderRadius: "9999px",
     fontSize: "0.72rem", background: color,
@@ -83,7 +83,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
       >
         <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid rgba(0,98,51,0.2)" }}>
           <h3 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600 }}>{title}</h3>
-          <button onClick={onClose} style={{ color: "#4a7a4a" }} className="hover:text-white transition-colors">
+          <button onClick={onClose} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} className="hover:text-white transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -101,7 +101,7 @@ function ConfirmDelete({ label, onConfirm, onClose }: { label: string; onConfirm
         هل أنت متأكد من حذف <strong style={{ color: "#ef9a9a" }}>{label}</strong>؟ لا يمكن التراجع عن هذا الإجراء.
       </p>
       <div className="flex gap-3 justify-end">
-        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784" }}>
+        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}>
           إلغاء
         </button>
         <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
@@ -127,7 +127,7 @@ function RejectModal({ label, onConfirm, onClose }: { label: string; onConfirm: 
         placeholder="اذكر سبب الرفض للمستخدم..."
       />
       <div className="flex gap-3 justify-end mt-4">
-        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784" }}>
+        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}>
           إلغاء
         </button>
         <button onClick={() => onConfirm(note)} disabled={!note.trim()} className="px-4 py-2 rounded-lg text-sm disabled:opacity-50" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
@@ -154,7 +154,7 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
           className="px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
           style={{
             background: value === v ? (v === "pending" ? "rgba(180,120,0,0.2)" : "rgba(0,98,51,0.2)") : "transparent",
-            color: value === v ? (v === "pending" ? "#fbbf24" : "#4ade80") : "#4a7a4a",
+            color: value === v ? (v === "pending" ? "#fbbf24" : "#4ade80") : "var(--theme-text-muted, #4a7a4a)",
             border: `1px solid ${value === v ? (v === "pending" ? "rgba(180,120,0,0.3)" : "rgba(0,98,51,0.3)") : "rgba(0,98,51,0.15)"}`,
           }}
         >
@@ -183,7 +183,7 @@ function ItemActions({
           onClick={() => toggleFeatured(colName, id, !!featured)}
           title={featured ? "إلغاء التمييز" : "تمييز"}
           className="p-1.5 rounded transition-colors"
-          style={{ color: featured ? "#fbbf24" : "#4a7a4a", background: featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+          style={{ color: featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: featured ? "rgba(180,120,0,0.15)" : "transparent" }}
         >
           <Star size={14} fill={featured ? "#fbbf24" : "none"} />
         </button>
@@ -209,7 +209,7 @@ function ItemActions({
             <AlertTriangle size={14} />
           </button>
         )}
-        <button onClick={onEdit} style={{ color: "#6aad6a" }}><Pencil size={15} /></button>
+        <button onClick={onEdit} style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={15} /></button>
         <button onClick={onDelete} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
       </div>
       {rejecting && (
@@ -299,7 +299,7 @@ export default function AdminDashboard() {
               title={!sidebarOpen ? label : undefined}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200"
               style={{
-                color: activeSection === id ? "#00a355" : "#6aad6a",
+                color: activeSection === id ? "#00a355" : "var(--theme-text-secondary, #6aad6a)",
                 background: activeSection === id ? "rgba(0,98,51,0.18)" : "transparent",
                 justifyContent: sidebarOpen ? "flex-start" : "center",
               }}
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
           <Link
             to="/"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
-            style={{ color: "#4a7a4a", fontSize: "0.875rem", textDecoration: "none", justifyContent: sidebarOpen ? "flex-start" : "center" }}
+            style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textDecoration: "none", justifyContent: sidebarOpen ? "flex-start" : "center" }}
           >
             <ExternalLink size={18} style={{ flexShrink: 0 }} />
             {sidebarOpen && "عرض الموقع"}
@@ -337,7 +337,7 @@ export default function AdminDashboard() {
           className="flex items-center gap-4 px-6 py-4"
           style={{ borderBottom: "1px solid rgba(0,98,51,0.15)", background: "rgba(11,15,11,0.8)", backdropFilter: "blur(8px)" }}
         >
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "#4a7a4a" }}>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
             <LayoutDashboard size={20} />
           </button>
           <div>
@@ -443,12 +443,12 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
               )}
             </div>
             <div style={{ color: "var(--theme-text, #e8f5e9)", fontSize: "1.75rem", fontWeight: 700, lineHeight: 1 }}>{value}</div>
-            <div style={{ color: "#4a7a4a", fontSize: "0.8rem", marginTop: "0.25rem" }}>{label}</div>
+            <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginTop: "0.25rem" }}>{label}</div>
           </button>
         ))}
       </div>
       <div className="rounded-xl p-6" style={S.card}>
-        <p style={{ color: "#6aad6a", fontSize: "0.875rem" }}>اضغط على أي بطاقة للانتقال إلى إدارة القسم.</p>
+        <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>اضغط على أي بطاقة للانتقال إلى إدارة القسم.</p>
       </div>
     </div>
   );
@@ -516,7 +516,7 @@ function CoursesSection() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} دورة مسجلة {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} دورة مسجلة {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة دورة</span>
         </button>
@@ -535,7 +535,7 @@ function CoursesSection() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد دورات</td></tr>
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد دورات</td></tr>
               ) : filtered.map((c) => (
                 <tr
                   key={c.id}
@@ -585,7 +585,7 @@ function CoursesSection() {
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
-                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
                 </label>
@@ -604,13 +604,13 @@ function CoursesSection() {
                   ))}
                 </div>
               )}
-              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
                 {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -686,7 +686,7 @@ function JobsSection() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} عرض توظيف {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} عرض توظيف {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة وظيفة</span>
         </button>
@@ -701,7 +701,7 @@ function JobsSection() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد عروض</td></tr>
+                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد عروض</td></tr>
               ) : filtered.map((j) => (
                 <tr key={j.id} className="hover:bg-green-950/20 transition-colors" style={j.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{j.title}</td>
@@ -752,7 +752,7 @@ function JobsSection() {
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
-                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
                 </label>
@@ -771,13 +771,13 @@ function JobsSection() {
                   ))}
                 </div>
               )}
-              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
                 {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -853,7 +853,7 @@ function EquipmentSection() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} منتج {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} منتج {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة منتج</span>
         </button>
@@ -868,7 +868,7 @@ function EquipmentSection() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد منتجات</td></tr>
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد منتجات</td></tr>
               ) : filtered.map((eq) => (
                 <tr key={eq.id} className="hover:bg-green-950/20 transition-colors" style={eq.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{eq.name}</td>
@@ -918,7 +918,7 @@ function EquipmentSection() {
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
-                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
                 </label>
@@ -937,13 +937,13 @@ function EquipmentSection() {
                   ))}
                 </div>
               )}
-              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
                 {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -1024,7 +1024,7 @@ function CompetitionsSection() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} مسابقة {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} مسابقة {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة مسابقة</span>
         </button>
@@ -1039,7 +1039,7 @@ function CompetitionsSection() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا توجد مسابقات</td></tr>
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد مسابقات</td></tr>
               ) : filtered.map((c) => (
                 <tr key={c.id} className="hover:bg-green-950/20 transition-colors" style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{c.name}</td>
@@ -1078,7 +1078,7 @@ function CompetitionsSection() {
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid rgba(0,98,51,0.3)" }} />}
-                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "#6aad6a" : "#81c784" }}>
+                <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
                 </label>
@@ -1097,7 +1097,7 @@ function CompetitionsSection() {
                   ))}
                 </div>
               )}
-              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "#6aad6a" : "#81c784" }}>
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImageUpload(f); }} disabled={contentImgUploading} />
                 {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
               </label>
@@ -1111,7 +1111,7 @@ function CompetitionsSection() {
             <div><label style={S.label}>تعريف الجهة المنظمة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.organizerDescription} onChange={(e) => setForm({ ...form, organizerDescription: e.target.value })} /></div>
             <div><label style={S.label}>الرابط الرسمي (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." dir="ltr" /></div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -1163,7 +1163,7 @@ function VoiceSection() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>{items.length} منشط {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} منشط {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
         <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
           <span><Plus size={16} /></span><span>إضافة منشط</span>
         </button>
@@ -1178,7 +1178,7 @@ function VoiceSection() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا يوجد منشطون</td></tr>
+                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد منشطون</td></tr>
               ) : filtered.map((v) => (
                 <tr key={v.id} className="hover:bg-green-950/20 transition-colors" style={v.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>{v.name}</td>
@@ -1215,7 +1215,7 @@ function VoiceSection() {
             <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
             <div><label style={S.label}>نبذة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => setModal(null)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
               </button>
@@ -1255,7 +1255,7 @@ function ProfessionalsSection() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <span style={{ color: "#6aad6a", fontSize: "0.875rem" }}>
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
           {profiles.length} محترف مسجل{pendingCount > 0 && <span style={{ color: "#fbbf24" }}> ({pendingCount} انتظار)</span>}
         </span>
       </div>
@@ -1269,12 +1269,12 @@ function ProfessionalsSection() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</td></tr>
+                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</td></tr>
               ) : filtered.map((p) => (
                 <tr key={p.id} className="hover:bg-green-950/20 transition-colors" style={p.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                   <td style={S.td}>
                     <div>{p.name}</div>
-                    <div style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{p.email}</div>
+                    <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{p.email}</div>
                   </td>
                   <td style={S.td}><span style={S.badge("rgba(0,98,51,0.2)")}>{typeLabel[p.type] || p.type}</span></td>
                   <td style={S.td}>{p.specialty || "—"}</td>
@@ -1287,7 +1287,7 @@ function ProfessionalsSection() {
                         onClick={() => toggleFeatured("users", p.id, p.featured)}
                         title={p.featured ? "إلغاء التمييز" : "تمييز"}
                         className="p-1.5 rounded transition-colors"
-                        style={{ color: p.featured ? "#fbbf24" : "#4a7a4a", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+                        style={{ color: p.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}
                       >
                         <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
                       </button>
@@ -1412,7 +1412,7 @@ function ChannelsSection() {
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 text-sm" style={{ color: "#4a7a4a" }}>
+      <div className="flex gap-4 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
         <span>📺 {channels.filter((c) => c.type === "tv").length} قناة تلفزيونية</span>
         <span>📻 {channels.filter((c) => c.type === "radio").length} محطة إذاعية</span>
       </div>
@@ -1431,7 +1431,7 @@ function ChannelsSection() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "#3a5e3a", padding: "3rem" }}>
+                  <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
                     {channels.length === 0 ? 'لا توجد قنوات بعد.' : "لا توجد نتائج."}
                   </td>
                 </tr>
@@ -1439,20 +1439,20 @@ function ChannelsSection() {
                 <tr key={ch.id} className="hover:bg-green-950/10 transition-colors">
                   <td style={S.td}>
                     <div className="font-medium" style={{ color: "var(--theme-text, #c8e6c9)" }}>{ch.name}</div>
-                    <div style={{ color: "#4a7a4a", fontSize: "0.72rem" }}>{ch.category}</div>
+                    <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem" }}>{ch.category}</div>
                   </td>
                   <td style={S.td}>
                     <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "#00a355" : "#64b5f6" }}>
                       {ch.type === "tv" ? "📺 تلفزيون" : "📻 إذاعة"}
                     </span>
                   </td>
-                  <td style={{ ...S.td, fontFamily: "monospace", fontSize: "0.78rem", color: "#81c784" }} dir="ltr">
+                  <td style={{ ...S.td, fontFamily: "monospace", fontSize: "0.78rem", color: "var(--theme-badge-text, #81c784)" }} dir="ltr">
                     {ch.frequency || "—"}
                   </td>
                   <td style={{ ...S.td, fontSize: "0.78rem" }} dir="ltr">{ch.email || "—"}</td>
                   <td style={S.td}>
                     <div className="flex gap-2">
-                      <button onClick={() => startEdit(ch)} style={{ color: "#81c784" }}><Pencil size={15} /></button>
+                      <button onClick={() => startEdit(ch)} style={{ color: "var(--theme-badge-text, #81c784)" }}><Pencil size={15} /></button>
                       <button onClick={() => setDeleteId(ch.id)} style={{ color: "#f87171" }}><Trash2 size={15} /></button>
                     </div>
                   </td>
@@ -1527,7 +1527,7 @@ function ChannelsSection() {
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => { setShowForm(false); setEditId(null); }} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={() => { setShowForm(false); setEditId(null); }} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name.trim()} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
                 <span>{saving ? "جاري الحفظ..." : editId ? "حفظ التعديلات" : "إضافة"}</span>
               </button>
@@ -1649,7 +1649,7 @@ function AppearanceSection() {
               </div>
               <div className="flex-1">
                 <div style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", fontWeight: 500 }}>{label}</div>
-                <div style={{ color: "#4a7a4a", fontSize: "0.75rem" }}>{hint}</div>
+                <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{hint}</div>
               </div>
               {/* Hex input */}
               <input
@@ -1674,7 +1674,7 @@ function AppearanceSection() {
 
       {/* Live preview */}
       <div className="rounded-xl p-6 overflow-hidden relative" style={{ background: form.bgMain, border: `1px solid ${form.primaryGreen}55` }}>
-        <div style={{ color: "#6aad6a", fontSize: "0.7rem", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>معاينة مباشرة</div>
+        <div style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.7rem", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>معاينة مباشرة</div>
         <div className="rounded-lg p-4 mb-3" style={{ background: form.bgCard, border: `1px solid ${form.primaryGreen}44` }}>
           <div style={{ color: form.textColor, fontSize: "0.875rem", marginBottom: "0.5rem" }}>عنوان البطاقة — لون الخطوط</div>
           <div style={{ color: form.primaryGreen, fontSize: "0.75rem" }}>نص ثانوي بالأخضر الرئيسي</div>
@@ -1699,7 +1699,7 @@ function AppearanceSection() {
         <button
           onClick={handleReset}
           className="px-6 py-3 rounded-xl text-sm"
-          style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#6aad6a" }}
+          style={{ border: "1px solid rgba(0,98,51,0.3)", color: "var(--theme-text-secondary, #6aad6a)" }}
         >
           إعادة الافتراضي
         </button>
@@ -1715,14 +1715,14 @@ function SettingsSection() {
     <div className="max-w-lg space-y-6">
       <div className="rounded-xl p-6" style={S.card}>
         <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1rem" }}>معلومات الحساب</h3>
-        <div style={{ color: "#6aad6a", fontSize: "0.875rem" }}>
+        <div style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
           <p>البريد الإلكتروني: <span style={{ color: "#a5d6a7" }}>{user?.email}</span></p>
           <p className="mt-2">آخر تسجيل دخول: <span style={{ color: "#a5d6a7" }}>{user?.metadata.lastSignInTime}</span></p>
         </div>
       </div>
       <div className="rounded-xl p-6" style={S.card}>
         <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "0.75rem" }}>معلومات المنصة</h3>
-        <p style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>
+        <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem" }}>
           البيانات محفوظة في Firebase Firestore ومزامنة في الوقت الحقيقي.
           أي تغيير تجريه يظهر فوراً للزوار.
         </p>

@@ -65,9 +65,9 @@ export default function AdminLogin() {
             <Radio size={30} color="#ffffff" />
           </div>
           <h1 className="text-3xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>
-            سند <span style={{ color: "#6aad6a", fontSize: "1rem" }}>Admin</span>
+            سند <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "1rem" }}>Admin</span>
           </h1>
-          <p style={{ color: "#4a7a4a", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+          <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
             لوحة التحكم الإدارية
           </p>
         </div>
@@ -100,7 +100,7 @@ export default function AdminLogin() {
             <div>
               <label
                 className="block text-sm mb-2"
-                style={{ color: "#81c784" }}
+                style={{ color: "var(--theme-badge-text, #81c784)" }}
               >
                 البريد الإلكتروني
               </label>
@@ -108,7 +108,7 @@ export default function AdminLogin() {
                 <Mail
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                   size={18}
-                  style={{ color: "#4a7a4a" }}
+                  style={{ color: "var(--theme-text-muted, #4a7a4a)" }}
                 />
                 <input
                   type="email"
@@ -124,7 +124,7 @@ export default function AdminLogin() {
             <div>
               <label
                 className="block text-sm mb-2"
-                style={{ color: "#81c784" }}
+                style={{ color: "var(--theme-badge-text, #81c784)" }}
               >
                 كلمة المرور
               </label>
@@ -132,7 +132,7 @@ export default function AdminLogin() {
                 <Lock
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                   size={18}
-                  style={{ color: "#4a7a4a" }}
+                  style={{ color: "var(--theme-text-muted, #4a7a4a)" }}
                 />
                 <input
                   type="password"

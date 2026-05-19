@@ -162,7 +162,7 @@ export default function Layout() {
                     to="/login"
                     className="px-4 py-1.5 rounded-lg text-sm transition-all duration-200"
                     style={{
-                      color: "#81c784",
+                      color: "var(--theme-badge-text, #81c784)",
                       border: "1px solid rgba(0,98,51,0.35)",
                       textDecoration: "none",
                     }}
@@ -185,7 +185,7 @@ export default function Layout() {
                   <Link
                     to="/user/dashboard"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
-                    style={{ color: "#81c784", border: "1px solid rgba(0,98,51,0.35)", textDecoration: "none" }}
+                    style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid rgba(0,98,51,0.35)", textDecoration: "none" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(0,98,51,0.12)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   >
@@ -252,7 +252,7 @@ export default function Layout() {
               <div className="mt-2 pt-2 flex flex-col gap-1.5" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
                 {isLoggedOut && (
                   <>
-                    <Link to="/login" className="px-4 py-2.5 rounded-lg text-sm text-center" style={{ color: "#81c784", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
+                    <Link to="/login" className="px-4 py-2.5 rounded-lg text-sm text-center" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
                       دخول
                     </Link>
                     <Link to="/register" className="btn-dz px-4 py-2.5 rounded-lg text-sm text-center" style={{ textDecoration: "none" }}>
@@ -262,7 +262,7 @@ export default function Layout() {
                 )}
                 {isRegularUser && (
                   <>
-                    <Link to="/user/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "#81c784", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
+                    <Link to="/user/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid rgba(0,98,51,0.3)", textDecoration: "none" }}>
                       <LayoutDashboard size={14} />
                       <span>لوحتي</span>
                     </Link>
@@ -323,10 +323,10 @@ export default function Layout() {
               سند
             </span>
           </div>
-          <p style={{ color: "#6aad6a" }} className="mb-1 text-sm">
+          <p style={{ color: "var(--theme-text-secondary, #6aad6a)" }} className="mb-1 text-sm">
             المنصة الجزائرية الشاملة لمجال الإعلام
           </p>
-          <p style={{ color: "#3a5e3a" }} className="text-xs">
+          <p style={{ color: "var(--theme-text-dim, #3a5e3a)" }} className="text-xs">
             جميع الحقوق محفوظة © 2026
           </p>
         </div>

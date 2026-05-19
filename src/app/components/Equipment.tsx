@@ -34,7 +34,7 @@ export default function EquipmentPage() {
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><ShoppingCart size={20} style={{ color: "#00a355" }} /></div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>متجر عتاد الإعلام</h1>
           </div>
-          <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>تسوق معدات الإعلام الاحترافية أو افتح متجرك الخاص</p>
+          <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>تسوق معدات الإعلام الاحترافية أو افتح متجرك الخاص</p>
         </div>
       </div>
 
@@ -46,7 +46,7 @@ export default function EquipmentPage() {
           </div>
           <div>
             <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل أنت بائع محترف؟</h3>
-            <p className="mb-4 text-sm" style={{ color: "#6aad6a" }}>افتح متجرك الخاص على منصة سند وابدأ البيع للآلاف من المحترفين</p>
+            <p className="mb-4 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>افتح متجرك الخاص على منصة سند وابدأ البيع للآلاف من المحترفين</p>
             <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}><span>افتح متجرك الآن</span></Link>
           </div>
         </div>
@@ -55,7 +55,7 @@ export default function EquipmentPage() {
         <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.25s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "#4a7a4a" }} />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
               <input type="text" placeholder="ابحث عن منتج..." className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <select className="select-dz px-4 py-2.5 rounded-lg text-sm" value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
@@ -67,31 +67,31 @@ export default function EquipmentPage() {
 
         {/* Results */}
         {loading ? (
-          <div className="text-center py-16" style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <ShoppingCart size={28} style={{ color: "#006233" }} />
             </div>
-            <p style={{ color: "#4a7a4a" }}>{items.length === 0 ? "لا توجد منتجات بعد." : "لا توجد نتائج."}</p>
+            <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد منتجات بعد." : "لا توجد نتائج."}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((eq, i) => (
               <div key={eq.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
                 <div className="flex items-start justify-between mb-3">
-                  <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "#81c784" : "#f0b27a", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
+                  <span style={{ background: eq.condition === "new" ? "rgba(0,98,51,0.3)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
                     {eq.condition === "new" ? "جديد" : "مستعمل"}
                   </span>
                   <span style={{ color: "#00a355", fontWeight: 700, fontSize: "1rem" }}>{eq.price.toLocaleString()} دج</span>
                 </div>
                 <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text, #c8e6c9)" }}>{eq.name}</h3>
-                {eq.category && <p style={{ color: "#4a7a4a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{eq.category}</p>}
-                {eq.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{eq.description}</p>}
+                {eq.category && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{eq.category}</p>}
+                {eq.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{eq.description}</p>}
                 <div className="flex items-center justify-between pt-3" style={{ borderTop: "1px solid rgba(0,98,51,0.1)" }}>
-                  <span style={{ color: "#6aad6a", fontSize: "0.8rem" }}>{eq.seller}</span>
+                  <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem" }}>{eq.seller}</span>
                   {eq.contact && (
-                    <span className="flex items-center gap-1" style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>
+                    <span className="flex items-center gap-1" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>
                       <Phone size={12} />{eq.contact}
                     </span>
                   )}

@@ -19,6 +19,13 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--theme-primary", t.primaryGreen);
   r.style.setProperty("--theme-accent", t.accentGreen);
   r.style.setProperty("--theme-text", t.textColor ?? "#e8f5e9");
+
+  // Derived secondary colors from accent
+  r.style.setProperty("--theme-text-secondary", mixHex(t.accentGreen, "#ffffff", 0.65));
+  r.style.setProperty("--theme-text-muted", mixHex(t.primaryGreen, "#ffffff", 0.5));
+  r.style.setProperty("--theme-text-dim", mixHex(t.primaryGreen, "#ffffff", 0.35));
+  r.style.setProperty("--theme-badge-bg", hexToRgba(t.primaryGreen, 0.25));
+  r.style.setProperty("--theme-badge-text", mixHex(t.accentGreen, "#ffffff", 0.8));
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -26,6 +33,19 @@ function hexToRgba(hex: string, alpha: number): string {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function mixHex(hex: string, target: string, t: number): string {
+  const r1 = parseInt(hex.slice(1, 3), 16);
+  const g1 = parseInt(hex.slice(3, 5), 16);
+  const b1 = parseInt(hex.slice(5, 7), 16);
+  const r2 = parseInt(target.slice(1, 3), 16);
+  const g2 = parseInt(target.slice(3, 5), 16);
+  const b2 = parseInt(target.slice(5, 7), 16);
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 export function useTheme() {

@@ -11,7 +11,7 @@ const categoryColors: Record<string, string> = {
   "متخصصة":  "rgba(0,80,80,0.3)",
 };
 const categoryText: Record<string, string> = {
-  "وطنية":   "#81c784",
+  "وطنية":   "var(--theme-badge-text, #81c784)",
   "خاصة":    "#64b5f6",
   "محلية":   "#ffb74d",
   "دينية":   "#ce93d8",
@@ -47,7 +47,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
         </div>
         <span
           className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-          style={{ background: categoryColors[ch.category] || "rgba(0,98,51,0.2)", color: categoryText[ch.category] || "#81c784" }}
+          style={{ background: categoryColors[ch.category] || "rgba(0,98,51,0.2)", color: categoryText[ch.category] || "var(--theme-badge-text, #81c784)" }}
         >
           {ch.category}
         </span>
@@ -67,19 +67,19 @@ function ChannelCard({ ch }: { ch: Channel }) {
       {/* Info rows */}
       <div className="space-y-1.5 mb-3">
         {ch.email && (
-          <a href={`mailto:${ch.email}`} className="flex items-center gap-2 text-sm transition-colors hover:text-green-400" style={{ color: "#6aad6a", textDecoration: "none" }}>
+          <a href={`mailto:${ch.email}`} className="flex items-center gap-2 text-sm transition-colors hover:text-green-400" style={{ color: "var(--theme-text-secondary, #6aad6a)", textDecoration: "none" }}>
             <Mail size={13} />
             <span dir="ltr">{ch.email}</span>
           </a>
         )}
         {ch.phone && (
-          <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
             <Phone size={13} />
             <span dir="ltr">{ch.phone}</span>
           </div>
         )}
         {ch.address && (
-          <div className="flex items-start gap-2 text-sm" style={{ color: "#4a7a4a" }}>
+          <div className="flex items-start gap-2 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
             <MapPin size={13} style={{ marginTop: "0.15rem", flexShrink: 0 }} />
             <span>{ch.address}</span>
           </div>
@@ -170,19 +170,19 @@ export default function ChannelsPage() {
             </div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>دليل القنوات الجزائرية</h1>
           </div>
-          <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
+          <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
             الترددات، البريد الإلكتروني، العناوين، ومواقع التواصل — كل ما تحتاجه في مكان واحد
           </p>
           {/* Stats */}
           <div className="flex gap-4 mt-5 animate-fade-in-up" style={{ paddingRight: "3.25rem", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: "#4a7a4a" }}>
+            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
               <Tv size={14} style={{ color: "#00a355" }} />
-              <span style={{ color: "#81c784" }}>{tvCount}</span> قناة تلفزيونية
+              <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{tvCount}</span> قناة تلفزيونية
             </span>
             <span style={{ color: "#2a4a2a" }}>|</span>
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: "#4a7a4a" }}>
+            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
               <Radio size={14} style={{ color: "#64b5f6" }} />
-              <span style={{ color: "#81c784" }}>{radioCount}</span> محطة إذاعية
+              <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{radioCount}</span> محطة إذاعية
             </span>
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function ChannelsPage() {
               className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
               style={{
                 background: tab === t ? "linear-gradient(135deg, #006233, #00a355)" : "rgba(0,98,51,0.1)",
-                color: tab === t ? "#fff" : "#6aad6a",
+                color: tab === t ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
                 border: tab === t ? "none" : "1px solid rgba(0,98,51,0.2)",
               }}
             >
@@ -211,7 +211,7 @@ export default function ChannelsPage() {
         <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "#4a7a4a" }} />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
               <input
                 type="text"
                 placeholder="ابحث عن قناة أو تردد..."
@@ -233,13 +233,13 @@ export default function ChannelsPage() {
 
         {/* Results */}
         {loading ? (
-          <div className="text-center py-16" style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <Tv size={28} style={{ color: "#006233" }} />
             </div>
-            <p style={{ color: "#4a7a4a" }}>{channels.length === 0 ? "لم يتم إضافة قنوات بعد." : "لا توجد نتائج."}</p>
+            <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{channels.length === 0 ? "لم يتم إضافة قنوات بعد." : "لا توجد نتائج."}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

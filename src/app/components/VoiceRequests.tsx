@@ -86,7 +86,7 @@ export default function VoiceRequests() {
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={20} style={{ color: "#00a355" }} /></div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>طلبات المنشطين والمعلقين</h1>
           </div>
-          <p className="animate-fade-in-up" style={{ color: "#6aad6a", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>ابحث عن منشطين ومعلقين صوتيين محترفين لمشاريعك</p>
+          <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>ابحث عن منشطين ومعلقين صوتيين محترفين لمشاريعك</p>
         </div>
       </div>
 
@@ -96,7 +96,7 @@ export default function VoiceRequests() {
           <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={26} style={{ color: "#00a355" }} /></div>
           <div>
             <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل أنت منشط أو معلق صوتي؟</h3>
-            <p className="mb-4 text-sm" style={{ color: "#6aad6a" }}>انضم إلى منصة سند وابدأ في استقبال العروض من العملاء</p>
+            <p className="mb-4 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>انضم إلى منصة سند وابدأ في استقبال العروض من العملاء</p>
             <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}>
               <span>انضم كمنشط</span>
             </Link>
@@ -107,7 +107,7 @@ export default function VoiceRequests() {
         <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.25)", animationDelay: "0.25s", opacity: 0, animationFillMode: "forwards" }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "#4a7a4a" }} />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
               <input type="text" placeholder="ابحث عن منشط..." className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <select className="select-dz px-4 py-2.5 rounded-lg text-sm" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)}>
@@ -119,13 +119,13 @@ export default function VoiceRequests() {
 
         {/* Results */}
         {loading ? (
-          <div className="text-center py-16" style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
               <Mic size={28} style={{ color: "#006233" }} />
             </div>
-            <p style={{ color: "#4a7a4a" }}>{allEntries.length === 0 ? "لا يوجد منشطون بعد." : "لا توجد نتائج."}</p>
+            <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{allEntries.length === 0 ? "لا يوجد منشطون بعد." : "لا توجد نتائج."}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -137,26 +137,26 @@ export default function VoiceRequests() {
                   </div>
                   <div>
                     <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>{v.name}</h3>
-                    {v.specialty && <span style={{ background: "rgba(0,98,51,0.25)", color: "#81c784", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>}
+                    {v.specialty && <span style={{ background: "rgba(0,98,51,0.25)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>}
                   </div>
                 </div>
-                {v.experience && <p style={{ color: "#4a7a4a", fontSize: "0.8rem", marginBottom: "0.5rem" }}>الخبرة: {v.experience}</p>}
-                {v.description && <p style={{ color: "#3a5e3a", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{v.description}</p>}
+                {v.experience && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>الخبرة: {v.experience}</p>}
+                {v.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{v.description}</p>}
                 <div className="flex flex-wrap gap-3 mt-2">
                   {v.contact && (
-                    <div className="flex items-center gap-1" style={{ color: "#6aad6a", fontSize: "0.8rem" }}>
+                    <div className="flex items-center gap-1" style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem" }}>
                       <Phone size={13} />{v.contact}
                     </div>
                   )}
                   {v.location && (
-                    <div className="flex items-center gap-1" style={{ color: "#4a7a4a", fontSize: "0.78rem" }}>
+                    <div className="flex items-center gap-1" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>
                       <MapPin size={12} />{v.location}
                     </div>
                   )}
                 </div>
                 {v.source === "profile" && (
                   <div className="mt-2 pt-2" style={{ borderTop: "1px solid rgba(0,98,51,0.1)" }}>
-                    <span style={{ color: "#3a5e3a", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <span style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <LinkIcon size={11} />مسجّل في المنصة
                     </span>
                   </div>

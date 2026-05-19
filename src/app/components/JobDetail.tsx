@@ -26,7 +26,7 @@ export default function JobDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" dir="rtl" style={{ background: "#0e0e0e" }}>
-        <div style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+        <div style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export default function JobDetail() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <Briefcase size={48} style={{ color: "#2a4a2a" }} />
-        <p style={{ color: "#4a7a4a" }}>الوظيفة غير موجودة</p>
+        <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الوظيفة غير موجودة</p>
         <Link to="/jobs" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة لعروض التوظيف</Link>
       </div>
     );
@@ -50,7 +50,7 @@ export default function JobDetail() {
         <Link
           to="/jobs"
           className="inline-flex items-center gap-2 text-sm transition-colors hover:text-green-400"
-          style={{ color: "#4a7a4a", textDecoration: "none" }}
+          style={{ color: "var(--theme-text-muted, #4a7a4a)", textDecoration: "none" }}
         >
           <ArrowRight size={15} />
           العودة إلى عروض التوظيف
@@ -82,7 +82,7 @@ export default function JobDetail() {
           <div className="flex items-center gap-3 mb-4">
             <span
               className="text-xs px-3 py-1 rounded-full"
-              style={{ background: "rgba(0,98,51,0.3)", color: "#81c784" }}
+              style={{ background: "rgba(0,98,51,0.3)", color: "var(--theme-badge-text, #81c784)" }}
             >
               {j.jobType}
             </span>
@@ -92,7 +92,7 @@ export default function JobDetail() {
         {/* Title */}
         <h1 className="text-3xl font-bold mb-2 leading-snug" style={{ color: "var(--theme-text, #e8f5e9)" }}>{j.title}</h1>
         {j.company && (
-          <p className="text-lg mb-4" style={{ color: "#6aad6a" }}>{j.company}</p>
+          <p className="text-lg mb-4" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{j.company}</p>
         )}
 
         {/* Description */}
@@ -106,33 +106,33 @@ export default function JobDetail() {
           style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
         >
           {j.company && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Building2 size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>الجهة:</span> {j.company}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الجهة:</span> {j.company}
             </div>
           )}
           {j.location && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <MapPin size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>الموقع:</span> {j.location}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الموقع:</span> {j.location}
             </div>
           )}
           {j.deadline && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Calendar size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>آخر أجل:</span> {j.deadline}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>آخر أجل:</span> {j.deadline}
             </div>
           )}
           {j.contact && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Phone size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>التواصل:</span> {j.contact}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>التواصل:</span> {j.contact}
             </div>
           )}
           {j.source && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Globe size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>المصدر:</span> {j.source}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المصدر:</span> {j.source}
             </div>
           )}
         </div>
@@ -170,7 +170,7 @@ export default function JobDetail() {
               <Building2 size={16} style={{ color: "#00a355" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>عن {j.company}</h3>
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: "#6aad6a" }}>{j.companyDescription}</p>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{j.companyDescription}</p>
           </div>
         )}
 
@@ -184,7 +184,7 @@ export default function JobDetail() {
               <Phone size={16} style={{ color: "#00a355" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
             </div>
-            <p style={{ color: "#6aad6a", fontSize: "0.9rem" }}>{j.contact}</p>
+            <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>{j.contact}</p>
           </div>
         )}
       </div>

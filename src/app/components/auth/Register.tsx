@@ -226,10 +226,10 @@ export default function Register() {
             <Check size={36} style={{ color: "#00a355" }} />
           </div>
           <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--theme-text, #e8f5e9)" }}>تم التسجيل بنجاح!</h2>
-          <p style={{ color: "#6aad6a", lineHeight: 1.7 }}>
+          <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7 }}>
             ملفك قيد المراجعة. سيتم إشعارك عند الموافقة.
           </p>
-          <p style={{ color: "#3a5e3a", fontSize: "0.85rem", marginTop: "1rem" }}>
+          <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.85rem", marginTop: "1rem" }}>
             سيتم تحويلك لصفحة تسجيل الدخول خلال ثوانٍ...
           </p>
         </div>
@@ -266,7 +266,7 @@ export default function Register() {
               سند
             </span>
           </Link>
-          <p className="mt-2" style={{ color: "#4a7a4a", fontSize: "0.875rem" }}>إنشاء حساب جديد</p>
+          <p className="mt-2" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem" }}>إنشاء حساب جديد</p>
         </div>
 
         <div
@@ -291,14 +291,14 @@ export default function Register() {
                   className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300"
                   style={{
                     background: step >= s ? "linear-gradient(135deg, #006233, #00a355)" : "rgba(0,98,51,0.15)",
-                    color: step >= s ? "#fff" : "#3a5e3a",
+                    color: step >= s ? "#fff" : "var(--theme-text-dim, #3a5e3a)",
                     border: step >= s ? "none" : "1px solid rgba(0,98,51,0.2)",
                     flexShrink: 0,
                   }}
                 >
                   {step > s ? <Check size={13} /> : s}
                 </div>
-                <span style={{ color: step >= s ? "#81c784" : "#3a5e3a", fontSize: "0.78rem" }}>
+                <span style={{ color: step >= s ? "var(--theme-badge-text, #81c784)" : "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>
                   {stepLabels[s - 1]}
                 </span>
                 {s < 3 && (
@@ -340,12 +340,12 @@ export default function Register() {
                         border: `1px solid ${mainType === "individual" ? "rgba(0,163,85,0.5)" : "rgba(0,98,51,0.3)"}`,
                       }}
                     >
-                      <User size={22} style={{ color: mainType === "individual" ? "#00a355" : "#4a7a4a" }} />
+                      <User size={22} style={{ color: mainType === "individual" ? "#00a355" : "var(--theme-text-muted, #4a7a4a)" }} />
                     </div>
-                    <div className="font-semibold mb-1" style={{ color: mainType === "individual" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.95rem" }}>
+                    <div className="font-semibold mb-1" style={{ color: mainType === "individual" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
                       حساب فردي
                     </div>
-                    <div style={{ color: "#3a5e3a", fontSize: "0.78rem" }}>صحفي، مصور، طالب، وغيرهم</div>
+                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>صحفي، مصور، طالب، وغيرهم</div>
                   </button>
 
                   {/* Store card */}
@@ -369,19 +369,19 @@ export default function Register() {
                         border: `1px solid ${mainType === "store" ? "rgba(0,163,85,0.5)" : "rgba(0,98,51,0.3)"}`,
                       }}
                     >
-                      <Store size={22} style={{ color: mainType === "store" ? "#00a355" : "#4a7a4a" }} />
+                      <Store size={22} style={{ color: mainType === "store" ? "#00a355" : "var(--theme-text-muted, #4a7a4a)" }} />
                     </div>
-                    <div className="font-semibold mb-1" style={{ color: mainType === "store" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.95rem" }}>
+                    <div className="font-semibold mb-1" style={{ color: mainType === "store" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
                       متجر احترافي
                     </div>
-                    <div style={{ color: "#3a5e3a", fontSize: "0.78rem" }}>معدات إعلام، كاميرات، صوتيات</div>
+                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>معدات إعلام، كاميرات، صوتيات</div>
                   </button>
                 </div>
 
                 {/* Individual subcategories */}
                 {mainType === "individual" && (
                   <div className="mb-6">
-                    <p className="text-sm mb-3" style={{ color: "#81c784" }}>اختر تخصصك:</p>
+                    <p className="text-sm mb-3" style={{ color: "var(--theme-badge-text, #81c784)" }}>اختر تخصصك:</p>
                     <div className="flex flex-wrap gap-2">
                       {individualSubcategories.map(({ type, label }) => (
                         <button
@@ -395,7 +395,7 @@ export default function Register() {
                             border: individualSubType === type
                               ? "1px solid rgba(0,163,85,0.7)"
                               : "1px solid rgba(0,98,51,0.3)",
-                            color: individualSubType === type ? "#fff" : "#6aad6a",
+                            color: individualSubType === type ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
                             cursor: "pointer",
                           }}
                         >
@@ -420,7 +420,7 @@ export default function Register() {
                 {/* Store plan options */}
                 {mainType === "store" && (
                   <div className="mb-6">
-                    <p className="text-sm mb-3" style={{ color: "#81c784" }}>اختر الخطة:</p>
+                    <p className="text-sm mb-3" style={{ color: "var(--theme-badge-text, #81c784)" }}>اختر الخطة:</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button
                         onClick={() => setForm((p) => ({ ...p, storePlan: "trial" }))}
@@ -435,10 +435,10 @@ export default function Register() {
                           cursor: "pointer",
                         }}
                       >
-                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "trial" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.9rem" }}>
+                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "trial" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>
                           تجريبي مجاني
                         </div>
-                        <div style={{ color: "#3a5e3a", fontSize: "0.75rem" }}>شهر واحد</div>
+                        <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem" }}>شهر واحد</div>
                       </button>
                       <button
                         onClick={() => setForm((p) => ({ ...p, storePlan: "paid" }))}
@@ -453,17 +453,17 @@ export default function Register() {
                           cursor: "pointer",
                         }}
                       >
-                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "paid" ? "var(--theme-text, #c8e6c9)" : "#6aad6a", fontSize: "0.9rem" }}>
+                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "paid" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>
                           مدفوع
                         </div>
-                        <div style={{ color: "#3a5e3a", fontSize: "0.75rem" }}>يتم التفعيل بعد التواصل معنا</div>
+                        <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem" }}>يتم التفعيل بعد التواصل معنا</div>
                       </button>
                     </div>
                   </div>
                 )}
 
                 <div className="flex justify-between items-center">
-                  <Link to="/login" style={{ color: "#4a7a4a", fontSize: "0.875rem", textDecoration: "none" }}>
+                  <Link to="/login" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textDecoration: "none" }}>
                     لديك حساب؟ سجل دخول
                   </Link>
                   <button
@@ -498,7 +498,7 @@ export default function Register() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>الاسم الكامل *</label>
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الاسم الكامل *</label>
                     <input
                       type="text"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -508,7 +508,7 @@ export default function Register() {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>البريد الإلكتروني *</label>
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>البريد الإلكتروني *</label>
                     <input
                       type="email"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -519,7 +519,7 @@ export default function Register() {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>كلمة المرور *</label>
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>كلمة المرور *</label>
                     <input
                       type="password"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -529,7 +529,7 @@ export default function Register() {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>تأكيد كلمة المرور *</label>
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>تأكيد كلمة المرور *</label>
                     <input
                       type="password"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -544,7 +544,7 @@ export default function Register() {
                   <button
                     onClick={() => { setStep(1); setError(""); }}
                     className="flex items-center gap-2"
-                    style={{ color: "#4a7a4a", fontSize: "0.875rem", background: "none", border: "none", cursor: "pointer" }}
+                    style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", background: "none", border: "none", cursor: "pointer" }}
                   >
                     <ArrowLeft size={15} />
                     <span>رجوع</span>
@@ -579,7 +579,7 @@ export default function Register() {
                   <div className="space-y-4">
                     {/* Profile photo */}
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>صورة شخصية</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>صورة شخصية</label>
                       <div className="flex items-center gap-4">
                         {photoPreview ? (
                           <img
@@ -593,7 +593,7 @@ export default function Register() {
                             className="w-16 h-16 rounded-full flex items-center justify-center"
                             style={{ background: "rgba(0,98,51,0.15)", border: "2px dashed rgba(0,98,51,0.4)" }}
                           >
-                            <User size={24} style={{ color: "#4a7a4a" }} />
+                            <User size={24} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
                           </div>
                         )}
                         <button
@@ -603,7 +603,7 @@ export default function Register() {
                           style={{
                             background: "rgba(0,98,51,0.15)",
                             border: "1px solid rgba(0,98,51,0.4)",
-                            color: "#6aad6a",
+                            color: "var(--theme-text-secondary, #6aad6a)",
                             cursor: "pointer",
                           }}
                         >
@@ -621,7 +621,7 @@ export default function Register() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>التخصص</label>
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>التخصص</label>
                         <input
                           type="text"
                           className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -631,7 +631,7 @@ export default function Register() {
                         />
                       </div>
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>الولاية</label>
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية</label>
                         <select
                           className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
                           value={form.location}
@@ -642,7 +642,7 @@ export default function Register() {
                         </select>
                       </div>
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>رقم الهاتف</label>
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
                         <input
                           type="tel"
                           className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -654,7 +654,7 @@ export default function Register() {
                       </div>
                       {individualSubType !== "student" && (
                         <div>
-                          <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>سنوات الخبرة</label>
+                          <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>سنوات الخبرة</label>
                           <input
                             type="text"
                             className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -668,7 +668,7 @@ export default function Register() {
 
                     {individualSubType === "other" && (
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>اذكر تخصصك</label>
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اذكر تخصصك</label>
                         <input
                           type="text"
                           className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -680,7 +680,7 @@ export default function Register() {
                     )}
 
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>نبذة / السيرة الذاتية</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نبذة / السيرة الذاتية</label>
                       <textarea
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         style={{ minHeight: "80px", resize: "vertical" }}
@@ -691,7 +691,7 @@ export default function Register() {
                     </div>
 
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>أبرز الإنجازات</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>أبرز الإنجازات</label>
                       <textarea
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         style={{ minHeight: "80px", resize: "vertical" }}
@@ -703,7 +703,7 @@ export default function Register() {
 
                     {/* Portfolio links */}
                     <div>
-                      <label className="block mb-2 text-sm" style={{ color: "#81c784" }}>روابط البورتفوليو</label>
+                      <label className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>روابط البورتفوليو</label>
                       {portfolioLinks.length > 0 && (
                         <div className="space-y-2 mb-3">
                           {portfolioLinks.map((link, idx) => (
@@ -714,7 +714,7 @@ export default function Register() {
                             >
                               <div className="flex flex-col min-w-0">
                                 <span className="text-sm font-medium truncate" style={{ color: "var(--theme-text, #c8e6c9)" }}>{link.label}</span>
-                                <span className="text-xs truncate" style={{ color: "#4a7a4a" }} dir="ltr">{link.url}</span>
+                                <span className="text-xs truncate" style={{ color: "var(--theme-text-muted, #4a7a4a)" }} dir="ltr">{link.url}</span>
                               </div>
                               <button
                                 type="button"
@@ -735,7 +735,7 @@ export default function Register() {
                           style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(0,98,51,0.2)" }}
                         >
                           <div>
-                            <label className="block mb-1 text-xs" style={{ color: "#6aad6a" }}>التسمية</label>
+                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>التسمية</label>
                             <input
                               type="text"
                               className="input-dz w-full px-3 py-2 rounded-lg text-sm"
@@ -745,7 +745,7 @@ export default function Register() {
                             />
                           </div>
                           <div>
-                            <label className="block mb-1 text-xs" style={{ color: "#6aad6a" }}>الرابط</label>
+                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>الرابط</label>
                             <input
                               type="url"
                               className="input-dz w-full px-3 py-2 rounded-lg text-sm"
@@ -767,7 +767,7 @@ export default function Register() {
                               type="button"
                               onClick={() => { setShowAddLink(false); setNewLink({ label: "", url: "" }); }}
                               className="px-4 py-1.5 rounded-lg text-sm"
-                              style={{ background: "none", border: "1px solid rgba(0,98,51,0.2)", color: "#4a7a4a", cursor: "pointer" }}
+                              style={{ background: "none", border: "1px solid rgba(0,98,51,0.2)", color: "var(--theme-text-muted, #4a7a4a)", cursor: "pointer" }}
                             >
                               إلغاء
                             </button>
@@ -781,7 +781,7 @@ export default function Register() {
                           style={{
                             background: "rgba(0,98,51,0.1)",
                             border: "1px dashed rgba(0,98,51,0.4)",
-                            color: "#6aad6a",
+                            color: "var(--theme-text-secondary, #6aad6a)",
                             cursor: "pointer",
                           }}
                         >
@@ -797,7 +797,7 @@ export default function Register() {
                 {mainType === "store" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>اسم المتجر *</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسم المتجر *</label>
                       <input
                         type="text"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -807,7 +807,7 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>التخصص (ما تبيعه)</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>التخصص (ما تبيعه)</label>
                       <input
                         type="text"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -817,7 +817,7 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>الولاية</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية</label>
                       <select
                         className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         value={form.location}
@@ -828,7 +828,7 @@ export default function Register() {
                       </select>
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>رقم الهاتف</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
                       <input
                         type="tel"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -839,7 +839,7 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>واتساب</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>واتساب</label>
                       <input
                         type="tel"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
@@ -850,7 +850,7 @@ export default function Register() {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>وصف المتجر</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>وصف المتجر</label>
                       <textarea
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         style={{ minHeight: "80px", resize: "vertical" }}
@@ -866,7 +866,7 @@ export default function Register() {
                   <button
                     onClick={() => { setStep(2); setError(""); }}
                     className="flex items-center gap-2"
-                    style={{ color: "#4a7a4a", fontSize: "0.875rem", background: "none", border: "none", cursor: "pointer" }}
+                    style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", background: "none", border: "none", cursor: "pointer" }}
                   >
                     <ArrowLeft size={15} />
                     <span>رجوع</span>
@@ -874,7 +874,7 @@ export default function Register() {
                   <div className="flex flex-col items-end gap-2">
                     {saving && photoFile && uploadProgress > 0 && uploadProgress < 100 && (
                       <div className="w-40">
-                        <div className="flex justify-between mb-1" style={{ fontSize: "0.75rem", color: "#81c784" }}>
+                        <div className="flex justify-between mb-1" style={{ fontSize: "0.75rem", color: "var(--theme-badge-text, #81c784)" }}>
                           <span>رفع الصورة...</span>
                           <span>{uploadProgress}%</span>
                         </div>

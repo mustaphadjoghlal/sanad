@@ -26,7 +26,7 @@ export default function CourseDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" dir="rtl" style={{ background: "#0e0e0e" }}>
-        <div style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+        <div style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export default function CourseDetail() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <BookOpen size={48} style={{ color: "#2a4a2a" }} />
-        <p style={{ color: "#4a7a4a" }}>الدورة غير موجودة</p>
+        <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الدورة غير موجودة</p>
         <Link to="/courses" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة للدورات</Link>
       </div>
     );
@@ -50,7 +50,7 @@ export default function CourseDetail() {
         <Link
           to="/courses"
           className="inline-flex items-center gap-2 text-sm transition-colors hover:text-green-400"
-          style={{ color: "#4a7a4a", textDecoration: "none" }}
+          style={{ color: "var(--theme-text-muted, #4a7a4a)", textDecoration: "none" }}
         >
           <ArrowRight size={15} />
           العودة إلى الدورات
@@ -83,7 +83,7 @@ export default function CourseDetail() {
             className="text-xs px-3 py-1 rounded-full"
             style={{
               background: c.type === "free" ? "rgba(0,98,51,0.3)" : "rgba(26,82,118,0.3)",
-              color: c.type === "free" ? "#81c784" : "#7fb3d3",
+              color: c.type === "free" ? "var(--theme-badge-text, #81c784)" : "#7fb3d3",
             }}
           >
             {c.type === "free" ? "مجانية" : `${c.price?.toLocaleString()} دج`}
@@ -95,7 +95,7 @@ export default function CourseDetail() {
 
         {/* Description */}
         {c.description && (
-          <p className="text-lg mb-6 leading-relaxed" style={{ color: "#6aad6a" }}>{c.description}</p>
+          <p className="text-lg mb-6 leading-relaxed" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{c.description}</p>
         )}
 
         {/* Meta row */}
@@ -104,15 +104,15 @@ export default function CourseDetail() {
           style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
         >
           {c.instructor && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <User size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>المدرب:</span> {c.instructor}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المدرب:</span> {c.instructor}
             </div>
           )}
           {c.duration && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Clock size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>المدة:</span> {c.duration}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المدة:</span> {c.duration}
             </div>
           )}
         </div>

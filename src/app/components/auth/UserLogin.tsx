@@ -76,7 +76,7 @@ export default function UserLogin() {
               سند
             </span>
           </Link>
-          <p className="mt-2" style={{ color: "#4a7a4a", fontSize: "0.875rem" }}>تسجيل الدخول إلى حسابك</p>
+          <p className="mt-2" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem" }}>تسجيل الدخول إلى حسابك</p>
         </div>
 
         <div
@@ -103,7 +103,7 @@ export default function UserLogin() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>البريد الإلكتروني</label>
+              <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>البريد الإلكتروني</label>
               <input
                 type="email"
                 className="input-dz w-full px-4 py-3 rounded-lg"
@@ -115,7 +115,7 @@ export default function UserLogin() {
               />
             </div>
             <div>
-              <label className="block mb-1.5 text-sm" style={{ color: "#81c784" }}>كلمة المرور</label>
+              <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>كلمة المرور</label>
               <input
                 type="password"
                 className="input-dz w-full px-4 py-3 rounded-lg"
@@ -136,7 +136,7 @@ export default function UserLogin() {
           </form>
 
           <div className="mt-6 pt-5 space-y-3" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
-            <p style={{ color: "#4a7a4a", fontSize: "0.875rem", textAlign: "center" }}>
+            <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textAlign: "center" }}>
               ليس لديك حساب؟{" "}
               <Link to="/register" style={{ color: "#00a355", textDecoration: "none" }}>
                 سجّل الآن
@@ -161,7 +161,7 @@ export default function UserLogin() {
                       setLoading(false);
                     }
                   }}
-                  style={{ color: "#6aad6a", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem" }}
+                  style={{ color: "var(--theme-text-secondary, #6aad6a)", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem" }}
                 >
                   نسيت كلمة المرور؟
                 </button>

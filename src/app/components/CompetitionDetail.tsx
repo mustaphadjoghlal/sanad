@@ -7,7 +7,7 @@ import type { Competition } from "../../lib/types";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
 const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "rgba(0,98,51,0.3)", international: "rgba(120,66,18,0.3)" };
-const typeColor: Record<string, string> = { university: "#7fb3d3", national: "#81c784", international: "#f0b27a" };
+const typeColor: Record<string, string> = { university: "#7fb3d3", national: "var(--theme-badge-text, #81c784)", international: "#f0b27a" };
 
 export default function CompetitionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +30,7 @@ export default function CompetitionDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" dir="rtl" style={{ background: "#0e0e0e" }}>
-        <div style={{ color: "#3a5e3a" }}>جاري التحميل...</div>
+        <div style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
       </div>
     );
   }
@@ -39,7 +39,7 @@ export default function CompetitionDetail() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <Trophy size={48} style={{ color: "#2a4a2a" }} />
-        <p style={{ color: "#4a7a4a" }}>المسابقة غير موجودة</p>
+        <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المسابقة غير موجودة</p>
         <Link to="/competitions" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة للمسابقات</Link>
       </div>
     );
@@ -54,7 +54,7 @@ export default function CompetitionDetail() {
         <Link
           to="/competitions"
           className="inline-flex items-center gap-2 text-sm transition-colors hover:text-green-400"
-          style={{ color: "#4a7a4a", textDecoration: "none" }}
+          style={{ color: "var(--theme-text-muted, #4a7a4a)", textDecoration: "none" }}
         >
           <ArrowRight size={15} />
           العودة إلى المسابقات
@@ -85,7 +85,7 @@ export default function CompetitionDetail() {
         <div className="flex items-center gap-3 mb-4">
           <span
             className="text-xs px-3 py-1 rounded-full"
-            style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor[c.type] || "#81c784" }}
+            style={{ background: typeBg[c.type] || "rgba(0,98,51,0.3)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)" }}
           >
             {typeLabel[c.type]}
           </span>
@@ -102,7 +102,7 @@ export default function CompetitionDetail() {
 
         {/* Excerpt/description */}
         {c.description && (
-          <p className="text-lg mb-6 leading-relaxed" style={{ color: "#6aad6a" }}>{c.description}</p>
+          <p className="text-lg mb-6 leading-relaxed" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{c.description}</p>
         )}
 
         {/* Meta row */}
@@ -111,27 +111,27 @@ export default function CompetitionDetail() {
           style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
         >
           {c.startDate && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Calendar size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>البداية:</span> {c.startDate}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>البداية:</span> {c.startDate}
             </div>
           )}
           {c.endDate && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Calendar size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>النهاية:</span> {c.endDate}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>النهاية:</span> {c.endDate}
             </div>
           )}
           {c.organizer && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Building2 size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>الجهة:</span> {c.organizer}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الجهة:</span> {c.organizer}
             </div>
           )}
           {c.source && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "#6aad6a" }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
               <Globe size={15} style={{ color: "#00a355" }} />
-              <span style={{ color: "#4a7a4a" }}>المصدر:</span> {c.source}
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المصدر:</span> {c.source}
             </div>
           )}
         </div>
@@ -162,7 +162,7 @@ export default function CompetitionDetail() {
               <Building2 size={16} style={{ color: "#00a355" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>عن {c.organizer}</h3>
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: "#6aad6a" }}>{c.organizerDescription}</p>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{c.organizerDescription}</p>
           </div>
         )}
 
