@@ -51,7 +51,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
               ? <Tv size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               : ch.type === "radio"
                 ? <Radio size={16} style={{ color: "#64b5f6" }} />
-                : <Globe size={16} style={{ color: "#ffb74d" }} />
+                : <Globe size={16} style={{ color: "#ffb74d" }} />  // website or any other type
             }
           </div>
           <h3 className="font-bold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{ch.name}</h3>
@@ -164,8 +164,12 @@ export default function ChannelsPage() {
   }, []);
 
   const q = search.toLowerCase();
+  const isWebsite = (c: { type: string }) => c.type !== "tv" && c.type !== "radio";
+
   const filtered = channels.filter((ch) => {
-    const matchTab = tab === "all" || ch.type === tab;
+    const matchTab =
+      tab === "all" ||
+      (tab === "website" ? isWebsite(ch) : ch.type === tab);
     const matchSearch = !q || ch.name.toLowerCase().includes(q) || (ch.frequency || "").toLowerCase().includes(q);
     const matchCat = !catFilter || ch.category === catFilter;
     return matchTab && matchSearch && matchCat;
@@ -173,8 +177,8 @@ export default function ChannelsPage() {
 
   const tvCount = channels.filter((c) => c.type === "tv").length;
   const radioCount = channels.filter((c) => c.type === "radio").length;
-  const websiteCount = channels.filter((c) => c.type === "website").length;
-  const categories = [...new Set(channels.filter((c) => tab === "all" || c.type === tab).map((c) => c.category))];
+  const websiteCount = channels.filter(isWebsite).length;
+  const categories = [...new Set(channels.filter((c) => tab === "all" || (tab === "website" ? isWebsite(c) : c.type === tab)).map((c) => c.category))];
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
