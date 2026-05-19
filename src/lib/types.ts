@@ -91,8 +91,9 @@ export interface VoiceArtist {
 }
 
 export interface ThemeSettings {
-  bgMain: string;
+  bgMain?: string;      // legacy / auto-derived from bgCard — no longer in admin UI
   bgCard: string;
+  bgCardEnd?: string;   // gradient end color for cards (optional, solid if absent)
   primaryGreen: string;
   accentGreen: string;
   textColor: string;
@@ -100,8 +101,8 @@ export interface ThemeSettings {
 }
 
 export const DEFAULT_THEME: ThemeSettings = {
-  bgMain: "#0e0e0e",
   bgCard: "#141414",
+  bgCardEnd: "#101010",
   primaryGreen: "#006233",
   accentGreen: "#00a355",
   textColor: "#e8f5e9",
