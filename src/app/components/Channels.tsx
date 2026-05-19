@@ -164,7 +164,11 @@ export default function ChannelsPage() {
   }, []);
 
   const q = search.toLowerCase();
-  const isWebsite = (c: { type: string }) => c.type !== "tv" && c.type !== "radio";
+  const WEBSITE_CATS = ["إخبارية", "رياضية", "ثقافية"];
+  const isWebsite = (c: Channel) =>
+    c.type === "website" ||
+    (c.type !== "tv" && c.type !== "radio") ||
+    WEBSITE_CATS.includes(c.category);
 
   const filtered = channels.filter((ch) => {
     const matchTab =
