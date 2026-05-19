@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { LogOut, User, Package, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check, AlertTriangle } from "lucide-react";
+import {
+  LogOut, User, Package, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check,
+  AlertTriangle, ExternalLink, Award, Link as LinkIcon2, ImageIcon,
+} from "lucide-react";
 import { auth } from "../../../lib/firebase";
 import {
   subscribeToUserProfile,
@@ -10,11 +13,17 @@ import {
   subscribeToCollection,
   addEquipment,
 } from "../../../lib/firestore";
-import type { UserProfile, Equipment } from "../../../lib/types";
+import { uploadProfilePhoto } from "../../../lib/storage";
+import type { UserProfile, Equipment, PortfolioLink } from "../../../lib/types";
 
 const typeLabel: Record<string, string> = {
-  journalist: "صحفي / إعلامي",
-  voice: "منشط صوتي",
+  journalist: "صحفي / مراسل",
+  voice: "منشط / معلق صوتي",
+  photographer: "مصور فوتوغرافي / فيديو",
+  editor: "مخرج / مونتير",
+  student: "طالب إعلام",
+  other: "إعلامي",
+  store: "متجر احترافي",
   vendor: "بائع عتاد",
 };
 
@@ -22,6 +31,7 @@ const typeIcon: Record<string, React.ElementType> = {
   journalist: BookOpen,
   voice: Mic,
   vendor: ShoppingCart,
+  store: ShoppingCart,
 };
 
 const statusStyle: Record<string, React.CSSProperties> = {
@@ -74,6 +84,17 @@ type EquipForm = {
 
 const emptyEquip: EquipForm = { name: "", category: "", price: 0, seller: "", description: "", condition: "used", contact: "" };
 
+type EditFormState = {
+  name: string;
+  bio: string;
+  specialty: string;
+  location: string;
+  phone: string;
+  experience: string;
+  achievements: string;
+  portfolio: PortfolioLink[];
+};
+
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div
@@ -103,11 +124,29 @@ export default function UserDashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<UserProfile>>({});
+  const [editForm, setEditForm] = useState<EditFormState>({
+    name: "",
+    bio: "",
+    specialty: "",
+    location: "",
+    phone: "",
+    experience: "",
+    achievements: "",
+    portfolio: [],
+  });
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
-  // Vendor equipment
+  // Photo upload state
+  const [photoUrl, setPhotoUrl] = useState<string>("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Portfolio link addition state
+  const [showAddLink, setShowAddLink] = useState(false);
+  const [newLinkLabel, setNewLinkLabel] = useState("");
+  const [newLinkUrl, setNewLinkUrl] = useState("");
+
+  // Equipment
   const [myEquipment, setMyEquipment] = useState<Equipment[]>([]);
   const [addEquipModal, setAddEquipModal] = useState(false);
   const [equipForm, setEquipForm] = useState<EquipForm>(emptyEquip);
@@ -129,7 +168,6 @@ export default function UserDashboard() {
     if (!uid) return;
     const unsub = subscribeToUserProfile(uid, (p) => {
       if (p === null && !authLoading) {
-        // No profile means admin or unregistered
         navigate("/login");
       }
       setProfile(p);
@@ -137,13 +175,14 @@ export default function UserDashboard() {
     return unsub;
   }, [uid, authLoading, navigate]);
 
+  // Equipment visible to all approved users
   useEffect(() => {
-    if (!uid || profile?.type !== "vendor") return;
+    if (!uid || !profile || profile.status !== "approved") return;
     const unsub = subscribeToCollection<Equipment>("equipment", (items) => {
       setMyEquipment(items.filter((eq) => eq.submittedBy === uid));
     });
     return unsub;
-  }, [uid, profile?.type]);
+  }, [uid, profile?.status]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -153,15 +192,53 @@ export default function UserDashboard() {
   const startEdit = () => {
     if (!profile) return;
     setEditForm({
-      name: profile.name,
-      bio: profile.bio,
+      name: profile.name || "",
+      bio: profile.bio || "",
       specialty: profile.specialty || "",
       location: profile.location || "",
       phone: profile.phone || "",
       experience: profile.experience || "",
+      achievements: profile.achievements || "",
+      portfolio: profile.portfolio ? [...profile.portfolio] : [],
     });
+    setPhotoUrl(profile.photo || "");
+    setShowAddLink(false);
+    setNewLinkLabel("");
+    setNewLinkUrl("");
     setEditing(true);
     setEditError("");
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!uid || !e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploadingPhoto(true);
+    try {
+      const url = await uploadProfilePhoto(uid, file);
+      setPhotoUrl(url);
+    } catch {
+      setEditError("فشل رفع الصورة، حاول مرة أخرى");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleAddPortfolioLink = () => {
+    if (!newLinkLabel.trim() || !newLinkUrl.trim()) return;
+    setEditForm((p) => ({
+      ...p,
+      portfolio: [...p.portfolio, { label: newLinkLabel.trim(), url: newLinkUrl.trim() }],
+    }));
+    setNewLinkLabel("");
+    setNewLinkUrl("");
+    setShowAddLink(false);
+  };
+
+  const handleRemovePortfolioLink = (index: number) => {
+    setEditForm((p) => ({
+      ...p,
+      portfolio: p.portfolio.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSaveEdit = async () => {
@@ -171,13 +248,18 @@ export default function UserDashboard() {
     try {
       await saveUserProfile(uid, {
         email: profile.email,
-        name: editForm.name || profile.name,
+        name: editForm.name,
         type: profile.type,
-        bio: editForm.bio || profile.bio,
+        bio: editForm.bio,
+        photo: photoUrl || profile.photo,
+        achievements: editForm.achievements || undefined,
+        portfolio: editForm.portfolio.length > 0 ? editForm.portfolio : undefined,
         specialty: editForm.specialty || undefined,
         location: editForm.location || undefined,
         phone: editForm.phone || undefined,
         experience: editForm.experience || undefined,
+        otherType: profile.otherType,
+        storeStatus: profile.storeStatus,
       });
       if (profile.status === "rejected") {
         await resubmitProfile(uid);
@@ -253,12 +335,24 @@ export default function UserDashboard() {
         >
           <div className="flex flex-col md:flex-row md:items-start gap-4">
             {/* Avatar */}
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.35)" }}
-            >
-              <TypeIcon size={28} style={{ color: "#00a355" }} />
-            </div>
+            {!editing ? (
+              <div className="flex-shrink-0">
+                {profile.photo ? (
+                  <img
+                    src={profile.photo}
+                    alt={profile.name}
+                    style={{ width: 60, height: 60, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,98,51,0.4)" }}
+                  />
+                ) : (
+                  <div
+                    className="flex items-center justify-center"
+                    style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.35)" }}
+                  >
+                    <TypeIcon size={26} style={{ color: "#00a355" }} />
+                  </div>
+                )}
+              </div>
+            ) : null}
 
             {/* Info */}
             <div className="flex-1 min-w-0">
@@ -271,13 +365,58 @@ export default function UserDashboard() {
                       border: "1px solid rgba(0,98,51,0.3)", padding: "0.15rem 0.6rem",
                       borderRadius: "9999px", fontSize: "0.75rem"
                     }}>
-                      {typeLabel[profile.type]}
+                      {typeLabel[profile.type] ?? profile.type}
                     </span>
                     <span style={statusStyle[profile.status]}>{statusLabel[profile.status]}</span>
                   </div>
+
                   {profile.specialty && <p style={{ color: "#6aad6a", fontSize: "0.875rem", marginBottom: "0.25rem" }}>{profile.specialty}</p>}
                   {profile.location && <p style={{ color: "#4a7a4a", fontSize: "0.8rem", marginBottom: "0.25rem" }}>{profile.location}</p>}
                   {profile.bio && <p style={{ color: "#4a7a4a", fontSize: "0.85rem", marginTop: "0.5rem", lineHeight: 1.6 }}>{profile.bio}</p>}
+
+                  {/* Achievements */}
+                  {profile.achievements && (
+                    <div className="mt-4 flex items-start gap-2">
+                      <Award size={16} style={{ color: "#fbbf24", flexShrink: 0, marginTop: "0.15rem" }} />
+                      <div>
+                        <p style={{ color: "#fbbf24", fontSize: "0.78rem", fontWeight: 600, marginBottom: "0.2rem" }}>أبرز الإنجازات</p>
+                        <p style={{ color: "#c8e6c9", fontSize: "0.85rem", lineHeight: 1.6 }}>{profile.achievements}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Portfolio */}
+                  {profile.portfolio && profile.portfolio.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <LinkIcon2 size={14} style={{ color: "#6aad6a" }} />
+                        <p style={{ color: "#6aad6a", fontSize: "0.78rem", fontWeight: 600 }}>البورتفوليو</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.portfolio.map((link, i) => (
+                          <a
+                            key={i}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 transition-colors"
+                            style={{
+                              background: "rgba(0,98,51,0.12)",
+                              border: "1px solid rgba(0,98,51,0.3)",
+                              color: "#81c784",
+                              padding: "0.2rem 0.65rem",
+                              borderRadius: "9999px",
+                              fontSize: "0.8rem",
+                              textDecoration: "none",
+                            }}
+                          >
+                            <ExternalLink size={11} />
+                            <span>{link.label}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Rejection note */}
                   {profile.status === "rejected" && profile.rejectionNote && (
@@ -311,48 +450,193 @@ export default function UserDashboard() {
                 </>
               ) : (
                 /* Edit form */
-                <div className="space-y-3 w-full">
+                <div className="space-y-4 w-full">
                   {editError && (
                     <div className="p-2 rounded text-sm" style={{ background: "rgba(198,40,40,0.1)", color: "#f87171" }}>{editError}</div>
                   )}
+
+                  {/* Photo upload */}
+                  <div>
+                    <label style={S.label}>صورة شخصية</label>
+                    <div className="flex items-center gap-3">
+                      {photoUrl ? (
+                        <img
+                          src={photoUrl}
+                          alt="preview"
+                          style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(0,98,51,0.4)", flexShrink: 0 }}
+                        />
+                      ) : (
+                        <div
+                          className="flex items-center justify-center flex-shrink-0"
+                          style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}
+                        >
+                          <ImageIcon size={22} style={{ color: "#4a7a4a" }} />
+                        </div>
+                      )}
+                      <div>
+                        <label
+                          htmlFor="photo-upload"
+                          style={{
+                            cursor: uploadingPhoto ? "not-allowed" : "pointer",
+                            background: "rgba(0,98,51,0.12)",
+                            border: "1px solid rgba(0,98,51,0.3)",
+                            color: uploadingPhoto ? "#4a7a4a" : "#81c784",
+                            padding: "0.35rem 0.85rem",
+                            borderRadius: "0.5rem",
+                            fontSize: "0.8rem",
+                            display: "inline-block",
+                          }}
+                        >
+                          {uploadingPhoto ? "جاري الرفع..." : "اختر صورة"}
+                        </label>
+                        <input
+                          id="photo-upload"
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          disabled={uploadingPhoto}
+                          onChange={handlePhotoChange}
+                        />
+                        <p style={{ color: "#4a7a4a", fontSize: "0.75rem", marginTop: "0.25rem" }}>JPG أو PNG، يُرفع فوراً</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label style={S.label}>الاسم الكامل *</label>
-                      <input style={S.input} value={editForm.name || ""} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
+                      <input style={S.input} value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
                     </div>
-                    {profile.type !== "vendor" && (
-                      <div>
-                        <label style={S.label}>التخصص</label>
-                        <input style={S.input} value={editForm.specialty || ""} onChange={(e) => setEditForm((p) => ({ ...p, specialty: e.target.value }))} />
-                      </div>
-                    )}
+                    <div>
+                      <label style={S.label}>التخصص</label>
+                      <input style={S.input} value={editForm.specialty} onChange={(e) => setEditForm((p) => ({ ...p, specialty: e.target.value }))} />
+                    </div>
                     <div>
                       <label style={S.label}>الولاية</label>
-                      <select style={S.input} value={editForm.location || ""} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}>
+                      <select style={S.input} value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}>
                         <option value="">اختر الولاية</option>
                         {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
                       </select>
                     </div>
                     <div>
                       <label style={S.label}>رقم الهاتف</label>
-                      <input style={S.input} value={editForm.phone || ""} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} dir="ltr" />
+                      <input style={S.input} value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} dir="ltr" />
                     </div>
-                    {profile.type !== "vendor" && (
-                      <div>
-                        <label style={S.label}>سنوات الخبرة</label>
-                        <input style={S.input} value={editForm.experience || ""} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} />
-                      </div>
-                    )}
-                    <div className={profile.type !== "vendor" ? "md:col-span-2" : ""}>
-                      <label style={S.label}>{profile.type === "vendor" ? "اسم المتجر" : "نبذة"}</label>
-                      <textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={editForm.bio || ""} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} />
+                    <div>
+                      <label style={S.label}>سنوات الخبرة</label>
+                      <input style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label style={S.label}>نبذة / CV</label>
+                      <textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={editForm.bio} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label style={S.label}>أبرز الإنجازات</label>
+                      <textarea
+                        style={{ ...S.input, minHeight: "60px", resize: "vertical" }}
+                        value={editForm.achievements}
+                        onChange={(e) => setEditForm((p) => ({ ...p, achievements: e.target.value }))}
+                        placeholder="اذكر أبرز إنجازاتك المهنية..."
+                      />
                     </div>
                   </div>
+
+                  {/* Portfolio links */}
+                  <div>
+                    <label style={S.label}>روابط البورتفوليو</label>
+                    {editForm.portfolio.length > 0 && (
+                      <div className="space-y-2 mb-2">
+                        {editForm.portfolio.map((link, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2"
+                            style={{ background: "#161616", border: "1px solid rgba(0,98,51,0.25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
+                          >
+                            <LinkIcon2 size={13} style={{ color: "#4a7a4a", flexShrink: 0 }} />
+                            <span style={{ color: "#81c784", fontSize: "0.82rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {link.label}
+                            </span>
+                            <span style={{ color: "#4a7a4a", fontSize: "0.75rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "180px" }}>
+                              {link.url}
+                            </span>
+                            <button
+                              onClick={() => handleRemovePortfolioLink(i)}
+                              style={{ color: "#f87171", flexShrink: 0, lineHeight: 0 }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {showAddLink ? (
+                      <div
+                        className="space-y-2"
+                        style={{ background: "#161616", border: "1px solid rgba(0,98,51,0.3)", borderRadius: "0.5rem", padding: "0.75rem" }}
+                      >
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label style={S.label}>التسمية</label>
+                            <input
+                              style={S.input}
+                              value={newLinkLabel}
+                              onChange={(e) => setNewLinkLabel(e.target.value)}
+                              placeholder="مثال: موقع شخصي"
+                            />
+                          </div>
+                          <div>
+                            <label style={S.label}>الرابط</label>
+                            <input
+                              style={S.input}
+                              value={newLinkUrl}
+                              onChange={(e) => setNewLinkUrl(e.target.value)}
+                              placeholder="https://..."
+                              dir="ltr"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleAddPortfolioLink}
+                            disabled={!newLinkLabel.trim() || !newLinkUrl.trim()}
+                            className="btn-dz px-4 py-1.5 rounded-lg text-sm disabled:opacity-40 flex items-center gap-1.5"
+                          >
+                            <Check size={13} />
+                            <span>إضافة</span>
+                          </button>
+                          <button
+                            onClick={() => { setShowAddLink(false); setNewLinkLabel(""); setNewLinkUrl(""); }}
+                            style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#6aad6a", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem" }}
+                          >
+                            إلغاء
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setShowAddLink(true)}
+                        className="flex items-center gap-1.5 text-sm"
+                        style={{ color: "#6aad6a", border: "1px solid rgba(0,98,51,0.3)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem" }}
+                      >
+                        <Plus size={13} />
+                        <span>إضافة رابط</span>
+                      </button>
+                    )}
+                  </div>
+
                   <div className="flex gap-3 pt-2">
-                    <button onClick={() => setEditing(false)} style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.4rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>
+                    <button
+                      onClick={() => setEditing(false)}
+                      style={{ border: "1px solid rgba(0,98,51,0.3)", color: "#81c784", padding: "0.4rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}
+                    >
                       إلغاء
                     </button>
-                    <button onClick={handleSaveEdit} disabled={saving} className="btn-dz px-5 py-2 rounded-lg text-sm flex items-center gap-2 disabled:opacity-50">
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={saving || uploadingPhoto}
+                      className="btn-dz px-5 py-2 rounded-lg text-sm flex items-center gap-2 disabled:opacity-50"
+                    >
                       <Check size={14} />
                       <span>{saving ? "جاري الحفظ..." : "حفظ التغييرات"}</span>
                     </button>
@@ -363,13 +647,39 @@ export default function UserDashboard() {
           </div>
         </div>
 
-        {/* Vendor: My Equipment */}
-        {profile.type === "vendor" && (
+        {/* Store status card */}
+        {profile.type === "store" && (
+          <div
+            className="p-5 mb-6 animate-fade-in-up"
+            style={{ ...S.card, animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <ShoppingCart size={16} style={{ color: "#00a355" }} />
+              <span style={{ color: "#c8e6c9", fontWeight: 600 }}>حالة المتجر</span>
+              {profile.storeStatus === "trial" && (
+                <span style={{ background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)", padding: "0.15rem 0.65rem", borderRadius: "9999px", fontSize: "0.73rem" }}>
+                  تجريبي — متبقي شهر
+                </span>
+              )}
+              {profile.storeStatus === "paid" && (
+                <span style={{ background: "rgba(0,98,51,0.2)", color: "#4ade80", border: "1px solid rgba(0,98,51,0.3)", padding: "0.15rem 0.65rem", borderRadius: "9999px", fontSize: "0.73rem" }}>
+                  مفعّل
+                </span>
+              )}
+            </div>
+            <p style={{ color: "#6aad6a", fontSize: "0.875rem" }}>
+              للترقية إلى الباقة المدفوعة تواصل معنا
+            </p>
+          </div>
+        )}
+
+        {/* Equipment section — all approved users */}
+        {profile.status === "approved" && (
           <div className="animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.15s" }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Package size={18} style={{ color: "#00a355" }} />
-                <h3 className="text-lg font-semibold" style={{ color: "#c8e6c9" }}>معداتي</h3>
+                <h3 className="text-lg font-semibold" style={{ color: "#c8e6c9" }}>معداتي للبيع</h3>
                 <span style={{ color: "#4a7a4a", fontSize: "0.8rem" }}>({myEquipment.length} منتج)</span>
               </div>
               <button
@@ -381,7 +691,7 @@ export default function UserDashboard() {
               </button>
             </div>
 
-            <div style={S.card} className="overflow-hidden">
+            <div style={S.card} className="overflow-hidden mb-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -426,7 +736,7 @@ export default function UserDashboard() {
         {profile.type === "voice" && profile.status === "approved" && (
           <div
             className="p-5 rounded-xl animate-fade-in-up"
-            style={{ ...S.card, animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
+            style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
           >
             <div className="flex items-center gap-2 mb-2">
               <Mic size={16} style={{ color: "#00a355" }} />
@@ -445,7 +755,7 @@ export default function UserDashboard() {
         {profile.type === "journalist" && profile.status === "approved" && (
           <div
             className="p-5 rounded-xl animate-fade-in-up"
-            style={{ ...S.card, animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
+            style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
           >
             <div className="flex items-center gap-2 mb-2">
               <BookOpen size={16} style={{ color: "#00a355" }} />

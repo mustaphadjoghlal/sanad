@@ -114,16 +114,29 @@ export interface Channel {
   createdAt: number;
 }
 
+export type IndividualType = 'journalist' | 'voice' | 'photographer' | 'editor' | 'student' | 'other';
+export type AccountType = IndividualType | 'store';
+
+export interface PortfolioLink {
+  label: string;
+  url: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  type: 'journalist' | 'voice' | 'vendor';
+  type: AccountType;
+  otherType?: string;
   bio: string;
+  photo?: string;
+  portfolio?: PortfolioLink[];
+  achievements?: string;
   specialty?: string;
   location?: string;
   phone?: string;
   experience?: string;
+  storeStatus?: 'trial' | 'paid';
   status: 'pending' | 'approved' | 'rejected';
   featured: boolean;
   rejectionNote?: string;
