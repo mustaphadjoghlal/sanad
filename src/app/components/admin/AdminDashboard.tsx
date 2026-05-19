@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Database,
+  X, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -1341,6 +1341,168 @@ function ProfessionalsSection() {
 type ChForm = Omit<Channel, "id" | "createdAt">;
 const emptyChannel: ChForm = { name: "", type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
 
+const SEED_CHANNELS: Omit<Channel, "id" | "createdAt">[] = [
+  // ══ قنوات تلفزيونية وطنية ══
+  { name: "التلفزيون الجزائري - القناة الأولى", type: "tv", category: "وطنية", website: "https://www.entv.dz", youtube: "https://www.youtube.com/@EntVDZ" },
+  { name: "Canal Algérie", type: "tv", category: "وطنية", website: "https://www.entv.dz/canal-algerie" },
+  { name: "قناة A3 الجزائرية", type: "tv", category: "وطنية", website: "https://www.entv.dz/a3" },
+  { name: "قناة الأمازيغية (TV4)", type: "tv", category: "وطنية", website: "https://www.entv.dz/tamazight" },
+  { name: "القناة الثقافية (TV5)", type: "tv", category: "وطنية", website: "https://www.entv.dz" },
+  { name: "قناة القرآن الكريم التلفزيونية", type: "tv", category: "دينية", website: "https://www.entv.dz/coran" },
+  // ══ قنوات خاصة ══
+  { name: "قناة الشروق TV", type: "tv", category: "خاصة", website: "https://www.echoroukonline.com", facebook: "https://www.facebook.com/echoroukTV", youtube: "https://www.youtube.com/@EchoroukonlineTv" },
+  { name: "قناة النهار TV", type: "tv", category: "خاصة", website: "https://www.ennaharonline.com", facebook: "https://www.facebook.com/ennahar.tv", youtube: "https://www.youtube.com/@ENNAHARTV1" },
+  { name: "قناة الجزائرية", type: "tv", category: "خاصة", website: "https://www.aljazairia.tv" },
+  { name: "قناة Dzair TV", type: "tv", category: "خاصة", website: "https://www.dzairtv.com", facebook: "https://www.facebook.com/DzairTV", youtube: "https://www.youtube.com/@DzairTV" },
+  { name: "قناة Numidia News", type: "tv", category: "خاصة", website: "https://www.numidianews.com", youtube: "https://www.youtube.com/@NumidiaNews" },
+  { name: "قناة الأطلس", type: "tv", category: "خاصة", website: "https://www.atlas-tv.net" },
+  { name: "قناة Beur TV", type: "tv", category: "خاصة", website: "https://www.beurtv.com", facebook: "https://www.facebook.com/beurtvdotcom" },
+  { name: "قناة الفجر", type: "tv", category: "خاصة", website: "https://www.alfadjtv.com", facebook: "https://www.facebook.com/AlFajrTV" },
+  { name: "قناة El Djazairia One", type: "tv", category: "خاصة", website: "https://www.eldjazairiaone.com", youtube: "https://www.youtube.com/@ElDjazairiaOne" },
+  { name: "قناة El Hayah TV", type: "tv", category: "خاصة", website: "https://www.elhayahtv.com" },
+  { name: "قناة الشاهد", type: "tv", category: "خاصة", website: "https://www.chahid.tv" },
+  { name: "قناة Médiaalgérie", type: "tv", category: "خاصة", website: "https://www.mediaalgerie.com" },
+  { name: "قناة Algérie News TV", type: "tv", category: "خاصة", website: "https://www.algerie-news.com" },
+  { name: "قناة Echaab TV", type: "tv", category: "خاصة", website: "https://www.echabdz.com" },
+  { name: "قناة الجزائر الدولية", type: "tv", category: "خاصة", website: "https://www.dzair-tv.dz" },
+  { name: "قناة الأحداث", type: "tv", category: "خاصة", website: "https://www.alahdath.tv" },
+  { name: "قناة الوطن", type: "tv", category: "خاصة", website: "https://www.elwatan.com" },
+  { name: "قناة Samira TV", type: "tv", category: "متخصصة", website: "https://www.samiratv.com", facebook: "https://www.facebook.com/SamiraTV", youtube: "https://www.youtube.com/@SamiraTV" },
+  { name: "قناة Berbère TV", type: "tv", category: "متخصصة", website: "https://www.berbere-tv.com", facebook: "https://www.facebook.com/berberetv" },
+  { name: "قناة الهداف الرياضية", type: "tv", category: "متخصصة", website: "https://www.elhadaftv.com" },
+  { name: "قناة Dzair Sport", type: "tv", category: "متخصصة", website: "https://www.dzairtv.com" },
+  { name: "قناة Hoggar TV", type: "tv", category: "محلية", website: "https://www.hoggartv.com" },
+  // ══ إذاعات وطنية ══
+  { name: "الإذاعة الجزائرية - الإذاعة الوطنية", type: "radio", category: "وطنية", frequency: "89.7 FM", website: "https://www.radioalgerie.dz", facebook: "https://www.facebook.com/Radioalgerie1" },
+  { name: "الإذاعة الجزائرية - القناة الثانية (أمازيغية)", type: "radio", category: "وطنية", frequency: "100.4 FM", website: "https://www.radioalgerie.dz" },
+  { name: "الإذاعة الجزائرية - القناة الثالثة (فرنسية)", type: "radio", category: "وطنية", frequency: "98.1 FM", website: "https://www.radioalgerie.dz" },
+  { name: "إذاعة القرآن الكريم", type: "radio", category: "دينية", frequency: "100.5 FM", website: "https://www.radioalgerie.dz/coran" },
+  { name: "إذاعة الشباب", type: "radio", category: "وطنية", frequency: "95.0 FM", website: "https://www.radioalgerie.dz" },
+  { name: "إذاعة البهجة", type: "radio", category: "وطنية", frequency: "107.7 FM" },
+  // ══ إذاعات جهوية ══
+  { name: "إذاعة الجزائر الكبرى", type: "radio", category: "محلية", frequency: "93.1 FM", website: "https://www.radioalgerie.dz" },
+  { name: "إذاعة وهران", type: "radio", category: "محلية", frequency: "91.0 FM" },
+  { name: "إذاعة قسنطينة", type: "radio", category: "محلية", frequency: "90.8 FM" },
+  { name: "إذاعة عنابة", type: "radio", category: "محلية", frequency: "94.6 FM" },
+  { name: "إذاعة تلمسان", type: "radio", category: "محلية", frequency: "94.0 FM" },
+  { name: "إذاعة باتنة", type: "radio", category: "محلية", frequency: "88.0 FM" },
+  { name: "إذاعة بجاية", type: "radio", category: "محلية", frequency: "102.7 FM" },
+  { name: "إذاعة سطيف", type: "radio", category: "محلية", frequency: "100.3 FM" },
+  { name: "إذاعة تيزي وزو", type: "radio", category: "محلية", frequency: "96.3 FM" },
+  { name: "إذاعة ورقلة", type: "radio", category: "محلية", frequency: "93.7 FM" },
+  { name: "إذاعة بشار", type: "radio", category: "محلية", frequency: "89.5 FM" },
+  { name: "إذاعة تمنراست", type: "radio", category: "محلية", frequency: "91.5 FM" },
+  { name: "إذاعة المدية", type: "radio", category: "محلية", frequency: "100.1 FM" },
+  { name: "إذاعة الشلف", type: "radio", category: "محلية", frequency: "92.4 FM" },
+  { name: "إذاعة بسكرة", type: "radio", category: "محلية", frequency: "94.2 FM" },
+  { name: "إذاعة تيارت", type: "radio", category: "محلية", frequency: "90.2 FM" },
+  { name: "إذاعة سكيكدة", type: "radio", category: "محلية", frequency: "97.8 FM" },
+  { name: "إذاعة جيجل", type: "radio", category: "محلية", frequency: "95.4 FM" },
+  { name: "إذاعة المسيلة", type: "radio", category: "محلية", frequency: "98.6 FM" },
+  { name: "إذاعة غرداية", type: "radio", category: "محلية", frequency: "99.0 FM" },
+  { name: "إذاعة أدرار", type: "radio", category: "محلية", frequency: "97.5 FM" },
+  { name: "إذاعة البليدة", type: "radio", category: "محلية", frequency: "96.7 FM" },
+  { name: "إذاعة تبسة", type: "radio", category: "محلية", frequency: "91.8 FM" },
+  { name: "إذاعة خنشلة", type: "radio", category: "محلية", frequency: "90.5 FM" },
+  { name: "إذاعة سوق أهراس", type: "radio", category: "محلية", frequency: "93.3 FM" },
+  { name: "إذاعة الوادي", type: "radio", category: "محلية", frequency: "88.5 FM" },
+  { name: "إذاعة الطارف", type: "radio", category: "محلية", frequency: "95.9 FM" },
+  // ══ مواقع إخبارية عربية ══
+  { name: "الشروق أون لاين", type: "website", category: "إخبارية", website: "https://www.echoroukonline.com", facebook: "https://www.facebook.com/echorouk.online", twitter: "https://twitter.com/echorouk_online", youtube: "https://www.youtube.com/@EchoroukonlineTv" },
+  { name: "النهار أون لاين", type: "website", category: "إخبارية", website: "https://www.ennaharonline.com", facebook: "https://www.facebook.com/EnnaharOnlineDZ", youtube: "https://www.youtube.com/@ENNAHARTV1" },
+  { name: "الخبر أون لاين", type: "website", category: "إخبارية", website: "https://www.elkhabar.com", facebook: "https://www.facebook.com/elkhabar.algeria", twitter: "https://twitter.com/elkhabar_com" },
+  { name: "وكالة الأنباء الجزائرية (APS)", type: "website", category: "إخبارية", website: "https://www.aps.dz", facebook: "https://www.facebook.com/APSalgerie", twitter: "https://twitter.com/APSalgerie" },
+  { name: "جريدة الوطن", type: "website", category: "إخبارية", website: "https://www.elwatan.com", facebook: "https://www.facebook.com/elwatan.journal" },
+  { name: "المجاهد", type: "website", category: "إخبارية", website: "https://www.elmoudjahid.com", facebook: "https://www.facebook.com/ElMoudjahidJournal" },
+  { name: "الجمهورية", type: "website", category: "إخبارية", website: "https://www.eldjoumhouria.dz", facebook: "https://www.facebook.com/eldjoumhouria" },
+  { name: "جريدة الشعب", type: "website", category: "إخبارية", website: "https://www.el-chaab.com", facebook: "https://www.facebook.com/ElChaabDZ" },
+  { name: "صوت الأحرار", type: "website", category: "إخبارية", website: "https://www.sawt-elahrarnews.com", facebook: "https://www.facebook.com/sawtelahrardz" },
+  { name: "جريدة الفجر", type: "website", category: "إخبارية", website: "https://www.alfadjr.com", facebook: "https://www.facebook.com/alfajrdz" },
+  { name: "الأيام الجزائرية", type: "website", category: "إخبارية", website: "https://www.alyaoum24.com", facebook: "https://www.facebook.com/alyaoum24.dz" },
+  { name: "جريدة الجزائر اليوم", type: "website", category: "إخبارية", website: "https://www.algerie1.com", facebook: "https://www.facebook.com/algerie1dz" },
+  { name: "جزايرس", type: "website", category: "إخبارية", website: "https://www.djazairess.com", facebook: "https://www.facebook.com/djazairess" },
+  { name: "الحوار الجزائري", type: "website", category: "إخبارية", website: "https://www.elhiwardz.com", facebook: "https://www.facebook.com/elhiwarDZ" },
+  { name: "أخبار الجزائر اليوم", type: "website", category: "إخبارية", website: "https://www.akhbardz.net" },
+  { name: "جريدة المساء", type: "website", category: "إخبارية", website: "https://www.el-massa.com", facebook: "https://www.facebook.com/elMassaAlgerie" },
+  { name: "الجزائر نيوز", type: "website", category: "إخبارية", website: "https://www.algerianews.dz" },
+  { name: "موقع أنباء الجزائر", type: "website", category: "إخبارية", website: "https://www.annabaonline.com" },
+  { name: "ضمير الجزائر", type: "website", category: "إخبارية", website: "https://www.damiraldjazair.com" },
+  { name: "صحيفة الرأي", type: "website", category: "إخبارية", website: "https://www.errai.net" },
+  { name: "الإخبارية الجزائرية", type: "website", category: "إخبارية", website: "https://www.algerie-ikhbariya.com" },
+  { name: "ميدي بلوس", type: "website", category: "إخبارية", website: "https://www.medyplus.com" },
+  { name: "الشروق العربي", type: "website", category: "إخبارية", website: "https://www.chourouk.com", facebook: "https://www.facebook.com/chourouk.journal" },
+  { name: "جريدة الخبر الرياضي", type: "website", category: "إخبارية", website: "https://www.elkhabar.com" },
+  { name: "صدى الجزائر", type: "website", category: "إخبارية", website: "https://www.saddaeljazair.com" },
+  { name: "الحدث الجزائري", type: "website", category: "إخبارية", website: "https://www.elheddath.com" },
+  { name: "موقع الخبر الوطني", type: "website", category: "إخبارية", website: "https://www.alkhbar.dz" },
+  { name: "وطني برس", type: "website", category: "إخبارية", website: "https://www.watani-press.com" },
+  { name: "الجزيرة الجزائر", type: "website", category: "إخبارية", website: "https://www.aljazeera.com/tag/algeria" },
+  { name: "صحيفة البلاد", type: "website", category: "إخبارية", website: "https://www.elbilad.net", facebook: "https://www.facebook.com/elbiladdz", twitter: "https://twitter.com/elbilad_net" },
+  { name: "الجزائر 24", type: "website", category: "إخبارية", website: "https://www.algerie24.net", facebook: "https://www.facebook.com/algerie24net" },
+  { name: "ميدي 1 جزائر", type: "website", category: "إخبارية", website: "https://www.medi1tv.com" },
+  { name: "مجلة الحرس الوطني", type: "website", category: "إخبارية", website: "https://www.harssonline.dz" },
+  { name: "موقع الديمقراطي", type: "website", category: "إخبارية", website: "https://www.dimocratie-dz.com" },
+  { name: "الجزائر الآن", type: "website", category: "إخبارية", website: "https://www.algerienow.com" },
+  { name: "نور الجزائر", type: "website", category: "إخبارية", website: "https://www.noor-dz.com" },
+  { name: "24 ساعة الجزائر", type: "website", category: "إخبارية", website: "https://www.24h-algerie.com" },
+  // ══ مواقع إخبارية بالفرنسية ══
+  { name: "TSA Algérie (Tout Sur l'Algérie)", type: "website", category: "إخبارية", website: "https://www.tsa-algerie.com", facebook: "https://www.facebook.com/TSAAlgerie", twitter: "https://twitter.com/TSAAlgerie" },
+  { name: "Algérie360", type: "website", category: "إخبارية", website: "https://www.algerie360.com", facebook: "https://www.facebook.com/algerie360" },
+  { name: "Liberté Algérie", type: "website", category: "إخبارية", website: "https://www.liberte-algerie.com", facebook: "https://www.facebook.com/LiberteAlgerie", twitter: "https://twitter.com/LiberteAlgerie" },
+  { name: "Horizon Algérie", type: "website", category: "إخبارية", website: "https://www.horizons-dz.com", facebook: "https://www.facebook.com/horizons.dz" },
+  { name: "Algérie Patriotique", type: "website", category: "إخبارية", website: "https://www.algeriepatriotique.com", facebook: "https://www.facebook.com/algeriepatriotique" },
+  { name: "Algeria Focus", type: "website", category: "إخبارية", website: "https://www.algerie-focus.com", facebook: "https://www.facebook.com/algeriefocus" },
+  { name: "El Watan (فرنسية)", type: "website", category: "إخبارية", website: "https://www.elwatan.com", facebook: "https://www.facebook.com/elwatan.journal" },
+  { name: "Reporters DZ", type: "website", category: "إخبارية", website: "https://www.reporters.dz", facebook: "https://www.facebook.com/reportersdz" },
+  { name: "Interlignes", type: "website", category: "إخبارية", website: "https://www.interlignes.net" },
+  { name: "Maghreb Émergent", type: "website", category: "إخبارية", website: "https://www.maghrebemergent.info", facebook: "https://www.facebook.com/maghrebemergent" },
+  { name: "DZ Breaking", type: "website", category: "إخبارية", website: "https://dzbreaking.com", facebook: "https://www.facebook.com/dzbreaking" },
+  { name: "Casbah Tribune", type: "website", category: "إخبارية", website: "https://www.casbah-tribune.com" },
+  { name: "Réflexion DZ", type: "website", category: "إخبارية", website: "https://www.reflexiondz.net", facebook: "https://www.facebook.com/reflexiondz" },
+  { name: "Le Temps DZ", type: "website", category: "إخبارية", website: "https://www.letempsdz.com", facebook: "https://www.facebook.com/letempsdz" },
+  { name: "Algérie Network", type: "website", category: "إخبارية", website: "https://www.algerienetwork.com" },
+  { name: "Algérie Résistance", type: "website", category: "إخبارية", website: "https://www.algerieresistance.dz" },
+  { name: "La Voix de l'Oranie", type: "website", category: "إخبارية", website: "https://www.lavoixdeloranie.com" },
+  { name: "La Dépêche de Kabylie", type: "website", category: "إخبارية", website: "https://www.depechedekabylie.com", facebook: "https://www.facebook.com/DepecheDeKabylie" },
+  { name: "Liberté Tizi Ouzou", type: "website", category: "إخبارية", website: "https://www.liberte-algerie.com" },
+  { name: "L'Expression DZ", type: "website", category: "إخبارية", website: "https://www.lexpressiondz.com", facebook: "https://www.facebook.com/LexpressionDZ" },
+  { name: "L'Authentique", type: "website", category: "إخبارية", website: "https://www.lauthentique.net" },
+  // ══ مواقع رياضية ══
+  { name: "الهداف الرياضي", type: "website", category: "رياضية", website: "https://www.elhadafonline.com", facebook: "https://www.facebook.com/elhadafonline" },
+  { name: "كورة الجزائر", type: "website", category: "رياضية", website: "https://www.kooralive.co" },
+  { name: "رياضة 24 جزائر", type: "website", category: "رياضية", website: "https://www.riyadha24.dz", facebook: "https://www.facebook.com/riyadha24dz" },
+  { name: "الفيفا جزائر", type: "website", category: "رياضية", website: "https://www.faf.dz", facebook: "https://www.facebook.com/FedAlgerienFoot" },
+  { name: "DZfoot", type: "website", category: "رياضية", website: "https://www.dzfoot.com", facebook: "https://www.facebook.com/dzfootcom" },
+  { name: "Butdz Sport", type: "website", category: "رياضية", website: "https://www.butdz.com", facebook: "https://www.facebook.com/butdz" },
+  { name: "Corse Alger Sport", type: "website", category: "رياضية", website: "https://www.corsair-sports.com" },
+  { name: "Sport Algérie", type: "website", category: "رياضية", website: "https://www.sportel-dz.com" },
+  { name: "Beshalmadz", type: "website", category: "رياضية", website: "https://www.beshalma.dz" },
+  { name: "ElHeddaf Online", type: "website", category: "رياضية", website: "https://www.elheddafonline.com", facebook: "https://www.facebook.com/ElHeddafOnline" },
+  { name: "الجزائر الرياضية", type: "website", category: "رياضية", website: "https://www.algerie-sports.com", facebook: "https://www.facebook.com/algerie.sports.dz" },
+  { name: "ملعب الجزائر", type: "website", category: "رياضية", website: "https://www.malaab-dz.com" },
+  { name: "كرة قدم الجزائر", type: "website", category: "رياضية", website: "https://www.dz-football.com" },
+  { name: "Goal Algérie", type: "website", category: "رياضية", website: "https://www.goal.com/ar/الجزائر" },
+  // ══ مواقع ثقافية وأدبية ══
+  { name: "أصوات مغاربية", type: "website", category: "ثقافية", website: "https://www.maghrebvoices.com", facebook: "https://www.facebook.com/maghrebvoices" },
+  { name: "الفضاء الثقافي الجزائري", type: "website", category: "ثقافية", website: "https://www.algerieculture.dz" },
+  { name: "تافلت", type: "website", category: "ثقافية", website: "https://www.tafalt.com" },
+  { name: "جريدة البيان الثقافي", type: "website", category: "ثقافية", website: "https://www.albayan-dz.com" },
+  { name: "الحياة الثقافية الجزائر", type: "website", category: "ثقافية", website: "https://www.hayat-culture.dz" },
+  { name: "مجلة ألوان جزائرية", type: "website", category: "ثقافية", website: "https://www.alwandz.net" },
+  { name: "الحوار المتمدن - الجزائر", type: "website", category: "ثقافية", website: "https://www.ahewar.org" },
+  { name: "Algérie Patrimoine", type: "website", category: "ثقافية", website: "https://www.algerie-patrimoine.com" },
+  { name: "Berbère Culture", type: "website", category: "ثقافية", website: "https://www.berbere-culture.org" },
+  // ══ مواقع اقتصادية ══
+  { name: "الجزائر الاقتصادية", type: "website", category: "متخصصة", website: "https://www.algerie-eco.com", facebook: "https://www.facebook.com/algerieeco" },
+  { name: "مجلة المال والأعمال", type: "website", category: "متخصصة", website: "https://www.finances-algerie.com" },
+  { name: "اقتصاد الجزائر", type: "website", category: "متخصصة", website: "https://www.iktissad.dz" },
+  { name: "البورصة والأسواق", type: "website", category: "متخصصة", website: "https://www.sgbv.dz" },
+  { name: "Maghreb Économique", type: "website", category: "متخصصة", website: "https://www.maghrebeconomique.com" },
+  { name: "El Watan Économie", type: "website", category: "متخصصة", website: "https://www.elwatan.com/economie" },
+  { name: "Algérie Finances", type: "website", category: "متخصصة", website: "https://www.algerie-finances.com" },
+  { name: "الشروق الاقتصادي", type: "website", category: "متخصصة", website: "https://www.echoroukonline.com/economie" },
+];
+
 function ChannelsSection() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -1349,7 +1511,7 @@ function ChannelsSection() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio">("");
+  const [typeFilter, setTypeFilter] = useState<"" | "tv" | "radio" | "website">("");
 
   useEffect(() => {
     return subscribeToChannels(setChannels);
@@ -1403,10 +1565,11 @@ function ChannelsSection() {
             style={{ ...inputStyle, paddingRight: "2.5rem" }}
           />
         </div>
-        <select style={{ ...inputStyle, width: "140px" }} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as "" | "tv" | "radio")}>
+        <select style={{ ...inputStyle, width: "140px" }} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as "" | "tv" | "radio" | "website")}>
           <option value="">الكل</option>
           <option value="tv">📺 تلفزيون</option>
           <option value="radio">📻 إذاعة</option>
+          <option value="website">🌐 مواقع إلكترونية</option>
         </select>
         <button
           onClick={() => { setShowForm(true); setEditId(null); setForm(emptyChannel); }}
@@ -1415,12 +1578,14 @@ function ChannelsSection() {
           <Plus size={15} />
           <span>إضافة قناة</span>
         </button>
+
       </div>
 
       {/* Stats */}
       <div className="flex gap-4 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
         <span>📺 {channels.filter((c) => c.type === "tv").length} قناة تلفزيونية</span>
         <span>📻 {channels.filter((c) => c.type === "radio").length} محطة إذاعية</span>
+        <span>🌐 {channels.filter((c) => c.type === "website").length} موقع إخباري</span>
       </div>
 
       {/* Table */}
@@ -1448,8 +1613,8 @@ function ChannelsSection() {
                     <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem" }}>{ch.category}</div>
                   </td>
                   <td style={S.td}>
-                    <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "var(--theme-accent, #00a355)" : "#64b5f6" }}>
-                      {ch.type === "tv" ? "📺 تلفزيون" : "📻 إذاعة"}
+                    <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "var(--theme-accent, #00a355)" : ch.type === "radio" ? "#64b5f6" : "#ffb74d" }}>
+                      {ch.type === "tv" ? "📺 تلفزيون" : ch.type === "radio" ? "📻 إذاعة" : "🌐 موقع إلكتروني"}
                     </span>
                   </td>
                   <td style={{ ...S.td, fontFamily: "monospace", fontSize: "0.78rem", color: "var(--theme-badge-text, #81c784)" }} dir="ltr">
@@ -1483,6 +1648,7 @@ function ChannelsSection() {
                 <select style={inputStyle} value={form.type} onChange={(e) => cf("type", e.target.value)}>
                   <option value="tv">📺 تلفزيون</option>
                   <option value="radio">📻 إذاعة</option>
+                  <option value="website">🌐 مواقع إلكترونية</option>
                 </select>
               </div>
               <div>
@@ -1493,6 +1659,9 @@ function ChannelsSection() {
                   <option value="محلية">محلية</option>
                   <option value="دينية">دينية</option>
                   <option value="متخصصة">متخصصة</option>
+                  <option value="إخبارية">إخبارية</option>
+                  <option value="رياضية">رياضية</option>
+                  <option value="ثقافية">ثقافية</option>
                 </select>
               </div>
               <div className="col-span-2">
