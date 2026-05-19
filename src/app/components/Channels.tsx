@@ -9,6 +9,9 @@ const categoryColors: Record<string, string> = {
   "محلية":   "rgba(80,50,0,0.3)",
   "دينية":   "rgba(60,0,80,0.3)",
   "متخصصة":  "rgba(0,80,80,0.3)",
+  "إخبارية": "rgba(120,60,0,0.3)",
+  "رياضية":  "rgba(0,80,40,0.3)",
+  "ثقافية":  "rgba(40,0,80,0.3)",
 };
 const categoryText: Record<string, string> = {
   "وطنية":   "var(--theme-badge-text, #81c784)",
@@ -16,6 +19,9 @@ const categoryText: Record<string, string> = {
   "محلية":   "#ffb74d",
   "دينية":   "#ce93d8",
   "متخصصة":  "#4dd0e1",
+  "إخبارية": "#ffa726",
+  "رياضية":  "#66bb6a",
+  "ثقافية":  "#b39ddb",
 };
 
 const S = {
@@ -36,11 +42,16 @@ function ChannelCard({ ch }: { ch: Channel }) {
         <div className="flex items-center gap-2">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: ch.type === "tv" ? "var(--p-20)" : "rgba(0,60,120,0.2)", border: `1px solid ${ch.type === "tv" ? "var(--p-30)" : "rgba(0,100,200,0.3)"}` }}
+            style={{
+              background: ch.type === "tv" ? "var(--p-20)" : ch.type === "radio" ? "rgba(0,60,120,0.2)" : "rgba(80,50,0,0.25)",
+              border: `1px solid ${ch.type === "tv" ? "var(--p-30)" : ch.type === "radio" ? "rgba(0,100,200,0.3)" : "rgba(180,120,0,0.35)"}`,
+            }}
           >
             {ch.type === "tv"
               ? <Tv size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
-              : <Radio size={16} style={{ color: "#64b5f6" }} />
+              : ch.type === "radio"
+                ? <Radio size={16} style={{ color: "#64b5f6" }} />
+                : <Globe size={16} style={{ color: "#ffb74d" }} />
             }
           </div>
           <h3 className="font-bold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{ch.name}</h3>
@@ -84,13 +95,19 @@ function ChannelCard({ ch }: { ch: Channel }) {
             <span>{ch.address}</span>
           </div>
         )}
-        {ch.website && (
+        {ch.website && ch.type === "website" ? (
+          <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.opacity = "0.8"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.opacity = "1"} style={{ color: "#ffb74d", textDecoration: "none", fontWeight: 600, fontSize: "0.95rem" }}>
+            <Globe size={15} />
+            <span dir="ltr">{ch.website.replace(/^https?:\/\//, "")}</span>
+            <ExternalLink size={13} />
+          </a>
+        ) : ch.website ? (
           <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = ""} style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
             <Globe size={13} />
             <span dir="ltr">{ch.website.replace(/^https?:\/\//, "")}</span>
             <ExternalLink size={11} />
           </a>
-        )}
+        ) : null}
       </div>
 
       {/* Social links */}
@@ -137,7 +154,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
 export default function ChannelsPage() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"all" | "tv" | "radio">("all");
+  const [tab, setTab] = useState<"all" | "tv" | "radio" | "website">("all");
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("");
 
@@ -156,6 +173,7 @@ export default function ChannelsPage() {
 
   const tvCount = channels.filter((c) => c.type === "tv").length;
   const radioCount = channels.filter((c) => c.type === "radio").length;
+  const websiteCount = channels.filter((c) => c.type === "website").length;
   const categories = [...new Set(channels.filter((c) => tab === "all" || c.type === tab).map((c) => c.category))];
 
   return (
@@ -184,6 +202,11 @@ export default function ChannelsPage() {
               <Radio size={14} style={{ color: "#64b5f6" }} />
               <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{radioCount}</span> محطة إذاعية
             </span>
+            <span style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>|</span>
+            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
+              <Globe size={14} style={{ color: "#ffb74d" }} />
+              <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{websiteCount}</span> موقع إخباري
+            </span>
           </div>
         </div>
       </div>
@@ -191,7 +214,7 @@ export default function ChannelsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Tabs */}
         <div className="flex gap-2 mb-6 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-          {(["all", "tv", "radio"] as const).map((t) => (
+          {(["all", "tv", "radio", "website"] as const).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); setCatFilter(""); }}
@@ -202,7 +225,7 @@ export default function ChannelsPage() {
                 border: tab === t ? "none" : "1px solid var(--p-20)",
               }}
             >
-              {t === "all" ? "الكل" : t === "tv" ? "📺 تلفزيون" : "📻 إذاعة"}
+              {t === "all" ? `الكل (${channels.length})` : t === "tv" ? `📺 تلفزيون (${tvCount})` : t === "radio" ? `📻 إذاعة (${radioCount})` : `🌐 مواقع إخبارية (${websiteCount})`}
             </button>
           ))}
         </div>

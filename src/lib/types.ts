@@ -153,8 +153,8 @@ export interface AppNotification {
 export interface Channel {
   id: string;
   name: string;
-  type: 'tv' | 'radio';
-  category: 'وطنية' | 'خاصة' | 'محلية' | 'دينية' | 'متخصصة';
+  type: 'tv' | 'radio' | 'website';
+  category: 'وطنية' | 'خاصة' | 'محلية' | 'دينية' | 'متخصصة' | 'إخبارية' | 'رياضية' | 'ثقافية';
   frequency?: string;
   email?: string;
   address?: string;
