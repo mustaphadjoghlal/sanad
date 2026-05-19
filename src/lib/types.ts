@@ -96,6 +96,7 @@ export interface ThemeSettings {
   primaryGreen: string;
   accentGreen: string;
   textColor: string;
+  cardTextColor?: string;
 }
 
 export const DEFAULT_THEME: ThemeSettings = {
@@ -104,6 +105,7 @@ export const DEFAULT_THEME: ThemeSettings = {
   primaryGreen: "#006233",
   accentGreen: "#00a355",
   textColor: "#e8f5e9",
+  cardTextColor: "#c8e6c9",
 };
 
 export interface Channel {

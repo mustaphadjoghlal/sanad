@@ -183,6 +183,11 @@ body {
 .card-glow {
   border: 1px solid var(--p-30);
   transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  /* Scope card text variables inside cards */
+  --theme-text:           var(--theme-card-text);
+  --theme-text-secondary: var(--theme-card-text-secondary);
+  --theme-text-muted:     var(--theme-card-text-muted);
+  --theme-text-dim:       var(--theme-card-text-dim);
 }
 
 .card-glow:hover {

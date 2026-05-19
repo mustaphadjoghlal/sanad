@@ -34,12 +34,19 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--theme-accent", t.accentGreen);
   r.style.setProperty("--theme-text", textColor);
 
-  // Derived secondary colors from textColor
+  // Derived secondary colors from page textColor
   r.style.setProperty("--theme-text-secondary", mixHex(textColor, "#000000", 0.25));
   r.style.setProperty("--theme-text-muted",     mixHex(textColor, "#000000", 0.50));
   r.style.setProperty("--theme-text-dim",       mixHex(textColor, "#000000", 0.65));
   r.style.setProperty("--theme-badge-text",     mixHex(textColor, "#ffffff", 0.15));
   r.style.setProperty("--theme-badge-bg", hexToRgba(t.primaryGreen, 0.25));
+
+  // Card text color — scoped via .card-text-scope in globals.css
+  const cardText = (t.cardTextColor?.startsWith("#") ? t.cardTextColor : null) ?? textColor;
+  r.style.setProperty("--theme-card-text",           cardText);
+  r.style.setProperty("--theme-card-text-secondary", mixHex(cardText, "#000000", 0.25));
+  r.style.setProperty("--theme-card-text-muted",     mixHex(cardText, "#000000", 0.50));
+  r.style.setProperty("--theme-card-text-dim",       mixHex(cardText, "#000000", 0.65));
 
   // Override Tailwind v4 built-in green color tokens so all green-* utilities respond to theme
   r.style.setProperty("--color-green-50",  hexToRgba(t.primaryGreen, 0.05));

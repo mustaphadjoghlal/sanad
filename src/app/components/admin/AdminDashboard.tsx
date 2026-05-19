@@ -1550,18 +1550,19 @@ function ChannelsSection() {
 
 // ── APPEARANCE ──────────────────────────────────────────────────
 const COLOR_OPTIONS = [
-  { key: "bgMain",       label: "لون الخلفية الرئيسية",    hint: "الخلفية العامة للموقع" },
-  { key: "bgCard",       label: "لون خلفية البطاقات",       hint: "البطاقات والأقسام الداخلية" },
-  { key: "primaryGreen", label: "اللون الأخضر الرئيسي",     hint: "الحدود والأيقونات" },
-  { key: "accentGreen",  label: "اللون الأخضر المُضيء",     hint: "الأزرار والتمييزات" },
-  { key: "textColor",    label: "لون الخطوط والنصوص",       hint: "لون النص الرئيسي في الموقع" },
+  { key: "bgMain",        label: "لون الخلفية الرئيسية",    hint: "الخلفية العامة للموقع" },
+  { key: "bgCard",        label: "لون خلفية البطاقات",       hint: "البطاقات والأقسام الداخلية" },
+  { key: "primaryGreen",  label: "اللون الرئيسي",            hint: "الحدود والأيقونات" },
+  { key: "accentGreen",   label: "اللون المُضيء",            hint: "الأزرار والتمييزات" },
+  { key: "textColor",     label: "لون نصوص الصفحات",        hint: "العناوين والنصوص خارج البطاقات" },
+  { key: "cardTextColor", label: "لون نصوص البطاقات",        hint: "النصوص داخل البطاقات والقوائم" },
 ] as const;
 
 const PRESETS: { label: string; theme: ThemeSettings }[] = [
-  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "#e8f5e9" } },
-  { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00", textColor: "#f5ede0" } },
-  { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc", textColor: "#e0f0ff" } },
-  { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888", textColor: "#dddddd" } },
+  { label: "الجزائر الليلي 🇩🇿", theme: { bgMain: "#0e0e0e", bgCard: "#141414", primaryGreen: "#006233", accentGreen: "#00a355", textColor: "#e8f5e9", cardTextColor: "#c8e6c9" } },
+  { label: "الصحراء الداكنة 🏜️",  theme: { bgMain: "#100d08", bgCard: "#1a1510", primaryGreen: "#7a4f00", accentGreen: "#c47d00", textColor: "#f5ede0", cardTextColor: "#ffe0b2" } },
+  { label: "البحر المتوسط 🌊",    theme: { bgMain: "#080e14", bgCard: "#0f1a24", primaryGreen: "#005f8a", accentGreen: "#0099cc", textColor: "#e0f0ff", cardTextColor: "#b3e5fc" } },
+  { label: "الرمادي المحترف ⚪",  theme: { bgMain: "#0c0c0c", bgCard: "#181818", primaryGreen: "#4a4a4a", accentGreen: "#888888", textColor: "#dddddd", cardTextColor: "#cccccc" } },
 ];
 
 function AppearanceSection() {
@@ -1630,19 +1631,21 @@ function AppearanceSection() {
       <div className="rounded-xl p-6" style={S.card}>
         <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1.25rem" }}>تخصيص الألوان</h3>
         <div className="space-y-5">
-          {COLOR_OPTIONS.map(({ key, label, hint }) => (
+          {COLOR_OPTIONS.map(({ key, label, hint }) => {
+            const colorVal = (form[key] ?? form.textColor) as string;
+            return (
             <div key={key} className="flex items-center gap-4">
               {/* Color preview + picker */}
               <div className="relative flex-shrink-0">
                 <div
                   className="w-12 h-12 rounded-xl"
-                  style={{ background: form[key], border: "2px solid rgba(255,255,255,0.1)", cursor: "pointer" }}
+                  style={{ background: colorVal, border: "2px solid rgba(255,255,255,0.1)", cursor: "pointer" }}
                   onClick={() => document.getElementById(`picker-${key}`)?.click()}
                 />
                 <input
                   id={`picker-${key}`}
                   type="color"
-                  value={form[key]}
+                  value={colorVal}
                   onChange={(e) => handleChange(key, e.target.value)}
                   style={{ position: "absolute", opacity: 0, width: "1px", height: "1px", top: 0, left: 0 }}
                 />
@@ -1654,7 +1657,7 @@ function AppearanceSection() {
               {/* Hex input */}
               <input
                 type="text"
-                value={form[key]}
+                value={colorVal}
                 onChange={(e) => {
                   const v = e.target.value;
                   if (/^#[0-9a-fA-F]{0,6}$/.test(v)) handleChange(key, v);
@@ -1668,7 +1671,7 @@ function AppearanceSection() {
                 }}
               />
             </div>
-          ))}
+          );})}
         </div>
       </div>
 
