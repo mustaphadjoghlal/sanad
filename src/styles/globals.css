@@ -351,7 +351,8 @@ body {
 /* Tailwind green override — map Tailwind fixed green to theme accent */
 .text-green-400,
 .hover\:text-green-400:hover,
-.group:hover .group-hover\:text-green-400 {
+.group:hover .group-hover\:text-green-400,
+.group-hover\:text-green-400:is(:where(.group):hover *) {
   color: var(--theme-accent, #00a355) !important;
 }
 
@@ -360,4 +361,10 @@ body {
 .bg-green-950\/10,
 .hover\:bg-green-950\/10:hover {
   background-color: var(--p-08) !important;
+}
+
+/* Custom group-hover theme accent class (replaces group-hover:text-green-400) */
+.group:hover .group-hover\:text-theme-accent,
+.group-hover\:text-theme-accent:is(:where(.group):hover *) {
+  color: var(--theme-accent, #00a355) !important;
 }

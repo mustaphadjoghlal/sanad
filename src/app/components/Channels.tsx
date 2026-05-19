@@ -67,7 +67,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
       {/* Info rows */}
       <div className="space-y-1.5 mb-3">
         {ch.email && (
-          <a href={`mailto:${ch.email}`} className="flex items-center gap-2 text-sm transition-colors hover:text-green-400" style={{ color: "var(--theme-text-secondary, #6aad6a)", textDecoration: "none" }}>
+          <a href={`mailto:${ch.email}`} className="flex items-center gap-2 text-sm transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = ""} style={{ color: "var(--theme-text-secondary, #6aad6a)", textDecoration: "none" }}>
             <Mail size={13} />
             <span dir="ltr">{ch.email}</span>
           </a>
@@ -85,7 +85,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
           </div>
         )}
         {ch.website && (
-          <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors hover:text-green-400" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
+          <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = ""} style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
             <Globe size={13} />
             <span dir="ltr">{ch.website.replace(/^https?:\/\//, "")}</span>
             <ExternalLink size={11} />
@@ -179,7 +179,7 @@ export default function ChannelsPage() {
               <Tv size={14} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{tvCount}</span> قناة تلفزيونية
             </span>
-            <span style={{ color: "#2a4a2a" }}>|</span>
+            <span style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>|</span>
             <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
               <Radio size={14} style={{ color: "#64b5f6" }} />
               <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{radioCount}</span> محطة إذاعية
@@ -253,7 +253,7 @@ export default function ChannelsPage() {
 
         {/* Disclaimer */}
         {!loading && channels.length > 0 && (
-          <p className="text-center mt-10 text-xs" style={{ color: "#2a4a2a" }}>
+          <p className="text-center mt-10 text-xs" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
             قد تتغيّر بعض الترددات — يُنصح بالتحقق من المصادر الرسمية لكل قناة
           </p>
         )}

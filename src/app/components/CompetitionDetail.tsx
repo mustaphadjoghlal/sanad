@@ -38,7 +38,7 @@ export default function CompetitionDetail() {
   if (notFound || !competition) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
-        <Trophy size={48} style={{ color: "#2a4a2a" }} />
+        <Trophy size={48} style={{ color: "var(--theme-text-dim, #3a5e3a)" }} />
         <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المسابقة غير موجودة</p>
         <Link to="/competitions" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none", fontSize: "0.875rem" }}>← العودة للمسابقات</Link>
       </div>
@@ -53,7 +53,7 @@ export default function CompetitionDetail() {
       <div className="container mx-auto px-4 pt-6">
         <Link
           to="/competitions"
-          className="inline-flex items-center gap-2 text-sm transition-colors hover:text-green-400"
+          className="inline-flex items-center gap-2 text-sm transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = ""}
           style={{ color: "var(--theme-text-muted, #4a7a4a)", textDecoration: "none" }}
         >
           <ArrowRight size={15} />

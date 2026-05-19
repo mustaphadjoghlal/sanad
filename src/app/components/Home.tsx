@@ -520,7 +520,7 @@ export default function Home() {
 
                   {/* Content */}
                   <h3
-                    className="text-xl font-semibold mb-2 transition-colors duration-300 group-hover:text-green-400"
+                    className="text-xl font-semibold mb-2 transition-colors duration-300 group-hover:text-theme-accent"
                     style={{ color: "var(--theme-text, #c8e6c9)" }}
                   >
                     {feature.title}

@@ -41,6 +41,19 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--theme-badge-text",     mixHex(textColor, "#ffffff", 0.15));
   r.style.setProperty("--theme-badge-bg", hexToRgba(t.primaryGreen, 0.25));
 
+  // Override Tailwind v4 built-in green color tokens so all green-* utilities respond to theme
+  r.style.setProperty("--color-green-50",  hexToRgba(t.primaryGreen, 0.05));
+  r.style.setProperty("--color-green-100", hexToRgba(t.primaryGreen, 0.12));
+  r.style.setProperty("--color-green-200", mixHex(t.accentGreen, "#ffffff", 0.50));
+  r.style.setProperty("--color-green-300", mixHex(t.accentGreen, "#ffffff", 0.30));
+  r.style.setProperty("--color-green-400", t.accentGreen);
+  r.style.setProperty("--color-green-500", t.accentGreen);
+  r.style.setProperty("--color-green-600", t.primaryGreen);
+  r.style.setProperty("--color-green-700", t.primaryGreen);
+  r.style.setProperty("--color-green-800", mixHex(t.primaryGreen, "#000000", 0.20));
+  r.style.setProperty("--color-green-900", mixHex(t.primaryGreen, "#000000", 0.40));
+  r.style.setProperty("--color-green-950", mixHex(t.primaryGreen, "#000000", 0.55));
+
   // Primary color overlays (replaces hardcoded rgba(0,98,51,...))
   r.style.setProperty("--p-05",  hexToRgba(t.primaryGreen, 0.05));
   r.style.setProperty("--p-08",  hexToRgba(t.primaryGreen, 0.08));

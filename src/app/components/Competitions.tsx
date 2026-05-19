@@ -124,7 +124,7 @@ export default function Competitions() {
                 {/* Content */}
                 <div className="p-4">
                   <h3
-                    className="font-bold text-base mb-2 leading-snug transition-colors group-hover:text-green-400"
+                    className="font-bold text-base mb-2 leading-snug transition-colors group-hover:text-theme-accent"
                     style={{ color: "var(--theme-text, #c8e6c9)" }}
                   >
                     {c.name}
@@ -144,7 +144,7 @@ export default function Competitions() {
                       <Calendar size={12} />
                       <span>{c.endDate || c.startDate || ""}</span>
                     </div>
-                    <span className="flex items-center gap-1 text-xs transition-colors group-hover:text-green-400" style={{ color: "var(--theme-primary, #006233)" }}>
+                    <span className="flex items-center gap-1 text-xs transition-colors group-hover:text-theme-accent" style={{ color: "var(--theme-primary, #006233)" }}>
                       اقرأ المزيد <ArrowLeft size={12} />
                     </span>
                   </div>
