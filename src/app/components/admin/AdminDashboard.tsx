@@ -1188,31 +1188,52 @@ function CompetitionsSection() {
       </div>
       <StatusTabs value={filter} onChange={setFilter} />
 
-      <div style={S.card} className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>{["المسابقة", "النوع", "البداية", "النهاية", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد مسابقات</td></tr>
-              ) : filtered.map((c) => (
-                <tr key={c.id} className="hover:bg-green-950/20 transition-colors" style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
-                  <td style={S.td}>{c.name}</td>
-                  <td style={S.td}><span style={S.badge("var(--p-25)")}>{typeLabel[c.type]}</span></td>
-                  <td style={S.td}>{c.startDate}</td>
-                  <td style={S.td}>{c.endDate}</td>
-                  <td style={S.td}><span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span></td>
-                  <td style={{ ...S.td, width: "140px" }}>
-                    <ItemActions colName="competitions" id={c.id} status={c.status} featured={c.featured} label={c.name} onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {isMobile ? (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد مسابقات</div>
+          ) : filtered.map((c) => (
+            <MobileCard
+              key={c.id}
+              title={c.name}
+              subtitle={c.organizer}
+              badges={<>
+                <span style={S.badge("var(--p-25)")}>{typeLabel[c.type]}</span>
+                <span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span>
+              </>}
+              status={c.status} featured={c.featured}
+              colName="competitions" id={c.id} label={c.name}
+              onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)}
+            />
+          ))}
         </div>
-      </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>{["المسابقة", "النوع", "البداية", "النهاية", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد مسابقات</td></tr>
+                ) : filtered.map((c) => (
+                  <tr key={c.id} className="hover:bg-green-950/20 transition-colors" style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
+                    <td style={S.td}>{c.name}</td>
+                    <td style={S.td}><span style={S.badge("var(--p-25)")}>{typeLabel[c.type]}</span></td>
+                    <td style={S.td}>{c.startDate}</td>
+                    <td style={S.td}>{c.endDate}</td>
+                    <td style={S.td}><span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span></td>
+                    <td style={{ ...S.td, width: "140px" }}>
+                      <ItemActions colName="competitions" id={c.id} status={c.status} featured={c.featured} label={c.name} onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {modal && (
         <Modal title={modal === "add" ? "إضافة مسابقة" : "تعديل المسابقة"} onClose={() => setModal(null)}>
@@ -1287,6 +1308,7 @@ type VoiceForm = Omit<VoiceArtist, "id" | "createdAt" | "status" | "featured" | 
 const emptyVoice: VoiceForm = { name: "", specialty: "", experience: "", description: "", contact: "" };
 
 function VoiceSection() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState<VoiceArtist[]>([]);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<VoiceForm>(emptyVoice);
@@ -1327,30 +1349,48 @@ function VoiceSection() {
       </div>
       <StatusTabs value={filter} onChange={setFilter} />
 
-      <div style={S.card} className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>{["الاسم", "التخصص", "الخبرة", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد منشطون</td></tr>
-              ) : filtered.map((v) => (
-                <tr key={v.id} className="hover:bg-green-950/20 transition-colors" style={v.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
-                  <td style={S.td}>{v.name}</td>
-                  <td style={S.td}><span style={S.badge("var(--p-25)")}>{v.specialty}</span></td>
-                  <td style={S.td}>{v.experience}</td>
-                  <td style={S.td}><span style={S.statusBadge(v.status || "approved")}>{statusLabel(v.status)}</span></td>
-                  <td style={{ ...S.td, width: "140px" }}>
-                    <ItemActions colName="voice" id={v.id} status={v.status} featured={v.featured} label={v.name} onEdit={() => openEdit(v)} onDelete={() => setDeleteTarget(v)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {isMobile ? (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد منشطون</div>
+          ) : filtered.map((v) => (
+            <MobileCard
+              key={v.id}
+              title={v.name}
+              subtitle={`${v.specialty} · ${v.experience}`}
+              badges={<span style={S.statusBadge(v.status || "approved")}>{statusLabel(v.status)}</span>}
+              status={v.status} featured={v.featured}
+              colName="voice" id={v.id} label={v.name}
+              onEdit={() => openEdit(v)} onDelete={() => setDeleteTarget(v)}
+            />
+          ))}
         </div>
-      </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>{["الاسم", "التخصص", "الخبرة", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد منشطون</td></tr>
+                ) : filtered.map((v) => (
+                  <tr key={v.id} className="hover:bg-green-950/20 transition-colors" style={v.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
+                    <td style={S.td}>{v.name}</td>
+                    <td style={S.td}><span style={S.badge("var(--p-25)")}>{v.specialty}</span></td>
+                    <td style={S.td}>{v.experience}</td>
+                    <td style={S.td}><span style={S.statusBadge(v.status || "approved")}>{statusLabel(v.status)}</span></td>
+                    <td style={{ ...S.td, width: "140px" }}>
+                      <ItemActions colName="voice" id={v.id} status={v.status} featured={v.featured} label={v.name} onEdit={() => openEdit(v)} onDelete={() => setDeleteTarget(v)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {modal && (
         <Modal title={modal === "add" ? "إضافة منشط" : "تعديل المنشط"} onClose={() => setModal(null)}>
@@ -1388,6 +1428,7 @@ function VoiceSection() {
 
 // ── PROFESSIONALS SECTION ───────────────────────────────────────
 function ProfessionalsSection() {
+  const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [filter, setFilter] = useState<StatusFilter>("all");
 
@@ -1418,64 +1459,123 @@ function ProfessionalsSection() {
       </div>
       <StatusTabs value={filter} onChange={setFilter} />
 
-      <div style={S.card} className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>{["الاسم", "النوع", "التخصص", "الولاية", "الحالة", "مميز", "الإجراءات"].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</td></tr>
-              ) : filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-green-950/20 transition-colors" style={p.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
-                  <td style={S.td}>
-                    <div>{p.name}</div>
-                    <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{p.email}</div>
-                  </td>
-                  <td style={S.td}><span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span></td>
-                  <td style={S.td}>{p.specialty || "—"}</td>
-                  <td style={S.td}>{p.location || "—"}</td>
-                  <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
-                  <td style={S.td}>{p.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
-                  <td style={{ ...S.td, width: "160px" }}>
-                    <div className="flex flex-col gap-1.5 justify-end items-end">
+      {isMobile ? (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</div>
+          ) : filtered.map((p) => (
+            <div key={p.id} style={{
+              padding: "0.875rem 1rem", borderRadius: "0.75rem", marginBottom: "0.5rem",
+              background: p.status === "pending" ? "rgba(180,120,0,0.07)" : "var(--p-08)",
+              border: p.status === "pending" ? "1px solid rgba(180,120,0,0.35)" : "1px solid var(--p-15)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>{p.name}</div>
+                  <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
+                  <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span>
+                    {p.specialty && <span style={S.badge("var(--p-15)")}>{p.specialty}</span>}
+                    {p.location && <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem" }}>{p.location}</span>}
+                    <span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span>
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0 }}>
+                  <div className="flex flex-col gap-1.5 justify-end items-end">
+                    <button
+                      onClick={() => toggleFeatured("users", p.id, p.featured)}
+                      title={p.featured ? "إلغاء التمييز" : "تمييز"}
+                      className="p-2 rounded transition-colors"
+                      style={{ color: p.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+                    >
+                      <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
+                    </button>
+                    {p.status !== "approved" && (
                       <button
-                        onClick={() => toggleFeatured("users", p.id, p.featured)}
-                        title={p.featured ? "إلغاء التمييز" : "تمييز"}
-                        className="p-1.5 rounded transition-colors"
-                        style={{ color: p.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+                        onClick={() => approveItem("users", p.id)}
+                        title="موافقة"
+                        className="p-2 rounded"
+                        style={{ color: "#4ade80", background: "var(--p-15)" }}
                       >
-                        <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
+                        <Check size={14} />
                       </button>
-                      {p.status !== "approved" && (
-                        <button
-                          onClick={() => approveItem("users", p.id)}
-                          title="موافقة"
-                          className="p-1.5 rounded"
-                          style={{ color: "#4ade80", background: "var(--p-15)" }}
-                        >
-                          <Check size={14} />
-                        </button>
-                      )}
-                      {p.status !== "rejected" && (
-                        <button
-                          onClick={() => setRejectTarget(p)}
-                          title="رفض"
-                          className="p-1.5 rounded"
-                          style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}
-                        >
-                          <AlertTriangle size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    )}
+                    {p.status !== "rejected" && (
+                      <button
+                        onClick={() => setRejectTarget(p)}
+                        title="رفض"
+                        className="p-2 rounded"
+                        style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}
+                      >
+                        <AlertTriangle size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>{["الاسم", "النوع", "التخصص", "الولاية", "الحالة", "مميز", "الإجراءات"].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</td></tr>
+                ) : filtered.map((p) => (
+                  <tr key={p.id} className="hover:bg-green-950/20 transition-colors" style={p.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
+                    <td style={S.td}>
+                      <div>{p.name}</div>
+                      <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{p.email}</div>
+                    </td>
+                    <td style={S.td}><span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span></td>
+                    <td style={S.td}>{p.specialty || "—"}</td>
+                    <td style={S.td}>{p.location || "—"}</td>
+                    <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
+                    <td style={S.td}>{p.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
+                    <td style={{ ...S.td, width: "160px" }}>
+                      <div className="flex flex-col gap-1.5 justify-end items-end">
+                        <button
+                          onClick={() => toggleFeatured("users", p.id, p.featured)}
+                          title={p.featured ? "إلغاء التمييز" : "تمييز"}
+                          className="p-1.5 rounded transition-colors"
+                          style={{ color: p.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+                        >
+                          <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
+                        </button>
+                        {p.status !== "approved" && (
+                          <button
+                            onClick={() => approveItem("users", p.id)}
+                            title="موافقة"
+                            className="p-1.5 rounded"
+                            style={{ color: "#4ade80", background: "var(--p-15)" }}
+                          >
+                            <Check size={14} />
+                          </button>
+                        )}
+                        {p.status !== "rejected" && (
+                          <button
+                            onClick={() => setRejectTarget(p)}
+                            title="رفض"
+                            className="p-1.5 rounded"
+                            style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}
+                          >
+                            <AlertTriangle size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {rejectTarget && (
         <RejectModal
@@ -1666,6 +1766,7 @@ async function seedWebsites(setCb: (v: boolean) => void) {
 }
 
 function ChannelsSection() {
+  const isMobile = useIsMobile();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -1773,51 +1874,85 @@ function ChannelsSection() {
         <span>🌐 {channels.filter((c) => c.type === "website").length} موقع إخباري</span>
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl overflow-hidden" style={S.card}>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>
-                {["القناة", "النوع", "التردد", "البريد", "الإجراءات"].map((h) => (
-                  <th key={h} style={S.th}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
-                    {channels.length === 0 ? 'لا توجد قنوات بعد.' : "لا توجد نتائج."}
-                  </td>
-                </tr>
-              ) : filtered.map((ch) => (
-                <tr key={ch.id} className="hover:bg-green-950/10 transition-colors">
-                  <td style={S.td}>
-                    <div className="font-medium" style={{ color: "var(--theme-text, #c8e6c9)" }}>{ch.name}</div>
-                    <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem" }}>{ch.category}</div>
-                  </td>
-                  <td style={S.td}>
-                    <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "var(--theme-accent, #00a355)" : ch.type === "radio" ? "#64b5f6" : "#ffb74d" }}>
+      {/* Table / Cards */}
+      {isMobile ? (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
+              {channels.length === 0 ? "لا توجد قنوات بعد." : "لا توجد نتائج."}
+            </div>
+          ) : filtered.map((ch) => (
+            <div key={ch.id} style={{
+              padding: "0.875rem 1rem", borderRadius: "0.75rem", marginBottom: "0.5rem",
+              background: "var(--p-08)", border: "1px solid var(--p-15)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {ch.name}
+                  </div>
+                  <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", marginBottom: "0.35rem" }}>{ch.category}</div>
+                  <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.78rem", color: ch.type === "tv" ? "var(--theme-accent, #00a355)" : ch.type === "radio" ? "#64b5f6" : "#ffb74d" }}>
                       {ch.type === "tv" ? "📺 تلفزيون" : ch.type === "radio" ? "📻 إذاعة" : "🌐 موقع إلكتروني"}
                     </span>
-                  </td>
-                  <td style={{ ...S.td, fontFamily: "monospace", fontSize: "0.78rem", color: "var(--theme-badge-text, #81c784)" }} dir="ltr">
-                    {ch.frequency || "—"}
-                  </td>
-                  <td style={{ ...S.td, fontSize: "0.78rem" }} dir="ltr">{ch.email || "—"}</td>
-                  <td style={S.td}>
-                    <div className="flex gap-2">
-                      <button onClick={() => startEdit(ch)} style={{ color: "var(--theme-badge-text, #81c784)" }}><Pencil size={15} /></button>
-                      <button onClick={() => setDeleteId(ch.id)} style={{ color: "#f87171" }}><Trash2 size={15} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {ch.frequency && <span style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "var(--theme-badge-text, #81c784)" }} dir="ltr">{ch.frequency}</span>}
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-end" }}>
+                  <button onClick={() => startEdit(ch)} className="p-2 rounded" style={{ color: "var(--theme-badge-text, #81c784)" }}><Pencil size={16} /></button>
+                  <button onClick={() => setDeleteId(ch.id)} className="p-2 rounded" style={{ color: "#f87171" }}><Trash2 size={16} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl overflow-hidden" style={S.card}>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  {["القناة", "النوع", "التردد", "البريد", "الإجراءات"].map((h) => (
+                    <th key={h} style={S.th}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
+                      {channels.length === 0 ? "لا توجد قنوات بعد." : "لا توجد نتائج."}
+                    </td>
+                  </tr>
+                ) : filtered.map((ch) => (
+                  <tr key={ch.id} className="hover:bg-green-950/10 transition-colors">
+                    <td style={S.td}>
+                      <div className="font-medium" style={{ color: "var(--theme-text, #c8e6c9)" }}>{ch.name}</div>
+                      <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem" }}>{ch.category}</div>
+                    </td>
+                    <td style={S.td}>
+                      <span style={{ fontSize: "0.8rem", color: ch.type === "tv" ? "var(--theme-accent, #00a355)" : ch.type === "radio" ? "#64b5f6" : "#ffb74d" }}>
+                        {ch.type === "tv" ? "📺 تلفزيون" : ch.type === "radio" ? "📻 إذاعة" : "🌐 موقع إلكتروني"}
+                      </span>
+                    </td>
+                    <td style={{ ...S.td, fontFamily: "monospace", fontSize: "0.78rem", color: "var(--theme-badge-text, #81c784)" }} dir="ltr">
+                      {ch.frequency || "—"}
+                    </td>
+                    <td style={{ ...S.td, fontSize: "0.78rem" }} dir="ltr">{ch.email || "—"}</td>
+                    <td style={S.td}>
+                      <div className="flex gap-2">
+                        <button onClick={() => startEdit(ch)} style={{ color: "var(--theme-badge-text, #81c784)" }}><Pencil size={15} /></button>
+                        <button onClick={() => setDeleteId(ch.id)} style={{ color: "#f87171" }}><Trash2 size={15} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Modal */}
       {showForm && (
