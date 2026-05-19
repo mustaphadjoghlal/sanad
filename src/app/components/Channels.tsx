@@ -158,35 +158,46 @@ function ChannelCard({ ch }: { ch: Channel }) {
 export default function ChannelsPage() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"all" | "tv" | "radio" | "website">("all");
+  const [tab, setTab] = useState<"tv" | "electronic" | "radio" | "news" | "club">("tv");
   const [search, setSearch] = useState("");
-  const [catFilter, setCatFilter] = useState("");
 
   useEffect(() => {
     const unsub = subscribeToChannels((data) => { setChannels(data); setLoading(false); });
     return unsub;
   }, []);
 
-  const q = search.toLowerCase();
-  const WEBSITE_CATS = ["إخبارية", "رياضية", "ثقافية"];
-  const isWebsite = (c: Channel) =>
-    c.type === "website" ||
-    (c.type !== "tv" && c.type !== "radio") ||
-    WEBSITE_CATS.includes(c.category);
+  const isTv         = (c: Channel) => c.type === "tv";
+  const isElectronic = (c: Channel) => c.category === "قنوات الكترونية";
+  const isRadio      = (c: Channel) => c.type === "radio";
+  const isNews       = (c: Channel) => (c.type === "website" || (c.type !== "tv" && c.type !== "radio")) && c.category !== "قنوات الكترونية" && c.category !== "نوادي إعلامية";
+  const isClub       = (c: Channel) => c.category === "نوادي إعلامية";
 
+  const tabFn: Record<typeof tab, (c: Channel) => boolean> = {
+    tv: isTv, electronic: isElectronic, radio: isRadio, news: isNews, club: isClub,
+  };
+
+  const q = search.toLowerCase();
   const filtered = channels.filter((ch) => {
-    const matchTab =
-      tab === "all" ||
-      (tab === "website" ? isWebsite(ch) : ch.type === tab);
+    const matchTab = tabFn[tab](ch);
     const matchSearch = !q || ch.name.toLowerCase().includes(q) || (ch.frequency || "").toLowerCase().includes(q);
-    const matchCat = !catFilter || ch.category === catFilter;
-    return matchTab && matchSearch && matchCat;
+    return matchTab && matchSearch;
   });
 
-  const tvCount = channels.filter((c) => c.type === "tv").length;
-  const radioCount = channels.filter((c) => c.type === "radio").length;
-  const websiteCount = channels.filter(isWebsite).length;
-  const categories = [...new Set(channels.filter((c) => tab === "all" || (tab === "website" ? isWebsite(c) : c.type === tab)).map((c) => c.category))];
+  const counts = {
+    tv:         channels.filter(isTv).length,
+    electronic: channels.filter(isElectronic).length,
+    radio:      channels.filter(isRadio).length,
+    news:       channels.filter(isNews).length,
+    club:       channels.filter(isClub).length,
+  };
+
+  const tabs: { key: typeof tab; label: string; icon: string }[] = [
+    { key: "tv",         label: "قنوات تلفزيونية", icon: "📺" },
+    { key: "electronic", label: "قنوات الكترونية",  icon: "📡" },
+    { key: "radio",      label: "محطات إذاعية",    icon: "📻" },
+    { key: "news",       label: "مواقع إخبارية",   icon: "🌐" },
+    { key: "club",       label: "نوادي إعلامية",   icon: "🎙️" },
+  ];
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -204,65 +215,50 @@ export default function ChannelsPage() {
             الترددات، البريد الإلكتروني، العناوين، ومواقع التواصل — كل ما تحتاجه في مكان واحد
           </p>
           {/* Stats */}
-          <div className="flex gap-4 mt-5 animate-fade-in-up" style={{ paddingRight: "3.25rem", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-              <Tv size={14} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{tvCount}</span> قناة تلفزيونية
-            </span>
-            <span style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>|</span>
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-              <Radio size={14} style={{ color: "#64b5f6" }} />
-              <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{radioCount}</span> محطة إذاعية
-            </span>
-            <span style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>|</span>
-            <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-              <Globe size={14} style={{ color: "#ffb74d" }} />
-              <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{websiteCount}</span> موقع إخباري
-            </span>
+          <div className="flex flex-wrap gap-3 mt-5 animate-fade-in-up" style={{ paddingRight: "3.25rem", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
+            {tabs.map((t) => (
+              <span key={t.key} className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
+                <span>{t.icon}</span>
+                <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{counts[t.key]}</span>
+                {t.label}
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-          {(["all", "tv", "radio", "website"] as const).map((t) => (
+        <div className="flex flex-wrap gap-2 mb-6 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
+          {tabs.map((t) => (
             <button
-              key={t}
-              onClick={() => { setTab(t); setCatFilter(""); }}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              key={t.key}
+              onClick={() => { setTab(t.key); setSearch(""); }}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5"
               style={{
-                background: tab === t ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-10)",
-                color: tab === t ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
-                border: tab === t ? "none" : "1px solid var(--p-20)",
+                background: tab === t.key ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-10)",
+                color: tab === t.key ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
+                border: tab === t.key ? "none" : "1px solid var(--p-20)",
               }}
             >
-              {t === "all" ? `الكل (${channels.length})` : t === "tv" ? `📺 تلفزيون (${tvCount})` : t === "radio" ? `📻 إذاعة (${radioCount})` : `🌐 مواقع إخبارية (${websiteCount})`}
+              <span>{t.icon}</span>
+              <span>{t.label}</span>
+              <span style={{ opacity: 0.75, fontSize: "0.75rem" }}>({counts[t.key]})</span>
             </button>
           ))}
         </div>
 
-        {/* Search + filter */}
+        {/* Search */}
         <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-25)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
-              <input
-                type="text"
-                placeholder="ابحث عن قناة أو تردد..."
-                className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <select
-              className="select-dz px-4 py-2.5 rounded-lg text-sm"
-              value={catFilter}
-              onChange={(e) => setCatFilter(e.target.value)}
-            >
-              <option value="">جميع الفئات</option>
-              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
+            <input
+              type="text"
+              placeholder="ابحث عن قناة أو تردد..."
+              className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
 
