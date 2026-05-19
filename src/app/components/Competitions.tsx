@@ -38,7 +38,7 @@ export default function Competitions() {
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
-              <Trophy size={20} style={{ color: "#00a355" }} />
+              <Trophy size={20} style={{ color: "var(--theme-accent, #00a355)" }} />
             </div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>المسابقات الإعلامية</h1>
           </div>
@@ -77,7 +77,7 @@ export default function Competitions() {
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
-              <Trophy size={28} style={{ color: "#006233" }} />
+              <Trophy size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد مسابقات حالياً." : "لا توجد نتائج."}</p>
           </div>
@@ -144,7 +144,7 @@ export default function Competitions() {
                       <Calendar size={12} />
                       <span>{c.endDate || c.startDate || ""}</span>
                     </div>
-                    <span className="flex items-center gap-1 text-xs transition-colors group-hover:text-green-400" style={{ color: "#006233" }}>
+                    <span className="flex items-center gap-1 text-xs transition-colors group-hover:text-green-400" style={{ color: "var(--theme-primary, #006233)" }}>
                       اقرأ المزيد <ArrowLeft size={12} />
                     </span>
                   </div>

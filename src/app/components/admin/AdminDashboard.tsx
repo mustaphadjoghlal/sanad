@@ -97,7 +97,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 function ConfirmDelete({ label, onConfirm, onClose }: { label: string; onConfirm: () => void; onClose: () => void }) {
   return (
     <Modal title="تأكيد الحذف" onClose={onClose}>
-      <p style={{ color: "#a5d6a7", marginBottom: "1.5rem" }}>
+      <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "1.5rem" }}>
         هل أنت متأكد من حذف <strong style={{ color: "#ef9a9a" }}>{label}</strong>؟ لا يمكن التراجع عن هذا الإجراء.
       </p>
       <div className="flex gap-3 justify-end">
@@ -117,7 +117,7 @@ function RejectModal({ label, onConfirm, onClose }: { label: string; onConfirm: 
   const [note, setNote] = useState("");
   return (
     <Modal title="رفض العنصر" onClose={onClose}>
-      <p style={{ color: "#a5d6a7", marginBottom: "1rem" }}>
+      <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "1rem" }}>
         سبب رفض <strong style={{ color: "#ef9a9a" }}>{label}</strong>:
       </p>
       <textarea
@@ -400,7 +400,7 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
   }, []);
 
   const stats = [
-    { label: "الدورات",     value: counts.courses,      pendingCount: pending.courses,      icon: BookOpen,      sec: "courses" as Section,      color: "#006233" },
+    { label: "الدورات",     value: counts.courses,      pendingCount: pending.courses,      icon: BookOpen,      sec: "courses" as Section,      color: "var(--theme-primary, #006233)" },
     { label: "العتاد",      value: counts.equipment,    pendingCount: pending.equipment,    icon: ShoppingCart,  sec: "equipment" as Section,    color: "#1a5276" },
     { label: "الوظائف",     value: counts.jobs,         pendingCount: pending.jobs,         icon: Briefcase,     sec: "jobs" as Section,         color: "#7d3c98" },
     { label: "المسابقات",   value: counts.competitions, pendingCount: pending.competitions, icon: Trophy,        sec: "competitions" as Section, color: "#784212" },
@@ -1716,8 +1716,8 @@ function SettingsSection() {
       <div className="rounded-xl p-6" style={S.card}>
         <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1rem" }}>معلومات الحساب</h3>
         <div style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
-          <p>البريد الإلكتروني: <span style={{ color: "#a5d6a7" }}>{user?.email}</span></p>
-          <p className="mt-2">آخر تسجيل دخول: <span style={{ color: "#a5d6a7" }}>{user?.metadata.lastSignInTime}</span></p>
+          <p>البريد الإلكتروني: <span style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>{user?.email}</span></p>
+          <p className="mt-2">آخر تسجيل دخول: <span style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>{user?.metadata.lastSignInTime}</span></p>
         </div>
       </div>
       <div className="rounded-xl p-6" style={S.card}>

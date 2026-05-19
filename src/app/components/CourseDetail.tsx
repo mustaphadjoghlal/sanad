@@ -36,7 +36,7 @@ export default function CourseDetail() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <BookOpen size={48} style={{ color: "#2a4a2a" }} />
         <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الدورة غير موجودة</p>
-        <Link to="/courses" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة للدورات</Link>
+        <Link to="/courses" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none", fontSize: "0.875rem" }}>← العودة للدورات</Link>
       </div>
     );
   }
@@ -105,13 +105,13 @@ export default function CourseDetail() {
         >
           {c.instructor && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <User size={15} style={{ color: "#00a355" }} />
+              <User size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المدرب:</span> {c.instructor}
             </div>
           )}
           {c.duration && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Clock size={15} style={{ color: "#00a355" }} />
+              <Clock size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المدة:</span> {c.duration}
             </div>
           )}

@@ -83,7 +83,7 @@ export default function VoiceRequests() {
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, rgba(0,98,51,0.15) 0%, transparent 60%)" }} />
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={20} style={{ color: "#00a355" }} /></div>
+            <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={20} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>طلبات المنشطين والمعلقين</h1>
           </div>
           <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>ابحث عن منشطين ومعلقين صوتيين محترفين لمشاريعك</p>
@@ -93,7 +93,7 @@ export default function VoiceRequests() {
       <div className="container mx-auto px-4 py-8">
         {/* Join CTA */}
         <div className="rounded-xl p-6 mb-8 flex items-start gap-4 animate-fade-in-up" style={{ background: "linear-gradient(135deg, rgba(0,98,51,0.15), rgba(0,98,51,0.05))", border: "1px solid rgba(0,98,51,0.35)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
-          <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={26} style={{ color: "#00a355" }} /></div>
+          <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}><Mic size={26} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
           <div>
             <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل أنت منشط أو معلق صوتي؟</h3>
             <p className="mb-4 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>انضم إلى منصة سند وابدأ في استقبال العروض من العملاء</p>
@@ -123,7 +123,7 @@ export default function VoiceRequests() {
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
-              <Mic size={28} style={{ color: "#006233" }} />
+              <Mic size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{allEntries.length === 0 ? "لا يوجد منشطون بعد." : "لا توجد نتائج."}</p>
           </div>
@@ -133,7 +133,7 @@ export default function VoiceRequests() {
               <div key={`${v.source}-${v.id}`} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
-                    <Mic size={18} style={{ color: "#00a355" }} />
+                    <Mic size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
                   </div>
                   <div>
                     <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>{v.name}</h3>

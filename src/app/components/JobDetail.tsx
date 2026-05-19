@@ -36,7 +36,7 @@ export default function JobDetail() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <Briefcase size={48} style={{ color: "#2a4a2a" }} />
         <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الوظيفة غير موجودة</p>
-        <Link to="/jobs" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة لعروض التوظيف</Link>
+        <Link to="/jobs" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none", fontSize: "0.875rem" }}>← العودة لعروض التوظيف</Link>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export default function JobDetail() {
 
         {/* Description */}
         {j.description && (
-          <p className="text-base mb-6 leading-relaxed" style={{ color: "#a5d6a7" }}>{j.description}</p>
+          <p className="text-base mb-6 leading-relaxed" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>{j.description}</p>
         )}
 
         {/* Meta row */}
@@ -107,31 +107,31 @@ export default function JobDetail() {
         >
           {j.company && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Building2 size={15} style={{ color: "#00a355" }} />
+              <Building2 size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الجهة:</span> {j.company}
             </div>
           )}
           {j.location && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <MapPin size={15} style={{ color: "#00a355" }} />
+              <MapPin size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الموقع:</span> {j.location}
             </div>
           )}
           {j.deadline && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Calendar size={15} style={{ color: "#00a355" }} />
+              <Calendar size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>آخر أجل:</span> {j.deadline}
             </div>
           )}
           {j.contact && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Phone size={15} style={{ color: "#00a355" }} />
+              <Phone size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>التواصل:</span> {j.contact}
             </div>
           )}
           {j.source && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Globe size={15} style={{ color: "#00a355" }} />
+              <Globe size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المصدر:</span> {j.source}
             </div>
           )}
@@ -167,7 +167,7 @@ export default function JobDetail() {
             style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <Building2 size={16} style={{ color: "#00a355" }} />
+              <Building2 size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>عن {j.company}</h3>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{j.companyDescription}</p>
@@ -181,7 +181,7 @@ export default function JobDetail() {
             style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Phone size={16} style={{ color: "#00a355" }} />
+              <Phone size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
             </div>
             <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>{j.contact}</p>

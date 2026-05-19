@@ -138,7 +138,7 @@ export default function UserLogin() {
           <div className="mt-6 pt-5 space-y-3" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textAlign: "center" }}>
               ليس لديك حساب؟{" "}
-              <Link to="/register" style={{ color: "#00a355", textDecoration: "none" }}>
+              <Link to="/register" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
                 سجّل الآن
               </Link>
             </p>

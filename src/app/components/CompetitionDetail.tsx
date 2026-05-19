@@ -40,7 +40,7 @@ export default function CompetitionDetail() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <Trophy size={48} style={{ color: "#2a4a2a" }} />
         <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المسابقة غير موجودة</p>
-        <Link to="/competitions" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة للمسابقات</Link>
+        <Link to="/competitions" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none", fontSize: "0.875rem" }}>← العودة للمسابقات</Link>
       </div>
     );
   }
@@ -112,25 +112,25 @@ export default function CompetitionDetail() {
         >
           {c.startDate && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Calendar size={15} style={{ color: "#00a355" }} />
+              <Calendar size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>البداية:</span> {c.startDate}
             </div>
           )}
           {c.endDate && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Calendar size={15} style={{ color: "#00a355" }} />
+              <Calendar size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>النهاية:</span> {c.endDate}
             </div>
           )}
           {c.organizer && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Building2 size={15} style={{ color: "#00a355" }} />
+              <Building2 size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الجهة:</span> {c.organizer}
             </div>
           )}
           {c.source && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Globe size={15} style={{ color: "#00a355" }} />
+              <Globe size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المصدر:</span> {c.source}
             </div>
           )}
@@ -159,7 +159,7 @@ export default function CompetitionDetail() {
             style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <Building2 size={16} style={{ color: "#00a355" }} />
+              <Building2 size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>عن {c.organizer}</h3>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{c.organizerDescription}</p>

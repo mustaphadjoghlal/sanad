@@ -33,7 +33,7 @@ export default function Courses() {
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
-              <BookOpen size={20} style={{ color: "#00a355" }} />
+              <BookOpen size={20} style={{ color: "var(--theme-accent, #00a355)" }} />
             </div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>الدورات التدريبية</h1>
           </div>
@@ -70,7 +70,7 @@ export default function Courses() {
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ animationDelay: "0.35s", opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
-              <BookOpen size={28} style={{ color: "#006233" }} />
+              <BookOpen size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
               {items.length === 0 ? "لا توجد دورات متاحة حالياً. سيتم إضافة الدورات عبر لوحة التحكم." : "لا توجد نتائج لبحثك."}
@@ -90,7 +90,7 @@ export default function Courses() {
                 <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>المدرب: {c.instructor}</p>
                 {c.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", lineHeight: 1.6 }}>{c.description}</p>}
                 {c.link && (
-                  <a href={c.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-3 text-sm transition-colors" style={{ color: "#006233" }}>
+                  <a href={c.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-3 text-sm transition-colors" style={{ color: "var(--theme-primary, #006233)" }}>
                     <span>سجّل الآن</span><ExternalLink size={13} />
                   </a>
                 )}

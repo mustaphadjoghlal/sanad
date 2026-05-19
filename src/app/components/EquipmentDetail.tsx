@@ -36,7 +36,7 @@ export default function EquipmentDetail() {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" dir="rtl" style={{ background: "#0e0e0e" }}>
         <ShoppingCart size={48} style={{ color: "#2a4a2a" }} />
         <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المنتج غير موجود</p>
-        <Link to="/equipment" style={{ color: "#00a355", textDecoration: "none", fontSize: "0.875rem" }}>← العودة لمتجر العتاد</Link>
+        <Link to="/equipment" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none", fontSize: "0.875rem" }}>← العودة لمتجر العتاد</Link>
       </div>
     );
   }
@@ -103,7 +103,7 @@ export default function EquipmentDetail() {
 
         {/* Description */}
         {eq.description && (
-          <p className="text-base mb-6 leading-relaxed" style={{ color: "#a5d6a7" }}>{eq.description}</p>
+          <p className="text-base mb-6 leading-relaxed" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>{eq.description}</p>
         )}
 
         {/* Meta row */}
@@ -112,25 +112,25 @@ export default function EquipmentDetail() {
           style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
         >
           <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-            <DollarSign size={15} style={{ color: "#00a355" }} />
+            <DollarSign size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
             <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>السعر:</span>
             <span style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "1rem" }}>{eq.price.toLocaleString()} دج</span>
           </div>
           {eq.seller && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <User size={15} style={{ color: "#00a355" }} />
+              <User size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>البائع:</span> {eq.seller}
             </div>
           )}
           {eq.category && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Tag size={15} style={{ color: "#00a355" }} />
+              <Tag size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الفئة:</span> {eq.category}
             </div>
           )}
           {eq.contact && (
             <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Phone size={15} style={{ color: "#00a355" }} />
+              <Phone size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>التواصل:</span> {eq.contact}
             </div>
           )}
@@ -166,7 +166,7 @@ export default function EquipmentDetail() {
             style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid rgba(0,98,51,0.2)" }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Phone size={16} style={{ color: "#00a355" }} />
+              <Phone size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتواصل مع البائع</h3>
             </div>
             <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>{eq.contact}</p>

@@ -58,9 +58,9 @@ function SectionHeader({ title, link, linkLabel }: { title: string; link: string
       <Link
         to={link}
         className="flex items-center gap-1.5 text-sm transition-colors"
-        style={{ color: "#006233", textDecoration: "none" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#00a355"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#006233"; }}
+        style={{ color: "var(--theme-primary, #006233)", textDecoration: "none" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-accent, #00a355)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-primary, #006233)"; }}
       >
         <span>{linkLabel}</span>
         <ArrowLeft size={14} />
@@ -139,7 +139,7 @@ export default function Home() {
             style={{
               border: "1px solid rgba(0,163,85,0.3)",
               background: "rgba(0,98,51,0.1)",
-              color: "#4caf50",
+              color: "var(--theme-accent, #4caf50)",
               fontSize: "0.8rem",
             }}
           >
@@ -287,7 +287,7 @@ export default function Home() {
                       className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}
                     >
-                      <span style={{ color: "#00a355", fontSize: "1rem", fontWeight: 700 }}>
+                      <span style={{ color: "var(--theme-accent, #00a355)", fontSize: "1rem", fontWeight: 700 }}>
                         {p.name.charAt(0)}
                       </span>
                     </div>
@@ -426,7 +426,7 @@ export default function Home() {
                         {eq.condition === "new" ? "جديد" : "مستعمل"}
                       </span>
                     </div>
-                    <p style={{ color: "#00a355", fontWeight: 600, fontSize: "0.9rem" }}>{eq.price?.toLocaleString()} دج</p>
+                    <p style={{ color: "var(--theme-accent, #00a355)", fontWeight: 600, fontSize: "0.9rem" }}>{eq.price?.toLocaleString()} دج</p>
                     <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>{eq.seller}</p>
                   </div>
                 </Link>
@@ -450,7 +450,7 @@ export default function Home() {
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
-                      <Mic size={18} style={{ color: "#00a355" }} />
+                      <Mic size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
                     </div>
                     <div>
                       <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.95rem" }}>{v.name}</h3>
@@ -513,7 +513,7 @@ export default function Home() {
                   >
                     <Icon
                       size={26}
-                      style={{ color: "#00a355" }}
+                      style={{ color: "var(--theme-accent, #00a355)" }}
                       className="icon-glow"
                     />
                   </div>
@@ -532,7 +532,7 @@ export default function Home() {
                   {/* Arrow indicator */}
                   <div
                     className="flex items-center gap-1 mt-4 transition-all duration-300 group-hover:gap-2"
-                    style={{ color: "#006233", fontSize: "0.8rem" }}
+                    style={{ color: "var(--theme-primary, #006233)", fontSize: "0.8rem" }}
                   >
                     <span>استكشف</span>
                     <ArrowLeft size={14} className="transition-transform duration-300 group-hover:-translate-x-1" />
@@ -572,7 +572,7 @@ export default function Home() {
               >
                 <div
                   className="text-3xl font-bold mb-1"
-                  style={{ color: "#00a355" }}
+                  style={{ color: "var(--theme-accent, #00a355)" }}
                 >
                   {stat.value}
                 </div>

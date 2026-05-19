@@ -39,7 +39,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
             style={{ background: ch.type === "tv" ? "rgba(0,98,51,0.2)" : "rgba(0,60,120,0.2)", border: `1px solid ${ch.type === "tv" ? "rgba(0,98,51,0.3)" : "rgba(0,100,200,0.3)"}` }}
           >
             {ch.type === "tv"
-              ? <Tv size={16} style={{ color: "#00a355" }} />
+              ? <Tv size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               : <Radio size={16} style={{ color: "#64b5f6" }} />
             }
           </div>
@@ -57,7 +57,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
       {ch.frequency && (
         <div
           className="rounded-lg px-3 py-2 mb-3 text-sm font-mono"
-          style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,98,51,0.15)", color: "#a5d6a7" }}
+          style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,98,51,0.15)", color: "var(--theme-text-secondary, #a5d6a7)" }}
           dir="ltr"
         >
           📡 {ch.frequency}
@@ -85,7 +85,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
           </div>
         )}
         {ch.website && (
-          <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors hover:text-green-400" style={{ color: "#00a355", textDecoration: "none" }}>
+          <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors hover:text-green-400" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
             <Globe size={13} />
             <span dir="ltr">{ch.website.replace(/^https?:\/\//, "")}</span>
             <ExternalLink size={11} />
@@ -166,7 +166,7 @@ export default function ChannelsPage() {
         <div className="container mx-auto relative z-10">
           <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="p-2 rounded-lg" style={{ background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.3)" }}>
-              <Tv size={20} style={{ color: "#00a355" }} />
+              <Tv size={20} style={{ color: "var(--theme-accent, #00a355)" }} />
             </div>
             <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>دليل القنوات الجزائرية</h1>
           </div>
@@ -176,7 +176,7 @@ export default function ChannelsPage() {
           {/* Stats */}
           <div className="flex gap-4 mt-5 animate-fade-in-up" style={{ paddingRight: "3.25rem", animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}>
             <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-              <Tv size={14} style={{ color: "#00a355" }} />
+              <Tv size={14} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-badge-text, #81c784)" }}>{tvCount}</span> قناة تلفزيونية
             </span>
             <span style={{ color: "#2a4a2a" }}>|</span>
@@ -237,7 +237,7 @@ export default function ChannelsPage() {
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "rgba(0,98,51,0.15)", border: "1px solid rgba(0,98,51,0.3)" }}>
-              <Tv size={28} style={{ color: "#006233" }} />
+              <Tv size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{channels.length === 0 ? "لم يتم إضافة قنوات بعد." : "لا توجد نتائج."}</p>
           </div>

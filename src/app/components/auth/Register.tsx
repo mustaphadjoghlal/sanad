@@ -223,7 +223,7 @@ export default function Register() {
             className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
             style={{ background: "rgba(0,98,51,0.2)", border: "2px solid rgba(0,163,85,0.5)" }}
           >
-            <Check size={36} style={{ color: "#00a355" }} />
+            <Check size={36} style={{ color: "var(--theme-accent, #00a355)" }} />
           </div>
           <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--theme-text, #e8f5e9)" }}>تم التسجيل بنجاح!</h2>
           <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7 }}>

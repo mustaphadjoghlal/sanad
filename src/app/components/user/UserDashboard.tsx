@@ -349,7 +349,7 @@ export default function UserDashboard() {
                     className="flex items-center justify-center"
                     style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(0,98,51,0.2)", border: "1px solid rgba(0,98,51,0.35)" }}
                   >
-                    <TypeIcon size={26} style={{ color: "#00a355" }} />
+                    <TypeIcon size={26} style={{ color: "var(--theme-accent, #00a355)" }} />
                   </div>
                 )}
               </div>
@@ -655,7 +655,7 @@ export default function UserDashboard() {
             style={{ ...S.card, animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <ShoppingCart size={16} style={{ color: "#00a355" }} />
+              <ShoppingCart size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600 }}>حالة المتجر</span>
               {profile.storeStatus === "trial" && (
                 <span style={{ background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)", padding: "0.15rem 0.65rem", borderRadius: "9999px", fontSize: "0.73rem" }}>
@@ -679,7 +679,7 @@ export default function UserDashboard() {
           <div className="animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.15s" }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Package size={18} style={{ color: "#00a355" }} />
+                <Package size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
                 <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>معداتي للبيع</h3>
                 <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem" }}>({myEquipment.length} منتج)</span>
               </div>
@@ -740,13 +740,13 @@ export default function UserDashboard() {
             style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Mic size={16} style={{ color: "#00a355" }} />
+              <Mic size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600 }}>ملفك في قسم المنشطين</span>
             </div>
             <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
               ملفك الشخصي معتمد ويظهر في صفحة طلبات المنشطين للعملاء.
             </p>
-            <Link to="/voice-requests" style={{ color: "#00a355", fontSize: "0.85rem", textDecoration: "none", marginTop: "0.5rem", display: "inline-block" }}>
+            <Link to="/voice-requests" style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.85rem", textDecoration: "none", marginTop: "0.5rem", display: "inline-block" }}>
               عرض الصفحة
             </Link>
           </div>
@@ -759,7 +759,7 @@ export default function UserDashboard() {
             style={{ ...S.card, animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards", borderColor: "rgba(0,163,85,0.3)" }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <BookOpen size={16} style={{ color: "#00a355" }} />
+              <BookOpen size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600 }}>ملفك في دليل الصحفيين</span>
             </div>
             <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
