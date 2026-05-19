@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Radio, ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store } from "lucide-react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { saveUserProfile } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
@@ -184,13 +184,17 @@ export default function Register() {
       setSuccess(true);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err: unknown) {
-      const e = err as { code?: string };
+      const e = err as { code?: string; message?: string };
       if (e.code === "auth/email-already-in-use") {
         setError("البريد الإلكتروني مستخدم بالفعل");
       } else if (e.code === "auth/invalid-email") {
         setError("البريد الإلكتروني غير صالح");
       } else {
-        setError("حدث خطأ. يرجى المحاولة مجدداً.");
+        // Delete the created auth user so they can retry with same email
+        if (auth.currentUser) {
+          await deleteUser(auth.currentUser).catch(() => {});
+        }
+        setError(e.message ?? "حدث خطأ. يرجى المحاولة مجدداً.");
       }
     } finally {
       setSaving(false);
