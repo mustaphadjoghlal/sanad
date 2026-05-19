@@ -167,6 +167,53 @@ function StatusTabs({ value, onChange }: { value: StatusFilter; onChange: (v: St
   );
 }
 
+// ── Mobile detection ─────────────────────────────────────────────
+function useIsMobile() {
+  const [m, setM] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return m;
+}
+
+// ── Shared mobile card ───────────────────────────────────────────
+function MobileCard({
+  title, subtitle, badges, status, featured,
+  colName, id, label, onEdit, onDelete,
+}: {
+  title: string; subtitle?: string; badges?: React.ReactNode;
+  status?: string; featured?: boolean;
+  colName: string; id: string; label: string;
+  onEdit: () => void; onDelete: () => void;
+}) {
+  return (
+    <div style={{
+      padding: "0.875rem 1rem", borderRadius: "0.75rem", marginBottom: "0.5rem",
+      background: status === "pending" ? "rgba(180,120,0,0.07)" : "var(--p-08)",
+      border: status === "pending" ? "1px solid rgba(180,120,0,0.35)" : "1px solid var(--p-15)",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {title}
+          </div>
+          {subtitle && (
+            <div style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem", marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {subtitle}
+            </div>
+          )}
+          {badges && <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", alignItems: "center" }}>{badges}</div>}
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          <ItemActions colName={colName} id={id} status={status} featured={featured} label={label} onEdit={onEdit} onDelete={onDelete} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Action buttons for items ────────────────────────────────────
 function ItemActions({
   colName, id, status, featured, label,
@@ -179,12 +226,12 @@ function ItemActions({
 
   return (
     <>
-      <div className="flex gap-1.5 justify-end items-center flex-wrap">
+      <div className="flex flex-col gap-1.5 justify-end items-end">
         {/* Feature toggle */}
         <button
           onClick={() => toggleFeatured(colName, id, !!featured)}
           title={featured ? "إلغاء التمييز" : "تمييز"}
-          className="p-1.5 rounded transition-colors"
+          className="p-2 rounded transition-colors"
           style={{ color: featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: featured ? "rgba(180,120,0,0.15)" : "transparent" }}
         >
           <Star size={14} fill={featured ? "#fbbf24" : "none"} />
@@ -194,7 +241,7 @@ function ItemActions({
           <button
             onClick={() => approveItem(colName, id)}
             title="موافقة"
-            className="p-1.5 rounded transition-colors"
+            className="p-2 rounded transition-colors"
             style={{ color: "#4ade80", background: "var(--p-15)" }}
           >
             <Check size={14} />
@@ -205,14 +252,14 @@ function ItemActions({
           <button
             onClick={() => setRejecting(true)}
             title="رفض"
-            className="p-1.5 rounded transition-colors"
+            className="p-2 rounded transition-colors"
             style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}
           >
             <AlertTriangle size={14} />
           </button>
         )}
-        <button onClick={onEdit} style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={15} /></button>
-        <button onClick={onDelete} style={{ color: "#ef9a9a" }}><Trash2 size={15} /></button>
+        <button onClick={onEdit} className="p-2 rounded" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={16} /></button>
+        <button onClick={onDelete} className="p-2 rounded" style={{ color: "#ef9a9a" }}><Trash2 size={16} /></button>
       </div>
       {rejecting && (
         <RejectModal
@@ -505,6 +552,7 @@ type CourseForm = Omit<Course, "id" | "createdAt" | "status" | "featured" | "sub
 const emptyCourse: CourseForm = { title: "", type: "free", duration: "", description: "", instructor: "", link: "", price: 0, image: "", contentImages: [] };
 
 function CoursesSection() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState<Course[]>([]);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<CourseForm>(emptyCourse);
@@ -569,43 +617,64 @@ function CoursesSection() {
       </div>
       <StatusTabs value={filter} onChange={setFilter} />
 
-      <div style={S.card} className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>
-                {["العنوان", "المدرب", "النوع", "الحالة", "مميز", ""].map((h) => (
-                  <th key={h} style={S.th}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد دورات</td></tr>
-              ) : filtered.map((c) => (
-                <tr
-                  key={c.id}
-                  className="hover:bg-green-950/20 transition-colors"
-                  style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}
-                >
-                  <td style={S.td}>{c.title}</td>
-                  <td style={S.td}>{c.instructor}</td>
-                  <td style={S.td}>
-                    <span style={S.badge(c.type === "free" ? "var(--p-30)" : "rgba(26,82,118,0.3)")}>
-                      {c.type === "free" ? "مجانية" : `${c.price} دج`}
-                    </span>
-                  </td>
-                  <td style={S.td}><span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span></td>
-                  <td style={S.td}>{c.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
-                  <td style={{ ...S.td, width: "140px" }}>
-                    <ItemActions colName="courses" id={c.id} status={c.status} featured={c.featured} label={c.title} onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {isMobile ? (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد دورات</div>
+          ) : filtered.map((c) => (
+            <MobileCard
+              key={c.id}
+              title={c.title}
+              subtitle={c.instructor}
+              badges={<>
+                <span style={S.badge(c.type === "free" ? "var(--p-30)" : "rgba(26,82,118,0.3)")}>{c.type === "free" ? "مجانية" : `${c.price} دج`}</span>
+                <span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span>
+              </>}
+              status={c.status} featured={c.featured}
+              colName="courses" id={c.id} label={c.title}
+              onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)}
+            />
+          ))}
         </div>
-      </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  {["العنوان", "المدرب", "النوع", "الحالة", "مميز", ""].map((h) => (
+                    <th key={h} style={S.th}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد دورات</td></tr>
+                ) : filtered.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="hover:bg-green-950/20 transition-colors"
+                    style={c.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}
+                  >
+                    <td style={S.td}>{c.title}</td>
+                    <td style={S.td}>{c.instructor}</td>
+                    <td style={S.td}>
+                      <span style={S.badge(c.type === "free" ? "var(--p-30)" : "rgba(26,82,118,0.3)")}>
+                        {c.type === "free" ? "مجانية" : `${c.price} دج`}
+                      </span>
+                    </td>
+                    <td style={S.td}><span style={S.statusBadge(c.status || "approved")}>{statusLabel(c.status)}</span></td>
+                    <td style={S.td}>{c.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
+                    <td style={{ ...S.td, width: "140px" }}>
+                      <ItemActions colName="courses" id={c.id} status={c.status} featured={c.featured} label={c.title} onEdit={() => openEdit(c)} onDelete={() => setDeleteTarget(c)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {modal && (
         <Modal title={modal === "add" ? "إضافة دورة جديدة" : "تعديل الدورة"} onClose={() => setModal(null)}>
@@ -675,6 +744,7 @@ type JobForm = Omit<Job, "id" | "createdAt" | "status" | "featured" | "submitted
 const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", description: "", deadline: "", contact: "", source: "", companyDescription: "", image: "", contentImages: [] };
 
 function JobsSection() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState<Job[]>([]);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<JobForm>(emptyJob);
@@ -739,30 +809,48 @@ function JobsSection() {
       </div>
       <StatusTabs value={filter} onChange={setFilter} />
 
-      <div style={S.card} className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>{["المسمى الوظيفي", "الجهة", "الموقع", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد عروض</td></tr>
-              ) : filtered.map((j) => (
-                <tr key={j.id} className="hover:bg-green-950/20 transition-colors" style={j.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
-                  <td style={S.td}>{j.title}</td>
-                  <td style={S.td}>{j.company}</td>
-                  <td style={S.td}>{j.location}</td>
-                  <td style={S.td}><span style={S.statusBadge(j.status || "approved")}>{statusLabel(j.status)}</span></td>
-                  <td style={{ ...S.td, width: "140px" }}>
-                    <ItemActions colName="jobs" id={j.id} status={j.status} featured={j.featured} label={j.title} onEdit={() => openEdit(j)} onDelete={() => setDeleteTarget(j)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {isMobile ? (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد عروض</div>
+          ) : filtered.map((j) => (
+            <MobileCard
+              key={j.id}
+              title={j.title}
+              subtitle={`${j.company} · ${j.location}`}
+              badges={<span style={S.statusBadge(j.status || "approved")}>{statusLabel(j.status)}</span>}
+              status={j.status} featured={j.featured}
+              colName="jobs" id={j.id} label={j.title}
+              onEdit={() => openEdit(j)} onDelete={() => setDeleteTarget(j)}
+            />
+          ))}
         </div>
-      </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>{["المسمى الوظيفي", "الجهة", "الموقع", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد عروض</td></tr>
+                ) : filtered.map((j) => (
+                  <tr key={j.id} className="hover:bg-green-950/20 transition-colors" style={j.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
+                    <td style={S.td}>{j.title}</td>
+                    <td style={S.td}>{j.company}</td>
+                    <td style={S.td}>{j.location}</td>
+                    <td style={S.td}><span style={S.statusBadge(j.status || "approved")}>{statusLabel(j.status)}</span></td>
+                    <td style={{ ...S.td, width: "140px" }}>
+                      <ItemActions colName="jobs" id={j.id} status={j.status} featured={j.featured} label={j.title} onEdit={() => openEdit(j)} onDelete={() => setDeleteTarget(j)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {modal && (
         <Modal title={modal === "add" ? "إضافة عرض توظيف" : "تعديل الوظيفة"} onClose={() => setModal(null)}>
@@ -842,6 +930,7 @@ type EquipmentForm = Omit<Equipment, "id" | "createdAt" | "status" | "featured" 
 const emptyEquip: EquipmentForm = { name: "", category: "", price: 0, seller: "", description: "", condition: "used", contact: "", image: "", contentImages: [] };
 
 function EquipmentSection() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState<Equipment[]>([]);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<EquipmentForm>(emptyEquip);
@@ -906,31 +995,52 @@ function EquipmentSection() {
       </div>
       <StatusTabs value={filter} onChange={setFilter} />
 
-      <div style={S.card} className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>{["المنتج", "الفئة", "السعر (دج)", "الحالة الفيزيائية", "موافقة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد منتجات</td></tr>
-              ) : filtered.map((eq) => (
-                <tr key={eq.id} className="hover:bg-green-950/20 transition-colors" style={eq.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
-                  <td style={S.td}>{eq.name}</td>
-                  <td style={S.td}>{eq.category}</td>
-                  <td style={S.td}>{eq.price.toLocaleString()}</td>
-                  <td style={S.td}><span style={S.badge(eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)")}>{eq.condition === "new" ? "جديد" : "مستعمل"}</span></td>
-                  <td style={S.td}><span style={S.statusBadge(eq.status || "approved")}>{statusLabel(eq.status)}</span></td>
-                  <td style={{ ...S.td, width: "140px" }}>
-                    <ItemActions colName="equipment" id={eq.id} status={eq.status} featured={eq.featured} label={eq.name} onEdit={() => openEdit(eq)} onDelete={() => setDeleteTarget(eq)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {isMobile ? (
+        <div>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد منتجات</div>
+          ) : filtered.map((eq) => (
+            <MobileCard
+              key={eq.id}
+              title={eq.name}
+              subtitle={`${eq.category} · ${eq.price.toLocaleString()} دج`}
+              badges={<>
+                <span style={S.badge(eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)")}>{eq.condition === "new" ? "جديد" : "مستعمل"}</span>
+                <span style={S.statusBadge(eq.status || "approved")}>{statusLabel(eq.status)}</span>
+              </>}
+              status={eq.status} featured={eq.featured}
+              colName="equipment" id={eq.id} label={eq.name}
+              onEdit={() => openEdit(eq)} onDelete={() => setDeleteTarget(eq)}
+            />
+          ))}
         </div>
-      </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>{["المنتج", "الفئة", "السعر (دج)", "الحالة الفيزيائية", "موافقة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد منتجات</td></tr>
+                ) : filtered.map((eq) => (
+                  <tr key={eq.id} className="hover:bg-green-950/20 transition-colors" style={eq.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
+                    <td style={S.td}>{eq.name}</td>
+                    <td style={S.td}>{eq.category}</td>
+                    <td style={S.td}>{eq.price.toLocaleString()}</td>
+                    <td style={S.td}><span style={S.badge(eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)")}>{eq.condition === "new" ? "جديد" : "مستعمل"}</span></td>
+                    <td style={S.td}><span style={S.statusBadge(eq.status || "approved")}>{statusLabel(eq.status)}</span></td>
+                    <td style={{ ...S.td, width: "140px" }}>
+                      <ItemActions colName="equipment" id={eq.id} status={eq.status} featured={eq.featured} label={eq.name} onEdit={() => openEdit(eq)} onDelete={() => setDeleteTarget(eq)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {modal && (
         <Modal title={modal === "add" ? "إضافة منتج" : "تعديل المنتج"} onClose={() => setModal(null)}>
@@ -1008,6 +1118,7 @@ type CompForm = Omit<Competition, "id" | "createdAt" | "status" | "featured" | "
 const emptyComp: CompForm = { name: "", type: "national", startDate: "", endDate: "", description: "", content: "", organizer: "", organizerDescription: "", targetAudience: "", source: "", image: "", contentImages: [], link: "" };
 
 function CompetitionsSection() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState<Competition[]>([]);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<CompForm>(emptyComp);
@@ -1328,7 +1439,7 @@ function ProfessionalsSection() {
                   <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
                   <td style={S.td}>{p.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
                   <td style={{ ...S.td, width: "160px" }}>
-                    <div className="flex gap-1.5 justify-end items-center flex-wrap">
+                    <div className="flex flex-col gap-1.5 justify-end items-end">
                       <button
                         onClick={() => toggleFeatured("users", p.id, p.featured)}
                         title={p.featured ? "إلغاء التمييز" : "تمييز"}
