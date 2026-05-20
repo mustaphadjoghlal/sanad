@@ -242,7 +242,6 @@ export default function Layout() {
                 </>
               )}
               {isAdmin && (
-                // Admin has separate UI, show nothing in public nav
                 null
               )}
             </div>
