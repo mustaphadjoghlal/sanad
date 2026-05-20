@@ -236,9 +236,20 @@ export function subscribeToSiteContent(callback: (content: SiteContent) => void)
   });
 }
 
+// --- FCM TOKEN (admin push) ---
+export async function saveAdminFCMToken(token: string): Promise<void> {
+  await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() });
+}
+
 // --- APP NOTIFICATIONS ---
 export async function sendNotification(notif: Omit<AppNotification, "id" | "readBy">): Promise<void> {
   await addDoc(col("notifications"), { ...notif, readBy: [] });
+  // Send real push notification via Vercel API route
+  fetch("/api/push", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: notif.title, body: notif.body }),
+  }).catch(() => {});
 }
 
 export function subscribeToNotifications(callback: (notifs: AppNotification[]) => void): () => void {
