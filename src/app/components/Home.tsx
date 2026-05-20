@@ -1,25 +1,12 @@
-import { Link } from "react-router-dom";
-import { BookOpen, ShoppingCart, Briefcase, Trophy, Mic, ArrowLeft, MapPin, Calendar, Camera, Radio, Users, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Star, Users, Zap } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist, SiteContent } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
-const services = [
-  { icon: BookOpen,    title: "الدورات التدريبية",    desc: "دورات مجانية ومدفوعة في جميع مجالات الإعلام",       link: "/courses",        delay: "0.05s" },
-  { icon: Briefcase,   title: "عروض التوظيف",         desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",      link: "/jobs",           delay: "0.10s" },
-  { icon: ShoppingCart,title: "عتاد إعلامي",           desc: "تصفح وأعلن عن معدات الإعلام الاحترافية",            link: "/equipment",      delay: "0.15s" },
-  { icon: Trophy,      title: "المسابقات الإعلامية",  desc: "مواعيد المسابقات الجامعية والوطنية والدولية",        link: "/competitions",   delay: "0.20s" },
-  { icon: Mic,         title: "المنشطون والمعلقون",   desc: "ابحث عن منشطين ومعلقين صوتيين محترفين لمشاريعك",    link: "/voice-requests", delay: "0.25s" },
-  { icon: Radio,       title: "القنوات الإعلامية",    desc: "دليل شامل للقنوات التلفزيونية والإذاعية الجزائرية", link: "/channels",       delay: "0.30s" },
-];
-
-const typeLabel: Record<string, string> = {
-  journalist: "صحفي", voice: "منشط صوتي", vendor: "بائع عتاد",
-};
-
 /* ── Animated counter ── */
-function AnimatedCount({ target, suffix = "" }: { target: number; suffix?: string }) {
+function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [val, setVal] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -48,22 +35,26 @@ function SectionHeader({ num, title, link, linkLabel }: { num: string; title: st
         <span className="text-5xl font-black select-none" style={{ color: "var(--p-15)", lineHeight: 1 }}>{num}</span>
         <div>
           <h2 className="text-2xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
-          <div className="h-0.5 w-16 mt-1.5 rounded-full" style={{ background: "linear-gradient(90deg, var(--theme-accent), transparent)" }} />
+          <div className="h-0.5 mt-1 rounded-full" style={{ width: "3rem", background: "var(--theme-accent, #00a355)" }} />
         </div>
       </div>
-      <Link
-        to={link}
-        className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-all duration-200"
-        style={{ color: "var(--theme-text-muted)", border: "1px solid var(--p-20)", textDecoration: "none" }}
-        onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--theme-accent)"; el.style.borderColor = "var(--p-40)"; el.style.background = "var(--p-08)"; }}
-        onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.color = "var(--theme-text-muted)"; el.style.borderColor = "var(--p-20)"; el.style.background = ""; }}
-      >
-        <span>{linkLabel}</span>
-        <ArrowLeft size={13} />
+      <Link to={link} className="flex items-center gap-1 text-sm transition-colors" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
+        onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.opacity = "0.7"}
+        onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.opacity = "1"}>
+        {linkLabel} <ArrowLeft size={14} />
       </Link>
     </div>
   );
 }
+
+const services = [
+  { icon: BookOpen,  title: "الدورات التدريبية",  desc: "برامج تدريبية احترافية في مجال الإعلام والصحافة والإنتاج",   link: "/courses",       delay: "0.05s" },
+  { icon: Briefcase,   title: "عروض التوظيف",         desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",      link: "/jobs",           delay: "0.10s" },
+  { icon: Package,     title: "عتاد إعلامي",          desc: "معدات تصوير وصوت وبث من أفضل الموردين",              link: "/equipment",      delay: "0.15s" },
+  { icon: Trophy,      title: "المسابقات",            desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",      link: "/competitions",   delay: "0.20s" },
+  { icon: Mic2,        title: "طلبات المنشطين",       desc: "ابحث عن منشطين محترفين أو قدّم نفسك للفرص المتاحة",   link: "/voice-requests", delay: "0.25s" },
+  { icon: Tv2,         title: "دليل القنوات",         desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",    link: "/channels",       delay: "0.30s" },
+];
 
 export default function Home() {
   const [featuredCourses,    setFeaturedCourses]    = useState<Course[]>([]);
@@ -95,7 +86,7 @@ export default function Home() {
   return (
     <div style={{ background: "var(--theme-bg-main, #0e0e0e)", minHeight: "100vh" }}>
 
-      {/* ══ HERO ══════════════════════════════════════════════════════════ */}
+      {/* ══ HERO ═════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden" style={{ minHeight: "92vh", display: "flex", alignItems: "center" }}>
 
         {/* Grid */}
@@ -106,177 +97,119 @@ export default function Home() {
 
         {/* Glow blobs */}
         <div className="absolute w-96 h-96 rounded-full" style={{ top: "10%", left: "5%", background: "radial-gradient(circle, var(--theme-accent), transparent 70%)", filter: "blur(80px)", opacity: 0.07 }} />
-        <div className="absolute w-72 h-72 rounded-full" style={{ bottom: "15%", right: "8%", background: "radial-gradient(circle, var(--theme-primary), transparent 70%)", filter: "blur(60px)", opacity: 0.09 }} />
+        <div className="absolute w-96 h-96 rounded-full" style={{ bottom: "10%", right: "5%", background: "radial-gradient(circle, var(--theme-primary), transparent 70%)", filter: "blur(80px)", opacity: 0.07 }} />
 
-        {/* Floating icons */}
-        {[
-          { icon: Camera,   top: "18%", left:  "8%",  size: 22, delay: "0s",    dur: "6s"  },
-          { icon: Mic,      top: "60%", left:  "5%",  size: 18, delay: "1s",    dur: "7s"  },
-          { icon: Radio,    top: "25%", right: "7%",  size: 20, delay: "0.5s",  dur: "8s"  },
-          { icon: Trophy,   top: "65%", right: "9%",  size: 16, delay: "1.5s",  dur: "6.5s"},
-          { icon: BookOpen, top: "40%", left:  "3%",  size: 16, delay: "2s",    dur: "7.5s"},
-          { icon: Star,     top: "12%", right: "15%", size: 14, delay: "0.8s",  dur: "9s"  },
-        ].map(({ icon: Icon, top, left, right, size, delay, dur }, i) => (
-          <div
-            key={i}
-            className="absolute hidden lg:flex items-center justify-center rounded-xl animate-float"
-            style={{
-              top, left, right,
-              width: size * 2 + 16, height: size * 2 + 16,
-              background: "var(--p-10)", border: "1px solid var(--p-20)",
-              animationDelay: delay, animationDuration: dur,
-              backdropFilter: "blur(4px)",
-            }}
-          >
-            <Icon size={size} style={{ color: "var(--theme-accent)" }} />
-          </div>
-        ))}
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto text-center">
 
-        <div className="container mx-auto px-4 text-center relative z-10">
-          {/* Badge */}
-          <div
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-10 animate-fade-in"
-            style={{ border: "1px solid var(--p-30)", background: "var(--p-08)", color: "var(--theme-accent)", fontSize: "0.78rem" }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--theme-accent)" }} />
-            {c.heroBadge}
-          </div>
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 animate-fade-in" style={{ background: "var(--p-12)", border: "1px solid var(--p-30)", opacity: 0, animationFillMode: "forwards" }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--theme-accent)" }} />
+              <span className="text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>{c.heroBadge}</span>
+            </div>
 
-          {/* Heading */}
-          <h1
-            className="font-black mb-6 animate-fade-in-up"
-            style={{ fontSize: "clamp(2.8rem, 8vw, 5.5rem)", lineHeight: 1.1, color: "var(--theme-text, #e8f5e9)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}
-          >
-            {c.heroTitle}{" "}
-            <span className="text-shimmer">{c.siteName}</span>
-            <br />
-            <span style={{ fontSize: "clamp(1.4rem, 4vw, 2.5rem)", fontWeight: 400, color: "var(--theme-text-secondary)" }}>
+            {/* Title */}
+            <h1 className="text-5xl md:text-7xl font-black mb-4 animate-fade-in-up delay-100" style={{ color: "var(--theme-text, #e8f5e9)", lineHeight: 1.1, opacity: 0, animationFillMode: "forwards" }}>
+              {c.heroTitle}{" "}
+              <span className="text-shimmer">{c.siteName}</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-xl md:text-2xl mb-4 animate-fade-in-up delay-200" style={{ color: "var(--theme-text-secondary, #a5d6a7)", opacity: 0, animationFillMode: "forwards" }}>
               {c.heroSubtitle}
-            </span>
-          </h1>
+            </p>
 
-          {/* Subtitle */}
-          <p
-            className="max-w-xl mx-auto mb-10 animate-fade-in-up"
-            style={{ fontSize: "1.05rem", color: "var(--theme-text-secondary)", lineHeight: 1.8, animationDelay: "0.22s", opacity: 0, animationFillMode: "forwards" }}
-          >
-            {c.heroDescription}
-          </p>
+            {/* Description */}
+            <p className="text-base md:text-lg mb-10 animate-fade-in-up delay-300" style={{ color: "var(--theme-text-muted, #6aad6a)", maxWidth: "600px", margin: "0 auto 2.5rem", opacity: 0, animationFillMode: "forwards" }}>
+              {c.heroDescription}
+            </p>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-in-up" style={{ animationDelay: "0.35s", opacity: 0, animationFillMode: "forwards" }}>
-            <Link to="/courses" className="btn-dz inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-base" style={{ textDecoration: "none" }}>
-              <span>{c.heroCta1}</span>
-              <ArrowLeft size={18} />
-            </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-base transition-all duration-200"
-              style={{ border: "1px solid var(--p-40)", color: "var(--theme-badge-text)", background: "transparent", textDecoration: "none" }}
-              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "var(--p-12)"; el.style.borderColor = "var(--p-60)"; }}
-              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "transparent"; el.style.borderColor = "var(--p-40)"; }}
-            >
-              <Users size={17} />
-              {c.heroCta2}
-            </Link>
+            {/* CTA */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400" style={{ opacity: 0, animationFillMode: "forwards" }}>
+              <Link to="/courses" className="btn-dz px-8 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center gap-2" style={{ textDecoration: "none" }}>
+                <span>{c.heroCta1}</span>
+                <ArrowLeft size={20} />
+              </Link>
+              <Link to="/register" className="px-8 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300" style={{ border: "1px solid var(--p-35)", color: "var(--theme-badge-text, #81c784)", textDecoration: "none" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+                <Users size={20} />
+                {c.heroCta2}
+              </Link>
+            </div>
           </div>
 
-          {/* Scroll hint */}
-          <div className="mt-16 animate-bounce" style={{ color: "var(--p-30)", fontSize: "1.5rem" }}>↓</div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, var(--p-40), transparent)" }} />
-      </section>
-
-      {/* ══ QUICK STATS ════════════════════════════════════════════════════ */}
-      <section className="py-10 px-4" style={{ background: "var(--p-05)", borderBottom: "1px solid var(--p-15)" }}>
-        <div className="container mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mt-16 animate-fade-in delay-500" style={{ opacity: 0, animationFillMode: "forwards" }}>
             {[
-              { target: 6,   suffix: "",    label: "خدمات متكاملة",  icon: Star },
-              { target: 69,  suffix: "",    label: "ولاية جزائرية",  icon: MapPin },
-              { target: 100, suffix: "٪",   label: "محتوى جزائري",   icon: Radio },
-              { target: 7,   suffix: "/24", label: "متاح دائماً",    icon: Calendar },
+              { value: 69,  suffix: "",     label: "ولاية" },
+              { value: 7,   suffix: "/24",  label: "تخصص" },
+              { value: 100, suffix: "%",    label: "مجاني" },
             ].map((s, i) => (
-              <div
-                key={i}
-                className="py-5 px-4 rounded-xl animate-fade-in-up"
-                style={{ background: "var(--p-08)", border: "1px solid var(--p-20)", animationDelay: `${i * 0.08}s`, opacity: 0, animationFillMode: "forwards" }}
-              >
-                <div className="text-3xl font-black mb-1" style={{ color: "var(--theme-accent)" }}>
-                  <AnimatedCount target={s.target} suffix={s.suffix} />
+              <div key={i} className="text-center p-4 rounded-2xl" style={{ background: "var(--p-08)", border: "1px solid var(--p-20)" }}>
+                <div className="text-2xl font-black" style={{ color: "var(--theme-accent)" }}>
+                  <AnimatedCounter target={s.value} suffix={s.suffix} />
                 </div>
-                <div style={{ color: "var(--theme-text-muted)", fontSize: "0.82rem" }}>{s.label}</div>
+                <div className="text-xs mt-1" style={{ color: "var(--theme-text-muted)" }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══ SERVICES GRID ══════════════════════════════════════════════════ */}
-      <section className="py-20 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
-        <div className="container mx-auto">
+      {/* ══ SERVICES ═══════════════════════════════════════════════════ */}
+      <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>{c.servicesLabel}</p>
             <h2 className="text-3xl font-bold" style={{ color: "var(--theme-text)" }}>{c.servicesTitle}</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {services.map((s) => {
-              const Icon = s.icon;
-              return (
-                <Link
-                  key={s.link}
-                  to={s.link}
-                  className="group card-glow rounded-2xl p-6 animate-fade-in-up"
-                  style={{ textDecoration: "none", animationDelay: s.delay, opacity: 0, animationFillMode: "forwards", display: "block" }}
-                >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110"
-                    style={{ background: "var(--p-20)", border: "1px solid var(--p-35)" }}
-                  >
-                    <Icon size={22} style={{ color: "var(--theme-accent)" }} />
-                  </div>
-                  <h3 className="font-bold mb-2 group-hover:text-theme-accent transition-colors" style={{ color: "var(--theme-text)", fontSize: "1rem" }}>{s.title}</h3>
-                  <p style={{ color: "var(--theme-text-muted)", fontSize: "0.84rem", lineHeight: 1.7 }}>{s.desc}</p>
-                  <div className="flex items-center gap-1 mt-4 transition-all duration-200 group-hover:gap-2" style={{ color: "var(--theme-accent)", fontSize: "0.78rem" }}>
-                    <span>اكتشف المزيد</span>
-                    <ArrowLeft size={12} />
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((s) => (
+              <Link
+                key={s.link}
+                to={s.link}
+                className="card-glow group p-6 rounded-2xl flex flex-col gap-3 animate-fade-in-up"
+                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: s.delay }}
+              >
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--p-15)" }}>
+                  <s.icon size={22} style={{ color: "var(--theme-accent)" }} />
+                </div>
+                <h3 className="font-bold text-lg" style={{ color: "var(--theme-text)" }}>{s.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-muted)" }}>{s.desc}</p>
+                <div className="flex items-center gap-1 text-sm mt-auto" style={{ color: "var(--theme-accent)" }}>
+                  <span>اكتشف</span> <ArrowLeft size={14} />
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ══ FEATURED COURSES ═══════════════════════════════════════════════ */}
+      {/* ══ FEATURED COURSES ════════════════════════════════════════ */}
       {featuredCourses.length > 0 && (
-        <section className="py-16 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
-          <div className="container mx-auto">
-            <SectionHeader num="01" title="الدورات المميزة" link="/courses" linkLabel="عرض الكل" />
-            <div className="flex gap-5 overflow-x-auto pb-3" style={{ scrollbarWidth: "thin", scrollbarColor: "var(--p-25) transparent" }}>
-              {featuredCourses.map((c, i) => (
-                <Link
-                  key={c.id} to={`/courses/${c.id}`}
-                  className="card-glow rounded-2xl flex-shrink-0 overflow-hidden animate-fade-in-up"
-                  style={{ width: "260px", textDecoration: "none", display: "block", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
-                >
-                  {c.image ? (
-                    <img src={c.image} alt={c.title} style={{ width: "100%", height: "130px", objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ height: "90px", background: "linear-gradient(135deg, var(--p-20), var(--p-08))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <BookOpen size={28} style={{ color: "var(--p-40)" }} />
+        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4">
+            <SectionHeader num="01" title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCourses.slice(0, 3).map((course, i) => (
+                <Link key={course.id} to={`/courses/${course.id}`}
+                  className="card-glow group rounded-2xl overflow-hidden animate-fade-in-up"
+                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
+                  {course.imageUrl && (
+                    <div style={{ height: "180px", overflow: "hidden" }}>
+                      <img src={course.imageUrl} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }}
+                        onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.05)"}
+                        onMouseLeave={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"} />
                     </div>
                   )}
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span style={{ background: c.type === "free" ? "var(--p-25)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "var(--theme-badge-text)" : "#7fb3d3", fontSize: "0.7rem", padding: "0.15rem 0.55rem", borderRadius: "9999px" }}>
-                        {c.type === "free" ? "مجانية" : `${c.price?.toLocaleString()} دج`}
-                      </span>
-                      {c.duration && <span style={{ color: "var(--theme-text-dim)", fontSize: "0.72rem" }}>{c.duration}</span>}
+                  <div className="p-5">
+                    <div className="flex gap-2 mb-3 flex-wrap">
+                      {course.level && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{course.level}</span>}
+                      {course.category && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-10)", color: "var(--theme-text-muted)" }}>{course.category}</span>}
                     </div>
-                    <h3 className="font-semibold mb-1" style={{ color: "var(--theme-text)", fontSize: "0.9rem" }}>{c.title}</h3>
-                    <p style={{ color: "var(--theme-text-muted)", fontSize: "0.77rem" }}>{c.instructor}</p>
+                    <h3 className="font-bold text-base mb-2" style={{ color: "var(--theme-text)" }}>{course.title}</h3>
+                    {course.instructor && <p className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{course.instructor}</p>}
                   </div>
                 </Link>
               ))}
@@ -285,33 +218,78 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ FEATURED JOBS ══════════════════════════════════════════════════ */}
+      {/* ══ FEATURED PROFESSIONALS ═════════════════════════════════ */}
+      {featuredProfiles.length > 0 && (
+        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4">
+            <SectionHeader num="02" title="محترفون مميزون" link="/professionals" linkLabel="كل المحترفين" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredProfiles.slice(0, 3).map((p, i) => (
+                <div key={p.id} className="card-glow p-5 rounded-2xl flex gap-4 items-start animate-fade-in-up"
+                  style={{ background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0" style={{ background: "var(--p-15)" }}>
+                    {p.photoUrl
+                      ? <img src={p.photoUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      : <div className="w-full h-full flex items-center justify-center text-2xl font-bold" style={{ color: "var(--theme-accent)" }}>{p.name?.[0]}</div>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{p.name}</h3>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--theme-accent)" }}>{p.specialty}</p>
+                    {p.wilaya && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{p.wilaya}</p>}
+                    {p.bio && <p className="text-xs mt-2 line-clamp-2" style={{ color: "var(--theme-text-muted)", lineHeight: 1.5 }}>{p.bio}</p>}
+                    <div className="flex gap-1 mt-3 flex-wrap">
+                      {p.skills?.slice(0, 3).map(sk => (
+                        <span key={sk} className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-12)", color: "var(--theme-text-secondary)" }}>{sk}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ══ FEATURED JOBS ═══════════════════════════════════════════════ */}
       {featuredJobs.length > 0 && (
-        <section className="py-16 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
-          <div className="container mx-auto">
-            <SectionHeader num="02" title="أحدث الفرص الوظيفية" link="/jobs" linkLabel="عرض الكل" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {featuredJobs.map((j, i) => (
-                <Link
-                  key={j.id} to={`/jobs/${j.id}`}
-                  className="card-glow rounded-2xl overflow-hidden animate-fade-in-up"
-                  style={{ textDecoration: "none", display: "block", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
-                >
-                  {j.image ? (
-                    <img src={j.image} alt={j.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ height: "90px", background: "linear-gradient(135deg, var(--p-18), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Briefcase size={30} style={{ color: "var(--p-40)" }} />
+        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4">
+            <SectionHeader num="03" title="فرص عمل مميزة" link="/jobs" linkLabel="كل الفرص" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredJobs.map((job, i) => (
+                <Link key={job.id} to={`/jobs/${job.id}`} className="card-glow p-5 rounded-2xl animate-fade-in-up block"
+                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{job.title}</h3>
+                    {job.type && <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{job.type}</span>}
+                  </div>
+                  <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{job.company}</p>
+                  {job.wilaya && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{job.wilaya}</p>}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ══ FEATURED EQUIPMENT ══════════════════════════════════════════ */}
+      {featuredEquipment.length > 0 && (
+        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4">
+            <SectionHeader num="04" title="عتاد مميز" link="/equipment" linkLabel="كل العتاد" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredEquipment.map((eq, i) => (
+                <Link key={eq.id} to={`/equipment/${eq.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
+                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
+                  {eq.imageUrl && (
+                    <div style={{ height: "160px", overflow: "hidden" }}>
+                      <img src={eq.imageUrl} alt={eq.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   )}
                   <div className="p-4">
-                    {j.jobType && <span style={{ background: "var(--p-25)", color: "var(--theme-badge-text)", fontSize: "0.7rem", padding: "0.15rem 0.55rem", borderRadius: "9999px" }}>{j.jobType}</span>}
-                    <h3 className="font-semibold mt-2 mb-1" style={{ color: "var(--theme-text)", fontSize: "0.92rem" }}>{j.title}</h3>
-                    <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.8rem" }}>{j.company}</p>
-                    <div className="flex flex-wrap gap-2 mt-2" style={{ color: "var(--theme-text-muted)", fontSize: "0.75rem" }}>
-                      {j.location && <span className="flex items-center gap-1"><MapPin size={10} />{j.location}</span>}
-                      {j.deadline && <span className="flex items-center gap-1"><Calendar size={10} />آخر أجل: {j.deadline}</span>}
-                    </div>
+                    <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{eq.title}</h3>
+                    {eq.category && <p className="text-xs mt-1" style={{ color: "var(--theme-accent)" }}>{eq.category}</p>}
+                    {eq.wilaya && <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-dim)" }}>{eq.wilaya}</p>}
                   </div>
                 </Link>
               ))}
@@ -320,36 +298,31 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ UPCOMING COMPETITIONS ══════════════════════════════════════════ */}
+      {/* ══ UPCOMING COMPETITIONS ══════════════════════════════════════ */}
       {upcomingComps.length > 0 && (
-        <section className="py-16 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
-          <div className="container mx-auto">
-            <SectionHeader num="03" title="مسابقات قادمة" link="/competitions" linkLabel="عرض الكل" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {upcomingComps.map((c, i) => {
+        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4">
+            <SectionHeader num="05" title="مسابقات قادمة" link="/competitions" linkLabel="كل المسابقات" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {upcomingComps.map((comp, i) => {
                 const typeBg: Record<string,string>  = { university: "#1a4f7a", national: "#1b5e35", international: "#7a3800" };
                 const typeClr: Record<string,string> = { university: "#ffffff", national: "#ffffff", international: "#ffffff" };
-                const typeLbl: Record<string,string> = { university: "جامعية", national: "وطنية", international: "دولية" };
                 return (
-                  <Link
-                    key={c.id} to={`/competitions/${c.id}`}
-                    className="card-glow rounded-2xl overflow-hidden animate-fade-in-up"
-                    style={{ textDecoration: "none", display: "block", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
-                  >
-                    {c.image ? (
-                      <img src={c.image} alt={c.name} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
-                    ) : (
-                      <div style={{ height: "90px", background: "linear-gradient(135deg, var(--p-18), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Trophy size={30} style={{ color: "var(--p-40)" }} />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <span style={{ background: typeBg[c.type] || "var(--p-25)", color: typeClr[c.type] || "var(--theme-badge-text)", fontSize: "0.7rem", padding: "0.15rem 0.55rem", borderRadius: "9999px" }}>
-                        {typeLbl[c.type]}
-                      </span>
-                      <h3 className="font-semibold mt-2 mb-1" style={{ color: "var(--theme-text)", fontSize: "0.92rem" }}>{c.name}</h3>
-                      <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.8rem", marginBottom: "0.4rem" }}>{c.organizer}</p>
-                      {c.startDate && <span className="flex items-center gap-1" style={{ color: "var(--theme-text-muted)", fontSize: "0.75rem" }}><Calendar size={10} />{c.startDate}</span>}
+                  <Link key={comp.id} to={`/competitions/${comp.id}`} className="card-glow p-5 rounded-2xl animate-fade-in-up block"
+                    style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{comp.title}</h3>
+                      {comp.type && (
+                        <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                          style={{ background: typeBg[comp.type] ?? "#1b5e35", color: typeClr[comp.type] ?? "#ffffff" }}>
+                          {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
+                        </span>
+                      )}
+                    </div>
+                    {comp.organizer && <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{comp.organizer}</p>}
+                    <div className="flex items-center gap-2 mt-3">
+                      <Zap size={13} style={{ color: "var(--theme-accent)" }} />
+                      <span className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{comp.startDate}</span>
                     </div>
                   </Link>
                 );
@@ -359,99 +332,32 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ FEATURED EQUIPMENT ═════════════════════════════════════════════ */}
-      {featuredEquipment.length > 0 && (
-        <section className="py-16 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
-          <div className="container mx-auto">
-            <SectionHeader num="04" title="معدات إعلامية" link="/equipment" linkLabel="عرض الكل" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {featuredEquipment.map((eq, i) => (
-                <Link
-                  key={eq.id} to={`/equipment/${eq.id}`}
-                  className="card-glow rounded-2xl overflow-hidden animate-fade-in-up"
-                  style={{ textDecoration: "none", display: "block", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
-                >
-                  {eq.image ? (
-                    <img src={eq.image} alt={eq.name} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ height: "90px", background: "linear-gradient(135deg, var(--p-18), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Camera size={30} style={{ color: "var(--p-40)" }} />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-semibold" style={{ color: "var(--theme-text)", fontSize: "0.92rem" }}>{eq.name}</h3>
-                      <span style={{ background: eq.condition === "new" ? "var(--p-25)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text)" : "#f0b27a", fontSize: "0.68rem", padding: "0.15rem 0.45rem", borderRadius: "9999px", whiteSpace: "nowrap", flexShrink: 0 }}>
-                        {eq.condition === "new" ? "جديد" : "مستعمل"}
-                      </span>
-                    </div>
-                    <p style={{ color: "var(--theme-accent)", fontWeight: 700, fontSize: "0.92rem" }}>{eq.price?.toLocaleString()} دج</p>
-                    <p style={{ color: "var(--theme-text-muted)", fontSize: "0.77rem" }}>{eq.seller}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══ FEATURED VOICES ════════════════════════════════════════════════ */}
+      {/* ══ FEATURED VOICE ARTISTS ═════════════════════════════════════ */}
       {featuredVoice.length > 0 && (
-        <section className="py-16 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
-          <div className="container mx-auto">
-            <SectionHeader num="05" title="منشطون مميزون" link="/voice-requests" linkLabel="عرض الكل" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4">
+            <SectionHeader num="06" title="منشطون مميزون" link="/voice-requests" linkLabel="كل المنشطين" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredVoice.map((v, i) => (
-                <div
-                  key={v.id}
-                  className="card-glow rounded-2xl p-5 animate-fade-in-up"
-                  style={{ animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
-                >
+                <div key={v.id} className="card-glow p-5 rounded-2xl animate-fade-in-up"
+                  style={{ background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "var(--p-20)", border: "1px solid var(--p-35)" }}>
-                      <Mic size={18} style={{ color: "var(--theme-accent)" }} />
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0" style={{ background: "var(--p-15)" }}>
+                      {v.photoUrl
+                        ? <img src={v.photoUrl} alt={v.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        : <div className="w-full h-full flex items-center justify-center font-bold" style={{ color: "var(--theme-accent)" }}>{v.name?.[0]}</div>}
                     </div>
                     <div>
-                      <h3 className="font-semibold" style={{ color: "var(--theme-text)", fontSize: "0.92rem" }}>{v.name}</h3>
-                      {v.specialty && <span style={{ background: "var(--p-18)", color: "var(--theme-badge-text)", fontSize: "0.68rem", padding: "0.1rem 0.45rem", borderRadius: "9999px" }}>{v.specialty}</span>}
+                      <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{v.name}</h3>
+                      {v.specialty && <p className="text-xs" style={{ color: "var(--theme-accent)" }}>{v.specialty}</p>}
                     </div>
                   </div>
-                  {v.experience && <p style={{ color: "var(--theme-text-muted)", fontSize: "0.78rem" }}>الخبرة: {v.experience}</p>}
                   {v.description && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.4rem" }}>{v.description.slice(0, 80)}{v.description.length > 80 ? "…" : ""}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══ FEATURED PROFESSIONALS ═════════════════════════════════════════ */}
-      {featuredProfiles.length > 0 && (
-        <section className="py-16 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
-          <div className="container mx-auto">
-            <SectionHeader num="06" title="محترفون مميزون" link="/voice-requests" linkLabel="عرض الكل" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {featuredProfiles.map((p, i) => (
-                <div
-                  key={p.id}
-                  className="card-glow rounded-2xl p-5 animate-fade-in-up"
-                  style={{ animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    {p.photo ? (
-                      <img src={p.photo} alt={p.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0" style={{ border: "2px solid var(--p-30)" }} />
-                    ) : (
-                      <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "var(--p-20)", border: "1px solid var(--p-35)" }}>
-                        <span style={{ color: "var(--theme-accent)", fontWeight: 700 }}>{p.name.charAt(0)}</span>
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-semibold" style={{ color: "var(--theme-text)", fontSize: "0.92rem" }}>{p.name}</h3>
-                      <span style={{ background: "var(--p-18)", color: "var(--theme-badge-text)", fontSize: "0.68rem", padding: "0.1rem 0.45rem", borderRadius: "9999px" }}>{typeLabel[p.type] || p.type}</span>
-                    </div>
+                  <div className="flex gap-1 mt-3 flex-wrap">
+                    {v.languages?.slice(0, 3).map(l => (
+                      <span key={l} className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-12)", color: "var(--theme-text-secondary)" }}>{l}</span>
+                    ))}
                   </div>
-                  {p.specialty && <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.8rem", marginBottom: "0.25rem" }}>{p.specialty}</p>}
-                  {p.location && <div className="flex items-center gap-1" style={{ color: "var(--theme-text-muted)", fontSize: "0.77rem" }}><MapPin size={11} /><span>{p.location}</span></div>}
                 </div>
               ))}
             </div>
@@ -459,31 +365,23 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ JOIN CTA ════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, var(--p-15) 0%, transparent 70%)" }} />
-        <div className="container mx-auto text-center relative z-10 max-w-2xl">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 animate-float" style={{ background: "linear-gradient(135deg, var(--theme-primary), var(--theme-accent))", boxShadow: "0 0 40px var(--p-40)" }}>
-            <Radio size={28} color="#fff" />
+      {/* ══ CTA ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-20 relative overflow-hidden" style={{ borderTop: "1px solid var(--p-15)" }}>
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, var(--p-12) 0%, transparent 70%)" }} />
+        <div className="container mx-auto px-4 relative z-10 text-center max-w-2xl">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 animate-float" style={{ background: "linear-gradient(135deg, var(--theme-primary), var(--theme-accent))", boxShadow: "0 0 32px var(--p-40)" }}>
+            <Star size={28} color="#fff" />
           </div>
-          <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--theme-text)" }}>
-            {c.ctaTitle}
-          </h2>
-          <p className="mb-8" style={{ color: "var(--theme-text-secondary)", fontSize: "1rem", lineHeight: 1.8 }}>
-            {c.ctaSubtitle}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/register" className="btn-dz inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold" style={{ textDecoration: "none" }}>
-              <Users size={17} />
+          <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--theme-text)" }}>{c.ctaTitle}</h2>
+          <p className="mb-8" style={{ color: "var(--theme-text-muted)" }}>{c.ctaSubtitle}</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/register" className="btn-dz px-8 py-3 rounded-xl font-semibold flex items-center justify-center gap-2" style={{ textDecoration: "none" }}>
               <span>{c.ctaButton}</span>
+              <ArrowLeft size={18} />
             </Link>
-            <Link
-              to="/courses"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200"
-              style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary)", textDecoration: "none" }}
-              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "var(--p-10)"; el.style.borderColor = "var(--p-50)"; }}
-              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = ""; el.style.borderColor = "var(--p-30)"; }}
-            >
+            <Link to="/courses" className="px-8 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300" style={{ border: "1px solid var(--p-35)", color: "var(--theme-badge-text, #81c784)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
               {c.ctaButton2}
             </Link>
           </div>
