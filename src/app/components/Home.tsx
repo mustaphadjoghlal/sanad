@@ -63,12 +63,12 @@ export default function Home() {
   const [featuredEquipment,  setFeaturedEquipment]  = useState<Equipment[]>([]);
   const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
   const [upcomingComps,      setUpcomingComps]      = useState<Competition[]>([]);
-  const [content, setContent] = useState<SiteContent>(() => {
+  const [content, setContent] = useState<SiteContent | null>(() => {
     try {
       const cached = localStorage.getItem("sanad_site_content");
       if (cached) return JSON.parse(cached) as SiteContent;
     } catch {}
-    return DEFAULT_SITE_CONTENT;
+    return null;
   });
 
   useEffect(() => {
@@ -90,7 +90,8 @@ export default function Home() {
     return () => unsubs.forEach((u) => u());
   }, []);
 
-  const c = content;
+  const c = content ?? DEFAULT_SITE_CONTENT;
+  const contentReady = content !== null;
 
   return (
     <div style={{ background: "var(--theme-bg-main, #0e0e0e)", minHeight: "100vh" }}>
@@ -109,7 +110,7 @@ export default function Home() {
         <div className="absolute w-96 h-96 rounded-full" style={{ bottom: "10%", right: "5%", background: "radial-gradient(circle, var(--theme-primary), transparent 70%)", filter: "blur(80px)", opacity: 0.07 }} />
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-3xl mx-auto text-center" style={{ opacity: contentReady ? 1 : 0, transition: "opacity 0.4s ease" }}>
 
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 animate-fade-in" style={{ background: "var(--p-12)", border: "1px solid var(--p-30)", opacity: 0, animationFillMode: "forwards" }}>
