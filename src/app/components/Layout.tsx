@@ -14,6 +14,7 @@ export default function Layout() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const prevNotifCountRef = useRef(0);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -64,20 +65,19 @@ export default function Layout() {
 
   // Subscribe to notifications for logged-in users
   useEffect(() => {
-    if (!currentUser) { setNotifications([]); return; }
+    if (!currentUser) { setNotifications([]); prevNotifCountRef.current = 0; return; }
     const unsub = subscribeToNotifications((notifs) => {
-      const prev = notifications;
-      // Show browser notification for new ones
-      if (prev.length > 0 && notifs.length > prev.length) {
+      const prevCount = prevNotifCountRef.current;
+      if (prevCount > 0 && notifs.length > prevCount) {
         const newest = notifs[0];
-        if (Notification.permission === "granted") {
+        if ("Notification" in window && Notification.permission === "granted") {
           new Notification(newest.title, { body: newest.body, icon: "/icon.svg", dir: "rtl", lang: "ar" });
         }
       }
+      prevNotifCountRef.current = notifs.length;
       setNotifications(notifs);
     });
     return unsub;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   // Request notification permission after login
@@ -274,8 +274,15 @@ export default function Layout() {
                 </button>
                 {notifOpen && (
                   <div
-                    className="absolute left-0 mt-2 w-80 rounded-xl overflow-hidden animate-fade-in-down z-50"
-                    style={{ background: "var(--theme-bg-card, #141414)", border: "1px solid var(--p-30)", boxShadow: "0 16px 40px rgba(0,0,0,0.6)" }}
+                    className="absolute mt-2 rounded-xl overflow-hidden animate-fade-in-down z-50"
+                    style={{
+                      background: "var(--theme-bg-card, #141414)",
+                      border: "1px solid var(--p-30)",
+                      boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+                      width: "min(320px, calc(100vw - 16px))",
+                      left: 0,
+                      maxWidth: "calc(100vw - 16px)",
+                    }}
                   >
                     <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--p-15)" }}>
                       <span className="font-semibold text-sm" style={{ color: "var(--theme-text)" }}>الإشعارات</span>
