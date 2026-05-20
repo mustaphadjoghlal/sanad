@@ -209,20 +209,22 @@ export default function Home() {
                 <Link key={course.id} to={`/courses/${course.id}`}
                   className="card-glow group rounded-2xl overflow-hidden animate-fade-in-up"
                   style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  {course.imageUrl && (
+                  {course.image && (
                     <div style={{ height: "180px", overflow: "hidden" }}>
-                      <img src={course.imageUrl} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }}
+                      <img src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }}
                         onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.05)"}
                         onMouseLeave={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"} />
                     </div>
                   )}
                   <div className="p-5">
-                    <div className="flex gap-2 mb-3 flex-wrap">
-                      {course.level && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{course.level}</span>}
-                      {course.category && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-10)", color: "var(--theme-text-muted)" }}>{course.category}</span>}
-                    </div>
                     <h3 className="font-bold text-base mb-2" style={{ color: "var(--theme-text)" }}>{course.title}</h3>
                     {course.instructor && <p className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{course.instructor}</p>}
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: course.type === "free" ? "var(--p-15)" : "rgba(26,82,118,0.3)", color: course.type === "free" ? "var(--theme-accent)" : "#64b5f6" }}>
+                        {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
+                      </span>
+                      {course.duration && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-10)", color: "var(--theme-text-muted)" }}>{course.duration}</span>}
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -241,20 +243,15 @@ export default function Home() {
                 <div key={p.id} className="card-glow p-5 rounded-2xl flex gap-4 items-start animate-fade-in-up"
                   style={{ background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
                   <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0" style={{ background: "var(--p-15)" }}>
-                    {p.photoUrl
-                      ? <img src={p.photoUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    {p.photo
+                      ? <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : <div className="w-full h-full flex items-center justify-center text-2xl font-bold" style={{ color: "var(--theme-accent)" }}>{p.name?.[0]}</div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{p.name}</h3>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--theme-accent)" }}>{p.specialty}</p>
-                    {p.wilaya && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{p.wilaya}</p>}
+                    {p.specialty && <p className="text-xs mt-0.5" style={{ color: "var(--theme-accent)" }}>{p.specialty}</p>}
+                    {p.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{p.location}</p>}
                     {p.bio && <p className="text-xs mt-2 line-clamp-2" style={{ color: "var(--theme-text-muted)", lineHeight: 1.5 }}>{p.bio}</p>}
-                    <div className="flex gap-1 mt-3 flex-wrap">
-                      {p.skills?.slice(0, 3).map(sk => (
-                        <span key={sk} className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-12)", color: "var(--theme-text-secondary)" }}>{sk}</span>
-                      ))}
-                    </div>
                   </div>
                 </div>
               ))}
@@ -270,14 +267,21 @@ export default function Home() {
             <SectionHeader num="03" title="فرص عمل مميزة" link="/jobs" linkLabel="كل الفرص" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredJobs.map((job, i) => (
-                <Link key={job.id} to={`/jobs/${job.id}`} className="card-glow p-5 rounded-2xl animate-fade-in-up block"
+                <Link key={job.id} to={`/jobs/${job.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
                   style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{job.title}</h3>
-                    {job.type && <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{job.type}</span>}
+                  {job.image && (
+                    <div style={{ height: "160px", overflow: "hidden" }}>
+                      <img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{job.title}</h3>
+                      {job.jobType && <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{job.jobType}</span>}
+                    </div>
+                    <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{job.company}</p>
+                    {job.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{job.location}</p>}
                   </div>
-                  <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{job.company}</p>
-                  {job.wilaya && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{job.wilaya}</p>}
                 </Link>
               ))}
             </div>
@@ -294,15 +298,15 @@ export default function Home() {
               {featuredEquipment.map((eq, i) => (
                 <Link key={eq.id} to={`/equipment/${eq.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
                   style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  {eq.imageUrl && (
+                  {eq.image && (
                     <div style={{ height: "160px", overflow: "hidden" }}>
-                      <img src={eq.imageUrl} alt={eq.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img src={eq.image} alt={eq.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   )}
                   <div className="p-4">
-                    <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{eq.title}</h3>
+                    <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{eq.name}</h3>
                     {eq.category && <p className="text-xs mt-1" style={{ color: "var(--theme-accent)" }}>{eq.category}</p>}
-                    {eq.wilaya && <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-dim)" }}>{eq.wilaya}</p>}
+                    <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-dim)" }}>{eq.price?.toLocaleString()} دج</p>
                   </div>
                 </Link>
               ))}
@@ -321,21 +325,28 @@ export default function Home() {
                 const typeBg: Record<string,string>  = { university: "#1a4f7a", national: "#1b5e35", international: "#7a3800" };
                 const typeClr: Record<string,string> = { university: "#ffffff", national: "#ffffff", international: "#ffffff" };
                 return (
-                  <Link key={comp.id} to={`/competitions/${comp.id}`} className="card-glow p-5 rounded-2xl animate-fade-in-up block"
+                  <Link key={comp.id} to={`/competitions/${comp.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
                     style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{comp.title}</h3>
-                      {comp.type && (
-                        <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-                          style={{ background: typeBg[comp.type] ?? "#1b5e35", color: typeClr[comp.type] ?? "#ffffff" }}>
-                          {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
-                        </span>
-                      )}
-                    </div>
-                    {comp.organizer && <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{comp.organizer}</p>}
-                    <div className="flex items-center gap-2 mt-3">
-                      <Zap size={13} style={{ color: "var(--theme-accent)" }} />
-                      <span className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{comp.startDate}</span>
+                    {comp.image && (
+                      <div style={{ height: "150px", overflow: "hidden" }}>
+                        <img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{comp.name}</h3>
+                        {comp.type && (
+                          <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                            style={{ background: typeBg[comp.type] ?? "#1b5e35", color: typeClr[comp.type] ?? "#ffffff" }}>
+                            {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
+                          </span>
+                        )}
+                      </div>
+                      {comp.organizer && <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{comp.organizer}</p>}
+                      <div className="flex items-center gap-2 mt-3">
+                        <Zap size={13} style={{ color: "var(--theme-accent)" }} />
+                        <span className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{comp.startDate}</span>
+                      </div>
                     </div>
                   </Link>
                 );
