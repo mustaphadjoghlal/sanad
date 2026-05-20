@@ -94,7 +94,6 @@ export default function Layout() {
 
       try {
         const sw = await navigator.serviceWorker.ready;
-        // Send Firebase config to service worker so it can init FCM
         sw.active?.postMessage({ type: "FIREBASE_CONFIG", config: firebaseConfig });
 
         if (!FCM_VAPID_KEY) return;
@@ -107,7 +106,6 @@ export default function Layout() {
           await saveAdminFCMToken(token);
         }
 
-        // Show foreground notifications as browser popups
         onMessage(messaging, (payload) => {
           const title = payload.notification?.title ?? "سند";
           const body = payload.notification?.body ?? "";

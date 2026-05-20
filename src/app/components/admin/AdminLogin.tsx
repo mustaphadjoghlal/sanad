@@ -30,7 +30,6 @@ export default function AdminLogin() {
     setError("");
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      // Verify it's not a regular user
       const profile = await getUserProfile(cred.user.uid);
       if (profile) {
         await auth.signOut();
