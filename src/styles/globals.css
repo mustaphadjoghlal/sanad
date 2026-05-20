@@ -268,7 +268,7 @@ body {
 .input-dz {
   background: var(--theme-bg-card, #141414);
   border: 1px solid var(--p-30);
-  color: var(--theme-text, #e8f5e9);
+  color: var(--theme-primary, #006233);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
