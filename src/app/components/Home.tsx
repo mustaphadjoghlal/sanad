@@ -167,7 +167,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══ SERVICES ═══════════════════════════════════════════════════ */}
+      {/* ══ SERVICES ═════════════════════════════════════════════════════ */}
       <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -196,7 +196,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══ FEATURED COURSES ════════════════════════════════════════ */}
+      {/* ══ FEATURED COURSES ════════════════════════════════════════════ */}
       {featuredCourses.length > 0 && (
         <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
           <div className="container mx-auto px-4">
@@ -228,7 +228,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ FEATURED PROFESSIONALS ═════════════════════════════════ */}
+      {/* ══ FEATURED PROFESSIONALS ══════════════════════════════════════ */}
       {featuredProfiles.length > 0 && (
         <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
           <div className="container mx-auto px-4">
@@ -308,7 +308,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ UPCOMING COMPETITIONS ══════════════════════════════════════ */}
+      {/* ══ UPCOMING COMPETITIONS ═══════════════════════════════════════ */}
       {upcomingComps.length > 0 && (
         <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
           <div className="container mx-auto px-4">
@@ -342,7 +342,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ FEATURED VOICE ARTISTS ═════════════════════════════════════ */}
+      {/* ══ FEATURED VOICE ARTISTS ══════════════════════════════════════ */}
       {featuredVoice.length > 0 && (
         <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
           <div className="container mx-auto px-4">
@@ -375,7 +375,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ CTA ═══════════════════════════════════════════════════════════════ */}
+      {/* ══ CTA ══════════════════════════════════════════════════════════ */}
       <section className="py-20 relative overflow-hidden" style={{ borderTop: "1px solid var(--p-15)" }}>
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, var(--p-12) 0%, transparent 70%)" }} />
         <div className="container mx-auto px-4 relative z-10 text-center max-w-2xl">
