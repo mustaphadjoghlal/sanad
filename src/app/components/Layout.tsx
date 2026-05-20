@@ -2,8 +2,8 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Radio, LogOut, LayoutDashboard, Bell } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../../lib/firebase";
-import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead } from "../../lib/firestore";
+import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY } from "../../lib/firebase";
+import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead, saveAdminFCMToken } from "../../lib/firestore";
 import type { UserProfile, AppNotification } from "../../lib/types";
 
 export default function Layout() {
@@ -80,11 +80,45 @@ export default function Layout() {
     return unsub;
   }, [currentUser]);
 
-  // Request notification permission after login
+  // Request notification permission + register FCM token after login
   useEffect(() => {
-    if (currentUser && "Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
+    if (!currentUser) return;
+    if (!("Notification" in window)) return;
+
+    const init = async () => {
+      let permission = Notification.permission;
+      if (permission === "default") {
+        permission = await Notification.requestPermission();
+      }
+      if (permission !== "granted") return;
+
+      try {
+        const sw = await navigator.serviceWorker.ready;
+        // Send Firebase config to service worker so it can init FCM
+        sw.active?.postMessage({ type: "FIREBASE_CONFIG", config: firebaseConfig });
+
+        if (!FCM_VAPID_KEY) return;
+        const messaging = await getMessagingInstance();
+        if (!messaging) return;
+
+        const { getToken, onMessage } = await import("firebase/messaging");
+        const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: sw });
+        if (token) {
+          await saveAdminFCMToken(token);
+        }
+
+        // Show foreground notifications as browser popups
+        onMessage(messaging, (payload) => {
+          const title = payload.notification?.title ?? "سند";
+          const body = payload.notification?.body ?? "";
+          new Notification(title, { body, icon: "/icon.svg", dir: "rtl", lang: "ar" });
+        });
+      } catch {
+        // Silently ignore — FCM not configured yet
+      }
+    };
+
+    init();
   }, [currentUser]);
 
   // Close notif dropdown on outside click
