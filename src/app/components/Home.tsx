@@ -63,7 +63,13 @@ export default function Home() {
   const [featuredEquipment,  setFeaturedEquipment]  = useState<Equipment[]>([]);
   const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
   const [upcomingComps,      setUpcomingComps]      = useState<Competition[]>([]);
-  const [content,            setContent]            = useState<SiteContent | null>(null);
+  const [content, setContent] = useState<SiteContent>(() => {
+    try {
+      const cached = localStorage.getItem("sanad_site_content");
+      if (cached) return JSON.parse(cached) as SiteContent;
+    } catch {}
+    return DEFAULT_SITE_CONTENT;
+  });
 
   useEffect(() => {
     const unsubs = [
@@ -76,12 +82,15 @@ export default function Home() {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
         setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 3));
       }),
-      subscribeToSiteContent(setContent),
+      subscribeToSiteContent((data) => {
+        setContent(data);
+        try { localStorage.setItem("sanad_site_content", JSON.stringify(data)); } catch {}
+      }),
     ];
     return () => unsubs.forEach((u) => u());
   }, []);
 
-  const c = content ?? DEFAULT_SITE_CONTENT;
+  const c = content;
 
   return (
     <div style={{ background: "var(--theme-bg-main, #0e0e0e)", minHeight: "100vh" }}>
