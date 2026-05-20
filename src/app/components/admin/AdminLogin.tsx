@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
 import { Lock, Mail, Radio, AlertCircle } from "lucide-react";
@@ -11,6 +11,18 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  // If already logged in as admin, redirect directly to dashboard
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      const profile = await getUserProfile(user.uid);
+      if (!profile) {
+        navigate("/sanad-admin/dashboard", { replace: true });
+      }
+    });
+    return unsub;
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

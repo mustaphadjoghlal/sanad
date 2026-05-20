@@ -276,7 +276,25 @@ export default function Layout() {
                 </>
               )}
               {isAdmin && (
-                null
+                <>
+                  <Link
+                    to="/sanad-admin/dashboard"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
+                    style={{ color: "#ffd54f", border: "1px solid rgba(255,213,79,0.3)", textDecoration: "none" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,213,79,0.08)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >
+                    <LayoutDashboard size={14} />
+                    <span>لوحة الأدمن</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
+                    style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}
+                  >
+                    <LogOut size={14} />
+                  </button>
+                </>
               )}
             </div>
 
@@ -313,8 +331,7 @@ export default function Layout() {
                       border: "1px solid var(--p-30)",
                       boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
                       width: "min(320px, calc(100vw - 16px))",
-                      left: 0,
-                      maxWidth: "calc(100vw - 16px)",
+                      right: 0,
                     }}
                   >
                     <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--p-15)" }}>
@@ -409,6 +426,18 @@ export default function Layout() {
                     <Link to="/user/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)", textDecoration: "none" }}>
                       <LayoutDashboard size={14} />
                       <span>لوحتي</span>
+                    </Link>
+                    <button onClick={handleLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
+                      <LogOut size={14} />
+                      <span>خروج</span>
+                    </button>
+                  </>
+                )}
+                {isAdmin && (
+                  <>
+                    <Link to="/sanad-admin/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "#ffd54f", border: "1px solid rgba(255,213,79,0.3)", textDecoration: "none" }}>
+                      <LayoutDashboard size={14} />
+                      <span>لوحة الأدمن</span>
                     </Link>
                     <button onClick={handleLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
                       <LogOut size={14} />
