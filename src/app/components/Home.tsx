@@ -72,7 +72,7 @@ export default function Home() {
   const [featuredEquipment,  setFeaturedEquipment]  = useState<Equipment[]>([]);
   const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
   const [upcomingComps,      setUpcomingComps]      = useState<Competition[]>([]);
-  const [content,            setContent]            = useState<SiteContent>(DEFAULT_SITE_CONTENT);
+  const [content,            setContent]            = useState<SiteContent | null>(null);
 
   useEffect(() => {
     const unsubs = [
@@ -89,6 +89,8 @@ export default function Home() {
     ];
     return () => unsubs.forEach((u) => u());
   }, []);
+
+  const c = content ?? DEFAULT_SITE_CONTENT;
 
   return (
     <div style={{ background: "var(--theme-bg-main, #0e0e0e)", minHeight: "100vh" }}>
@@ -137,7 +139,7 @@ export default function Home() {
             style={{ border: "1px solid var(--p-30)", background: "var(--p-08)", color: "var(--theme-accent)", fontSize: "0.78rem" }}
           >
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--theme-accent)" }} />
-            {content.heroBadge}
+            {c.heroBadge}
           </div>
 
           {/* Heading */}
@@ -145,11 +147,11 @@ export default function Home() {
             className="font-black mb-6 animate-fade-in-up"
             style={{ fontSize: "clamp(2.8rem, 8vw, 5.5rem)", lineHeight: 1.1, color: "var(--theme-text, #e8f5e9)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}
           >
-            {content.heroTitle}{" "}
-            <span className="text-shimmer">{content.siteName}</span>
+            {c.heroTitle}{" "}
+            <span className="text-shimmer">{c.siteName}</span>
             <br />
             <span style={{ fontSize: "clamp(1.4rem, 4vw, 2.5rem)", fontWeight: 400, color: "var(--theme-text-secondary)" }}>
-              {content.heroSubtitle}
+              {c.heroSubtitle}
             </span>
           </h1>
 
@@ -158,13 +160,13 @@ export default function Home() {
             className="max-w-xl mx-auto mb-10 animate-fade-in-up"
             style={{ fontSize: "1.05rem", color: "var(--theme-text-secondary)", lineHeight: 1.8, animationDelay: "0.22s", opacity: 0, animationFillMode: "forwards" }}
           >
-            {content.heroDescription}
+            {c.heroDescription}
           </p>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-in-up" style={{ animationDelay: "0.35s", opacity: 0, animationFillMode: "forwards" }}>
             <Link to="/courses" className="btn-dz inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-base" style={{ textDecoration: "none" }}>
-              <span>{content.heroCta1}</span>
+              <span>{c.heroCta1}</span>
               <ArrowLeft size={18} />
             </Link>
             <Link
@@ -175,7 +177,7 @@ export default function Home() {
               onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "transparent"; el.style.borderColor = "var(--p-40)"; }}
             >
               <Users size={17} />
-              {content.heroCta2}
+              {c.heroCta2}
             </Link>
           </div>
 
@@ -215,8 +217,8 @@ export default function Home() {
       <section className="py-20 px-4" style={{ borderBottom: "1px solid var(--p-10)" }}>
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>{content.servicesLabel}</p>
-            <h2 className="text-3xl font-bold" style={{ color: "var(--theme-text)" }}>{content.servicesTitle}</h2>
+            <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>{c.servicesLabel}</p>
+            <h2 className="text-3xl font-bold" style={{ color: "var(--theme-text)" }}>{c.servicesTitle}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {services.map((s) => {
@@ -465,15 +467,15 @@ export default function Home() {
             <Radio size={28} color="#fff" />
           </div>
           <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--theme-text)" }}>
-            {content.ctaTitle}
+            {c.ctaTitle}
           </h2>
           <p className="mb-8" style={{ color: "var(--theme-text-secondary)", fontSize: "1rem", lineHeight: 1.8 }}>
-            {content.ctaSubtitle}
+            {c.ctaSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/register" className="btn-dz inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold" style={{ textDecoration: "none" }}>
               <Users size={17} />
-              <span>{content.ctaButton}</span>
+              <span>{c.ctaButton}</span>
             </Link>
             <Link
               to="/courses"
@@ -482,7 +484,7 @@ export default function Home() {
               onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "var(--p-10)"; el.style.borderColor = "var(--p-50)"; }}
               onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = ""; el.style.borderColor = "var(--p-30)"; }}
             >
-              {content.ctaButton2}
+              {c.ctaButton2}
             </Link>
           </div>
         </div>
