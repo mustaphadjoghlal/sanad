@@ -126,19 +126,19 @@ export interface SiteContent {
 }
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
-  siteName: "سند",
-  heroBadge: "المنصة الجزائرية الإعلامية الشاملة",
-  heroTitle: "منصة",
-  heroSubtitle: "لكل إعلامي جزائري",
-  heroDescription: "دورات تدريبية، فرص عمل، معدات، مسابقات، ومنشطون — كل ما تحتاجه في مكان واحد",
-  heroCta1: "ابدأ الاستكشاف",
-  heroCta2: "انضم إلى سند",
-  servicesLabel: "ما الذي تجده في سند؟",
-  servicesTitle: "خدمات المنصة",
-  ctaTitle: "انضم إلى مجتمع سند",
-  ctaSubtitle: "سجّل حسابك المجاني الآن وكن جزءاً من أول منصة إعلامية جزائرية شاملة",
-  ctaButton: "إنشاء حساب مجاني",
-  ctaButton2: "تصفح الدورات",
+  siteName: "",
+  heroBadge: "",
+  heroTitle: "",
+  heroSubtitle: "",
+  heroDescription: "",
+  heroCta1: "",
+  heroCta2: "",
+  servicesLabel: "",
+  servicesTitle: "",
+  ctaTitle: "",
+  ctaSubtitle: "",
+  ctaButton: "",
+  ctaButton2: "",
 };
 
 export interface AppNotification {
