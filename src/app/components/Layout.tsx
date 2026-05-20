@@ -323,13 +323,16 @@ export default function Layout() {
                 </button>
                 {notifOpen && (
                   <div
-                    className="absolute mt-2 rounded-xl overflow-hidden animate-fade-in-down z-50"
+                    className="rounded-xl overflow-hidden animate-fade-in-down"
                     style={{
+                      position: "fixed",
+                      top: "72px",
+                      left: "8px",
+                      right: "8px",
+                      zIndex: 200,
                       background: "var(--theme-bg-card, #141414)",
                       border: "1px solid var(--p-30)",
                       boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
-                      width: "min(320px, calc(100vw - 16px))",
-                      right: 0,
                     }}
                   >
                     <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--p-15)" }}>
