@@ -5,15 +5,17 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   onSnapshot,
   query,
   orderBy,
   where,
+  limit,
   arrayUnion,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
 // Generic helpers
@@ -267,4 +269,58 @@ export async function markAllNotificationsRead(notifIds: string[], uid: string):
   await Promise.all(
     notifIds.map((id) => updateDoc(doc(db, "notifications", id), { readBy: arrayUnion(uid) }))
   );
+}
+
+// --- NEWS ---
+export async function addNews(data: Omit<NewsItem, "id" | "createdAt">) {
+  return addDoc(col("news"), { ...data, createdAt: Date.now() });
+}
+export async function updateNews(id: string, data: Partial<Omit<NewsItem, "id">>) {
+  return updateDoc(docRef("news", id), data);
+}
+export async function deleteNews(id: string) {
+  return deleteDoc(docRef("news", id));
+}
+export function subscribeToNews(callback: (items: NewsItem[]) => void): () => void {
+  const q = query(col("news"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as NewsItem)));
+  });
+}
+export async function getLatestNews(n = 3): Promise<NewsItem[]> {
+  const q = query(col("news"), orderBy("createdAt", "desc"), limit(n));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as NewsItem));
+}
+
+// --- THESES ---
+export async function addThesis(data: Omit<Thesis, "id" | "createdAt">) {
+  return addDoc(col("theses"), { ...data, createdAt: Date.now() });
+}
+export async function updateThesis(id: string, data: Partial<Omit<Thesis, "id">>) {
+  return updateDoc(docRef("theses", id), data);
+}
+export async function deleteThesis(id: string) {
+  return deleteDoc(docRef("theses", id));
+}
+export function subscribeToTheses(callback: (items: Thesis[]) => void): () => void {
+  const q = query(col("theses"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Thesis)));
+  });
+}
+export async function getThesis(id: string): Promise<Thesis | null> {
+  const snap = await getDoc(docRef("theses", id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Thesis;
+}
+export async function getNewsItem(id: string): Promise<NewsItem | null> {
+  const snap = await getDoc(docRef("news", id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as NewsItem;
+}
+export async function getChannel(id: string): Promise<import("./types").Channel | null> {
+  const snap = await getDoc(docRef("channels", id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as import("./types").Channel;
 }

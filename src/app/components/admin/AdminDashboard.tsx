@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Globe,
+  X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Globe, Newspaper, GraduationCap,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -21,13 +21,15 @@ import {
   getUserProfile,
   addChannel, updateChannel, deleteChannel, subscribeToChannels,
   sendNotification, subscribeToNotifications,
+  addNews, updateNews, deleteNews, subscribeToNews,
+  addThesis, updateThesis, deleteThesis, subscribeToTheses,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification } from "../../../lib/types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
 
-type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "appearance" | "content" | "notifications" | "settings";
+type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "news" | "theses" | "appearance" | "content" | "notifications" | "settings";
 type StatusFilter = "all" | "pending" | "approved";
 
 // ── Shared styles ───────────────────────────────────────────────
@@ -316,6 +318,8 @@ export default function AdminDashboard() {
     { id: "voice"    as Section, label: "المنشطون",  icon: Mic },
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
     { id: "channels"     as Section, label: "القنوات",   icon: Tv },
+    { id: "news"         as Section, label: "الأخبار",   icon: Newspaper },
+    { id: "theses"       as Section, label: "المذكرات",  icon: GraduationCap },
     { id: "appearance"   as Section, label: "المظهر",        icon: Palette },
     { id: "content"        as Section, label: "محتوى الصفحة", icon: FileText },
     { id: "notifications"  as Section, label: "الإشعارات",    icon: Bell },
@@ -447,6 +451,8 @@ export default function AdminDashboard() {
           {activeSection === "voice"          && <VoiceSection />}
           {activeSection === "professionals"  && <ProfessionalsSection />}
           {activeSection === "channels"       && <ChannelsSection />}
+          {activeSection === "news"           && <NewsSection />}
+          {activeSection === "theses"         && <ThesesSection />}
           {activeSection === "appearance"     && <AppearanceSection />}
           {activeSection === "content"        && <SiteContentSection />}
           {activeSection === "notifications"  && <NotificationsSection />}
@@ -2463,6 +2469,278 @@ function SettingsSection() {
           أي تغيير تجريه يظهر فوراً للزوار.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ── NEWS SECTION ────────────────────────────────────────────────
+type NewsForm = Omit<NewsItem, "id" | "createdAt">;
+const emptyNews: NewsForm = { title: "", body: "", date: new Date().toISOString().slice(0, 10), category: "عام", image: "", link: "" };
+const NEWS_CATS: NewsCategory[] = ["قناة جديدة", "مسابقة", "توظيف", "عام"];
+
+function NewsSection() {
+  const isMobile = useIsMobile();
+  const [items, setItems] = useState<NewsItem[]>([]);
+  const [modal, setModal] = useState<"add" | "edit" | null>(null);
+  const [form, setForm] = useState<NewsForm>(emptyNews);
+  const [editId, setEditId] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<NewsItem | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
+
+  useEffect(() => subscribeToNews(setItems), []);
+
+  const openAdd = () => { setForm({ ...emptyNews, date: new Date().toISOString().slice(0, 10) }); setModal("add"); };
+  const openEdit = (n: NewsItem) => {
+    setEditId(n.id);
+    setForm({ title: n.title, body: n.body, date: n.date, category: n.category, image: n.image || "", link: n.link || "" });
+    setModal("edit");
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setImgUploading(true);
+    try {
+      const url = await uploadImage("news", file);
+      setForm((f) => ({ ...f, image: url }));
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setImgUploading(false); }
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim()) return;
+    setSaving(true);
+    try {
+      if (modal === "add") await addNews(form);
+      else await updateNews(editId, form);
+      setModal(null);
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} خبر</span>
+        <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
+          <Plus size={16} /><span>إضافة خبر</span>
+        </button>
+      </div>
+
+      {isMobile ? (
+        <div>
+          {items.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد أخبار</div>
+          ) : items.map((n) => (
+            <div key={n.id} style={{ padding: "0.875rem 1rem", borderRadius: "0.75rem", marginBottom: "0.5rem", background: "var(--p-08)", border: "1px solid var(--p-15)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.title}</div>
+                  <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{n.category} · {n.date}</div>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={() => openEdit(n)} className="p-2 rounded" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={16} /></button>
+                  <button onClick={() => setDeleteTarget(n)} className="p-2 rounded" style={{ color: "#ef9a9a" }}><Trash2 size={16} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr>{["العنوان", "الفئة", "التاريخ", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr><td colSpan={4} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد أخبار</td></tr>
+              ) : items.map((n) => (
+                <tr key={n.id} className="hover:bg-green-950/20 transition-colors">
+                  <td style={S.td}>{n.title}</td>
+                  <td style={S.td}><span style={S.badge("var(--p-20)")}>{n.category}</span></td>
+                  <td style={S.td}>{n.date}</td>
+                  <td style={{ ...S.td, width: "80px" }}>
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={() => openEdit(n)} className="p-2 rounded" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={16} /></button>
+                      <button onClick={() => setDeleteTarget(n)} className="p-2 rounded" style={{ color: "#ef9a9a" }}><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {modal && (
+        <Modal title={modal === "add" ? "إضافة خبر جديد" : "تعديل الخبر"} onClose={() => setModal(null)}>
+          <div className="space-y-4">
+            <div><label style={S.label}>العنوان *</label><input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان الخبر" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label style={S.label}>الفئة</label>
+                <select style={S.input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as NewsCategory })}>
+                  {NEWS_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div><label style={S.label}>التاريخ</label><input type="date" style={S.input} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></div>
+            </div>
+            <div><label style={S.label}>محتوى الخبر *</label><textarea style={{ ...S.input, minHeight: "120px", resize: "vertical" }} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="اكتب تفاصيل الخبر هنا..." /></div>
+            <div><label style={S.label}>رابط المصدر (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
+            <div>
+              <label style={S.label}>صورة (اختياري)</label>
+              {form.image && <img src={form.image} alt="" style={{ width: "100%", maxHeight: "150px", objectFit: "cover", borderRadius: "0.5rem", marginBottom: "0.5rem", border: "1px solid var(--p-30)" }} />}
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
+                {imgUploading ? "جاري الرفع..." : form.image ? "تغيير الصورة" : "اختر صورة"}
+              </label>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={handleSave} disabled={saving || !form.title.trim()} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
+                <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDelete label={deleteTarget.title} onConfirm={async () => { await deleteNews(deleteTarget.id); setDeleteTarget(null); }} onClose={() => setDeleteTarget(null)} />
+      )}
+    </div>
+  );
+}
+
+// ── THESES SECTION ──────────────────────────────────────────────
+type ThesisForm = Omit<Thesis, "id" | "createdAt">;
+const emptyThesis: ThesisForm = { title: "", author: "", year: new Date().getFullYear(), specialty: "إعلام واتصال", university: "", abstract: "", supervisor: "", pdfUrl: "", keywords: [] };
+const THESIS_SPECS: ThesisSpecialty[] = ["إعلام واتصال", "صحافة", "سمعي بصري", "إعلام آلي"];
+
+function ThesesSection() {
+  const isMobile = useIsMobile();
+  const [items, setItems] = useState<Thesis[]>([]);
+  const [modal, setModal] = useState<"add" | "edit" | null>(null);
+  const [form, setForm] = useState<ThesisForm>(emptyThesis);
+  const [editId, setEditId] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Thesis | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [keywordsInput, setKeywordsInput] = useState("");
+
+  useEffect(() => subscribeToTheses(setItems), []);
+
+  const openAdd = () => { setForm(emptyThesis); setKeywordsInput(""); setModal("add"); };
+  const openEdit = (t: Thesis) => {
+    setEditId(t.id);
+    setForm({ title: t.title, author: t.author, year: t.year, specialty: t.specialty, university: t.university, abstract: t.abstract, supervisor: t.supervisor || "", pdfUrl: t.pdfUrl || "", keywords: t.keywords || [] });
+    setKeywordsInput((t.keywords || []).join("، "));
+    setModal("edit");
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.author.trim()) return;
+    const keywords = keywordsInput.split(/[،,]/).map((k) => k.trim()).filter(Boolean);
+    setSaving(true);
+    try {
+      const data = { ...form, keywords };
+      if (modal === "add") await addThesis(data);
+      else await updateThesis(editId, data);
+      setModal(null);
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} مذكرة</span>
+        <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
+          <Plus size={16} /><span>إضافة مذكرة</span>
+        </button>
+      </div>
+
+      {isMobile ? (
+        <div>
+          {items.length === 0 ? (
+            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد مذكرات</div>
+          ) : items.map((t) => (
+            <div key={t.id} style={{ padding: "0.875rem 1rem", borderRadius: "0.75rem", marginBottom: "0.5rem", background: "var(--p-08)", border: "1px solid var(--p-15)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.9rem", marginBottom: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
+                  <div style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", marginBottom: "0.2rem" }}>{t.author} · {t.year}</div>
+                  <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem" }}>{t.specialty} · {t.university}</div>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={() => openEdit(t)} className="p-2 rounded" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={16} /></button>
+                  <button onClick={() => setDeleteTarget(t)} className="p-2 rounded" style={{ color: "#ef9a9a" }}><Trash2 size={16} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr>{["العنوان", "المؤلف", "التخصص", "الجامعة", "السنة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr><td colSpan={6} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا توجد مذكرات</td></tr>
+              ) : items.map((t) => (
+                <tr key={t.id} className="hover:bg-green-950/20 transition-colors">
+                  <td style={{ ...S.td, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</td>
+                  <td style={S.td}>{t.author}</td>
+                  <td style={S.td}><span style={S.badge("var(--p-20)")}>{t.specialty}</span></td>
+                  <td style={S.td}>{t.university}</td>
+                  <td style={S.td}>{t.year}</td>
+                  <td style={{ ...S.td, width: "80px" }}>
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={() => openEdit(t)} className="p-2 rounded" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={16} /></button>
+                      <button onClick={() => setDeleteTarget(t)} className="p-2 rounded" style={{ color: "#ef9a9a" }}><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {modal && (
+        <Modal title={modal === "add" ? "إضافة مذكرة جديدة" : "تعديل المذكرة"} onClose={() => setModal(null)}>
+          <div className="space-y-4">
+            <div><label style={S.label}>عنوان المذكرة *</label><input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان المذكرة" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label style={S.label}>اسم المؤلف *</label><input style={S.input} value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} /></div>
+              <div><label style={S.label}>سنة المناقشة</label><input type="number" style={S.input} value={form.year} onChange={(e) => setForm({ ...form, year: +e.target.value })} min={1990} max={2030} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label style={S.label}>التخصص</label>
+                <select style={S.input} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value as ThesisSpecialty })}>
+                  {THESIS_SPECS.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div><label style={S.label}>الجامعة</label><input style={S.input} value={form.university} onChange={(e) => setForm({ ...form, university: e.target.value })} placeholder="جامعة الجزائر 3" /></div>
+            </div>
+            <div><label style={S.label}>المشرف (اختياري)</label><input style={S.input} value={form.supervisor} onChange={(e) => setForm({ ...form, supervisor: e.target.value })} /></div>
+            <div><label style={S.label}>ملخص المذكرة</label><textarea style={{ ...S.input, minHeight: "100px", resize: "vertical" }} value={form.abstract} onChange={(e) => setForm({ ...form, abstract: e.target.value })} /></div>
+            <div><label style={S.label}>الكلمات المفتاحية (مفصولة بفاصلة)</label><input style={S.input} value={keywordsInput} onChange={(e) => setKeywordsInput(e.target.value)} placeholder="إعلام، صحافة، جزائر" /></div>
+            <div><label style={S.label}>رابط PDF (اختياري)</label><input style={S.input} value={form.pdfUrl} onChange={(e) => setForm({ ...form, pdfUrl: e.target.value })} placeholder="https://..." /></div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
+              <button onClick={handleSave} disabled={saving || !form.title.trim() || !form.author.trim()} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
+                <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDelete label={deleteTarget.title} onConfirm={async () => { await deleteThesis(deleteTarget.id); setDeleteTarget(null); }} onClose={() => setDeleteTarget(null)} />
+      )}
     </div>
   );
 }

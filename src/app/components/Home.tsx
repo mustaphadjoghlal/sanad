@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Star, Users, Zap } from "lucide-react";
-import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent } from "../../lib/firestore";
-import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist, SiteContent } from "../../lib/types";
+import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Star, Users, Zap, Newspaper } from "lucide-react";
+import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
+import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
 /* ── Animated counter ── */
@@ -63,6 +63,7 @@ export default function Home() {
   const [featuredEquipment,  setFeaturedEquipment]  = useState<Equipment[]>([]);
   const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
   const [upcomingComps,      setUpcomingComps]      = useState<Competition[]>([]);
+  const [latestNews,         setLatestNews]         = useState<NewsItem[]>([]);
   const [content, setContent] = useState<SiteContent | null>(() => {
     try {
       const cached = localStorage.getItem("sanad_site_content");
@@ -87,6 +88,7 @@ export default function Home() {
         try { localStorage.setItem("sanad_site_content", JSON.stringify(data)); } catch {}
       }),
     ];
+    getLatestNews(3).then(setLatestNews);
     return () => unsubs.forEach((u) => u());
   }, []);
 
@@ -370,6 +372,37 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ══ LATEST NEWS ═════════════════════════════════════════════════ */}
+      {latestNews.length > 0 && (
+        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4">
+            <SectionHeader num="07" title="آخر الأخبار" link="/news" linkLabel="كل الأخبار" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {latestNews.map((item, i) => (
+                <Link
+                  key={item.id}
+                  to={`/news/${item.id}`}
+                  className="card-glow p-5 rounded-2xl animate-fade-in-up block"
+                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}
+                >
+                  {item.image && (
+                    <div style={{ height: "150px", overflow: "hidden", borderRadius: "0.75rem", marginBottom: "0.75rem" }}>
+                      <img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-2">
+                    <Newspaper size={13} style={{ color: "var(--theme-accent)" }} />
+                    <span className="text-xs" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>{item.date}</span>
+                  </div>
+                  <h3 className="font-bold text-base mb-2 line-clamp-2" style={{ color: "var(--theme-text)" }}>{item.title}</h3>
+                  <p className="text-sm line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{item.body}</p>
+                </Link>
               ))}
             </div>
           </div>

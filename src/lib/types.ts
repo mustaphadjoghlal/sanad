@@ -141,6 +141,35 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   ctaButton2: "",
 };
 
+export type NewsCategory = 'قناة جديدة' | 'مسابقة' | 'توظيف' | 'عام';
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  body: string;
+  date: string;
+  category: NewsCategory;
+  image?: string;
+  link?: string;
+  createdAt: number;
+}
+
+export type ThesisSpecialty = 'إعلام واتصال' | 'صحافة' | 'سمعي بصري' | 'إعلام آلي';
+
+export interface Thesis {
+  id: string;
+  title: string;
+  author: string;
+  year: number;
+  specialty: ThesisSpecialty;
+  university: string;
+  abstract: string;
+  supervisor?: string;
+  pdfUrl?: string;
+  keywords?: string[];
+  createdAt: number;
+}
+
 export interface AppNotification {
   id: string;
   title: string;

@@ -11,6 +11,11 @@ import JobDetail from "./components/JobDetail";
 import EquipmentDetail from "./components/EquipmentDetail";
 import VoiceRequests from "./components/VoiceRequests";
 import Channels from "./components/Channels";
+import ChannelDetail from "./components/ChannelDetail";
+import News from "./components/News";
+import NewsDetail from "./components/NewsDetail";
+import Theses from "./components/Theses";
+import ThesisDetail from "./components/ThesisDetail";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/AdminLogin";
 import Register from "./components/auth/Register";
@@ -34,6 +39,11 @@ export const router = createBrowserRouter([
       { path: "equipment/:id", Component: EquipmentDetail },
       { path: "voice-requests", Component: VoiceRequests },
       { path: "channels", Component: Channels },
+      { path: "channels/:id", Component: ChannelDetail },
+      { path: "news", Component: News },
+      { path: "news/:id", Component: NewsDetail },
+      { path: "theses", Component: Theses },
+      { path: "theses/:id", Component: ThesisDetail },
       { path: "*", Component: NotFound },
     ],
   },

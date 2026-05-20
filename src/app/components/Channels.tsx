@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Tv, Radio, Search, Globe, Mail, Phone, MapPin, Facebook, Youtube, Instagram, Twitter, ExternalLink } from "lucide-react";
 import { subscribeToChannels } from "../../lib/firestore";
 import type { Channel } from "../../lib/types";
@@ -41,6 +42,14 @@ function ChannelCard({ ch }: { ch: Channel }) {
 
   return (
     <div className="card-glow rounded-xl p-5" style={S.card}>
+      {/* Link to detail page */}
+      <Link
+        to={`/channels/${ch.id}`}
+        className="block text-xs mb-2 text-left transition-opacity hover:opacity-80"
+        style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
+      >
+        عرض الصفحة الكاملة ←
+      </Link>
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
