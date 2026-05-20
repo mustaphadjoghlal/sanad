@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Radio, LogOut, LayoutDashboard, Bell } from "lucide-react";
+import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY } from "../../lib/firebase";
@@ -13,19 +13,26 @@ export default function Layout() {
   const [userProfile, setUserProfile] = useState<UserProfile | null | "admin">(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
   const prevNotifCountRef = useRef(0);
   const location = useLocation();
   const navigate = useNavigate();
 
   const navLinks = [
     { to: "/", label: "الرئيسية" },
-    { to: "/channels", label: "دليل القنوات" },
-    { to: "/courses", label: "الدورات التدريبية" },
-    { to: "/equipment", label: "متجر العتاد" },
-    { to: "/jobs", label: "عروض التوظيف" },
+    { to: "/news", label: "أخبار" },
+    { to: "/courses", label: "الدورات" },
+    { to: "/equipment", label: "العتاد" },
+    { to: "/jobs", label: "التوظيف" },
     { to: "/competitions", label: "المسابقات" },
-    { to: "/voice-requests", label: "طلبات المنشطين" },
+    { to: "/voice-requests", label: "المنشطون" },
+  ];
+
+  const moreLinks = [
+    { to: "/channels", label: "دليل القنوات" },
+    { to: "/theses", label: "مذكرات التخرج" },
   ];
 
   useEffect(() => {
@@ -119,14 +126,17 @@ export default function Layout() {
     init();
   }, [currentUser]);
 
-  // Close notif dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEffect(() => { setMoreOpen(false); }, [location.pathname]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -185,7 +195,7 @@ export default function Layout() {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex gap-1">
+            <nav className="hidden md:flex gap-1 items-center">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.to;
                 return (
@@ -215,14 +225,62 @@ export default function Layout() {
                     {isActive && (
                       <span
                         className="absolute bottom-0 right-3 left-3 h-0.5 rounded-full"
-                        style={{
-                          background: "linear-gradient(90deg, transparent, var(--theme-accent, #00a355), transparent)",
-                        }}
+                        style={{ background: "linear-gradient(90deg, transparent, var(--theme-accent, #00a355), transparent)" }}
                       />
                     )}
                   </Link>
                 );
               })}
+
+              {/* More dropdown */}
+              <div className="relative" ref={moreRef}>
+                <button
+                  onClick={() => setMoreOpen((o) => !o)}
+                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200"
+                  style={{
+                    color: moreLinks.some((l) => location.pathname.startsWith(l.to)) ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
+                    background: moreOpen ? "var(--p-15)" : "transparent",
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-10)"; }}
+                  onMouseLeave={(e) => { if (!moreOpen) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                >
+                  المزيد
+                  <ChevronDown size={14} style={{ transition: "transform 0.2s", transform: moreOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+                </button>
+                {moreOpen && (
+                  <div
+                    className="absolute top-full mt-1 animate-fade-in-down"
+                    style={{
+                      right: 0, minWidth: "160px", zIndex: 100,
+                      background: "linear-gradient(145deg, #141414, #101010)",
+                      border: "1px solid var(--p-30)",
+                      borderRadius: "0.75rem",
+                      boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {moreLinks.map((link) => {
+                      const isActive = location.pathname.startsWith(link.to);
+                      return (
+                        <Link
+                          key={link.to}
+                          to={link.to}
+                          className="block px-4 py-2.5 text-sm transition-colors"
+                          style={{
+                            color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
+                            background: isActive ? "var(--p-12)" : "transparent",
+                            textDecoration: "none",
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-10)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isActive ? "var(--p-12)" : "transparent"; }}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </nav>
 
             {/* Right side: Auth buttons */}
@@ -410,6 +468,30 @@ export default function Layout() {
                   </Link>
                 );
               })}
+              <div style={{ borderTop: "1px solid var(--p-12)", marginTop: "0.25rem", paddingTop: "0.25rem" }}>
+                {moreLinks.map((link, i) => {
+                  const isActive = location.pathname.startsWith(link.to);
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className="px-4 py-2.5 rounded-lg transition-all duration-200 animate-slide-in-right flex items-center gap-2"
+                      style={{
+                        color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)",
+                        background: isActive ? "var(--p-15)" : "transparent",
+                        textDecoration: "none",
+                        animationDelay: `${(navLinks.length + i) * 0.05}s`,
+                        opacity: 0,
+                        animationFillMode: "forwards",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      <span style={{ fontSize: "0.7rem", opacity: 0.6 }}>•</span>
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
               {/* Mobile auth */}
               <div className="mt-2 pt-2 flex flex-col gap-1.5" style={{ borderTop: "1px solid var(--p-15)" }}>
                 {isLoggedOut && (
