@@ -2475,7 +2475,7 @@ function SettingsSection() {
 
 // ── NEWS SECTION ────────────────────────────────────────────────
 type NewsForm = Omit<NewsItem, "id" | "createdAt">;
-const emptyNews: NewsForm = { title: "", body: "", date: new Date().toISOString().slice(0, 10), category: "عام", image: "", link: "" };
+const emptyNews: NewsForm = { title: "", body: "", date: new Date().toISOString().slice(0, 10), category: "عام", image: "", imageAlt: "", contentImages: [], link: "" };
 const NEWS_CATS: NewsCategory[] = ["قناة جديدة", "مسابقة", "توظيف", "عام"];
 
 function NewsSection() {
@@ -2487,17 +2487,20 @@ function NewsSection() {
   const [deleteTarget, setDeleteTarget] = useState<NewsItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
+  const [contentImgUploading, setContentImgUploading] = useState(false);
+  const [pendingAlt, setPendingAlt] = useState("");
 
   useEffect(() => subscribeToNews(setItems), []);
 
-  const openAdd = () => { setForm({ ...emptyNews, date: new Date().toISOString().slice(0, 10) }); setModal("add"); };
+  const openAdd = () => { setForm({ ...emptyNews, date: new Date().toISOString().slice(0, 10) }); setPendingAlt(""); setModal("add"); };
   const openEdit = (n: NewsItem) => {
     setEditId(n.id);
-    setForm({ title: n.title, body: n.body, date: n.date, category: n.category, image: n.image || "", link: n.link || "" });
+    setForm({ title: n.title, body: n.body, date: n.date, category: n.category, image: n.image || "", imageAlt: n.imageAlt || "", contentImages: n.contentImages || [], link: n.link || "" });
+    setPendingAlt("");
     setModal("edit");
   };
 
-  const handleImageUpload = async (file: File) => {
+  const handleCoverUpload = async (file: File) => {
     setImgUploading(true);
     try {
       const url = await uploadImage("news", file);
@@ -2505,6 +2508,17 @@ function NewsSection() {
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "فشل رفع الصورة");
     } finally { setImgUploading(false); }
+  };
+
+  const handleContentImgUpload = async (file: File) => {
+    setContentImgUploading(true);
+    try {
+      const url = await uploadImage("news/content", file);
+      setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), { url, alt: pendingAlt }] }));
+      setPendingAlt("");
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+    } finally { setContentImgUploading(false); }
   };
 
   const handleSave = async () => {
@@ -2588,11 +2602,32 @@ function NewsSection() {
             <div><label style={S.label}>محتوى الخبر *</label><textarea style={{ ...S.input, minHeight: "120px", resize: "vertical" }} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="اكتب تفاصيل الخبر هنا..." /></div>
             <div><label style={S.label}>رابط المصدر (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
             <div>
-              <label style={S.label}>صورة (اختياري)</label>
-              {form.image && <img src={form.image} alt="" style={{ width: "100%", maxHeight: "150px", objectFit: "cover", borderRadius: "0.5rem", marginBottom: "0.5rem", border: "1px solid var(--p-30)" }} />}
+              <label style={S.label}>صورة الغلاف (اختياري)</label>
+              {form.image && <img src={form.image} alt={form.imageAlt || ""} style={{ width: "100%", maxHeight: "150px", objectFit: "cover", borderRadius: "0.5rem", marginBottom: "0.5rem", border: "1px solid var(--p-30)" }} />}
               <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
-                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }} disabled={imgUploading} />
                 {imgUploading ? "جاري الرفع..." : form.image ? "تغيير الصورة" : "اختر صورة"}
+              </label>
+              {form.image && <input style={{ ...S.input, marginTop: "0.4rem" }} value={form.imageAlt || ""} onChange={(e) => setForm({ ...form, imageAlt: e.target.value })} placeholder="alt text لصورة الغلاف (للـ SEO)" />}
+            </div>
+            <div>
+              <label style={S.label}>صور المقال (اختياري)</label>
+              {(form.contentImages || []).length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {(form.contentImages || []).map((img, idx) => (
+                    <div key={idx} style={{ position: "relative" }}>
+                      <img src={img.url} alt={img.alt} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <p style={{ fontSize: "0.65rem", color: "var(--theme-text-muted)", marginTop: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{img.alt || "—"}</p>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: (f.contentImages || []).filter((_, i) => i !== idx) }))}
+                        style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input style={{ ...S.input, marginBottom: "0.4rem" }} value={pendingAlt} onChange={(e) => setPendingAlt(e.target.value)} placeholder="alt text للصورة قبل الرفع (للـ SEO)" />
+              <label style={{ ...S.input, cursor: contentImgUploading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImgUpload(f); }} disabled={contentImgUploading} />
+                {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمقال"}
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">

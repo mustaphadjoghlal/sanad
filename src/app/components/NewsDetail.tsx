@@ -53,7 +53,7 @@ export default function NewsDetail() {
       {item.image && (
         <div style={{ height: "320px", overflow: "hidden", position: "relative" }}>
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, #0e0e0e 100%)", zIndex: 1 }} />
-          <img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={item.image} alt={item.imageAlt || item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       )}
 
@@ -88,6 +88,27 @@ export default function NewsDetail() {
         >
           {item.body}
         </div>
+
+        {/* Content images */}
+        {item.contentImages && item.contentImages.length > 0 && (
+          <div className="mt-8 space-y-4">
+            {item.contentImages.map((img, i) => (
+              <figure key={i} style={{ margin: 0 }}>
+                <img
+                  src={img.url}
+                  alt={img.alt}
+                  className="w-full rounded-xl"
+                  style={{ border: "1px solid var(--p-20)", objectFit: "cover", maxHeight: "480px" }}
+                />
+                {img.alt && (
+                  <figcaption className="text-xs mt-2 text-center" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
+                    {img.alt}
+                  </figcaption>
+                )}
+              </figure>
+            ))}
+          </div>
+        )}
 
         {/* External link */}
         {item.link && (

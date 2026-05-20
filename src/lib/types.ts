@@ -143,6 +143,11 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
 
 export type NewsCategory = 'قناة جديدة' | 'مسابقة' | 'توظيف' | 'عام';
 
+export interface NewsImage {
+  url: string;
+  alt: string;
+}
+
 export interface NewsItem {
   id: string;
   title: string;
@@ -150,6 +155,8 @@ export interface NewsItem {
   date: string;
   category: NewsCategory;
   image?: string;
+  imageAlt?: string;
+  contentImages?: NewsImage[];
   link?: string;
   createdAt: number;
 }
