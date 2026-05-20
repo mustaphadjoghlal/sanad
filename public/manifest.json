@@ -1,16 +1,19 @@
 {
   "name": "سند - المنصة الإعلامية الجزائرية",
   "short_name": "سند",
-  "description": "المنصة الجزائرية الإعلامية الشاملة",
+  "description": "المنصة الجزائرية الإعلامية الشاملة — دورات، وظائف، معدات، مسابقات، منشطون، ودليل القنوات.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0e0e0e",
   "theme_color": "#006233",
   "orientation": "portrait-primary",
   "lang": "ar",
   "dir": "rtl",
+  "id": "https://sanadz.media/",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ],
-  "categories": ["news", "education", "entertainment"]
+  "categories": ["news", "education", "entertainment"],
+  "screenshots": []
 }
