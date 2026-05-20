@@ -150,11 +150,12 @@ export default function Home() {
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mt-16 animate-fade-in delay-500" style={{ opacity: 0, animationFillMode: "forwards" }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-xl mx-auto mt-16 animate-fade-in delay-500" style={{ opacity: 0, animationFillMode: "forwards" }}>
             {[
-              { value: 69,  suffix: "",     label: "ولاية" },
-              { value: 7,   suffix: "/24",  label: "تخصص" },
-              { value: 100, suffix: "%",    label: "مجاني" },
+              { value: 6,   suffix: "",    label: "خدمات متكاملة" },
+              { value: 69,  suffix: "",    label: "ولاية جزائرية" },
+              { value: 100, suffix: "%",   label: "محتوى جزائري" },
+              { value: 7,   suffix: "/24", label: "متاح دائماً" },
             ].map((s, i) => (
               <div key={i} className="text-center p-4 rounded-2xl" style={{ background: "var(--p-08)", border: "1px solid var(--p-20)" }}>
                 <div className="text-2xl font-black" style={{ color: "var(--theme-accent)" }}>
