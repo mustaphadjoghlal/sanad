@@ -16,6 +16,7 @@ import {
 } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
 import type { UserProfile, Equipment, PortfolioLink } from "../../../lib/types";
+import StoreManager from "../StoreManager";
 
 const typeLabel: Record<string, string> = {
   journalist: "صحفي / مراسل",
@@ -684,11 +685,26 @@ export default function UserDashboard() {
             <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
               للترقية إلى الباقة المدفوعة تواصل معنا
             </p>
+            {uid && profile.status === "approved" && (
+              <Link
+                to={`/stores/${uid}`}
+                style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.85rem", textDecoration: "none", marginTop: "0.5rem", display: "inline-block" }}
+              >
+                عرض متجري ←
+              </Link>
+            )}
           </div>
         )}
 
-        {/* Equipment section — all approved users */}
-        {profile.status === "approved" && (
+        {/* Store manager — store accounts */}
+        {profile.type === "store" && profile.status === "approved" && uid && (
+          <div className="animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.15s", marginBottom: "1.5rem" }}>
+            <StoreManager uid={uid} profile={profile} />
+          </div>
+        )}
+
+        {/* Equipment section — non-store approved users */}
+        {profile.status === "approved" && profile.type !== "store" && (
           <div className="animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.15s" }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

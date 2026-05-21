@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowRight, MapPin, Phone, MessageCircle } from "lucide-react";
-import { getUserProfile } from "../../lib/firestore";
-import type { UserProfile } from "../../lib/types";
+import { ArrowRight, Phone, MessageCircle, BadgeCheck, Package } from "lucide-react";
+import { getUserProfile, subscribeToActiveStoreProducts } from "../../lib/firestore";
+import type { UserProfile, Product } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 
 type StoreProfile = UserProfile & { whatsapp?: string };
@@ -10,7 +10,9 @@ type StoreProfile = UserProfile & { whatsapp?: string };
 export default function StoreDetail() {
   const { id } = useParams<{ id: string }>();
   const [store, setStore] = useState<StoreProfile | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string>("الكل");
 
   usePageTitle(
     store?.name ?? "",
@@ -24,6 +26,19 @@ export default function StoreDetail() {
       setLoading(false);
     });
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const unsub = subscribeToActiveStoreProducts(id, (prods) => {
+      setProducts(prods);
+    });
+    return unsub;
+  }, [id]);
+
+  const categories = ["الكل", ...Array.from(new Set(products.map((p) => p.category)))];
+
+  const filteredProducts =
+    activeCategory === "الكل" ? products : products.filter((p) => p.category === activeCategory);
 
   if (loading) {
     return (
@@ -44,7 +59,7 @@ export default function StoreDetail() {
 
   return (
     <div dir="rtl" style={{ background: "#0e0e0e", minHeight: "100vh" }}>
-      <div className="container mx-auto px-4 py-10 max-w-2xl">
+      <div className="container mx-auto px-4 py-10 max-w-5xl">
         <Link
           to="/stores"
           className="inline-flex items-center gap-2 mb-8 text-sm transition-opacity hover:opacity-70"
@@ -54,97 +69,207 @@ export default function StoreDetail() {
           دليل المتاجر
         </Link>
 
-        {/* Header */}
-        <div className="flex items-center gap-5 mb-6">
-          {store.photo ? (
-            <img
-              src={store.photo}
-              alt={store.name}
-              className="rounded-xl object-cover flex-shrink-0"
-              style={{ width: 80, height: 80, border: "1px solid var(--p-20)" }}
-            />
-          ) : (
-            <div
-              className="rounded-xl flex-shrink-0 flex items-center justify-center text-3xl"
-              style={{ width: 80, height: 80, background: "var(--p-20)" }}
-            >
-              🏪
-            </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--theme-text, #e8f5e9)" }}>{store.name}</h1>
-            {store.storeStatus && (
-              <span
-                className="text-xs px-3 py-1 rounded-full"
+        {/* Store header */}
+        <div
+          style={{
+            background: "linear-gradient(145deg, #141414, #101010)",
+            border: "1px solid var(--p-20)",
+            borderRadius: "1rem",
+            padding: "1.5rem",
+            marginBottom: "1.5rem",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "1.25rem",
+            flexWrap: "wrap",
+          }}
+        >
+          {/* Logo */}
+          <div style={{ flexShrink: 0 }}>
+            {store.photo ? (
+              <img
+                src={store.photo}
+                alt={store.name}
+                style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--p-30)" }}
+              />
+            ) : (
+              <div
                 style={{
-                  background: store.storeStatus === "paid" ? "rgba(0,80,40,0.3)" : "rgba(100,100,0,0.3)",
-                  color: store.storeStatus === "paid" ? "#66bb6a" : "#e6c619",
+                  width: 88,
+                  height: 88,
+                  borderRadius: "50%",
+                  background: "var(--p-20)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "2rem",
+                  border: "2px solid var(--p-30)",
                 }}
               >
-                {store.storeStatus === "paid" ? "متجر موثّق" : "تجريبي"}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Info grid */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {store.specialty && (
-            <div className="rounded-xl p-3" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)" }}>
-              <div className="text-xs mb-1" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>نوع المعدات</div>
-              <div className="text-sm font-medium" style={{ color: "var(--theme-text, #e8f5e9)" }}>{store.specialty}</div>
-            </div>
-          )}
-          {store.location && (
-            <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)" }}>
-              <MapPin size={14} style={{ color: "var(--theme-accent, #00a355)", flexShrink: 0 }} />
-              <div>
-                <div className="text-xs mb-0.5" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>الولاية</div>
-                <div className="text-sm font-medium" style={{ color: "var(--theme-text, #e8f5e9)" }}>{store.location}</div>
+                🏪
               </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.35rem" }}>
+              <h1 style={{ color: "var(--theme-text, #e8f5e9)", fontSize: "1.5rem", fontWeight: 700, margin: 0 }}>
+                {store.name}
+              </h1>
+              {store.storeStatus === "paid" && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", background: "rgba(0,163,85,0.15)", border: "1px solid rgba(0,163,85,0.3)", color: "var(--theme-accent, #00a355)", fontSize: "0.75rem", padding: "0.15rem 0.6rem", borderRadius: "9999px" }}>
+                  <BadgeCheck size={12} />
+                  متجر موثّق
+                </span>
+              )}
+              {store.storeStatus === "trial" && (
+                <span style={{ background: "rgba(180,120,0,0.2)", color: "#fbbf24", border: "1px solid rgba(180,120,0,0.3)", fontSize: "0.75rem", padding: "0.15rem 0.6rem", borderRadius: "9999px" }}>
+                  تجريبي
+                </span>
+              )}
             </div>
-          )}
+
+            {store.specialty && (
+              <div style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.875rem", marginBottom: "0.5rem" }}>
+                {store.specialty}
+              </div>
+            )}
+
+            {store.bio && (
+              <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.875rem", lineHeight: 1.65, margin: "0 0 0.75rem", whiteSpace: "pre-wrap" }}>
+                {store.bio}
+              </p>
+            )}
+
+            {/* Contact buttons */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem" }}>
+              {store.phone && (
+                <a
+                  href={`tel:${store.phone}`}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "var(--p-15)", border: "1px solid var(--p-30)", color: "var(--theme-accent, #00a355)", textDecoration: "none", borderRadius: "0.65rem", padding: "0.45rem 1rem", fontSize: "0.85rem" }}
+                >
+                  <Phone size={14} />
+                  اتصل بنا
+                </a>
+              )}
+              {(store as StoreProfile).whatsapp && (
+                <a
+                  href={`https://wa.me/${((store as StoreProfile).whatsapp ?? "").replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25d366", textDecoration: "none", borderRadius: "0.65rem", padding: "0.45rem 1rem", fontSize: "0.85rem" }}
+                >
+                  <MessageCircle size={14} />
+                  واتساب
+                </a>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Description */}
-        {store.bio && (
-          <div className="mb-6">
-            <h2 className="text-base font-semibold mb-2" style={{ color: "var(--theme-text, #e8f5e9)" }}>عن المتجر</h2>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary, #a5d6a7)", whiteSpace: "pre-wrap" }}>
-              {store.bio}
-            </p>
+        {/* Category tabs */}
+        {products.length > 0 && (
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                style={{
+                  background: activeCategory === cat ? "rgba(0,163,85,0.2)" : "var(--p-10)",
+                  border: activeCategory === cat ? "1px solid rgba(0,163,85,0.4)" : "1px solid var(--p-20)",
+                  color: activeCategory === cat ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
+                  borderRadius: "9999px",
+                  padding: "0.35rem 0.9rem",
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         )}
 
-        {/* Contact buttons */}
-        {(store.phone || store.whatsapp) && (
-          <div className="flex flex-wrap gap-3 mb-6">
-            {store.phone && (
-              <a
-                href={`tel:${store.phone}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all hover:opacity-80"
-                style={{ background: "var(--p-15)", border: "1px solid var(--p-30)", color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
+        {/* Products grid */}
+        {filteredProducts.length === 0 ? (
+          <div
+            style={{
+              background: "linear-gradient(145deg, #141414, #101010)",
+              border: "1px solid var(--p-20)",
+              borderRadius: "1rem",
+              padding: "3rem",
+              textAlign: "center",
+            }}
+          >
+            <Package size={36} style={{ color: "var(--theme-text-dim, #3a5e3a)", marginBottom: "1rem" }} />
+            <div style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>لا توجد منتجات متاحة حالياً</div>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: "1rem",
+            }}
+          >
+            {filteredProducts.map((product) => (
+              <Link
+                key={product.id}
+                to={`/products/${product.id}`}
+                style={{ textDecoration: "none" }}
               >
-                <Phone size={15} />
-                اتصل بنا
-              </a>
-            )}
-            {store.whatsapp && (
-              <a
-                href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm transition-all hover:opacity-80"
-                style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25d366", textDecoration: "none" }}
-              >
-                <MessageCircle size={15} />
-                واتساب
-              </a>
-            )}
+                <div
+                  style={{
+                    background: "linear-gradient(145deg, #141414, #101010)",
+                    border: "1px solid var(--p-20)",
+                    borderRadius: "0.85rem",
+                    overflow: "hidden",
+                    transition: "border-color 0.2s",
+                    height: "100%",
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(0,163,85,0.35)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--p-20)"; }}
+                >
+                  {/* Product image */}
+                  <div style={{ height: 160, background: "var(--p-10)", overflow: "hidden" }}>
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Package size={32} style={{ color: "var(--theme-text-dim, #3a5e3a)" }} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Product info */}
+                  <div style={{ padding: "0.85rem" }}>
+                    <div style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "0.9rem", marginBottom: "0.4rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {product.name}
+                    </div>
+                    <div style={{ marginBottom: "0.5rem" }}>
+                      <span style={{ background: "rgba(0,163,85,0.1)", color: "var(--theme-accent, #00a355)", border: "1px solid rgba(0,163,85,0.2)", fontSize: "0.72rem", padding: "0.15rem 0.5rem", borderRadius: "9999px" }}>
+                        {product.category}
+                      </span>
+                    </div>
+                    <div style={{ color: "var(--theme-accent, #00a355)", fontWeight: 700, fontSize: "1rem", marginBottom: "0.5rem" }}>
+                      {product.price.toLocaleString()} دج
+                    </div>
+                    <div style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.8rem", fontWeight: 500 }}>
+                      عرض المنتج ←
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
 
-        <div className="mt-10 pt-6" style={{ borderTop: "1px solid var(--p-15)" }}>
+        <div className="mt-10 pt-6" style={{ borderTop: "1px solid var(--p-15)", marginTop: "2.5rem" }}>
           <Link to="/stores" className="text-sm transition-opacity hover:opacity-70" style={{ color: "var(--theme-text-muted, #4a7a4a)", textDecoration: "none" }}>
             ← متاجر أخرى
           </Link>
