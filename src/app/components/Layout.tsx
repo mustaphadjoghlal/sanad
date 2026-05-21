@@ -33,6 +33,8 @@ export default function Layout() {
   const moreLinks = [
     { to: "/channels", label: "دليل القنوات" },
     { to: "/theses", label: "مذكرات التخرج" },
+    { to: "/professionals", label: "دليل المحترفين" },
+    { to: "/stores", label: "دليل المتاجر" },
   ];
 
   useEffect(() => {

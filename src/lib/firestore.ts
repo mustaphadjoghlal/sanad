@@ -198,6 +198,28 @@ export function subscribeToAllProfiles(
   });
 }
 
+export function subscribeToApprovedProfessionals(
+  callback: (profiles: UserProfile[]) => void
+): () => void {
+  const q = query(col("users"), where("status", "==", "approved"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    const profiles = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
+      .filter((p) => p.type !== "store");
+    callback(profiles);
+  });
+}
+
+export function subscribeToApprovedStores(
+  callback: (profiles: (UserProfile & { whatsapp?: string })[]) => void
+): () => void {
+  const q = query(col("users"), where("status", "==", "approved"), where("type", "==", "store"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    const profiles = snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile & { whatsapp?: string }));
+    callback(profiles);
+  });
+}
+
 // --- THEME SETTINGS ---
 const THEME_DOC = () => doc(db, "settings", "theme");
 

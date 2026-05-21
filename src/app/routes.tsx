@@ -16,6 +16,10 @@ import News from "./components/News";
 import NewsDetail from "./components/NewsDetail";
 import Theses from "./components/Theses";
 import ThesisDetail from "./components/ThesisDetail";
+import Professionals from "./components/Professionals";
+import ProfessionalDetail from "./components/ProfessionalDetail";
+import Stores from "./components/Stores";
+import StoreDetail from "./components/StoreDetail";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/AdminLogin";
 import Register from "./components/auth/Register";
@@ -44,6 +48,10 @@ export const router = createBrowserRouter([
       { path: "news/:id", Component: NewsDetail },
       { path: "theses", Component: Theses },
       { path: "theses/:id", Component: ThesisDetail },
+      { path: "professionals", Component: Professionals },
+      { path: "professionals/:id", Component: ProfessionalDetail },
+      { path: "stores", Component: Stores },
+      { path: "stores/:id", Component: StoreDetail },
       { path: "*", Component: NotFound },
     ],
   },
