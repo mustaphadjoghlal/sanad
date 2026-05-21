@@ -231,3 +231,38 @@ export interface UserProfile {
   rejectionNote?: string;
   createdAt: number;
 }
+
+export const PRODUCT_CATEGORIES = ["كاميرات", "ميكروفونات", "إضاءة", "حوامل وأرجل", "بطاريات وشواحن", "أجهزة حاسوبية", "سماعات", "لوازم تصوير", "أخرى"] as const;
+export type ProductCategory = typeof PRODUCT_CATEGORIES[number];
+
+export type ProductStatus = 'active' | 'archived';
+export interface Product {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  image?: string;
+  contentImages?: string[];
+  quantity: number;
+  createdAt: number;
+  status: ProductStatus;
+}
+
+export type OrderStatus = 'pending' | 'in_delivery' | 'sold' | 'cancelled';
+export interface Order {
+  id: string;
+  productId: string;
+  productName: string;
+  storeId: string;
+  buyerFirstName: string;
+  buyerLastName: string;
+  wilaya: string;
+  city: string;
+  quantity: number;
+  note?: string;
+  status: OrderStatus;
+  createdAt: number;
+  sellerNote?: string;
+}

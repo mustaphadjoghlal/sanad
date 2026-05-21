@@ -15,7 +15,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
 // Generic helpers
@@ -345,4 +345,46 @@ export async function getChannel(id: string): Promise<import("./types").Channel 
   const snap = await getDoc(docRef("channels", id));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() } as import("./types").Channel;
+}
+
+// --- PRODUCTS ---
+export async function addProduct(data: Omit<Product, "id" | "createdAt">) {
+  return addDoc(col("products"), { ...data, createdAt: Date.now() });
+}
+export async function updateProduct(id: string, data: Partial<Omit<Product, "id">>) {
+  return updateDoc(docRef("products", id), data);
+}
+export async function deleteProduct(id: string) {
+  return deleteDoc(docRef("products", id));
+}
+export function subscribeToStoreProducts(storeId: string, callback: (products: Product[]) => void): () => void {
+  const q = query(col("products"), where("storeId", "==", storeId), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product)));
+  });
+}
+export function subscribeToActiveStoreProducts(storeId: string, callback: (products: Product[]) => void): () => void {
+  const q = query(col("products"), where("storeId", "==", storeId), where("status", "==", "active"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product)));
+  });
+}
+export async function getProduct(id: string): Promise<Product | null> {
+  const snap = await getDoc(docRef("products", id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Product;
+}
+
+// --- ORDERS ---
+export async function addOrder(data: Omit<Order, "id" | "createdAt">) {
+  return addDoc(col("orders"), { ...data, createdAt: Date.now() });
+}
+export async function updateOrder(id: string, data: Partial<Omit<Order, "id">>) {
+  return updateDoc(docRef("orders", id), data);
+}
+export function subscribeToStoreOrders(storeId: string, callback: (orders: Order[]) => void): () => void {
+  const q = query(col("orders"), where("storeId", "==", storeId), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order)));
+  });
 }
