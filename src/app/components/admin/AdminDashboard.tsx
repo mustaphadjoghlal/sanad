@@ -26,6 +26,7 @@ import {
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
+import { WILAYAS } from "../../../lib/algeria";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
 
@@ -747,7 +748,7 @@ function CoursesSection() {
 
 // ── JOBS SECTION ────────────────────────────────────────────────
 type JobForm = Omit<Job, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", description: "", deadline: "", contact: "", source: "", companyDescription: "", image: "", contentImages: [] };
+const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", employmentType: undefined, description: "", deadline: "", contact: "", source: "", companyDescription: "", image: "", contentImages: [] };
 
 function JobsSection() {
   const isMobile = useIsMobile();
@@ -771,7 +772,7 @@ function JobsSection() {
   });
 
   const openAdd = () => { setForm(emptyJob); setModal("add"); };
-  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, description: j.description, deadline: j.deadline || "", contact: j.contact, source: j.source || "", companyDescription: j.companyDescription || "", image: j.image || "", contentImages: j.contentImages || [] }); setModal("edit"); };
+  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, employmentType: j.employmentType, description: j.description, deadline: j.deadline || "", contact: j.contact, source: j.source || "", companyDescription: j.companyDescription || "", image: j.image || "", contentImages: j.contentImages || [] }); setModal("edit"); };
 
   const handleImageUpload = async (file: File) => {
     setImgUploading(true);
@@ -864,22 +865,64 @@ function JobsSection() {
             <div><label style={S.label}>المسمى الوظيفي *</label><input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
               <div><label style={S.label}>الجهة / المؤسسة</label><input style={S.input} value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
-              <div>
-                <label style={S.label}>الولاية</label>
-                <select style={S.input} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}>
-                  <option value="">اختر الولاية</option>
-                  {["الجزائر","وهران","قسنطينة","عنابة","سطيف","تيزي وزو","البليدة","بجاية","تلمسان","باتنة"].map(w => <option key={w} value={w}>{w}</option>)}
-                </select>
+              <div className="md:col-span-2">
+                <label style={S.label}>الولاية (يمكن اختيار أكثر من ولاية)</label>
+                <div style={{ ...S.input, padding: "0.5rem", maxHeight: "130px", overflowY: "auto", display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                  {["عن بعد", "كل الجزائر", ...WILAYAS].map((w) => {
+                    const selected = form.location.split(",").map(s => s.trim()).includes(w);
+                    return (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => {
+                          const current = form.location ? form.location.split(",").map(s => s.trim()).filter(Boolean) : [];
+                          const next = selected ? current.filter(v => v !== w) : [...current, w];
+                          setForm({ ...form, location: next.join(", ") });
+                        }}
+                        style={{
+                          padding: "0.15rem 0.55rem",
+                          borderRadius: "9999px",
+                          fontSize: "0.72rem",
+                          border: selected ? "1px solid rgba(0,163,85,0.5)" : "1px solid var(--p-25)",
+                          background: selected ? "rgba(0,163,85,0.2)" : "var(--p-10)",
+                          color: selected ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {w}
+                      </button>
+                    );
+                  })}
+                </div>
+                {form.location && (
+                  <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.72rem", marginTop: "0.25rem" }}>
+                    المختار: {form.location}
+                  </p>
+                )}
               </div>
               <div>
                 <label style={S.label}>نوع الوظيفة</label>
                 <select style={S.input} value={form.jobType} onChange={(e) => setForm({ ...form, jobType: e.target.value })}>
-                  <option value="">اختر النوع</option>
+                  <option value="">اختر المنصب</option>
                   <option value="صحفي">صحفي</option>
                   <option value="مقدم برامج">مقدم برامج</option>
                   <option value="محرر">محرر</option>
                   <option value="مصور">مصور</option>
                   <option value="مونتير">مونتير</option>
+                  <option value="منشط صوتي">منشط صوتي</option>
+                  <option value="مراسل">مراسل</option>
+                  <option value="أخرى">أخرى</option>
+                </select>
+              </div>
+              <div>
+                <label style={S.label}>طبيعة العمل</label>
+                <select style={S.input} value={form.employmentType ?? ""} onChange={(e) => setForm({ ...form, employmentType: (e.target.value as Job["employmentType"]) || undefined })}>
+                  <option value="">اختر الطبيعة</option>
+                  <option value="fulltime">دوام كلي</option>
+                  <option value="parttime">دوام جزئي</option>
+                  <option value="internship">تدريب (غير مدفوع)</option>
+                  <option value="internship_paid">تدريب مدفوع</option>
                 </select>
               </div>
               <div><label style={S.label}>الموعد النهائي</label><input type="date" style={S.input} value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>

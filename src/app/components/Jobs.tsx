@@ -96,6 +96,16 @@ export default function Jobs() {
                     <div className="flex flex-wrap gap-3 text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
                       {j.location && <span className="flex items-center gap-1"><MapPin size={12} />{j.location}</span>}
                       {j.jobType && <span style={{ background: "var(--p-20)", padding: "0.15rem 0.5rem", borderRadius: "9999px", color: "var(--theme-badge-text, #81c784)" }}>{j.jobType}</span>}
+                      {j.employmentType && (() => {
+                        const map: Record<string, { label: string; bg: string; color: string }> = {
+                          fulltime:        { label: "دوام كلي",          bg: "rgba(0,80,40,0.3)",   color: "#66bb6a" },
+                          parttime:        { label: "دوام جزئي",         bg: "rgba(0,60,120,0.3)",  color: "#64b5f6" },
+                          internship:      { label: "تدريب (غير مدفوع)", bg: "rgba(120,60,0,0.3)",  color: "#ffa726" },
+                          internship_paid: { label: "تدريب مدفوع",       bg: "rgba(80,0,120,0.3)",  color: "#ce93d8" },
+                        };
+                        const s = map[j.employmentType];
+                        return s ? <span style={{ background: s.bg, padding: "0.15rem 0.5rem", borderRadius: "9999px", color: s.color }}>{s.label}</span> : null;
+                      })()}
                       {j.deadline && <span className="flex items-center gap-1"><Calendar size={12} />آخر أجل: {j.deadline}</span>}
                     </div>
                     {j.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", marginTop: "0.75rem", lineHeight: 1.6 }}>{j.description.slice(0, 120)}{j.description.length > 120 ? "..." : ""}</p>}

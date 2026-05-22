@@ -77,15 +77,28 @@ export default function JobDetail() {
       )}
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Job type badge */}
-        {j.jobType && (
-          <div className="flex items-center gap-3 mb-4">
-            <span
-              className="text-xs px-3 py-1 rounded-full"
-              style={{ background: "var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}
-            >
-              {j.jobType}
-            </span>
+        {/* Job type badges */}
+        {(j.jobType || j.employmentType) && (
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {j.jobType && (
+              <span className="text-xs px-3 py-1 rounded-full" style={{ background: "var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
+                {j.jobType}
+              </span>
+            )}
+            {j.employmentType && (() => {
+              const map: Record<string, { label: string; bg: string; color: string }> = {
+                fulltime:        { label: "دوام كلي",         bg: "rgba(0,80,40,0.3)",   color: "#66bb6a" },
+                parttime:        { label: "دوام جزئي",        bg: "rgba(0,60,120,0.3)",  color: "#64b5f6" },
+                internship:      { label: "تدريب (غير مدفوع)", bg: "rgba(120,60,0,0.3)", color: "#ffa726" },
+                internship_paid: { label: "تدريب مدفوع",      bg: "rgba(80,0,120,0.3)",  color: "#ce93d8" },
+              };
+              const s = map[j.employmentType];
+              return s ? (
+                <span className="text-xs px-3 py-1 rounded-full" style={{ background: s.bg, color: s.color }}>
+                  {s.label}
+                </span>
+              ) : null;
+            })()}
           </div>
         )}
 

@@ -22,6 +22,7 @@ export interface Job {
   company: string;
   location: string;
   jobType: string;
+  employmentType?: 'fulltime' | 'parttime' | 'internship' | 'internship_paid';
   description: string;
   deadline?: string;
   contact: string;
