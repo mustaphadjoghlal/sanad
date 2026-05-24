@@ -260,19 +260,23 @@ export function subscribeToSiteContent(callback: (content: SiteContent) => void)
   });
 }
 
-// --- FCM TOKEN (admin push) ---
-export async function saveAdminFCMToken(token: string): Promise<void> {
+// --- FCM TOKEN ---
+export async function saveAdminFCMToken(token: string, uid?: string): Promise<void> {
+  // Save to global admin config (for admin push)
   await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() });
+  // Also save per-user so targeted notifications work
+  if (uid) {
+    await updateDoc(doc(db, "users", uid), { fcmToken: token });
+  }
 }
 
 // --- APP NOTIFICATIONS ---
-export async function sendNotification(notif: Omit<AppNotification, "id" | "readBy">): Promise<void> {
+export async function sendNotification(notif: Omit<AppNotification, "id" | "readBy">, targetType?: string): Promise<void> {
   await addDoc(col("notifications"), { ...notif, readBy: [] });
-  // Send real push notification via Vercel API route
   fetch("/api/push", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: notif.title, body: notif.body }),
+    body: JSON.stringify({ title: notif.title, body: notif.body, targetType }),
   }).catch(() => {});
 }
 

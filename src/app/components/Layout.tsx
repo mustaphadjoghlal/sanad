@@ -112,7 +112,7 @@ export default function Layout() {
         const { getToken, onMessage } = await import("firebase/messaging");
         const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: sw });
         if (token) {
-          await saveAdminFCMToken(token);
+          await saveAdminFCMToken(token, currentUser?.uid);
         }
 
         onMessage(messaging, (payload) => {

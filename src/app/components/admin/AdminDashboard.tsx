@@ -468,6 +468,7 @@ export default function AdminDashboard() {
 function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
   const [counts, setCounts] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, voice: 0, profiles: 0 });
   const [pending, setPending] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, voice: 0, profiles: 0 });
+  const [newUsers, setNewUsers] = useState<UserProfile[]>([]);
 
   useEffect(() => {
     const unsubs = [
@@ -494,6 +495,8 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
       subscribeToAllProfiles((d) => {
         setCounts((c) => ({ ...c, profiles: d.length }));
         setPending((p) => ({ ...p, profiles: d.filter((x) => x.status === "pending").length }));
+        const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        setNewUsers(d.filter((x) => x.createdAt > week).slice(0, 10));
       }),
     ];
     return () => unsubs.forEach((u) => u());
@@ -547,9 +550,43 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
           </button>
         ))}
       </div>
-      <div className="rounded-xl p-6" style={S.card}>
-        <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>اضغط على أي بطاقة للانتقال إلى إدارة القسم.</p>
-      </div>
+      {newUsers.length > 0 && (
+        <div className="rounded-xl overflow-hidden" style={S.card}>
+          <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, fontSize: "0.9rem" }}>
+              مسجلون جدد (آخر 7 أيام)
+            </span>
+            <button onClick={() => onNavigate("professionals")} style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.8rem", background: "none", border: "none", cursor: "pointer" }}>
+              عرض الكل ←
+            </button>
+          </div>
+          <div>
+            {newUsers.map((u) => {
+              const typeLabels: Record<string, string> = { journalist: "صحفي", voice: "منشط صوتي", photographer: "مصور", editor: "مونتير", student: "طالب", other: "أخرى", store: "متجر" };
+              const statusColors: Record<string, string> = { pending: "#fbbf24", approved: "#4ade80", rejected: "#f87171" };
+              const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "معتمد", rejected: "مرفوض" };
+              return (
+                <div key={u.id} className="flex items-center gap-3 px-5 py-3 transition-colors" style={{ borderBottom: "1px solid var(--p-08)" }}>
+                  {u.photo ? (
+                    <img src={u.photo} alt={u.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--p-20)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--theme-accent, #00a355)", fontWeight: 700 }}>
+                      {u.name.charAt(0)}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", fontWeight: 500 }}>{u.name}</div>
+                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem" }}>{typeLabels[u.type] ?? u.type}{u.location ? ` — ${u.location}` : ""}</div>
+                  </div>
+                  <span style={{ color: statusColors[u.status] ?? "#6aad6a", fontSize: "0.72rem", background: "var(--p-10)", border: `1px solid ${statusColors[u.status] ?? "#4a7a4a"}44`, padding: "0.15rem 0.55rem", borderRadius: "9999px", flexShrink: 0 }}>
+                    {statusLabels[u.status] ?? u.status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -798,8 +835,12 @@ function JobsSection() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      if (modal === "add") await addJob(form);
-      else await updateJob(editId, form);
+      if (modal === "add") {
+        await addJob(form);
+        sendNotification({ title: `وظيفة جديدة: ${form.title}`, body: `${form.company} — ${form.location}`, link: "/jobs", createdAt: Date.now() }, "journalist").catch(() => {});
+      } else {
+        await updateJob(editId, form);
+      }
       setModal(null);
     } finally { setSaving(false); }
   };
@@ -1219,8 +1260,12 @@ function CompetitionsSection() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      if (modal === "add") await addCompetition(form);
-      else await updateCompetition(editId, form);
+      if (modal === "add") {
+        await addCompetition(form);
+        sendNotification({ title: `مسابقة جديدة: ${form.name}`, body: `${form.organizer} — ${form.type === "university" ? "جامعية" : form.type === "national" ? "وطنية" : "دولية"}`, link: "/competitions", createdAt: Date.now() }, "journalist").catch(() => {});
+      } else {
+        await updateCompetition(editId, form);
+      }
       setModal(null);
     } finally { setSaving(false); }
   };

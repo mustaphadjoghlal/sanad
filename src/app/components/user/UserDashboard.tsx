@@ -556,8 +556,8 @@ export default function UserDashboard() {
                     </div>
                   </div>
 
-                  {/* Portfolio links */}
-                  <div>
+                  {/* Portfolio links — individual accounts only */}
+                  {profile.type !== "store" && <div>
                     <label style={S.label}>روابط البورتفوليو</label>
                     {editForm.portfolio.length > 0 && (
                       <div className="space-y-2 mb-2">
@@ -638,7 +638,7 @@ export default function UserDashboard() {
                         <span>إضافة رابط</span>
                       </button>
                     )}
-                  </div>
+                  </div>}
 
                   <div className="flex gap-3 pt-2">
                     <button

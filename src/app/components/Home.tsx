@@ -420,6 +420,35 @@ export default function Home() {
         </section>
       )}
 
+      {/* ══ STORES ══════════════════════════════════════════════════════ */}
+      <section className="py-16 px-4" style={{ borderTop: "1px solid var(--p-15)" }}>
+        <div className="container mx-auto max-w-5xl">
+          <SectionHeader num="08" title="دليل المتاجر" link="/stores" linkLabel="كل المتاجر" />
+          <div
+            className="rounded-2xl p-8 flex flex-col md:flex-row items-center gap-6"
+            style={{ background: "linear-gradient(135deg, var(--p-10), var(--p-08))", border: "1px solid var(--p-20)" }}
+          >
+            <div className="text-5xl flex-shrink-0">🏪</div>
+            <div className="flex-1 text-center md:text-right">
+              <h3 className="text-xl font-bold mb-2" style={{ color: "var(--theme-text, #e8f5e9)" }}>
+                تسوّق المعدات الإعلامية
+              </h3>
+              <p className="text-sm mb-4" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>
+                كاميرات، ميكروفونات، إضاءة وكل ما تحتاجه من معدات احترافية — مباشرة من متاجر جزائرية موثّقة
+              </p>
+              <Link
+                to="/stores"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))", color: "#fff", textDecoration: "none" }}
+              >
+                تصفح المتاجر
+                <ArrowLeft size={15} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══ CTA ══════════════════════════════════════════════════════════ */}
       <section className="py-20 relative overflow-hidden" style={{ borderTop: "1px solid var(--p-15)" }}>
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, var(--p-12) 0%, transparent 70%)" }} />

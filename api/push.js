@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { title, body } = req.body ?? {};
+  const { title, body, targetType } = req.body ?? {};
   if (!title) return res.status(400).json({ error: "Missing title" });
 
   const serverKey = process.env.FCM_SERVER_KEY;
@@ -14,23 +14,49 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: false, reason: "FCM not configured" });
   }
 
-  // Read admin FCM token from Firestore REST API
-  let token;
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+
+  // Collect FCM tokens
+  let tokens = [];
+
   try {
-    const fsRes = await fetch(
-      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/config/adminFCM?key=${apiKey}`
-    );
-    if (fsRes.ok) {
-      const data = await fsRes.json();
-      token = data.fields?.token?.stringValue;
+    if (targetType) {
+      // Fetch users of specific type who have an fcmToken
+      const fsRes = await fetch(
+        `${baseUrl}/users?key=${apiKey}&pageSize=300`,
+      );
+      if (fsRes.ok) {
+        const data = await fsRes.json();
+        const docs = data.documents ?? [];
+        tokens = docs
+          .filter((d) => {
+            const type = d.fields?.type?.stringValue;
+            const token = d.fields?.fcmToken?.stringValue;
+            if (!token) return false;
+            if (targetType === "journalist") return type === "journalist" || type === "student";
+            if (targetType === "all") return true;
+            return type === targetType;
+          })
+          .map((d) => d.fields.fcmToken.stringValue);
+      }
+    } else {
+      // Fallback: send to saved admin token
+      const fsRes = await fetch(`${baseUrl}/config/adminFCM?key=${apiKey}`);
+      if (fsRes.ok) {
+        const data = await fsRes.json();
+        const token = data.fields?.token?.stringValue;
+        if (token) tokens = [token];
+      }
     }
   } catch {
     return res.status(200).json({ ok: false, reason: "Firestore read failed" });
   }
 
-  if (!token) return res.status(200).json({ ok: false, reason: "No FCM token stored" });
+  if (tokens.length === 0) return res.status(200).json({ ok: false, reason: "No FCM tokens found" });
 
-  // Send FCM push notification
+  // Remove duplicates
+  tokens = [...new Set(tokens)];
+
   try {
     const fcmRes = await fetch("https://fcm.googleapis.com/fcm/send", {
       method: "POST",
@@ -39,14 +65,14 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        to: token,
+        registration_ids: tokens,
         notification: { title, body: body ?? "", icon: "/icon.svg" },
         android: { priority: "high" },
         apns: { payload: { aps: { sound: "default" } } },
       }),
     });
     const result = await fcmRes.json();
-    return res.status(200).json({ ok: true, result });
+    return res.status(200).json({ ok: true, result, count: tokens.length });
   } catch {
     return res.status(200).json({ ok: false, reason: "FCM send failed" });
   }
