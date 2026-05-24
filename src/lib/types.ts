@@ -124,6 +124,9 @@ export interface SiteContent {
   ctaSubtitle: string;
   ctaButton: string;
   ctaButton2: string;
+  carouselPlaceholderProducts?: string;
+  carouselPlaceholderNews?: string;
+  carouselPlaceholderJobs?: string;
 }
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
@@ -140,6 +143,9 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   ctaSubtitle: "",
   ctaButton: "",
   ctaButton2: "",
+  carouselPlaceholderProducts: "",
+  carouselPlaceholderNews: "",
+  carouselPlaceholderJobs: "",
 };
 
 export type NewsCategory = 'قناة جديدة' | 'مسابقة' | 'توظيف' | 'عام';

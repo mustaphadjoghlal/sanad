@@ -65,7 +65,24 @@ const PANELS = [
 ] as const;
 type PanelKey = typeof PANELS[number]["key"];
 
-function RotatingSection({ products, news, jobs }: { products: Product[]; news: NewsItem[]; jobs: Job[] }) {
+function EmptyPlaceholder({ image, label }: { image?: string; label: string }) {
+  return (
+    <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>
+      {image ? (
+        <img src={image} alt={label} style={{ maxHeight: "260px", maxWidth: "100%", margin: "0 auto", borderRadius: "1rem", objectFit: "cover", opacity: 0.85 }} />
+      ) : (
+        <p style={{ color: "var(--theme-text-dim)" }}>لا توجد {label} حالياً</p>
+      )}
+    </div>
+  );
+}
+
+function RotatingSection({ products, news, jobs, placeholders }: {
+  products: Product[];
+  news: NewsItem[];
+  jobs: Job[];
+  placeholders: { products?: string; news?: string; jobs?: string };
+}) {
   const [active, setActive] = useState<PanelKey>("products");
   const [progress, setProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -156,7 +173,7 @@ function RotatingSection({ products, news, jobs }: { products: Product[]; news: 
         {active === "products" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.length === 0 ? (
-              <p style={{ color: "var(--theme-text-dim)", gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>لا توجد منتجات حالياً</p>
+              <EmptyPlaceholder image={placeholders.products} label="منتجات" />
             ) : products.map((prod, i) => (
               <Link key={prod.id} to={`/products/${prod.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
                 style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
@@ -180,7 +197,7 @@ function RotatingSection({ products, news, jobs }: { products: Product[]; news: 
         {active === "news" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {news.length === 0 ? (
-              <p style={{ color: "var(--theme-text-dim)", gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>لا توجد أخبار حالياً</p>
+              <EmptyPlaceholder image={placeholders.news} label="أخبار" />
             ) : news.map((item, i) => (
               <Link key={item.id} to={`/news/${item.id}`} className="card-glow p-5 rounded-2xl animate-fade-in-up block"
                 style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
@@ -203,7 +220,7 @@ function RotatingSection({ products, news, jobs }: { products: Product[]; news: 
         {active === "jobs" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {jobs.length === 0 ? (
-              <p style={{ color: "var(--theme-text-dim)", gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>لا توجد فرص عمل حالياً</p>
+              <EmptyPlaceholder image={placeholders.jobs} label="فرص عمل" />
             ) : jobs.map((job, i) => (
               <Link key={job.id} to={`/jobs/${job.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
                 style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
@@ -596,7 +613,16 @@ export default function Home() {
       )}
 
       {/* ══ ROTATING SECTION ════════════════════════════════════════════ */}
-      <RotatingSection products={latestProducts} news={latestNews} jobs={featuredJobs} />
+      <RotatingSection
+        products={latestProducts}
+        news={latestNews}
+        jobs={featuredJobs}
+        placeholders={{
+          products: c.carouselPlaceholderProducts,
+          news:     c.carouselPlaceholderNews,
+          jobs:     c.carouselPlaceholderJobs,
+        }}
+      />
 
       {/* ══ CTA ══════════════════════════════════════════════════════════ */}
       <section className="py-20 relative overflow-hidden" style={{ borderTop: "1px solid var(--p-15)" }}>

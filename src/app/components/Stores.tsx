@@ -87,15 +87,12 @@ export default function Stores() {
                     </div>
                   </div>
 
-                  {s.storeStatus && (
+                  {s.storeStatus === "paid" && (
                     <span
                       className="self-start text-xs px-2.5 py-0.5 rounded-full"
-                      style={{
-                        background: s.storeStatus === "paid" ? "rgba(0,80,40,0.3)" : "rgba(100,100,0,0.3)",
-                        color: s.storeStatus === "paid" ? "#66bb6a" : "#e6c619",
-                      }}
+                      style={{ background: "rgba(0,80,40,0.3)", color: "#66bb6a" }}
                     >
-                      {s.storeStatus === "paid" ? "متجر موثّق" : "تجريبي"}
+                      متجر موثّق
                     </span>
                   )}
 

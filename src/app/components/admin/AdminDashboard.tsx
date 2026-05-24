@@ -2212,10 +2212,17 @@ const contentInputStyle: React.CSSProperties = {
   outline: "none",
 };
 
+const CAROUSEL_PLACEHOLDERS: { key: "carouselPlaceholderProducts" | "carouselPlaceholderNews" | "carouselPlaceholderJobs"; label: string }[] = [
+  { key: "carouselPlaceholderProducts", label: "صورة سوق المعدات (عند الفراغ)" },
+  { key: "carouselPlaceholderNews",     label: "صورة آخر الأخبار (عند الفراغ)" },
+  { key: "carouselPlaceholderJobs",     label: "صورة فرص التوظيف (عند الفراغ)" },
+];
+
 function SiteContentSection() {
   const [contentForm, setContentForm] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = subscribeToSiteContent((c) => setContentForm(c));
@@ -2228,6 +2235,16 @@ function SiteContentSection() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
     setSaving(false);
+  };
+
+  const handlePlaceholderUpload = async (key: keyof SiteContent, file: File) => {
+    setUploading(key);
+    try {
+      const url = await uploadImage(file, `carousel-placeholders/${key}`);
+      setContentForm((prev) => ({ ...prev, [key]: url }));
+    } finally {
+      setUploading(null);
+    }
   };
 
   return (
@@ -2261,6 +2278,48 @@ function SiteContentSection() {
           ))}
         </div>
       </div>
+
+      {/* Carousel placeholder images */}
+      <div className="rounded-xl p-6" style={S.card}>
+        <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1.25rem" }}>
+          صور الكاروسيل (تظهر عند فراغ القسم)
+        </h3>
+        <div className="space-y-5">
+          {CAROUSEL_PLACEHOLDERS.map(({ key, label }) => (
+            <div key={key}>
+              <label style={S.label}>{label}</label>
+              <div className="flex gap-3 items-center flex-wrap">
+                {contentForm[key] && (
+                  <img src={contentForm[key] as string} alt={label} style={{ height: 64, width: 100, objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-25)" }} />
+                )}
+                <label
+                  className="cursor-pointer px-4 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--p-15)", color: "var(--theme-text)", border: "1px solid var(--p-25)" }}
+                >
+                  {uploading === key ? "جاري الرفع..." : "رفع صورة"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading !== null}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePlaceholderUpload(key, f); }}
+                  />
+                </label>
+                {contentForm[key] && (
+                  <button
+                    onClick={() => setContentForm((prev) => ({ ...prev, [key]: "" }))}
+                    className="text-xs px-3 py-2 rounded-lg"
+                    style={{ color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
+                  >
+                    حذف
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="flex gap-3">
         <button
           onClick={handleSave}
