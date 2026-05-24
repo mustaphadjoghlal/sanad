@@ -237,6 +237,7 @@ export interface UserProfile {
   featured: boolean;
   rejectionNote?: string;
   createdAt: number;
+  username?: string;
 }
 
 export const PRODUCT_CATEGORIES = ["كاميرات", "ميكروفونات", "إضاءة", "حوامل وأرجل", "بطاريات وشواحن", "أجهزة حاسوبية", "سماعات", "لوازم تصوير", "أخرى"] as const;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowRight, Phone, MessageCircle, BadgeCheck, MapPin, Tag } from "lucide-react";
-import { getUserProfile, subscribeToActiveStoreProducts } from "../../lib/firestore";
+import { getUserProfile, getStoreByUsername, subscribeToActiveStoreProducts } from "../../lib/firestore";
 import type { UserProfile, Product } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 
@@ -20,6 +20,7 @@ const L = {
 export default function StoreDetail() {
   const { id } = useParams<{ id: string }>();
   const [store, setStore] = useState<StoreProfile | null>(null);
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>("الكل");
@@ -31,13 +32,22 @@ export default function StoreDetail() {
 
   useEffect(() => {
     if (!id) return;
-    getUserProfile(id).then((p) => { setStore(p as StoreProfile); setLoading(false); });
+    // Try username lookup first, then fall back to UID
+    const isUid = id.length > 20 && !/^[a-z0-9_-]+$/.test(id);
+    const resolve = isUid
+      ? getUserProfile(id)
+      : getStoreByUsername(id).then((p) => p ?? getUserProfile(id));
+    resolve.then((p) => {
+      setStore(p as StoreProfile);
+      setResolvedId(p?.id ?? null);
+      setLoading(false);
+    });
   }, [id]);
 
   useEffect(() => {
-    if (!id) return;
-    return subscribeToActiveStoreProducts(id, setProducts);
-  }, [id]);
+    if (!resolvedId) return;
+    return subscribeToActiveStoreProducts(resolvedId, setProducts);
+  }, [resolvedId]);
 
   const categories = ["الكل", ...Array.from(new Set(products.map((p) => p.category)))];
   const filtered = activeCategory === "الكل" ? products : products.filter((p) => p.category === activeCategory);

@@ -56,7 +56,7 @@ export default function Stores() {
             {filtered.map((s) => (
               <Link
                 key={s.id}
-                to={`/stores/${s.id}`}
+                to={`/stores/${s.username || s.id}`}
                 style={{ textDecoration: "none" }}
               >
                 <div

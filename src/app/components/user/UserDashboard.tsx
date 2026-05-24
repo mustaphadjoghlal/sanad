@@ -13,6 +13,7 @@ import {
   subscribeToCollection,
   addEquipment,
   sendNotification,
+  isUsernameAvailable,
 } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
 import type { UserProfile, Equipment, PortfolioLink } from "../../../lib/types";
@@ -95,6 +96,7 @@ type EditFormState = {
   experience: string;
   achievements: string;
   portfolio: PortfolioLink[];
+  username: string;
 };
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -135,7 +137,9 @@ export default function UserDashboard() {
     experience: "",
     achievements: "",
     portfolio: [],
+    username: "",
   });
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -202,7 +206,9 @@ export default function UserDashboard() {
       experience: profile.experience || "",
       achievements: profile.achievements || "",
       portfolio: profile.portfolio ? [...profile.portfolio] : [],
+      username: profile.username || "",
     });
+    setUsernameStatus("idle");
     setPhotoUrl(profile.photo || "");
     setShowAddLink(false);
     setNewLinkLabel("");
@@ -244,9 +250,29 @@ export default function UserDashboard() {
     }));
   };
 
+  const handleUsernameChange = (val: string) => {
+    const clean = val.toLowerCase().replace(/[^a-z0-9_]/g, "");
+    setEditForm((p) => ({ ...p, username: clean }));
+    if (!clean) { setUsernameStatus("idle"); return; }
+    if (clean.length < 3) { setUsernameStatus("invalid"); return; }
+    setUsernameStatus("checking");
+    const timer = setTimeout(async () => {
+      if (!uid) return;
+      const available = await isUsernameAvailable(clean, uid);
+      setUsernameStatus(available ? "available" : "taken");
+    }, 600);
+    return () => clearTimeout(timer);
+  };
+
   const handleSaveEdit = async () => {
     if (!uid || !profile) return;
     if (!editForm.name?.trim()) { setEditError("الاسم مطلوب"); return; }
+    if (profile.type === "store" && editForm.username && usernameStatus === "taken") {
+      setEditError("هذا الاسم مستخدم، اختر اسماً آخر"); return;
+    }
+    if (profile.type === "store" && editForm.username && usernameStatus === "invalid") {
+      setEditError("الاسم يجب أن يكون 3 أحرف على الأقل"); return;
+    }
     setSaving(true);
     try {
       await saveUserProfile(uid, {
@@ -263,6 +289,7 @@ export default function UserDashboard() {
         experience: editForm.experience || undefined,
         otherType: profile.otherType,
         storeStatus: profile.storeStatus,
+        username: profile.type === "store" && editForm.username ? editForm.username.toLowerCase() : undefined,
       });
       if (profile.status === "rejected") {
         await resubmitProfile(uid);
@@ -543,6 +570,31 @@ export default function UserDashboard() {
                         <input style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} />
                       </div>
                     )}
+                    {profile.type === "store" && (
+                      <div className="md:col-span-2">
+                        <label style={S.label}>رابط المتجر المخصص (username)</label>
+                        <div style={{ position: "relative" }}>
+                          <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--theme-text-muted)", fontSize: "0.85rem", pointerEvents: "none" }}>
+                            sanadz.media/stores/
+                          </span>
+                          <input
+                            style={{ ...S.input, paddingRight: "175px" }}
+                            value={editForm.username}
+                            onChange={(e) => handleUsernameChange(e.target.value)}
+                            placeholder="mustastore"
+                            dir="ltr"
+                            maxLength={30}
+                          />
+                        </div>
+                        <div style={{ fontSize: "0.75rem", marginTop: "0.3rem" }}>
+                          {usernameStatus === "checking" && <span style={{ color: "var(--theme-text-dim)" }}>جاري التحقق...</span>}
+                          {usernameStatus === "available" && <span style={{ color: "#4ade80" }}>✓ الاسم متاح</span>}
+                          {usernameStatus === "taken" && <span style={{ color: "#f87171" }}>✗ الاسم مستخدم بالفعل</span>}
+                          {usernameStatus === "invalid" && <span style={{ color: "#fbbf24" }}>3 أحرف على الأقل، أحرف لاتينية وأرقام و _</span>}
+                          {usernameStatus === "idle" && editForm.username === "" && <span style={{ color: "var(--theme-text-dim)" }}>أحرف لاتينية، أرقام و _ فقط</span>}
+                        </div>
+                      </div>
+                    )}
                     <div className="md:col-span-2">
                       <label style={S.label}>{profile.type === "store" ? "وصف المتجر" : "نبذة / CV"}</label>
                       <textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={editForm.bio} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} />
@@ -690,12 +742,19 @@ export default function UserDashboard() {
               للترقية إلى الباقة المدفوعة تواصل معنا
             </p>
             {uid && profile.status === "approved" && (
-              <Link
-                to={`/stores/${uid}`}
-                style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.85rem", textDecoration: "none", marginTop: "0.5rem", display: "inline-block" }}
-              >
-                عرض متجري ←
-              </Link>
+              <div style={{ marginTop: "0.5rem" }}>
+                <Link
+                  to={`/stores/${profile.username || uid}`}
+                  style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.85rem", textDecoration: "none", display: "inline-block" }}
+                >
+                  عرض متجري ←
+                </Link>
+                {profile.username && (
+                  <span style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginRight: "0.75rem", direction: "ltr", display: "inline-block" }}>
+                    sanadz.media/stores/{profile.username}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         )}

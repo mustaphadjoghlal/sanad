@@ -154,6 +154,19 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   return { id: snap.id, ...snap.data() } as UserProfile;
 }
 
+export async function getStoreByUsername(username: string): Promise<UserProfile | null> {
+  const q = query(col("users"), where("username", "==", username.toLowerCase()), where("type", "==", "store"));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as UserProfile;
+}
+
+export async function isUsernameAvailable(username: string, currentUid: string): Promise<boolean> {
+  const q = query(col("users"), where("username", "==", username.toLowerCase()));
+  const snap = await getDocs(q);
+  return snap.docs.every((d) => d.id === currentUid);
+}
+
 export function subscribeToUserProfile(
   uid: string,
   callback: (profile: UserProfile | null) => void
