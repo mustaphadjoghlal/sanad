@@ -523,7 +523,7 @@ export default function UserDashboard() {
                       <input style={S.input} value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
                     </div>
                     <div>
-                      <label style={S.label}>التخصص</label>
+                      <label style={S.label}>{profile.type === "store" ? "نوع المعدات" : "التخصص"}</label>
                       <input style={S.input} value={editForm.specialty} onChange={(e) => setEditForm((p) => ({ ...p, specialty: e.target.value }))} />
                     </div>
                     <div>
@@ -537,23 +537,27 @@ export default function UserDashboard() {
                       <label style={S.label}>رقم الهاتف</label>
                       <input style={S.input} value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} dir="ltr" />
                     </div>
-                    <div>
-                      <label style={S.label}>سنوات الخبرة</label>
-                      <input style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} />
-                    </div>
+                    {profile.type !== "store" && (
+                      <div>
+                        <label style={S.label}>سنوات الخبرة</label>
+                        <input style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} />
+                      </div>
+                    )}
                     <div className="md:col-span-2">
-                      <label style={S.label}>نبذة / CV</label>
+                      <label style={S.label}>{profile.type === "store" ? "وصف المتجر" : "نبذة / CV"}</label>
                       <textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={editForm.bio} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} />
                     </div>
-                    <div className="md:col-span-2">
-                      <label style={S.label}>أبرز الإنجازات</label>
-                      <textarea
-                        style={{ ...S.input, minHeight: "60px", resize: "vertical" }}
-                        value={editForm.achievements}
-                        onChange={(e) => setEditForm((p) => ({ ...p, achievements: e.target.value }))}
-                        placeholder="اذكر أبرز إنجازاتك المهنية..."
-                      />
-                    </div>
+                    {profile.type !== "store" && (
+                      <div className="md:col-span-2">
+                        <label style={S.label}>أبرز الإنجازات</label>
+                        <textarea
+                          style={{ ...S.input, minHeight: "60px", resize: "vertical" }}
+                          value={editForm.achievements}
+                          onChange={(e) => setEditForm((p) => ({ ...p, achievements: e.target.value }))}
+                          placeholder="اذكر أبرز إنجازاتك المهنية..."
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Portfolio links — individual accounts only */}
