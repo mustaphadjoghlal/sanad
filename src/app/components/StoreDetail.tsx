@@ -54,7 +54,7 @@ export default function StoreDetail() {
     return (
       <div style={{ ...L.page, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
         <span style={{ ...L.muted, fontSize: "1.25rem" }}>المتجر غير موجود</span>
-        <Link to="/stores" style={{ color: L.accentL, textDecoration: "none" }}>← العودة إلى دليل المتاجر</Link>
+        <Link to="/stores" style={{ color: L.accentL, textDecoration: "none" }}>← العودة إلى سوق المعدات</Link>
       </div>
     );
   }
@@ -70,7 +70,7 @@ export default function StoreDetail() {
             style={{ color: L.muted.color, textDecoration: "none" }}
           >
             <ArrowRight size={15} />
-            دليل المتاجر
+            سوق المعدات
           </Link>
         </div>
       </div>

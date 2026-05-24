@@ -213,11 +213,20 @@ export function subscribeToApprovedProfessionals(
 export function subscribeToApprovedStores(
   callback: (profiles: (UserProfile & { whatsapp?: string })[]) => void
 ): () => void {
-  const q = query(col("users"), where("status", "==", "approved"), where("type", "==", "store"), orderBy("createdAt", "desc"));
+  // Filter client-side to avoid composite index requirement
+  const q = query(col("users"), where("type", "==", "store"), orderBy("createdAt", "desc"));
   return onSnapshot(q, (snap) => {
-    const profiles = snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile & { whatsapp?: string }));
+    const profiles = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as UserProfile & { whatsapp?: string }))
+      .filter((p) => p.status === "approved");
     callback(profiles);
   });
+}
+
+export async function getLatestProducts(n = 4): Promise<Product[]> {
+  const q = query(col("products"), where("status", "==", "active"), orderBy("createdAt", "desc"), limit(n));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
 }
 
 // --- THEME SETTINGS ---

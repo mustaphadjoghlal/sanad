@@ -31,7 +31,7 @@ export default function Stores() {
     <div dir="rtl" style={{ background: "#0e0e0e", minHeight: "100vh" }}>
       <div className="container mx-auto px-4 py-10 max-w-5xl">
         <h1 className="text-3xl font-bold mb-2" style={{ color: "var(--theme-text, #e8f5e9)" }}>
-          دليل المتاجر
+          سوق المعدات
         </h1>
         <p className="mb-8 text-sm" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
           متاجر بيع وشراء المعدات الإعلامية في الجزائر

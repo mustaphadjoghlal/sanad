@@ -34,7 +34,7 @@ export default function Layout() {
     { to: "/channels", label: "دليل القنوات" },
     { to: "/theses", label: "مذكرات التخرج" },
     { to: "/professionals", label: "دليل المحترفين" },
-    { to: "/stores", label: "دليل المتاجر" },
+    { to: "/stores", label: "سوق المعدات" },
   ];
 
   useEffect(() => {
