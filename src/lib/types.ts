@@ -210,8 +210,15 @@ export interface Channel {
   createdAt: number;
 }
 
-export type IndividualType = 'journalist' | 'voice' | 'photographer' | 'editor' | 'student' | 'other';
+export type IndividualType =
+  | 'editor_news' | 'web_digital' | 'presenter_programs' | 'presenter_news'
+  | 'monteur' | 'graphic_designer' | 'cameraman' | 'producer' | 'director'
+  | 'program_writer' | 'voice' | 'host_stage' | 'student' | 'other'
+  | 'journalist' | 'photographer' | 'editor';
 export type AccountType = IndividualType | 'store';
+
+export const INTERESTS = ['الاقتصاد', 'الفن', 'الرياضة', 'السياسة'] as const;
+export type Interest = typeof INTERESTS[number];
 
 export interface PortfolioLink {
   label: string;
@@ -238,6 +245,7 @@ export interface UserProfile {
   rejectionNote?: string;
   createdAt: number;
   username?: string;
+  interests?: string[];
 }
 
 export const PRODUCT_CATEGORIES = ["كاميرات", "ميكروفونات", "إضاءة", "حوامل وأرجل", "بطاريات وشواحن", "أجهزة حاسوبية", "سماعات", "لوازم تصوير", "أخرى"] as const;

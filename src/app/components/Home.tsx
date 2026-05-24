@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Star, Users, Zap, Newspaper, ShoppingBag } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, getLatestProducts } from "../../lib/firestore";
-import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist, SiteContent, NewsItem, Product } from "../../lib/types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, SiteContent, NewsItem, Product } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
 /* ── Animated counter ── */
@@ -248,7 +248,6 @@ function RotatingSection({ products, news, jobs, placeholders }: {
 
 export default function Home() {
   const [featuredCourses,    setFeaturedCourses]    = useState<Course[]>([]);
-  const [featuredProfiles,   setFeaturedProfiles]   = useState<UserProfile[]>([]);
   const [featuredJobs,       setFeaturedJobs]       = useState<Job[]>([]);
   const [featuredEquipment,  setFeaturedEquipment]  = useState<Equipment[]>([]);
   const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
@@ -266,7 +265,6 @@ export default function Home() {
   useEffect(() => {
     const unsubs = [
       subscribeToFeatured<Course>("courses",       setFeaturedCourses),
-      subscribeToFeatured<UserProfile>("users",    setFeaturedProfiles),
       subscribeToFeatured<Job>("jobs",             (d) => setFeaturedJobs(d.slice(0, 3))),
       subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3))),
       subscribeToFeatured<VoiceArtist>("voice",    (d) => setFeaturedVoice(d.slice(0, 3))),
@@ -425,32 +423,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ FEATURED PROFESSIONALS ══════════════════════════════════════ */}
-      {featuredProfiles.length > 0 && (
-        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4">
-            <SectionHeader num="02" title="محترفون مميزون" link="/professionals" linkLabel="كل المحترفين" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredProfiles.slice(0, 3).map((p, i) => (
-                <div key={p.id} className="card-glow p-5 rounded-2xl flex gap-4 items-start animate-fade-in-up"
-                  style={{ background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0" style={{ background: "var(--p-15)" }}>
-                    {p.photo
-                      ? <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : <div className="w-full h-full flex items-center justify-center text-2xl font-bold" style={{ color: "var(--theme-accent)" }}>{p.name?.[0]}</div>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{p.name}</h3>
-                    {p.specialty && <p className="text-xs mt-0.5" style={{ color: "var(--theme-accent)" }}>{p.specialty}</p>}
-                    {p.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{p.location}</p>}
-                    {p.bio && <p className="text-xs mt-2 line-clamp-2" style={{ color: "var(--theme-text-muted)", lineHeight: 1.5 }}>{p.bio}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ══ FEATURED JOBS ═══════════════════════════════════════════════ */}
       {featuredJobs.length > 0 && (

@@ -20,14 +20,25 @@ import type { UserProfile, Equipment, PortfolioLink } from "../../../lib/types";
 import StoreManager from "../StoreManager";
 
 const typeLabel: Record<string, string> = {
-  journalist: "صحفي / مراسل",
-  voice: "منشط / معلق صوتي",
-  photographer: "مصور فوتوغرافي / فيديو",
-  editor: "مخرج / مونتير",
-  student: "طالب إعلام",
-  other: "إعلامي",
-  store: "متجر احترافي",
-  vendor: "بائع عتاد",
+  editor_news:        "محرر",
+  web_digital:        "ويب ديجيتال",
+  presenter_programs: "مقدم برامج",
+  presenter_news:     "مقدم أخبار",
+  monteur:            "مونتير",
+  graphic_designer:   "جرافيك ديزاينر",
+  cameraman:          "كاميرا مان",
+  producer:           "منتج",
+  director:           "مخرج",
+  program_writer:     "معد برامج",
+  voice:              "معلق صوتي",
+  host_stage:         "منشط على الركح",
+  student:            "طالب إعلام",
+  other:              "إعلامي",
+  journalist:         "صحفي / مراسل",
+  photographer:       "مصور فوتوغرافي / فيديو",
+  editor:             "مخرج / مونتير",
+  store:              "متجر احترافي",
+  vendor:             "بائع عتاد",
 };
 
 const typeIcon: Record<string, React.ElementType> = {

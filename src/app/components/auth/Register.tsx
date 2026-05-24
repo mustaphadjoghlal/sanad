@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Radio, ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store } from "lucide-react";
-import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, fetchSignInMethodsForEmail } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { saveUserProfile, sendNotification } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
 import type { AccountType, PortfolioLink } from "../../../lib/types";
+import { INTERESTS } from "../../../lib/types";
 
 const wilayas = [
   "الجزائر", "وهران", "قسنطينة", "عنابة", "سطيف", "تيزي وزو", "البليدة", "بجاية",
@@ -16,7 +17,7 @@ const wilayas = [
 ];
 
 type MainType = "individual" | "store" | null;
-type IndividualSubType = "student" | "journalist" | "voice" | "photographer" | "editor" | "other" | null;
+type IndividualSubType = "editor_news" | "web_digital" | "presenter_programs" | "presenter_news" | "monteur" | "graphic_designer" | "cameraman" | "producer" | "director" | "program_writer" | "voice" | "host_stage" | "student" | "other" | null;
 type StorePlan = "trial" | "paid" | null;
 
 interface FormState {
@@ -43,12 +44,20 @@ interface NewLink {
 }
 
 const individualSubcategories: { type: IndividualSubType; label: string }[] = [
-  { type: "student", label: "طالب إعلام" },
-  { type: "journalist", label: "صحفي / مراسل" },
-  { type: "voice", label: "منشط / معلق صوتي" },
-  { type: "photographer", label: "مصور فوتوغرافي / فيديو" },
-  { type: "editor", label: "مخرج / مونتير" },
-  { type: "other", label: "أخرى" },
+  { type: "editor_news",        label: "محرر" },
+  { type: "web_digital",        label: "ويب ديجيتال" },
+  { type: "presenter_programs", label: "مقدم برامج" },
+  { type: "presenter_news",     label: "مقدم أخبار" },
+  { type: "monteur",            label: "مونتير" },
+  { type: "graphic_designer",   label: "جرافيك ديزاينر" },
+  { type: "cameraman",          label: "كاميرا مان" },
+  { type: "producer",           label: "منتج" },
+  { type: "director",           label: "مخرج" },
+  { type: "program_writer",     label: "معد برامج" },
+  { type: "voice",              label: "معلق صوتي" },
+  { type: "host_stage",         label: "منشط على الركح" },
+  { type: "student",            label: "طالب إعلام" },
+  { type: "other",              label: "أخرى" },
 ];
 
 export default function Register() {
@@ -67,6 +76,8 @@ export default function Register() {
   const [portfolioLinks, setPortfolioLinks] = useState<PortfolioLink[]>([]);
   const [showAddLink, setShowAddLink] = useState(false);
   const [newLink, setNewLink] = useState<NewLink>({ label: "", url: "" });
+  const [interests, setInterests] = useState<string[]>([]);
+  const [emailStatus, setEmailStatus] = useState<"idle" | "checking" | "taken" | "ok">("idle");
 
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -88,6 +99,18 @@ export default function Register() {
 
   const f = (key: keyof FormState, val: string) =>
     setForm((p) => ({ ...p, [key]: val }));
+
+  useEffect(() => {
+    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) { setEmailStatus("idle"); return; }
+    setEmailStatus("checking");
+    const timer = setTimeout(async () => {
+      try {
+        const methods = await fetchSignInMethodsForEmail(auth, form.email);
+        setEmailStatus(methods.length > 0 ? "taken" : "ok");
+      } catch { setEmailStatus("idle"); }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [form.email]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -122,6 +145,10 @@ export default function Register() {
       setError("يرجى ملء جميع الحقول الإلزامية");
       return;
     }
+    if (emailStatus === "taken") {
+      setError("البريد الإلكتروني مستخدم بالفعل، جرّب بريداً آخر");
+      return;
+    }
     if (form.password.length < 6) {
       setError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
       return;
@@ -135,6 +162,10 @@ export default function Register() {
 
   const handleRegister = async () => {
     setError("");
+    if (!form.location) {
+      setError("يرجى اختيار الولاية");
+      return;
+    }
     if (mainType === "store" && !form.storeName.trim()) {
       setError("يرجى إدخال اسم المتجر");
       return;
@@ -177,6 +208,7 @@ export default function Register() {
           portfolio: portfolioLinks.length > 0 ? portfolioLinks : undefined,
           experience: individualSubType !== "student" ? (form.experience || undefined) : undefined,
           otherType: individualSubType === "other" ? form.otherTypeText || undefined : undefined,
+          interests: interests.length > 0 ? interests : undefined,
         });
       } else {
         await saveUserProfile(uid, {
@@ -524,7 +556,11 @@ export default function Register() {
                       onChange={(e) => f("email", e.target.value)}
                       placeholder="example@email.com"
                       dir="ltr"
+                      style={{ borderColor: emailStatus === "taken" ? "#ef4444" : emailStatus === "ok" ? "#4ade80" : undefined }}
                     />
+                    {emailStatus === "checking" && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginTop: "0.25rem" }}>جاري التحقق...</p>}
+                    {emailStatus === "taken" && <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>✗ البريد مستخدم بالفعل</p>}
+                    {emailStatus === "ok" && <p style={{ color: "#4ade80", fontSize: "0.75rem", marginTop: "0.25rem" }}>✓ البريد متاح</p>}
                   </div>
                   <div>
                     <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>كلمة المرور *</label>
@@ -639,13 +675,14 @@ export default function Register() {
                         />
                       </div>
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية</label>
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
                         <select
                           className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
                           value={form.location}
                           onChange={(e) => f("location", e.target.value)}
+                          style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}
                         >
-                          <option value="">اختر الولاية</option>
+                          <option value="">اختر الولاية (إلزامي)</option>
                           {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
                         </select>
                       </div>
@@ -707,6 +744,29 @@ export default function Register() {
                         onChange={(e) => f("achievements", e.target.value)}
                         placeholder="اذكر أبرز إنجازاتك ومحطاتك المهنية"
                       />
+                    </div>
+
+                    {/* Interests */}
+                    <div>
+                      <label className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الاهتمامات (يمكن تحديد أكثر من خيار)</label>
+                      <div className="flex flex-wrap gap-2">
+                        {INTERESTS.map((interest) => (
+                          <button
+                            key={interest}
+                            type="button"
+                            onClick={() => setInterests((prev) => prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest])}
+                            className="px-4 py-1.5 rounded-full text-sm transition-all duration-200"
+                            style={{
+                              background: interests.includes(interest) ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-12)",
+                              border: interests.includes(interest) ? "1px solid var(--p-60)" : "1px solid var(--p-30)",
+                              color: interests.includes(interest) ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {interest}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     {/* Portfolio links */}
@@ -825,13 +885,14 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية</label>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
                       <select
                         className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         value={form.location}
                         onChange={(e) => f("location", e.target.value)}
+                        style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}
                       >
-                        <option value="">اختر الولاية</option>
+                        <option value="">اختر الولاية (إلزامي)</option>
                         {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
                       </select>
                     </div>
