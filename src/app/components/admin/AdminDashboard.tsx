@@ -299,6 +299,13 @@ export default function AdminDashboard() {
         navigate("/sanad-admin");
         return;
       }
+      // Verify admin email whitelist
+      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+      if (adminEmail && user.email !== adminEmail) {
+        await signOut(auth);
+        navigate("/sanad-admin");
+        return;
+      }
       // Verify this is actually an admin (no regular user profile)
       const profile = await getUserProfile(user.uid);
       if (profile) {
