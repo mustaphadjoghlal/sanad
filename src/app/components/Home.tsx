@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Star, Users, Zap, Newspaper } from "lucide-react";
-import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
-import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist, SiteContent, NewsItem } from "../../lib/types";
+import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Star, Users, Zap, Newspaper, ShoppingBag } from "lucide-react";
+import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, getLatestProducts } from "../../lib/firestore";
+import type { Course, Job, Equipment, Competition, UserProfile, VoiceArtist, SiteContent, NewsItem, Product } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
 /* ── Animated counter ── */
@@ -56,6 +56,179 @@ const services = [
   { icon: Tv2,         title: "دليل القنوات",         desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",    link: "/channels",       delay: "0.30s" },
 ];
 
+/* ── Rotating section ── */
+const ROTATE_INTERVAL = 5000;
+const PANELS = [
+  { key: "products", label: "سوق المعدات",  icon: ShoppingBag, link: "/stores",  linkLabel: "تصفح المتاجر" },
+  { key: "news",     label: "آخر الأخبار", icon: Newspaper,   link: "/news",    linkLabel: "كل الأخبار" },
+  { key: "jobs",     label: "فرص توظيف",   icon: Briefcase,   link: "/jobs",    linkLabel: "كل الفرص" },
+] as const;
+type PanelKey = typeof PANELS[number]["key"];
+
+function RotatingSection({ products, news, jobs }: { products: Product[]; news: NewsItem[]; jobs: Job[] }) {
+  const [active, setActive] = useState<PanelKey>("products");
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rotateRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startTimers = (current: PanelKey) => {
+    if (progressRef.current) clearInterval(progressRef.current);
+    if (rotateRef.current)   clearInterval(rotateRef.current);
+    setProgress(0);
+    const tick = 50;
+    let elapsed = 0;
+    progressRef.current = setInterval(() => {
+      elapsed += tick;
+      setProgress(Math.min((elapsed / ROTATE_INTERVAL) * 100, 100));
+    }, tick);
+    rotateRef.current = setInterval(() => {
+      setActive((prev) => {
+        const idx = PANELS.findIndex((p) => p.key === prev);
+        return PANELS[(idx + 1) % PANELS.length].key;
+      });
+    }, ROTATE_INTERVAL);
+  };
+
+  useEffect(() => {
+    startTimers(active);
+    return () => {
+      if (progressRef.current) clearInterval(progressRef.current);
+      if (rotateRef.current)   clearInterval(rotateRef.current);
+    };
+  }, []);
+
+  useEffect(() => { startTimers(active); }, [active]);
+
+  const panel = PANELS.find((p) => p.key === active)!;
+
+  const handleTab = (key: PanelKey) => {
+    if (progressRef.current) clearInterval(progressRef.current);
+    if (rotateRef.current)   clearInterval(rotateRef.current);
+    setActive(key);
+  };
+
+  return (
+    <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
+      <div className="container mx-auto px-4">
+        {/* Header with tabs */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div className="flex gap-2 flex-wrap">
+            {PANELS.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => handleTab(p.key)}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all"
+                style={{
+                  background: active === p.key ? "var(--theme-accent, #00a355)" : "var(--p-10)",
+                  color:      active === p.key ? "#fff" : "var(--theme-text-muted)",
+                  border:     `1px solid ${active === p.key ? "var(--theme-accent)" : "var(--p-20)"}`,
+                  cursor: "pointer",
+                }}
+              >
+                <p.icon size={13} />
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <Link
+            to={panel.link}
+            className="flex items-center gap-1 text-sm transition-opacity hover:opacity-70"
+            style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
+          >
+            {panel.linkLabel} <ArrowLeft size={14} />
+          </Link>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ height: "2px", background: "var(--p-15)", borderRadius: "9999px", marginBottom: "1.5rem", overflow: "hidden" }}>
+          <div
+            style={{
+              height: "100%",
+              width: `${progress}%`,
+              background: "var(--theme-accent, #00a355)",
+              transition: "width 0.05s linear",
+              borderRadius: "9999px",
+            }}
+          />
+        </div>
+
+        {/* Content panels */}
+        {active === "products" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.length === 0 ? (
+              <p style={{ color: "var(--theme-text-dim)", gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>لا توجد منتجات حالياً</p>
+            ) : products.map((prod, i) => (
+              <Link key={prod.id} to={`/products/${prod.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
+                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
+                {prod.image ? (
+                  <div style={{ height: "160px", overflow: "hidden" }}>
+                    <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                ) : (
+                  <div style={{ height: "160px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", background: "var(--p-08)" }}>📷</div>
+                )}
+                <div className="p-4">
+                  <h3 className="font-bold text-sm mb-1 truncate" style={{ color: "var(--theme-text)" }}>{prod.name}</h3>
+                  <p className="text-sm font-semibold" style={{ color: "var(--theme-accent)" }}>{prod.price.toLocaleString("ar-DZ")} دج</p>
+                  <span className="text-xs px-2 py-0.5 rounded-full mt-2 inline-block" style={{ background: "var(--p-10)", color: "var(--theme-text-muted)" }}>{prod.category}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {active === "news" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {news.length === 0 ? (
+              <p style={{ color: "var(--theme-text-dim)", gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>لا توجد أخبار حالياً</p>
+            ) : news.map((item, i) => (
+              <Link key={item.id} to={`/news/${item.id}`} className="card-glow p-5 rounded-2xl animate-fade-in-up block"
+                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
+                {item.image && (
+                  <div style={{ height: "150px", overflow: "hidden", borderRadius: "0.75rem", marginBottom: "0.75rem" }}>
+                    <img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mb-2">
+                  <Newspaper size={13} style={{ color: "var(--theme-accent)" }} />
+                  <span className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{item.date}</span>
+                </div>
+                <h3 className="font-bold text-base mb-2 line-clamp-2" style={{ color: "var(--theme-text)" }}>{item.title}</h3>
+                <p className="text-sm line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{item.body}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {active === "jobs" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.length === 0 ? (
+              <p style={{ color: "var(--theme-text-dim)", gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>لا توجد فرص عمل حالياً</p>
+            ) : jobs.map((job, i) => (
+              <Link key={job.id} to={`/jobs/${job.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
+                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
+                {job.image && (
+                  <div style={{ height: "160px", overflow: "hidden" }}>
+                    <img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                )}
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{job.title}</h3>
+                    {job.jobType && <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{job.jobType}</span>}
+                  </div>
+                  <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{job.company}</p>
+                  {job.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{job.location}</p>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [featuredCourses,    setFeaturedCourses]    = useState<Course[]>([]);
   const [featuredProfiles,   setFeaturedProfiles]   = useState<UserProfile[]>([]);
@@ -64,6 +237,7 @@ export default function Home() {
   const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
   const [upcomingComps,      setUpcomingComps]      = useState<Competition[]>([]);
   const [latestNews,         setLatestNews]         = useState<NewsItem[]>([]);
+  const [latestProducts,     setLatestProducts]     = useState<Product[]>([]);
   const [content, setContent] = useState<SiteContent | null>(() => {
     try {
       const cached = localStorage.getItem("sanad_site_content");
@@ -89,6 +263,7 @@ export default function Home() {
       }),
     ];
     getLatestNews(3).then(setLatestNews);
+    getLatestProducts(3).then(setLatestProducts);
     return () => unsubs.forEach((u) => u());
   }, []);
 
@@ -420,34 +595,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* ══ STORES ══════════════════════════════════════════════════════ */}
-      <section className="py-16 px-4" style={{ borderTop: "1px solid var(--p-15)" }}>
-        <div className="container mx-auto max-w-5xl">
-          <SectionHeader num="08" title="دليل المتاجر" link="/stores" linkLabel="كل المتاجر" />
-          <div
-            className="rounded-2xl p-8 flex flex-col md:flex-row items-center gap-6"
-            style={{ background: "linear-gradient(135deg, var(--p-10), var(--p-08))", border: "1px solid var(--p-20)" }}
-          >
-            <div className="text-5xl flex-shrink-0">🏪</div>
-            <div className="flex-1 text-center md:text-right">
-              <h3 className="text-xl font-bold mb-2" style={{ color: "var(--theme-text, #e8f5e9)" }}>
-                تسوّق المعدات الإعلامية
-              </h3>
-              <p className="text-sm mb-4" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>
-                كاميرات، ميكروفونات، إضاءة وكل ما تحتاجه من معدات احترافية — مباشرة من متاجر جزائرية موثّقة
-              </p>
-              <Link
-                to="/stores"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
-                style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))", color: "#fff", textDecoration: "none" }}
-              >
-                تصفح المتاجر
-                <ArrowLeft size={15} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ══ ROTATING SECTION ════════════════════════════════════════════ */}
+      <RotatingSection products={latestProducts} news={latestNews} jobs={featuredJobs} />
 
       {/* ══ CTA ══════════════════════════════════════════════════════════ */}
       <section className="py-20 relative overflow-hidden" style={{ borderTop: "1px solid var(--p-15)" }}>
