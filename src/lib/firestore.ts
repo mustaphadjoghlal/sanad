@@ -213,12 +213,13 @@ export function subscribeToApprovedProfessionals(
 export function subscribeToApprovedStores(
   callback: (profiles: (UserProfile & { whatsapp?: string })[]) => void
 ): () => void {
-  // Filter client-side to avoid composite index requirement
-  const q = query(col("users"), where("type", "==", "store"), orderBy("createdAt", "desc"));
+  // No orderBy to avoid composite index requirement — sort client-side
+  const q = query(col("users"), where("type", "==", "store"));
   return onSnapshot(q, (snap) => {
     const profiles = snap.docs
       .map((d) => ({ id: d.id, ...d.data() } as UserProfile & { whatsapp?: string }))
-      .filter((p) => p.status === "approved");
+      .filter((p) => p.status === "approved")
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     callback(profiles);
   });
 }
