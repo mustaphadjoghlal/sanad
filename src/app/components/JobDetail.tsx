@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight, Globe } from "lucide-react";
+import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight, Globe, Mail, ExternalLink } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Job } from "../../lib/types";
@@ -162,7 +162,20 @@ export default function JobDetail() {
               <Globe size={18} style={{ color: "#4db8a8", flexShrink: 0 }} />
               <div>
                 <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>المصدر</div>
-                <div style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.95rem" }}>{j.source}</div>
+                {j.source.startsWith("http") ? (
+                  <a
+                    href={j.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 hover:opacity-75 transition-opacity"
+                    style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.95rem", textDecoration: "none" }}
+                  >
+                    صفحة المؤسسة على موقع التواصل الاجتماعي فيسبوك
+                    <ExternalLink size={12} />
+                  </a>
+                ) : (
+                  <div style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.95rem" }}>{j.source}</div>
+                )}
               </div>
             </div>
           )}
@@ -211,16 +224,60 @@ export default function JobDetail() {
             className="p-6 rounded-xl"
             style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-6">
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: "rgba(0,163,85,0.15)", border: "1px solid rgba(0,163,85,0.3)" }}
               >
-                <Phone size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
+                <Phone size={22} style={{ color: "var(--theme-accent, #00a355)" }} />
               </div>
-              <h3 className="font-semibold text-lg" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
+              <h3 className="font-semibold text-xl" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
             </div>
-            <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "1rem", lineHeight: "1.6" }}>{j.contact}</p>
+            
+            <div className="space-y-4">
+              {j.contact.split(/[\n,;]+/).map((method, idx) => {
+                const trimmed = method.trim();
+                if (!trimmed) return null;
+                
+                // Determine icon and link type
+                let Icon = Phone;
+                let href = "";
+                let label = trimmed;
+                
+                if (trimmed.includes("@")) {
+                  Icon = Mail;
+                  href = `mailto:${trimmed}`;
+                } else if (trimmed.startsWith("http")) {
+                  Icon = Globe;
+                  href = trimmed;
+                  label = "رابط التقديم الإلكتروني";
+                } else if (/^[\d\s+.-]+$/.test(trimmed.replace(/[^\d]/g, ""))) {
+                  Icon = Phone;
+                  href = `tel:${trimmed.replace(/\s+/g, "")}`;
+                }
+
+                return (
+                  <div key={idx} className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-white/5" style={{ border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.05)" }}>
+                      <Icon size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
+                    </div>
+                    {href ? (
+                      <a 
+                        href={href} 
+                        target={trimmed.startsWith("http") ? "_blank" : undefined}
+                        rel={trimmed.startsWith("http") ? "noopener noreferrer" : undefined}
+                        className="text-lg hover:underline transition-all" 
+                        style={{ color: "var(--theme-text-secondary, #a5d6a7)", textDecoration: "none" }}
+                      >
+                        {label}
+                      </a>
+                    ) : (
+                      <span className="text-lg" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>{trimmed}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
