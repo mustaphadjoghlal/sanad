@@ -103,7 +103,7 @@ export default function JobDetail() {
         )}
 
         {/* Title */}
-        <h1 className="text-3xl font-bold mb-2 leading-snug" style={{ color: "var(--theme-text, #e8f5e9)" }}>{j.title}</h1>
+        <h1 className="text-4xl font-bold mb-4 leading-snug" style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 700 }}>{j.title}</h1>
         {j.company && (
           <p className="text-lg mb-4" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{j.company}</p>
         )}
@@ -115,37 +115,55 @@ export default function JobDetail() {
 
         {/* Meta row */}
         <div
-          className="flex flex-wrap gap-4 p-4 rounded-xl mb-8"
-          style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
+          className="grid gap-3 mb-8"
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))" }}
         >
           {j.company && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Building2 size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الجهة:</span> {j.company}
+            <div
+              className="flex items-center gap-3 p-3 rounded-lg"
+              style={{ background: "rgba(0,163,85,0.08)", border: "1px solid rgba(0,163,85,0.2)" }}
+            >
+              <Building2 size={18} style={{ color: "var(--theme-accent, #00a355)", flexShrink: 0 }} />
+              <div>
+                <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>الجهة</div>
+                <div style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.95rem" }}>{j.company}</div>
+              </div>
             </div>
           )}
           {j.location && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <MapPin size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>الموقع:</span> {j.location}
+            <div
+              className="flex items-center gap-3 p-3 rounded-lg"
+              style={{ background: "rgba(100,181,246,0.08)", border: "1px solid rgba(100,181,246,0.2)" }}
+            >
+              <MapPin size={18} style={{ color: "#64b5f6", flexShrink: 0 }} />
+              <div>
+                <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>الموقع</div>
+                <div style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.95rem" }}>{j.location}</div>
+              </div>
             </div>
           )}
           {j.deadline && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Calendar size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>آخر أجل:</span> {j.deadline}
-            </div>
-          )}
-          {j.contact && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Phone size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>التواصل:</span> {j.contact}
+            <div
+              className="flex items-center gap-3 p-3 rounded-lg"
+              style={{ background: "rgba(255,167,38,0.08)", border: "1px solid rgba(255,167,38,0.2)" }}
+            >
+              <Calendar size={18} style={{ color: "#ffa726", flexShrink: 0 }} />
+              <div>
+                <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>آخر أجل</div>
+                <div style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.95rem" }}>{j.deadline}</div>
+              </div>
             </div>
           )}
           {j.source && (
-            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
-              <Globe size={15} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>المصدر:</span> {j.source}
+            <div
+              className="flex items-center gap-3 p-3 rounded-lg"
+              style={{ background: "rgba(76,175,80,0.08)", border: "1px solid rgba(76,175,80,0.2)" }}
+            >
+              <Globe size={18} style={{ color: "#4db8a8", flexShrink: 0 }} />
+              <div>
+                <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>المصدر</div>
+                <div style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.95rem" }}>{j.source}</div>
+              </div>
             </div>
           )}
         </div>
@@ -190,14 +208,19 @@ export default function JobDetail() {
         {/* Contact CTA */}
         {j.contact && (
           <div
-            className="p-5 rounded-xl"
+            className="p-6 rounded-xl"
             style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Phone size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: "rgba(0,163,85,0.15)", border: "1px solid rgba(0,163,85,0.3)" }}
+              >
+                <Phone size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
+              </div>
+              <h3 className="font-semibold text-lg" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
             </div>
-            <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>{j.contact}</p>
+            <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "1rem", lineHeight: "1.6" }}>{j.contact}</p>
           </div>
         )}
       </div>
