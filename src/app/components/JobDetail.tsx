@@ -108,9 +108,13 @@ export default function JobDetail() {
           <p className="text-lg mb-4" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{j.company}</p>
         )}
 
-        {/* Description */}
+        {/* ✅ Description — يدعم HTML من المحرر الغني */}
         {j.description && (
-          <p className="text-base mb-6 leading-relaxed" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>{j.description}</p>
+          <div
+            className="text-base mb-6 leading-relaxed job-description"
+            style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}
+            dangerouslySetInnerHTML={{ __html: j.description }}
+          />
         )}
 
         {/* Meta row */}
@@ -204,7 +208,7 @@ export default function JobDetail() {
           </div>
         )}
 
-        {/* Company description */}
+        {/* ✅ Company description — يدعم HTML من المحرر الغني */}
         {j.companyDescription && (
           <div
             className="p-5 rounded-xl mb-6"
@@ -214,7 +218,11 @@ export default function JobDetail() {
               <Building2 size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
               <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>عن {j.company}</h3>
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>{j.companyDescription}</p>
+            <div
+              className="text-sm leading-relaxed job-description"
+              style={{ color: "var(--theme-text-secondary, #6aad6a)" }}
+              dangerouslySetInnerHTML={{ __html: j.companyDescription }}
+            />
           </div>
         )}
 
@@ -233,17 +241,16 @@ export default function JobDetail() {
               </div>
               <h3 className="font-semibold text-xl" style={{ color: "var(--theme-text, #c8e6c9)" }}>للتقديم والتواصل</h3>
             </div>
-            
+
             <div className="space-y-4">
               {j.contact.split(/[\n,;]+/).map((method, idx) => {
                 const trimmed = method.trim();
                 if (!trimmed) return null;
-                
-                // Determine icon and link type
+
                 let Icon = Phone;
                 let href = "";
                 let label = trimmed;
-                
+
                 if (trimmed.includes("@")) {
                   Icon = Mail;
                   href = `mailto:${trimmed}`;
@@ -262,11 +269,11 @@ export default function JobDetail() {
                       <Icon size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
                     </div>
                     {href ? (
-                      <a 
-                        href={href} 
+                      <a
+                        href={href}
                         target={trimmed.startsWith("http") ? "_blank" : undefined}
                         rel={trimmed.startsWith("http") ? "noopener noreferrer" : undefined}
-                        className="text-lg hover:underline transition-all" 
+                        className="text-lg hover:underline transition-all"
                         style={{ color: "var(--theme-text-secondary, #a5d6a7)", textDecoration: "none" }}
                       >
                         {label}
