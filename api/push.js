@@ -7,40 +7,44 @@ export default async function handler(req, res) {
   if (!title) return res.status(400).json({ error: "Missing title" });
 
   const serverKey = process.env.FCM_SERVER_KEY;
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const apiKey    = process.env.FIREBASE_API_KEY;
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
+  const apiKey    = process.env.VITE_FIREBASE_API_KEY;
 
   if (!serverKey || !projectId || !apiKey) {
-    return res.status(200).json({ ok: false, reason: "FCM not configured" });
+    return res.status(200).json({ ok: false, reason: "FCM not configured", serverKey: !!serverKey, projectId: !!projectId, apiKey: !!apiKey });
   }
 
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
-  // Collect FCM tokens
+  // Non-store media professional types
+  const MEDIA_TYPES = new Set([
+    "journalist", "voice", "photographer", "editor", "student",
+    "editor_news", "web_digital", "presenter_programs", "presenter_news",
+    "monteur", "graphic_designer", "cameraman", "producer", "director",
+    "program_writer", "host_stage", "other",
+  ]);
+
   let tokens = [];
 
   try {
     if (targetType) {
-      // Fetch users of specific type who have an fcmToken
-      const fsRes = await fetch(
-        `${baseUrl}/users?key=${apiKey}&pageSize=300`,
-      );
+      const fsRes = await fetch(`${baseUrl}/users?key=${apiKey}&pageSize=300`);
       if (fsRes.ok) {
         const data = await fsRes.json();
         const docs = data.documents ?? [];
         tokens = docs
           .filter((d) => {
-            const type = d.fields?.type?.stringValue;
+            const type  = d.fields?.type?.stringValue;
             const token = d.fields?.fcmToken?.stringValue;
             if (!token) return false;
-            if (targetType === "journalist") return type === "journalist" || type === "student";
+            if (targetType === "journalist") return MEDIA_TYPES.has(type);
             if (targetType === "all") return true;
             return type === targetType;
           })
           .map((d) => d.fields.fcmToken.stringValue);
       }
     } else {
-      // Fallback: send to saved admin token
+      // Admin-only notification: use saved admin token
       const fsRes = await fetch(`${baseUrl}/config/adminFCM?key=${apiKey}`);
       if (fsRes.ok) {
         const data = await fsRes.json();
@@ -48,13 +52,12 @@ export default async function handler(req, res) {
         if (token) tokens = [token];
       }
     }
-  } catch {
-    return res.status(200).json({ ok: false, reason: "Firestore read failed" });
+  } catch (e) {
+    return res.status(200).json({ ok: false, reason: "Firestore read failed", error: e.message });
   }
 
   if (tokens.length === 0) return res.status(200).json({ ok: false, reason: "No FCM tokens found" });
 
-  // Remove duplicates
   tokens = [...new Set(tokens)];
 
   try {
@@ -73,7 +76,7 @@ export default async function handler(req, res) {
     });
     const result = await fcmRes.json();
     return res.status(200).json({ ok: true, result, count: tokens.length });
-  } catch {
-    return res.status(200).json({ ok: false, reason: "FCM send failed" });
+  } catch (e) {
+    return res.status(200).json({ ok: false, reason: "FCM send failed", error: e.message });
   }
 }

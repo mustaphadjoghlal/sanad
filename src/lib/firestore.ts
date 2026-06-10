@@ -285,11 +285,10 @@ export function subscribeToSiteContent(callback: (content: SiteContent) => void)
 
 // --- FCM TOKEN ---
 export async function saveAdminFCMToken(token: string, uid?: string): Promise<void> {
-  // Save to global admin config (for admin push)
   await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() });
-  // Also save per-user so targeted notifications work
   if (uid) {
-    await updateDoc(doc(db, "users", uid), { fcmToken: token });
+    // Use setDoc with merge so it works even if user doc doesn't exist (admin)
+    await setDoc(doc(db, "users", uid), { fcmToken: token }, { merge: true });
   }
 }
 
