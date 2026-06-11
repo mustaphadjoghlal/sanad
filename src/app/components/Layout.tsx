@@ -88,9 +88,9 @@ export default function Layout() {
     return unsub;
   }, [currentUser]);
 
-  // Request notification permission + register FCM token after login
+  // Request notification permission + register FCM token — only after userProfile is known
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || userProfile === null) return;
     if (!("Notification" in window)) return;
 
     const init = async () => {
@@ -112,7 +112,6 @@ export default function Layout() {
         const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: sw });
         if (token) {
           if (userProfile === "admin") {
-            // Only save to config/adminFCM — never create a users doc for admin
             const { setDoc, doc } = await import("firebase/firestore");
             const { db } = await import("../../lib/firebase");
             await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() }, { merge: true });
@@ -132,7 +131,7 @@ export default function Layout() {
     };
 
     init();
-  }, [currentUser]);
+  }, [currentUser, userProfile]);
 
   // Close dropdowns on outside click
   useEffect(() => {
