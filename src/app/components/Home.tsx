@@ -360,6 +360,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ══ ROTATING SECTION ════════════════════════════════════════════ */}
+      <RotatingSection
+        products={latestProducts}
+        news={latestNews}
+        jobs={featuredJobs}
+        placeholders={{
+          products: c.carouselPlaceholderProducts,
+          news:     c.carouselPlaceholderNews,
+          jobs:     c.carouselPlaceholderJobs,
+        }}
+      />
+
       {/* ══ SERVICES ═════════════════════════════════════════════════════ */}
       <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
         <div className="container mx-auto px-4">
@@ -587,18 +599,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* ══ ROTATING SECTION ════════════════════════════════════════════ */}
-      <RotatingSection
-        products={latestProducts}
-        news={latestNews}
-        jobs={featuredJobs}
-        placeholders={{
-          products: c.carouselPlaceholderProducts,
-          news:     c.carouselPlaceholderNews,
-          jobs:     c.carouselPlaceholderJobs,
-        }}
-      />
 
       {/* ══ CTA ══════════════════════════════════════════════════════════ */}
       <section className="py-20 relative overflow-hidden" style={{ borderTop: "1px solid var(--p-15)" }}>
