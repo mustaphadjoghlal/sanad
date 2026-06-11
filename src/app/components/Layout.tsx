@@ -9,7 +9,7 @@ import type { UserProfile, AppNotification } from "../../lib/types";
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ uid: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ uid: string; email: string | null } | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null | "admin">(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -48,7 +48,7 @@ export default function Layout() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user ? { uid: user.uid } : null);
+      setCurrentUser(user ? { uid: user.uid, email: user.email } : null);
       if (!user) {
         setUserProfile(null);
       }
