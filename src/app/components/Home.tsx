@@ -367,22 +367,26 @@ export default function Home() {
             <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>{c.servicesLabel}</p>
             <h2 className="text-3xl font-bold" style={{ color: "var(--theme-text)" }}>{c.servicesTitle}</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-3">
             {services.map((s) => (
               <Link
                 key={s.link}
                 to={s.link}
-                className="card-glow group p-6 rounded-2xl flex flex-col gap-3 animate-fade-in-up"
-                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: s.delay }}
+                className="card-glow group rounded-2xl flex flex-col items-center justify-center gap-2 animate-fade-in-up"
+                style={{
+                  textDecoration: "none",
+                  background: "linear-gradient(145deg,#141414,#101010)",
+                  opacity: 0,
+                  animationFillMode: "forwards",
+                  animationDelay: s.delay,
+                  padding: "1rem 0.5rem",
+                  aspectRatio: "1 / 1",
+                }}
               >
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--p-15)" }}>
-                  <s.icon size={22} style={{ color: "var(--theme-accent)" }} />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--p-15)" }}>
+                  <s.icon size={20} style={{ color: "var(--theme-accent)" }} />
                 </div>
-                <h3 className="font-bold text-lg" style={{ color: "var(--theme-text)" }}>{s.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-muted)" }}>{s.desc}</p>
-                <div className="flex items-center gap-1 text-sm mt-auto" style={{ color: "var(--theme-accent)" }}>
-                  <span>اكتشف</span> <ArrowLeft size={14} />
-                </div>
+                <p className="font-semibold text-center leading-tight" style={{ color: "var(--theme-text)", fontSize: "0.72rem" }}>{s.title}</p>
               </Link>
             ))}
           </div>
