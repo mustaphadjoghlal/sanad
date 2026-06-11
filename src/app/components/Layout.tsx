@@ -403,11 +403,12 @@ export default function Layout() {
                       ) : (
                         notifications.map((n) => {
                           const isUnread = !n.readBy?.includes(currentUser.uid);
-                          return (
+                          const inner = (
                             <div
-                              key={n.id}
                               className="px-4 py-3 transition-colors"
-                              style={{ borderBottom: "1px solid var(--p-10)", background: isUnread ? "var(--p-08)" : "transparent" }}
+                              style={{ borderBottom: "1px solid var(--p-10)", background: isUnread ? "var(--p-08)" : "transparent", cursor: n.link ? "pointer" : "default" }}
+                              onMouseEnter={(e) => { if (n.link) (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isUnread ? "var(--p-08)" : "transparent"; }}
                             >
                               <div className="flex items-start gap-2">
                                 {isUnread && <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: "var(--theme-accent)" }} />}
@@ -420,6 +421,13 @@ export default function Layout() {
                                 </div>
                               </div>
                             </div>
+                          );
+                          return n.link ? (
+                            <Link key={n.id} to={n.link} onClick={() => setNotifOpen(false)} style={{ textDecoration: "none", display: "block" }}>
+                              {inner}
+                            </Link>
+                          ) : (
+                            <div key={n.id}>{inner}</div>
                           );
                         })
                       )}

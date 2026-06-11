@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
 import { Lock, Mail, Radio, AlertCircle } from "lucide-react";
@@ -10,7 +10,26 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleReset = async () => {
+    if (!email.trim()) {
+      setError("أدخل بريدك الإلكتروني أولاً ثم اضغط نسيت كلمة المرور");
+      return;
+    }
+    setResetLoading(true);
+    setError("");
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setResetSent(true);
+    } catch {
+      setError("تعذّر إرسال رسالة الاستعادة. تحقق من البريد الإلكتروني.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   // If already logged in as admin, redirect directly to dashboard
   useEffect(() => {
@@ -171,6 +190,24 @@ export default function AdminLogin() {
             >
               <span>{loading ? "جاري التحقق..." : "تسجيل الدخول"}</span>
             </button>
+
+            {resetSent ? (
+              <p style={{ color: "#4ade80", fontSize: "0.8rem", textAlign: "center", marginTop: "0.75rem" }}>
+                ✓ تم إرسال رابط الاستعادة إلى بريدك الإلكتروني
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={resetLoading}
+                className="w-full mt-3 text-sm disabled:opacity-50"
+                style={{ color: "#4a7a4a", background: "none", border: "none", cursor: "pointer" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#81c784"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#4a7a4a"; }}
+              >
+                {resetLoading ? "جاري الإرسال..." : "نسيت كلمة المرور؟"}
+              </button>
+            )}
           </form>
         </div>
       </div>
