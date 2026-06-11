@@ -111,7 +111,14 @@ export default function Layout() {
         const { getToken, onMessage } = await import("firebase/messaging");
         const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: sw });
         if (token) {
-          await saveAdminFCMToken(token, currentUser?.uid);
+          if (userProfile === "admin") {
+            // Only save to config/adminFCM — never create a users doc for admin
+            const { setDoc, doc } = await import("firebase/firestore");
+            const { db } = await import("../../lib/firebase");
+            await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() }, { merge: true });
+          } else {
+            await saveAdminFCMToken(token, currentUser?.uid);
+          }
         }
 
         onMessage(messaging, (payload) => {
