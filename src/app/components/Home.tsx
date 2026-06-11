@@ -32,7 +32,6 @@ function SectionHeader({ num, title, link, linkLabel }: { num: string; title: st
   return (
     <div className="flex items-end justify-between mb-8">
       <div className="flex items-center gap-4">
-        <span className="text-5xl font-black select-none" style={{ color: "var(--p-15)", lineHeight: 1 }}>{num}</span>
         <div>
           <h2 className="text-2xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
           <div className="h-0.5 mt-1 rounded-full" style={{ width: "3rem", background: "var(--theme-accent, #00a355)" }} />
