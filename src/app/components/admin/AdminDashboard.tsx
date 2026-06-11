@@ -509,8 +509,9 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
         setPending((p) => ({ ...p, voice: d.filter((x) => x.status === "pending").length }));
       }),
       subscribeToAllProfiles((d) => {
-        setCounts((c) => ({ ...c, profiles: d.length }));
-        setPending((p) => ({ ...p, profiles: d.filter((x) => x.status === "pending").length }));
+        const voiceUsers = d.filter((x) => x.type === "voice");
+        setCounts((c) => ({ ...c, profiles: d.length, voice: c.voice + voiceUsers.length }));
+        setPending((p) => ({ ...p, profiles: d.filter((x) => x.status === "pending").length, voice: p.voice + voiceUsers.filter((x) => x.status === "pending").length }));
         const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
         setNewUsers(d.filter((x) => x.createdAt > week).slice(0, 10));
       }),
@@ -1439,6 +1440,7 @@ const emptyVoice: VoiceForm = { name: "", specialty: "", experience: "", descrip
 function VoiceSection() {
   const isMobile = useIsMobile();
   const [items, setItems] = useState<VoiceArtist[]>([]);
+  const [voiceUsers, setVoiceUsers] = useState<UserProfile[]>([]);
   const [modal, setModal] = useState<"add" | "edit" | null>(null);
   const [form, setForm] = useState<VoiceForm>(emptyVoice);
   const [editId, setEditId] = useState("");
@@ -1447,8 +1449,19 @@ function VoiceSection() {
   const [filter, setFilter] = useState<StatusFilter>("all");
 
   useEffect(() => subscribeToCollection<VoiceArtist>("voice", setItems), []);
+  useEffect(() => subscribeToAllProfiles((d) => setVoiceUsers(d.filter((x) => x.type === "voice"))), []);
 
-  const filtered = items.filter((v) => {
+  // Merge both sources — registered users shown as voice entries
+  const allVoice: VoiceArtist[] = [
+    ...items,
+    ...voiceUsers.map((u) => ({
+      id: u.id, name: u.name, specialty: u.specialty ?? "", experience: u.experience ?? "",
+      description: u.bio, contact: u.phone ?? u.email, createdAt: u.createdAt,
+      status: u.status, featured: u.featured,
+    })),
+  ];
+
+  const filtered = allVoice.filter((v) => {
     if (filter === "all") return true;
     if (filter === "pending") return v.status === "pending";
     return v.status === "approved" || !v.status;
