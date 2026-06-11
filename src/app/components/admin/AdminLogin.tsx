@@ -49,13 +49,6 @@ export default function AdminLogin() {
     setError("");
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-      if (adminEmail && cred.user.email !== adminEmail) {
-        await auth.signOut();
-        setError("غير مصرح لك بالدخول");
-        setLoading(false);
-        return;
-      }
       const profile = await getUserProfile(cred.user.uid);
       if (profile) {
         await auth.signOut();
