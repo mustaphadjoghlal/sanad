@@ -15,7 +15,7 @@ export const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-export const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string | undefined;
+export const ADMIN_EMAIL = "admin@sanadz.media";
 export const FCM_VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined;
 
 export async function getMessagingInstance() {

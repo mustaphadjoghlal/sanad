@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../../../lib/firebase";
-import { getUserProfile } from "../../../lib/firestore";
+import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import { Lock, Mail, Radio, AlertCircle } from "lucide-react";
 
 export default function AdminLogin() {
@@ -31,12 +30,9 @@ export default function AdminLogin() {
     }
   };
 
-  // If already logged in as admin, redirect directly to dashboard
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
-      const profile = await getUserProfile(user.uid);
-      if (!profile) {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user?.email === ADMIN_EMAIL) {
         navigate("/sanad-admin/dashboard", { replace: true });
       }
     });
@@ -49,10 +45,9 @@ export default function AdminLogin() {
     setError("");
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      const profile = await getUserProfile(cred.user.uid);
-      if (profile) {
+      if (cred.user.email !== ADMIN_EMAIL) {
         await auth.signOut();
-        setError("هذا الحساب حساب مستخدم عادي. استخدم صفحة تسجيل الدخول العادية.");
+        setError("هذا الحساب ليس حساب أدمن.");
         setLoading(false);
         return;
       }

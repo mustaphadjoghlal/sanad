@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY } from "../../lib/firebase";
+import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL } from "../../lib/firebase";
 import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead, saveAdminFCMToken } from "../../lib/firestore";
 import type { UserProfile, AppNotification } from "../../lib/types";
 
@@ -61,12 +61,12 @@ export default function Layout() {
       setUserProfile(null);
       return;
     }
+    if (currentUser.email === ADMIN_EMAIL) {
+      setUserProfile("admin");
+      return;
+    }
     const unsub = subscribeToUserProfile(currentUser.uid, (profile) => {
-      if (profile) {
-        setUserProfile(profile);
-      } else {
-        setUserProfile("admin");
-      }
+      setUserProfile(profile ?? null);
     });
     return unsub;
   }, [currentUser]);

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../../lib/firebase";
+import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import {
   subscribeToCollection,
   subscribeToAllProfiles,
@@ -322,14 +322,9 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        navigate("/sanad-admin");
-        return;
-      }
-      const profile = await getUserProfile(user.uid);
-      if (profile) {
-        await signOut(auth);
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (!user || user.email !== ADMIN_EMAIL) {
+        if (user) signOut(auth);
         navigate("/sanad-admin");
       }
     });
