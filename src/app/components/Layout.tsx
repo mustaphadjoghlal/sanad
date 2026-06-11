@@ -395,33 +395,33 @@ export default function Layout() {
                       left: "8px",
                       right: "8px",
                       zIndex: 200,
-                      background: "var(--theme-bg-card, #141414)",
-                      border: "1px solid var(--p-30)",
-                      boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+                      background: "#141414",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      boxShadow: "0 16px 40px rgba(0,0,0,0.8)",
                     }}
                   >
-                    <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--p-15)" }}>
-                      <span className="font-semibold text-sm" style={{ color: "var(--theme-text)" }}>الإشعارات</span>
+                    <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                      <span className="font-semibold text-sm" style={{ color: "#e8f5e9" }}>الإشعارات</span>
                     </div>
                     <div className="max-h-72 overflow-y-auto">
                       {notifications.length === 0 ? (
-                        <div className="py-8 text-center text-sm" style={{ color: "var(--theme-text-muted)" }}>لا توجد إشعارات</div>
+                        <div className="py-8 text-center text-sm" style={{ color: "#6aad6a" }}>لا توجد إشعارات</div>
                       ) : (
                         notifications.map((n) => {
                           const isUnread = !n.readBy?.includes(currentUser.uid);
                           const inner = (
                             <div
                               className="px-4 py-3 transition-colors"
-                              style={{ borderBottom: "1px solid var(--p-10)", background: isUnread ? "var(--p-08)" : "transparent", cursor: n.link ? "pointer" : "default" }}
-                              onMouseEnter={(e) => { if (n.link) (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isUnread ? "var(--p-08)" : "transparent"; }}
+                              style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: isUnread ? "rgba(0,163,85,0.08)" : "transparent", cursor: n.link ? "pointer" : "default" }}
+                              onMouseEnter={(e) => { if (n.link) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isUnread ? "rgba(0,163,85,0.08)" : "transparent"; }}
                             >
                               <div className="flex items-start gap-2">
                                 {isUnread && <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: "var(--theme-accent)" }} />}
                                 <div className={isUnread ? "" : "pr-4"}>
-                                  <p className="text-sm font-medium" style={{ color: "var(--theme-text)" }}>{n.title}</p>
-                                  <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-muted)" }}>{n.body}</p>
-                                  <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>
+                                  <p className="text-sm font-medium" style={{ color: "#e8f5e9" }}>{n.title}</p>
+                                  <p className="text-xs mt-0.5" style={{ color: "#a5d6a7" }}>{n.body}</p>
+                                  <p className="text-xs mt-1" style={{ color: "#6aad6a" }}>
                                     {new Date(n.createdAt).toLocaleDateString("ar-DZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                                   </p>
                                 </div>
