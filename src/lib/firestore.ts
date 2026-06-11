@@ -15,7 +15,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
 // Generic helpers
@@ -412,5 +412,62 @@ export function subscribeToStoreOrders(storeId: string, callback: (orders: Order
   const q = query(col("orders"), where("storeId", "==", storeId), orderBy("createdAt", "desc"));
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order)));
+  });
+}
+
+// --- TRAINER COURSES ---
+export async function addTrainerCourse(data: Omit<TrainerCourse, "id" | "createdAt">) {
+  return addDoc(col("trainerCourses"), { ...data, createdAt: Date.now(), status: "pending", featured: false });
+}
+export async function updateTrainerCourse(id: string, data: Partial<Omit<TrainerCourse, "id">>) {
+  return updateDoc(docRef("trainerCourses", id), data);
+}
+export async function deleteTrainerCourse(id: string) {
+  return deleteDoc(docRef("trainerCourses", id));
+}
+export function subscribeToTrainerCourses(trainerId: string, callback: (courses: TrainerCourse[]) => void): () => void {
+  const q = query(col("trainerCourses"), where("trainerId", "==", trainerId), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse)));
+  });
+}
+export function subscribeToApprovedTrainerCourses(trainerId: string, callback: (courses: TrainerCourse[]) => void): () => void {
+  const q = query(col("trainerCourses"), where("trainerId", "==", trainerId), where("status", "==", "approved"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse)));
+  });
+}
+export function subscribeToAllTrainerCourses(callback: (courses: TrainerCourse[]) => void): () => void {
+  const q = query(col("trainerCourses"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse)));
+  });
+}
+export function subscribeToApprovedTrainers(callback: (trainers: UserProfile[]) => void): () => void {
+  const q = query(col("users"), where("type", "==", "trainer"));
+  return onSnapshot(q, (snap) => {
+    const trainers = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
+      .filter((t) => t.status === "approved")
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    callback(trainers);
+  });
+}
+export async function getTrainer(id: string): Promise<UserProfile | null> {
+  const snap = await getDoc(docRef("users", id));
+  if (!snap.exists()) return null;
+  const profile = { id: snap.id, ...snap.data() } as UserProfile;
+  if (profile.type !== "trainer") return null;
+  return profile;
+}
+
+// --- COURSE REGISTRATIONS ---
+export async function submitCourseRegistration(data: Omit<CourseRegistration, "id" | "createdAt">) {
+  return addDoc(col("courseRegistrations"), { ...data, createdAt: Date.now() });
+}
+export function subscribeToTrainerRegistrations(trainerId: string, callback: (regs: CourseRegistration[]) => void): () => void {
+  const q = query(col("courseRegistrations"), where("trainerId", "==", trainerId), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as CourseRegistration)));
   });
 }

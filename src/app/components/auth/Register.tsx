@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Radio, ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store } from "lucide-react";
+import { Radio, ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store, GraduationCap } from "lucide-react";
 import { createUserWithEmailAndPassword, deleteUser, fetchSignInMethodsForEmail } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { saveUserProfile, sendNotification } from "../../../lib/firestore";
@@ -16,7 +16,7 @@ const wilayas = [
   "غرداية", "بشار", "أدرار", "تمنراست", "إليزي",
 ];
 
-type MainType = "individual" | "store" | null;
+type MainType = "individual" | "store" | "trainer" | null;
 type IndividualSubType = "editor_news" | "web_digital" | "presenter_programs" | "presenter_news" | "monteur" | "graphic_designer" | "cameraman" | "producer" | "director" | "program_writer" | "voice" | "host_stage" | "student" | "other" | null;
 type StorePlan = "trial" | "paid" | null;
 
@@ -36,6 +36,8 @@ interface FormState {
   whatsapp: string;
   otherTypeText: string;
   storePlan: StorePlan;
+  organization: string;
+  trainerSpecialty: string;
 }
 
 interface NewLink {
@@ -95,6 +97,8 @@ export default function Register() {
     whatsapp: "",
     otherTypeText: "",
     storePlan: null,
+    organization: "",
+    trainerSpecialty: "",
   });
 
   const f = (key: keyof FormState, val: string) =>
@@ -139,6 +143,8 @@ export default function Register() {
     setStep(2);
   };
 
+  const canProceedStep1 = mainType === "individual" ? !!individualSubType : mainType === "store" ? !!form.storePlan : !!mainType;
+
   const goToStep3 = () => {
     setError("");
     if (!form.name || !form.email || !form.password) {
@@ -170,6 +176,10 @@ export default function Register() {
       setError("يرجى إدخال اسم المتجر");
       return;
     }
+    if (mainType === "trainer" && !form.name.trim()) {
+      setError("يرجى إدخال اسمك أو اسم مركز التدريب");
+      return;
+    }
 
     setSaving(true);
     let createdUser = null;
@@ -188,15 +198,15 @@ export default function Register() {
       }
 
       const accountType: AccountType =
-        mainType === "store" ? "store" : (individualSubType as AccountType);
+        mainType === "store" ? "store" : mainType === "trainer" ? "trainer" : (individualSubType as AccountType);
 
       const baseProfile = {
         email: form.email,
-        name: form.name,
+        name: mainType === "store" ? form.storeName : form.name,
         type: accountType,
         bio: mainType === "store" ? form.storeDescription : form.bio,
         photo: photoUrl,
-        specialty: form.specialty || undefined,
+        specialty: mainType === "trainer" ? (form.trainerSpecialty || undefined) : (form.specialty || undefined),
         location: form.location || undefined,
         phone: form.phone || undefined,
       };
@@ -210,6 +220,12 @@ export default function Register() {
           otherType: individualSubType === "other" ? form.otherTypeText || undefined : undefined,
           interests: interests.length > 0 ? interests : undefined,
         });
+      } else if (mainType === "trainer") {
+        await saveUserProfile(uid, {
+          ...baseProfile,
+          organization: form.organization || undefined,
+          whatsapp: form.whatsapp || undefined,
+        });
       } else {
         await saveUserProfile(uid, {
           ...baseProfile,
@@ -219,9 +235,10 @@ export default function Register() {
       }
 
       // Notify admin of new registration
+      const typeLabel = mainType === "store" ? "متجر عتاد" : mainType === "trainer" ? "مدرب / مركز تدريب" : "محترف إعلامي";
       await sendNotification({
         title: "مستخدم جديد 🎉",
-        body: `${form.name} سجّل في المنصة كـ ${mainType === "store" ? "متجر عتاد" : "محترف إعلامي"}`,
+        body: `${form.name} سجّل في المنصة كـ ${typeLabel}`,
         link: "/sanad-admin",
         createdAt: Date.now(),
       }).catch(() => {});
@@ -415,6 +432,25 @@ export default function Register() {
                       متجر احترافي
                     </div>
                     <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>معدات إعلام، كاميرات، صوتيات</div>
+                  </button>
+
+                  {/* Trainer card */}
+                  <button
+                    onClick={() => { setMainType("trainer"); setIndividualSubType(null); }}
+                    className="p-5 rounded-xl text-right transition-all duration-200"
+                    style={{
+                      background: mainType === "trainer" ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))" : "rgba(0,0,0,0.2)",
+                      border: mainType === "trainer" ? "2px solid var(--p-60)" : "1px solid var(--p-20)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: mainType === "trainer" ? "rgba(0,163,85,0.25)" : "var(--p-15)", border: `1px solid ${mainType === "trainer" ? "var(--p-40)" : "var(--p-30)"}` }}>
+                      <GraduationCap size={22} style={{ color: mainType === "trainer" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
+                    </div>
+                    <div className="font-semibold mb-1" style={{ color: mainType === "trainer" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
+                      مدرب / مركز تدريب
+                    </div>
+                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>دورات تدريبية في مجال الإعلام</div>
                   </button>
                 </div>
 
@@ -927,6 +963,43 @@ export default function Register() {
                         onChange={(e) => f("storeDescription", e.target.value)}
                         placeholder="صف متجرك والمنتجات التي تقدمها"
                       />
+                    </div>
+                  </div>
+                )}
+
+                {/* Trainer profile fields */}
+                {mainType === "trainer" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسمك أو اسم مركز التدريب *</label>
+                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.name} onChange={(e) => f("name", e.target.value)} placeholder="مثال: مركز سند للتدريب" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسم المؤسسة / المركز</label>
+                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.organization} onChange={(e) => f("organization", e.target.value)} placeholder="إذا كنت تمثل مركز تدريب (اختياري)" />
+                    </div>
+                    <div>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>مجال التدريب</label>
+                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.trainerSpecialty} onChange={(e) => f("trainerSpecialty", e.target.value)} placeholder="مثال: تصوير، صحافة، إنتاج..." />
+                    </div>
+                    <div>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
+                      <select className="select-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.location} onChange={(e) => f("location", e.target.value)} style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}>
+                        <option value="">اختر الولاية (إلزامي)</option>
+                        {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
+                      <input type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.phone} onChange={(e) => f("phone", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
+                    </div>
+                    <div>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>واتساب</label>
+                      <input type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.whatsapp} onChange={(e) => f("whatsapp", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نبذة تعريفية</label>
+                      <textarea className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" style={{ minHeight: "80px", resize: "vertical" }} value={form.bio} onChange={(e) => f("bio", e.target.value)} placeholder="اشرح خبرتك وما الذي تقدمه من تدريب" />
                     </div>
                   </div>
                 )}

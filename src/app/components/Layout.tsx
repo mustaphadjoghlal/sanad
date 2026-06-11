@@ -31,6 +31,7 @@ export default function Layout() {
   ];
 
   const moreLinks = [
+    { to: "/trainers", label: "مراكز التدريب" },
     { to: "/channels", label: "دليل القنوات" },
     { to: "/theses", label: "مذكرات التخرج" },
     { to: "/stores", label: "سوق المعدات" },

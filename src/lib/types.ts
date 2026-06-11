@@ -215,7 +215,40 @@ export type IndividualType =
   | 'monteur' | 'graphic_designer' | 'cameraman' | 'producer' | 'director'
   | 'program_writer' | 'voice' | 'host_stage' | 'student' | 'other'
   | 'journalist' | 'photographer' | 'editor';
-export type AccountType = IndividualType | 'store';
+export type AccountType = IndividualType | 'store' | 'trainer';
+
+export interface TrainerCourse {
+  id: string;
+  trainerId: string;
+  title: string;
+  description: string;
+  image?: string;
+  contentImages?: string[];
+  type: "free" | "paid";
+  price?: number;
+  duration: string;
+  location: string;
+  schedule: string;
+  startDate?: string;
+  seats?: number;
+  status: "pending" | "approved" | "rejected";
+  featured: boolean;
+  createdAt: number;
+  rejectionNote?: string;
+}
+
+export interface CourseRegistration {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  trainerId: string;
+  name: string;
+  phone: string;
+  email?: string;
+  wilaya?: string;
+  note?: string;
+  createdAt: number;
+}
 
 export const INTERESTS = ['الاقتصاد', 'الفن', 'الرياضة', 'السياسة'] as const;
 export type Interest = typeof INTERESTS[number];
@@ -240,6 +273,7 @@ export interface UserProfile {
   phone?: string;
   experience?: string;
   storeStatus?: 'trial' | 'paid';
+  organization?: string;
   status: 'pending' | 'approved' | 'rejected';
   featured: boolean;
   rejectionNote?: string;

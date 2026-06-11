@@ -18,6 +18,7 @@ import {
 import { uploadProfilePhoto } from "../../../lib/storage";
 import type { UserProfile, Equipment, PortfolioLink } from "../../../lib/types";
 import StoreManager from "../StoreManager";
+import TrainerManager from "../TrainerManager";
 
 const typeLabel: Record<string, string> = {
   editor_news:        "محرر",
@@ -39,6 +40,7 @@ const typeLabel: Record<string, string> = {
   editor:             "مخرج / مونتير",
   store:              "متجر احترافي",
   vendor:             "بائع عتاد",
+  trainer:            "مدرب / مركز تدريب",
 };
 
 const typeIcon: Record<string, React.ElementType> = {
@@ -774,6 +776,16 @@ export default function UserDashboard() {
         {profile.type === "store" && profile.status === "approved" && uid && (
           <div className="animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.15s", marginBottom: "1.5rem" }}>
             <StoreManager uid={uid} profile={profile} />
+          </div>
+        )}
+
+        {/* Trainer manager — trainer accounts */}
+        {profile.type === "trainer" && profile.status === "approved" && uid && (
+          <div className="animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.15s", marginBottom: "1.5rem" }}>
+            <div className="rounded-2xl p-6" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-20)" }}>
+              <h3 className="text-lg font-bold mb-4" style={{ color: "var(--theme-text)" }}>إدارة الدورات التدريبية</h3>
+              <TrainerManager trainerId={uid} />
+            </div>
           </div>
         )}
 

@@ -19,6 +19,8 @@ import ThesisDetail from "./components/ThesisDetail";
 import Stores from "./components/Stores";
 import StoreDetail from "./components/StoreDetail";
 import ProductDetail from "./components/ProductDetail";
+import Trainers from "./components/Trainers";
+import TrainerDetail from "./components/TrainerDetail";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/AdminLogin";
 import Register from "./components/auth/Register";
@@ -50,6 +52,8 @@ export const router = createBrowserRouter([
       { path: "stores", Component: Stores },
       { path: "stores/:id", Component: StoreDetail },
       { path: "products/:id", Component: ProductDetail },
+      { path: "trainers", Component: Trainers },
+      { path: "trainers/:id", Component: TrainerDetail },
       { path: "*", Component: NotFound },
     ],
   },
