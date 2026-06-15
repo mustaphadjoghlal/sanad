@@ -258,6 +258,11 @@ export interface PortfolioLink {
   url: string;
 }
 
+export interface PortfolioVideo {
+  title: string;
+  url: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -267,6 +272,7 @@ export interface UserProfile {
   bio: string;
   photo?: string;
   portfolio?: PortfolioLink[];
+  portfolioVideos?: PortfolioVideo[];
   achievements?: string;
   specialty?: string;
   location?: string;

@@ -21,6 +21,7 @@ import StoreDetail from "./components/StoreDetail";
 import ProductDetail from "./components/ProductDetail";
 import Trainers from "./components/Trainers";
 import TrainerDetail from "./components/TrainerDetail";
+import ProfilePage from "./components/ProfilePage";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/AdminLogin";
 import Register from "./components/auth/Register";
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: "products/:id", Component: ProductDetail },
       { path: "trainers", Component: Trainers },
       { path: "trainers/:id", Component: TrainerDetail },
+      { path: "profile/:id", Component: ProfilePage },
       { path: "*", Component: NotFound },
     ],
   },

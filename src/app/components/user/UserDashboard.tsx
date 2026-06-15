@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
   LogOut, User, Package, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check,
-  AlertTriangle, ExternalLink, Award, Link as LinkIcon2, ImageIcon,
+  AlertTriangle, ExternalLink, Award, Link as LinkIcon2, ImageIcon, Youtube, Trash2,
 } from "lucide-react";
 import { auth } from "../../../lib/firebase";
 import {
@@ -16,9 +16,10 @@ import {
   isUsernameAvailable,
 } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
-import type { UserProfile, Equipment, PortfolioLink } from "../../../lib/types";
+import type { UserProfile, Equipment, PortfolioLink, PortfolioVideo } from "../../../lib/types";
 import StoreManager from "../StoreManager";
 import TrainerManager from "../TrainerManager";
+import CVMaker from "../CVMaker";
 
 const typeLabel: Record<string, string> = {
   editor_news:        "محرر",
@@ -109,6 +110,7 @@ type EditFormState = {
   experience: string;
   achievements: string;
   portfolio: PortfolioLink[];
+  portfolioVideos: PortfolioVideo[];
   username: string;
 };
 
@@ -150,6 +152,7 @@ export default function UserDashboard() {
     experience: "",
     achievements: "",
     portfolio: [],
+    portfolioVideos: [],
     username: "",
   });
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
@@ -164,6 +167,11 @@ export default function UserDashboard() {
   const [showAddLink, setShowAddLink] = useState(false);
   const [newLinkLabel, setNewLinkLabel] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
+
+  // Portfolio videos state
+  const [showAddVideo, setShowAddVideo] = useState(false);
+  const [newVideoTitle, setNewVideoTitle] = useState("");
+  const [newVideoUrl, setNewVideoUrl] = useState("");
 
   // Equipment
   const [myEquipment, setMyEquipment] = useState<Equipment[]>([]);
@@ -219,6 +227,7 @@ export default function UserDashboard() {
       experience: profile.experience || "",
       achievements: profile.achievements || "",
       portfolio: profile.portfolio ? [...profile.portfolio] : [],
+      portfolioVideos: profile.portfolioVideos ? [...profile.portfolioVideos] : [],
       username: profile.username || "",
     });
     setUsernameStatus("idle");
@@ -226,6 +235,9 @@ export default function UserDashboard() {
     setShowAddLink(false);
     setNewLinkLabel("");
     setNewLinkUrl("");
+    setShowAddVideo(false);
+    setNewVideoTitle("");
+    setNewVideoUrl("");
     setEditing(true);
     setEditError("");
   };
@@ -296,6 +308,7 @@ export default function UserDashboard() {
         photo: photoUrl || profile.photo,
         achievements: editForm.achievements || undefined,
         portfolio: editForm.portfolio.length > 0 ? editForm.portfolio : undefined,
+        portfolioVideos: editForm.portfolioVideos.length > 0 ? editForm.portfolioVideos : undefined,
         specialty: editForm.specialty || undefined,
         location: editForm.location || undefined,
         phone: editForm.phone || undefined,
@@ -473,6 +486,39 @@ export default function UserDashboard() {
                     </div>
                   )}
 
+                  {/* Portfolio videos */}
+                  {profile.portfolioVideos && profile.portfolioVideos.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Youtube size={14} style={{ color: "#f87171" }} />
+                        <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>أعمال مرئية</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.portfolioVideos.map((v, i) => (
+                          <a
+                            key={i}
+                            href={v.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5"
+                            style={{
+                              background: "rgba(239,68,68,0.1)",
+                              border: "1px solid rgba(239,68,68,0.3)",
+                              color: "#f87171",
+                              padding: "0.2rem 0.65rem",
+                              borderRadius: "9999px",
+                              fontSize: "0.8rem",
+                              textDecoration: "none",
+                            }}
+                          >
+                            <Youtube size={11} />
+                            <span>{v.title || "فيديو"}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Rejection note */}
                   {profile.status === "rejected" && profile.rejectionNote && (
                     <div
@@ -494,14 +540,19 @@ export default function UserDashboard() {
                     </div>
                   )}
 
-                  <button
-                    onClick={startEdit}
-                    className="mt-4 flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-colors"
-                    style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}
-                  >
-                    <Pencil size={14} />
-                    <span>تعديل الملف</span>
-                  </button>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={startEdit}
+                      className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-colors"
+                      style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}
+                    >
+                      <Pencil size={14} />
+                      <span>تعديل الملف</span>
+                    </button>
+                    {profile.status === "approved" && uid && (
+                      <CVMaker profile={profile} uid={uid} />
+                    )}
+                  </div>
                 </>
               ) : (
                 /* Edit form */
@@ -708,6 +759,92 @@ export default function UserDashboard() {
                       </button>
                     )}
                   </div>}
+
+                  {/* Portfolio videos — non-store accounts */}
+                  {profile.type !== "store" && (
+                    <div>
+                      <label style={S.label}>أعمالي — فيديو (يوتيوب)</label>
+                      {editForm.portfolioVideos.length > 0 && (
+                        <div className="space-y-2 mb-2">
+                          {editForm.portfolioVideos.map((v, i) => (
+                            <div
+                              key={i}
+                              className="flex items-center gap-2"
+                              style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
+                            >
+                              <Youtube size={13} style={{ color: "#f87171", flexShrink: 0 }} />
+                              <span style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {v.title || v.url}
+                              </span>
+                              <button
+                                onClick={() => setEditForm((p) => ({ ...p, portfolioVideos: p.portfolioVideos.filter((_, j) => j !== i) }))}
+                                style={{ color: "#f87171", flexShrink: 0, lineHeight: 0 }}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {showAddVideo ? (
+                        <div
+                          className="space-y-2"
+                          style={{ background: "#161616", border: "1px solid var(--p-30)", borderRadius: "0.5rem", padding: "0.75rem" }}
+                        >
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label style={S.label}>عنوان الفيديو</label>
+                              <input
+                                style={S.input}
+                                value={newVideoTitle}
+                                onChange={(e) => setNewVideoTitle(e.target.value)}
+                                placeholder="مثال: تقرير قناة النهار"
+                              />
+                            </div>
+                            <div>
+                              <label style={S.label}>رابط يوتيوب</label>
+                              <input
+                                style={S.input}
+                                value={newVideoUrl}
+                                onChange={(e) => setNewVideoUrl(e.target.value)}
+                                placeholder="https://youtube.com/watch?v=..."
+                                dir="ltr"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                if (!newVideoUrl.trim()) return;
+                                setEditForm((p) => ({ ...p, portfolioVideos: [...p.portfolioVideos, { title: newVideoTitle.trim(), url: newVideoUrl.trim() }] }));
+                                setNewVideoTitle(""); setNewVideoUrl(""); setShowAddVideo(false);
+                              }}
+                              disabled={!newVideoUrl.trim()}
+                              className="btn-dz px-4 py-1.5 rounded-lg text-sm disabled:opacity-40 flex items-center gap-1.5"
+                            >
+                              <Check size={13} />
+                              <span>إضافة</span>
+                            </button>
+                            <button
+                              onClick={() => { setShowAddVideo(false); setNewVideoTitle(""); setNewVideoUrl(""); }}
+                              style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary, #6aad6a)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem" }}
+                            >
+                              إلغاء
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setShowAddVideo(true)}
+                          className="flex items-center gap-1.5 text-sm"
+                          style={{ color: "var(--theme-text-secondary, #6aad6a)", border: "1px solid var(--p-30)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem" }}
+                        >
+                          <Plus size={13} />
+                          <span>إضافة فيديو</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex gap-3 pt-2">
                     <button
