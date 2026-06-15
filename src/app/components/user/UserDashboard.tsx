@@ -44,6 +44,11 @@ const typeLabel: Record<string, string> = {
   trainer:            "مدرب / مركز تدريب",
 };
 
+function ytId(url: string) {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m?.[1] ?? null;
+}
+
 const typeIcon: Record<string, React.ElementType> = {
   journalist: BookOpen,
   voice: Mic,
@@ -489,32 +494,33 @@ export default function UserDashboard() {
                   {/* Portfolio videos */}
                   {profile.portfolioVideos && profile.portfolioVideos.length > 0 && (
                     <div className="mt-4">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <Youtube size={14} style={{ color: "#f87171" }} />
                         <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>أعمال مرئية</p>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {profile.portfolioVideos.map((v, i) => (
-                          <a
-                            key={i}
-                            href={v.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5"
-                            style={{
-                              background: "rgba(239,68,68,0.1)",
-                              border: "1px solid rgba(239,68,68,0.3)",
-                              color: "#f87171",
-                              padding: "0.2rem 0.65rem",
-                              borderRadius: "9999px",
-                              fontSize: "0.8rem",
-                              textDecoration: "none",
-                            }}
-                          >
-                            <Youtube size={11} />
-                            <span>{v.title || "فيديو"}</span>
-                          </a>
-                        ))}
+                      <div className="flex flex-col gap-4">
+                        {profile.portfolioVideos.map((v, i) => {
+                          const vid = ytId(v.url);
+                          return (
+                            <div key={i}>
+                              {v.title && <p style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", marginBottom: "0.4rem" }}>{v.title}</p>}
+                              {vid ? (
+                                <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "0.75rem", overflow: "hidden" }}>
+                                  <iframe
+                                    src={`https://www.youtube.com/embed/${vid}`}
+                                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  />
+                                </div>
+                              ) : (
+                                <a href={v.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm" style={{ color: "#f87171", textDecoration: "none" }}>
+                                  <Youtube size={13} /> {v.url}
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
