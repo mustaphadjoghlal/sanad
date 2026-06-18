@@ -27,11 +27,10 @@ export default function Layout() {
     { to: "/equipment", label: "العتاد" },
     { to: "/jobs", label: "التوظيف" },
     { to: "/competitions", label: "المسابقات" },
-    { to: "/voice-artists", label: "المعلقون الصوتيون" },
+    { to: "/voice-artists", label: "منشطون / معلقون صوتيون" },
   ];
 
   const moreLinks = [
-    { to: "/voice-requests", label: "المنشطون" },
     { to: "/trainers", label: "مراكز التدريب" },
     { to: "/channels", label: "دليل القنوات" },
     { to: "/theses", label: "مذكرات التخرج" },
