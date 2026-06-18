@@ -4,6 +4,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
   LogOut, User, Package, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check,
   AlertTriangle, ExternalLink, Award, Link as LinkIcon2, ImageIcon, Youtube, Trash2,
+  Upload, Play, Pause,
 } from "lucide-react";
 import { auth } from "../../../lib/firebase";
 import {
@@ -15,8 +16,9 @@ import {
   sendNotification,
   isUsernameAvailable,
 } from "../../../lib/firestore";
-import { uploadProfilePhoto } from "../../../lib/storage";
-import type { UserProfile, Equipment, PortfolioLink, PortfolioVideo } from "../../../lib/types";
+import { uploadProfilePhoto, uploadAudioSample } from "../../../lib/storage";
+import type { UserProfile, Equipment, PortfolioLink, PortfolioVideo, AudioSample, Gender, VoiceSampleCategory } from "../../../lib/types";
+import { VOICE_SAMPLE_CATEGORIES } from "../../../lib/types";
 import StoreManager from "../StoreManager";
 import TrainerManager from "../TrainerManager";
 import CVMaker from "../CVMaker";
@@ -117,6 +119,9 @@ type EditFormState = {
   portfolio: PortfolioLink[];
   portfolioVideos: PortfolioVideo[];
   username: string;
+  tagline: string;
+  gender: Gender | "";
+  audioSamples: AudioSample[];
 };
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -159,6 +164,9 @@ export default function UserDashboard() {
     portfolio: [],
     portfolioVideos: [],
     username: "",
+    tagline: "",
+    gender: "",
+    audioSamples: [],
   });
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [saving, setSaving] = useState(false);
@@ -177,6 +185,15 @@ export default function UserDashboard() {
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [newVideoTitle, setNewVideoTitle] = useState("");
   const [newVideoUrl, setNewVideoUrl] = useState("");
+
+  // Audio sample state
+  const [showAddAudio, setShowAddAudio] = useState(false);
+  const [newAudioTitle, setNewAudioTitle] = useState("");
+  const [newAudioCategory, setNewAudioCategory] = useState<VoiceSampleCategory>("وثائقي");
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [audioUploadProgress, setAudioUploadProgress] = useState(0);
+  const [audioPlayingIdx, setAudioPlayingIdx] = useState<number | null>(null);
+  const audioPreviewRef = useState<HTMLAudioElement | null>(null);
 
   // Equipment
   const [myEquipment, setMyEquipment] = useState<Equipment[]>([]);
@@ -234,6 +251,9 @@ export default function UserDashboard() {
       portfolio: profile.portfolio ? [...profile.portfolio] : [],
       portfolioVideos: profile.portfolioVideos ? [...profile.portfolioVideos] : [],
       username: profile.username || "",
+      tagline: profile.tagline || "",
+      gender: profile.gender || "",
+      audioSamples: profile.audioSamples ? [...profile.audioSamples] : [],
     });
     setUsernameStatus("idle");
     setPhotoUrl(profile.photo || "");
@@ -243,6 +263,9 @@ export default function UserDashboard() {
     setShowAddVideo(false);
     setNewVideoTitle("");
     setNewVideoUrl("");
+    setShowAddAudio(false);
+    setNewAudioTitle("");
+    setNewAudioCategory("وثائقي");
     setEditing(true);
     setEditError("");
   };
@@ -314,6 +337,9 @@ export default function UserDashboard() {
         achievements: editForm.achievements || undefined,
         portfolio: editForm.portfolio.length > 0 ? editForm.portfolio : undefined,
         portfolioVideos: editForm.portfolioVideos.length > 0 ? editForm.portfolioVideos : undefined,
+        tagline: editForm.tagline || undefined,
+        gender: editForm.gender || undefined,
+        audioSamples: editForm.audioSamples.length > 0 ? editForm.audioSamples : undefined,
         specialty: editForm.specialty || undefined,
         location: editForm.location || undefined,
         phone: editForm.phone || undefined,
@@ -681,6 +707,175 @@ export default function UserDashboard() {
                       </div>
                     )}
                   </div>
+
+                  {/* Voice-specific fields */}
+                  {(profile.type === "voice" || profile.type === "host_stage") && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label style={S.label}>عبارة تعريفية (Tagline)</label>
+                          <input
+                            style={S.input}
+                            value={editForm.tagline}
+                            onChange={(e) => setEditForm((p) => ({ ...p, tagline: e.target.value }))}
+                            placeholder="مثال: صوت يصنع الفرق"
+                          />
+                        </div>
+                        <div>
+                          <label style={S.label}>الجنس</label>
+                          <select
+                            style={S.input}
+                            value={editForm.gender}
+                            onChange={(e) => setEditForm((p) => ({ ...p, gender: e.target.value as Gender | "" }))}
+                          >
+                            <option value="">اختر</option>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Audio Samples */}
+                      <div>
+                        <label style={S.label}>العيّنات الصوتية</label>
+                        {editForm.audioSamples.length > 0 && (
+                          <div className="space-y-2 mb-2">
+                            {editForm.audioSamples.map((sample, i) => (
+                              <div
+                                key={i}
+                                className="flex items-center gap-2"
+                                style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
+                              >
+                                <button
+                                  onClick={() => {
+                                    if (audioPlayingIdx === i) {
+                                      audioPreviewRef[0]?.pause();
+                                      setAudioPlayingIdx(null);
+                                      return;
+                                    }
+                                    audioPreviewRef[0]?.pause();
+                                    const a = new Audio(sample.url);
+                                    a.play().catch(() => {});
+                                    a.onended = () => setAudioPlayingIdx(null);
+                                    audioPreviewRef[1](a);
+                                    setAudioPlayingIdx(i);
+                                  }}
+                                  style={{ color: "var(--theme-accent, #00a355)", flexShrink: 0, lineHeight: 0, background: "none", border: "none", cursor: "pointer" }}
+                                >
+                                  {audioPlayingIdx === i ? <Pause size={14} /> : <Play size={14} />}
+                                </button>
+                                <Mic size={13} style={{ color: "var(--theme-accent, #00a355)", flexShrink: 0 }} />
+                                <span style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {sample.title}
+                                </span>
+                                <span style={{ background: "var(--p-20)", color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.68rem", padding: "0.1rem 0.4rem", borderRadius: "4px" }}>
+                                  {sample.category}
+                                </span>
+                                <button
+                                  onClick={() => setEditForm((p) => ({ ...p, audioSamples: p.audioSamples.filter((_, j) => j !== i) }))}
+                                  style={{ color: "#f87171", flexShrink: 0, lineHeight: 0, background: "none", border: "none", cursor: "pointer" }}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {showAddAudio ? (
+                          <div className="space-y-3" style={{ background: "#161616", border: "1px solid var(--p-30)", borderRadius: "0.5rem", padding: "0.75rem" }}>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label style={S.label}>عنوان العيّنة</label>
+                                <input style={S.input} value={newAudioTitle} onChange={(e) => setNewAudioTitle(e.target.value)} placeholder="مثال: وثائقي — الحياة البرية" />
+                              </div>
+                              <div>
+                                <label style={S.label}>التصنيف</label>
+                                <select style={S.input} value={newAudioCategory} onChange={(e) => setNewAudioCategory(e.target.value as VoiceSampleCategory)}>
+                                  {VOICE_SAMPLE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label style={S.label}>ملف صوتي (MP3, WAV, OGG — حد أقصى 10MB)</label>
+                              <label
+                                htmlFor="audio-upload"
+                                style={{
+                                  cursor: uploadingAudio ? "not-allowed" : "pointer",
+                                  background: "var(--p-12)",
+                                  border: "1px solid var(--p-30)",
+                                  color: uploadingAudio ? "var(--theme-text-muted, #4a7a4a)" : "var(--theme-badge-text, #81c784)",
+                                  padding: "0.5rem 1rem",
+                                  borderRadius: "0.5rem",
+                                  fontSize: "0.8rem",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "0.4rem",
+                                }}
+                              >
+                                <Upload size={14} />
+                                {uploadingAudio ? `جاري الرفع... ${audioUploadProgress}%` : "اختر ملف صوتي"}
+                              </label>
+                              <input
+                                id="audio-upload"
+                                type="file"
+                                accept="audio/*"
+                                style={{ display: "none" }}
+                                disabled={uploadingAudio}
+                                onChange={async (e) => {
+                                  if (!uid || !e.target.files?.length) return;
+                                  const file = e.target.files[0];
+                                  if (file.size > 10 * 1024 * 1024) {
+                                    setEditError("حجم الملف يتجاوز 10MB");
+                                    return;
+                                  }
+                                  if (!newAudioTitle.trim()) {
+                                    setEditError("أدخل عنوان العيّنة أولاً");
+                                    return;
+                                  }
+                                  setUploadingAudio(true);
+                                  setAudioUploadProgress(0);
+                                  try {
+                                    const url = await uploadAudioSample(uid, file, (p) => setAudioUploadProgress(p));
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      audioSamples: [...prev.audioSamples, { title: newAudioTitle.trim(), url, category: newAudioCategory }],
+                                    }));
+                                    setNewAudioTitle("");
+                                    setNewAudioCategory("وثائقي");
+                                    setShowAddAudio(false);
+                                    setEditError("");
+                                  } catch (err: unknown) {
+                                    setEditError((err as Error)?.message ?? "فشل رفع الملف الصوتي");
+                                  } finally {
+                                    setUploadingAudio(false);
+                                    e.target.value = "";
+                                  }
+                                }}
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => { setShowAddAudio(false); setNewAudioTitle(""); }}
+                                style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary, #6aad6a)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem" }}
+                              >
+                                إلغاء
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setShowAddAudio(true)}
+                            className="flex items-center gap-1.5 text-sm"
+                            style={{ color: "var(--theme-text-secondary, #6aad6a)", border: "1px solid var(--p-30)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem" }}
+                          >
+                            <Plus size={13} />
+                            <span>إضافة عيّنة صوتية</span>
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                   {/* Portfolio links — individual accounts only */}
                   {profile.type !== "store" && <div>

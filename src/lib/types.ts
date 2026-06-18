@@ -263,6 +263,17 @@ export interface PortfolioVideo {
   url: string;
 }
 
+export const VOICE_SAMPLE_CATEGORIES = ['وثائقي', 'دوبلاج', 'إعلاني', 'تعليمي', 'قصصي', 'إخباري', 'بودكاست', 'أخرى'] as const;
+export type VoiceSampleCategory = typeof VOICE_SAMPLE_CATEGORIES[number];
+
+export interface AudioSample {
+  url: string;
+  title: string;
+  category: VoiceSampleCategory;
+}
+
+export type Gender = 'male' | 'female';
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -286,6 +297,9 @@ export interface UserProfile {
   createdAt: number;
   username?: string;
   interests?: string[];
+  tagline?: string;
+  gender?: Gender;
+  audioSamples?: AudioSample[];
 }
 
 export const PRODUCT_CATEGORIES = ["كاميرات", "ميكروفونات", "إضاءة", "حوامل وأرجل", "بطاريات وشواحن", "أجهزة حاسوبية", "سماعات", "لوازم تصوير", "أخرى"] as const;

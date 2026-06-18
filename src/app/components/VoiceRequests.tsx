@@ -1,169 +1,653 @@
-import { useState, useEffect } from "react";
-import { Search, Mic, Phone, MapPin, Link as LinkIcon } from "lucide-react";
-import { subscribeToCollection, subscribeToAllProfiles } from "../../lib/firestore";
-import type { VoiceArtist, UserProfile } from "../../lib/types";
+import { useState, useEffect, useRef } from "react";
+import { Search, Mic, Phone, MapPin, Play, Pause, User } from "lucide-react";
+import { subscribeToAllProfiles } from "../../lib/firestore";
+import type { UserProfile, AudioSample, VoiceSampleCategory } from "../../lib/types";
+import { VOICE_SAMPLE_CATEGORIES } from "../../lib/types";
 import { Link } from "react-router-dom";
 
-type VoiceEntry = {
-  id: string;
-  name: string;
-  specialty: string;
-  experience?: string;
-  description?: string;
-  contact?: string;
-  location?: string;
-  source: "artist" | "profile";
-};
-
 export default function VoiceRequests() {
-  const [artists, setArtists] = useState<VoiceArtist[]>([]);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [search, setSearch] = useState("");
-  const [specFilter, setSpecFilter] = useState("");
+  const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">("all");
+  const [categoryFilter, setCategoryFilter] = useState<VoiceSampleCategory | "">("");
   const [loading, setLoading] = useState(true);
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    let artistsLoaded = false;
-    let profilesLoaded = false;
-    const checkDone = () => { if (artistsLoaded && profilesLoaded) setLoading(false); };
-
-    const unsubArtists = subscribeToCollection<VoiceArtist>("voice", (data) => {
-      setArtists(data);
-      artistsLoaded = true;
-      checkDone();
-    });
-    const unsubProfiles = subscribeToAllProfiles((data) => {
+    const unsub = subscribeToAllProfiles((data) => {
       setProfiles(data);
-      profilesLoaded = true;
-      checkDone();
+      setLoading(false);
     });
-    return () => { unsubArtists(); unsubProfiles(); };
+    return unsub;
   }, []);
 
-  const approvedArtists: VoiceEntry[] = artists
-    .filter((v) => v.status === "approved" || !v.status)
-    .map((v) => ({
-      id: v.id,
-      name: v.name,
-      specialty: v.specialty,
-      experience: v.experience,
-      description: v.description,
-      contact: v.contact,
-      source: "artist",
-    }));
+  const voiceProfiles = profiles.filter(
+    (p) => (p.type === "voice" || p.type === "host_stage") && p.status === "approved"
+  );
 
-  const approvedVoiceProfiles: VoiceEntry[] = profiles
-    .filter((p) => p.type === "voice" && p.status === "approved")
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      specialty: p.specialty || "",
-      experience: p.experience,
-      description: p.bio,
-      contact: p.phone,
-      location: p.location,
-      source: "profile",
-    }));
-
-  // Merge and deduplicate by id
-  const allEntries: VoiceEntry[] = [...approvedArtists, ...approvedVoiceProfiles];
-
-  const filtered = allEntries.filter((v) => {
+  const filtered = voiceProfiles.filter((p) => {
     const q = search.toLowerCase();
-    const matchSearch = v.name.toLowerCase().includes(q) || (v.description || "").toLowerCase().includes(q);
-    const matchSpec = specFilter ? v.specialty === specFilter : true;
-    return matchSearch && matchSpec;
+    const matchSearch =
+      p.name.toLowerCase().includes(q) ||
+      (p.bio || "").toLowerCase().includes(q) ||
+      (p.tagline || "").toLowerCase().includes(q);
+    const matchGender = genderFilter === "all" || p.gender === genderFilter;
+    const matchCategory =
+      !categoryFilter ||
+      p.audioSamples?.some((s) => s.category === categoryFilter);
+    return matchSearch && matchGender && matchCategory;
   });
 
-  const specialties = [...new Set(allEntries.map((v) => v.specialty).filter(Boolean))];
+  const usedCategories = [
+    ...new Set(
+      voiceProfiles.flatMap((p) => p.audioSamples?.map((s) => s.category) ?? [])
+    ),
+  ];
+
+  const formatTime = (s: number) =>
+    `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
+
+  const togglePlay = (key: string, url: string) => {
+    if (playingKey === key) {
+      audioRef.current?.pause();
+      setPlayingKey(null);
+      setProgress(0);
+      setDuration(0);
+      return;
+    }
+    audioRef.current?.pause();
+    const audio = new Audio(url);
+    audio.play().catch(() => {});
+    audio.addEventListener("timeupdate", () => setProgress(audio.currentTime));
+    audio.addEventListener("loadedmetadata", () => setDuration(audio.duration));
+    audio.onended = () => {
+      setPlayingKey(null);
+      setProgress(0);
+      setDuration(0);
+    };
+    audioRef.current = audio;
+    setPlayingKey(key);
+    setProgress(0);
+    setDuration(0);
+  };
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+    };
+  }, []);
+
+  const pct = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
-      <div className="relative py-12 px-4 overflow-hidden" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, var(--p-15) 0%, transparent 60%)" }} />
-        <div className="container mx-auto relative z-10">
-          <div className="flex items-center gap-3 mb-3 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="p-2 rounded-lg" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}><Mic size={20} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
-            <h1 className="text-4xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>طلبات المنشطين والمعلقين</h1>
+      {/* Hero */}
+      <div
+        className="relative py-16 px-4 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)",
+          borderBottom: "1px solid var(--p-20)",
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% -20%, var(--p-15) 0%, transparent 60%)",
+          }}
+        />
+        <div className="container mx-auto relative z-10 text-center">
+          <div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 animate-fade-in-up"
+            style={{
+              background: "var(--p-15)",
+              border: "1px solid var(--p-30)",
+              opacity: 0,
+              animationFillMode: "forwards",
+            }}
+          >
+            <Mic size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
+            <span
+              style={{
+                color: "var(--theme-accent, #00a355)",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+              }}
+            >
+              أصوات احترافية
+            </span>
           </div>
-          <p className="animate-fade-in-up" style={{ color: "var(--theme-text-secondary, #6aad6a)", paddingRight: "3.25rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>ابحث عن منشطين ومعلقين صوتيين محترفين لمشاريعك</p>
+          <h1
+            className="text-4xl md:text-5xl font-black mb-4 animate-fade-in-up"
+            style={{
+              color: "var(--theme-text, #e8f5e9)",
+              opacity: 0,
+              animationFillMode: "forwards",
+              animationDelay: "0.1s",
+            }}
+          >
+            اختر الصوت الذي يناسب مشروعك
+          </h1>
+          <p
+            className="text-lg animate-fade-in-up"
+            style={{
+              color: "var(--theme-text-secondary, #6aad6a)",
+              opacity: 0,
+              animationFillMode: "forwards",
+              animationDelay: "0.2s",
+            }}
+          >
+            أصوات عديدة ومتنوعة
+          </p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Join CTA */}
-        <div className="rounded-xl p-6 mb-8 flex items-start gap-4 animate-fade-in-up" style={{ background: "linear-gradient(135deg, var(--p-15), var(--p-05))", border: "1px solid var(--p-35)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
-          <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}><Mic size={26} style={{ color: "var(--theme-accent, #00a355)" }} /></div>
-          <div>
-            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--theme-text, #c8e6c9)" }}>هل أنت منشط أو معلق صوتي؟</h3>
-            <p className="mb-4 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>انضم إلى منصة سند وابدأ في استقبال العروض من العملاء</p>
-            <Link to="/register" className="btn-dz px-6 py-2.5 rounded-lg text-sm inline-block" style={{ textDecoration: "none" }}>
-              <span>انضم كمنشط</span>
-            </Link>
+        <div
+          className="rounded-xl p-5 mb-8 flex items-center gap-4 animate-fade-in-up"
+          style={{
+            background: "linear-gradient(135deg, var(--p-15), var(--p-05))",
+            border: "1px solid var(--p-35)",
+            animationDelay: "0.1s",
+            opacity: 0,
+            animationFillMode: "forwards",
+          }}
+        >
+          <div
+            className="p-3 rounded-xl flex-shrink-0 animate-float"
+            style={{
+              background: "var(--p-20)",
+              border: "1px solid var(--p-30)",
+            }}
+          >
+            <Mic
+              size={24}
+              style={{ color: "var(--theme-accent, #00a355)" }}
+            />
           </div>
+          <div className="flex-1">
+            <h3
+              className="font-semibold mb-1"
+              style={{ color: "var(--theme-text, #c8e6c9)" }}
+            >
+              هل أنت معلق صوتي؟
+            </h3>
+            <p
+              className="text-sm"
+              style={{ color: "var(--theme-text-secondary, #6aad6a)" }}
+            >
+              سجّل في المنصة وأضف عيّناتك الصوتية
+            </p>
+          </div>
+          <Link
+            to="/register"
+            className="btn-dz px-5 py-2.5 rounded-lg text-sm flex-shrink-0"
+            style={{ textDecoration: "none" }}
+          >
+            انضم الآن
+          </Link>
         </div>
 
-        {/* Search */}
-        <div className="p-5 rounded-xl mb-8 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-25)", animationDelay: "0.25s", opacity: 0, animationFillMode: "forwards" }}>
+        {/* Filters */}
+        <div
+          className="p-5 rounded-xl mb-8 animate-fade-in-up"
+          style={{
+            background: "linear-gradient(145deg, #141414, #101010)",
+            border: "1px solid var(--p-25)",
+            animationDelay: "0.25s",
+            opacity: 0,
+            animationFillMode: "forwards",
+          }}
+        >
           <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
-              <input type="text" placeholder="ابحث عن منشط..." className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Search
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                size={18}
+                style={{ color: "var(--theme-text-muted, #4a7a4a)" }}
+              />
+              <input
+                type="text"
+                placeholder="ابحث باسم المعلق..."
+                className="input-dz w-full pr-10 pl-4 py-2.5 rounded-lg text-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
-            <select className="select-dz px-4 py-2.5 rounded-lg text-sm" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)}>
-              <option value="">جميع التخصصات</option>
-              {specialties.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+
+            {/* Gender filter */}
+            <div className="flex gap-2">
+              {(
+                [
+                  ["all", "الكل"],
+                  ["male", "ذكر"],
+                  ["female", "أنثى"],
+                ] as const
+              ).map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setGenderFilter(val)}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium transition-all"
+                  style={{
+                    background:
+                      genderFilter === val
+                        ? "var(--theme-accent, #00a355)"
+                        : "var(--p-15)",
+                    color:
+                      genderFilter === val
+                        ? "#fff"
+                        : "var(--theme-text-secondary, #a5d6a7)",
+                    border: `1px solid ${genderFilter === val ? "var(--theme-accent, #00a355)" : "var(--p-30)"}`,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Category filter */}
+            {usedCategories.length > 0 && (
+              <select
+                className="select-dz px-4 py-2.5 rounded-lg text-sm"
+                value={categoryFilter}
+                onChange={(e) =>
+                  setCategoryFilter(e.target.value as VoiceSampleCategory | "")
+                }
+              >
+                <option value="">جميع التصنيفات</option>
+                {VOICE_SAMPLE_CATEGORIES.filter((c) =>
+                  usedCategories.includes(c)
+                ).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
         {/* Results */}
         {loading ? (
-          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
+          <div
+            className="text-center py-16"
+            style={{ color: "var(--theme-text-dim, #3a5e3a)" }}
+          >
+            جاري التحميل...
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
-              <Mic size={28} style={{ color: "var(--theme-primary, #006233)" }} />
+          <div
+            className="empty-state rounded-xl py-20 text-center animate-fade-in"
+            style={{ opacity: 0, animationFillMode: "forwards" }}
+          >
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float"
+              style={{
+                background: "var(--p-15)",
+                border: "1px solid var(--p-30)",
+              }}
+            >
+              <Mic
+                size={28}
+                style={{ color: "var(--theme-primary, #006233)" }}
+              />
             </div>
-            <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{allEntries.length === 0 ? "لا يوجد منشطون بعد." : "لا توجد نتائج."}</p>
+            <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
+              {voiceProfiles.length === 0
+                ? "لا يوجد معلقون بعد."
+                : "لا توجد نتائج."}
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((v, i) => (
-              <div key={`${v.source}-${v.id}`} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}>
-                    <Mic size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>{v.name}</h3>
-                    {v.specialty && <span style={{ background: "var(--p-25)", color: "var(--theme-badge-text, #81c784)", fontSize: "0.7rem", padding: "0.1rem 0.5rem", borderRadius: "9999px" }}>{v.specialty}</span>}
-                  </div>
-                </div>
-                {v.experience && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>الخبرة: {v.experience}</p>}
-                {v.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>{v.description}</p>}
-                <div className="flex flex-wrap gap-3 mt-2">
-                  {v.contact && (
-                    <div className="flex items-center gap-1" style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.8rem" }}>
-                      <Phone size={13} />{v.contact}
-                    </div>
-                  )}
-                  {v.location && (
-                    <div className="flex items-center gap-1" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem" }}>
-                      <MapPin size={12} />{v.location}
-                    </div>
-                  )}
-                </div>
-                {v.source === "profile" && (
-                  <div className="mt-2 pt-2" style={{ borderTop: "1px solid var(--p-10)" }}>
-                    <span style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <LinkIcon size={11} />مسجّل في المنصة
-                    </span>
-                  </div>
-                )}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((p, i) => (
+              <VoiceCard
+                key={p.id}
+                profile={p}
+                index={i}
+                playingKey={playingKey}
+                progress={pct}
+                progressTime={progress}
+                duration={duration}
+                formatTime={formatTime}
+                onTogglePlay={togglePlay}
+                categoryFilter={categoryFilter}
+              />
             ))}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VoiceCard({
+  profile,
+  index,
+  playingKey,
+  progress,
+  progressTime,
+  duration,
+  formatTime,
+  onTogglePlay,
+  categoryFilter,
+}: {
+  profile: UserProfile;
+  index: number;
+  playingKey: string | null;
+  progress: number;
+  progressTime: number;
+  duration: number;
+  formatTime: (s: number) => string;
+  onTogglePlay: (key: string, url: string) => void;
+  categoryFilter: string;
+}) {
+  const samples: AudioSample[] = categoryFilter
+    ? (profile.audioSamples ?? []).filter((s) => s.category === categoryFilter)
+    : profile.audioSamples ?? [];
+
+  const isAnyPlaying = samples.some(
+    (_, i) => playingKey === `${profile.id}-${i}`
+  );
+
+  return (
+    <div
+      className="card-glow rounded-2xl overflow-hidden animate-fade-in-up"
+      style={{
+        background: "linear-gradient(145deg, #141414, #101010)",
+        border: isAnyPlaying
+          ? "1px solid var(--theme-accent, #00a355)"
+          : "1px solid var(--p-25)",
+        animationDelay: `${index * 0.07}s`,
+        opacity: 0,
+        animationFillMode: "forwards",
+        transition: "border-color 0.3s",
+      }}
+    >
+      {/* Header with photo */}
+      <div className="p-5 pb-3">
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0"
+            style={{
+              background: "var(--p-20)",
+              border: "2px solid var(--p-30)",
+            }}
+          >
+            {profile.photo ? (
+              <img
+                src={profile.photo}
+                alt={profile.name}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User
+                  size={24}
+                  style={{ color: "var(--theme-text-muted, #4a7a4a)" }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3
+              className="font-bold text-lg"
+              style={{ color: "var(--theme-text, #c8e6c9)" }}
+            >
+              {profile.name}
+            </h3>
+            {profile.tagline && (
+              <p
+                style={{
+                  color: "var(--theme-accent, #00a355)",
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                }}
+              >
+                {profile.tagline}
+              </p>
+            )}
+          </div>
+          {profile.gender && (
+            <span
+              style={{
+                background: "var(--p-15)",
+                color: "var(--theme-text-muted, #4a7a4a)",
+                fontSize: "0.7rem",
+                padding: "0.2rem 0.6rem",
+                borderRadius: "9999px",
+                border: "1px solid var(--p-25)",
+              }}
+            >
+              {profile.gender === "male" ? "ذكر" : "أنثى"}
+            </span>
+          )}
+        </div>
+
+        {/* Specialty + Experience */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {profile.specialty && (
+            <span
+              style={{
+                background: "var(--p-20)",
+                color: "var(--theme-badge-text, #81c784)",
+                fontSize: "0.72rem",
+                padding: "0.15rem 0.55rem",
+                borderRadius: "9999px",
+              }}
+            >
+              {profile.specialty}
+            </span>
+          )}
+          {profile.experience && (
+            <span
+              style={{
+                background: "rgba(180,120,0,0.1)",
+                color: "#fbbf24",
+                fontSize: "0.72rem",
+                padding: "0.15rem 0.55rem",
+                borderRadius: "9999px",
+                border: "1px solid rgba(180,120,0,0.2)",
+              }}
+            >
+              خبرة: {profile.experience}
+            </span>
+          )}
+        </div>
+
+        {/* Bio */}
+        {profile.bio && (
+          <p
+            style={{
+              color: "var(--theme-text-dim, #3a5e3a)",
+              fontSize: "0.82rem",
+              lineHeight: 1.7,
+              marginBottom: "0.5rem",
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {profile.bio}
+          </p>
+        )}
+      </div>
+
+      {/* Audio Samples */}
+      {samples.length > 0 && (
+        <div
+          style={{
+            borderTop: "1px solid var(--p-15)",
+            padding: "0.75rem 1.25rem",
+            background: "var(--p-05)",
+          }}
+        >
+          <p
+            style={{
+              color: "var(--theme-text-muted, #4a7a4a)",
+              fontSize: "0.72rem",
+              fontWeight: 600,
+              marginBottom: "0.5rem",
+            }}
+          >
+            عيّنات صوتية ({samples.length})
+          </p>
+          <div className="flex flex-col gap-2">
+            {samples.map((sample, i) => {
+              const key = `${profile.id}-${profile.audioSamples?.indexOf(sample) ?? i}`;
+              const isPlaying = playingKey === key;
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 transition-all"
+                  style={{
+                    background: isPlaying
+                      ? "var(--p-20)"
+                      : "var(--p-10)",
+                    border: isPlaying
+                      ? "1px solid var(--p-40)"
+                      : "1px solid var(--p-20)",
+                  }}
+                >
+                  <button
+                    onClick={() => onTogglePlay(key, sample.url)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+                    style={{
+                      background: isPlaying
+                        ? "var(--theme-accent, #00a355)"
+                        : "var(--p-25)",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {isPlaying ? (
+                      <Pause size={14} color="#fff" />
+                    ) : (
+                      <Play
+                        size={14}
+                        color="var(--theme-accent, #00a355)"
+                        style={{ marginRight: "-1px" }}
+                      />
+                    )}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        style={{
+                          color: isPlaying
+                            ? "var(--theme-accent, #00a355)"
+                            : "var(--theme-text, #c8e6c9)",
+                          fontSize: "0.8rem",
+                          fontWeight: 500,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {sample.title}
+                      </span>
+                      <span
+                        style={{
+                          background: "var(--p-20)",
+                          color: "var(--theme-text-muted, #4a7a4a)",
+                          fontSize: "0.65rem",
+                          padding: "0.1rem 0.4rem",
+                          borderRadius: "4px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {sample.category}
+                      </span>
+                    </div>
+                    {isPlaying && (
+                      <div className="mt-1.5">
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "4px",
+                            background: "var(--p-20)",
+                            borderRadius: "2px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${progress}%`,
+                              height: "100%",
+                              background: "var(--theme-accent, #00a355)",
+                              borderRadius: "2px",
+                              transition: "width 0.2s",
+                            }}
+                          />
+                        </div>
+                        <div
+                          className="flex justify-between mt-0.5"
+                          style={{
+                            color: "var(--theme-text-dim, #3a5e3a)",
+                            fontSize: "0.65rem",
+                          }}
+                        >
+                          <span>{formatTime(progressTime)}</span>
+                          {duration > 0 && <span>{formatTime(duration)}</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Contact footer */}
+      <div
+        className="px-5 py-3 flex flex-wrap items-center gap-3"
+        style={{ borderTop: "1px solid var(--p-15)" }}
+      >
+        {profile.phone && (
+          <a
+            href={`tel:${profile.phone}`}
+            className="flex items-center gap-1 text-sm"
+            style={{
+              color: "var(--theme-text-secondary, #6aad6a)",
+              textDecoration: "none",
+            }}
+          >
+            <Phone size={13} />
+            {profile.phone}
+          </a>
+        )}
+        {profile.location && (
+          <span
+            className="flex items-center gap-1"
+            style={{
+              color: "var(--theme-text-muted, #4a7a4a)",
+              fontSize: "0.78rem",
+            }}
+          >
+            <MapPin size={12} />
+            {profile.location}
+          </span>
+        )}
+        {profile.id && (
+          <Link
+            to={`/profile/${profile.id}`}
+            className="mr-auto text-sm"
+            style={{
+              color: "var(--theme-accent, #00a355)",
+              textDecoration: "none",
+              fontWeight: 500,
+            }}
+          >
+            الملف الكامل ←
+          </Link>
         )}
       </div>
     </div>
