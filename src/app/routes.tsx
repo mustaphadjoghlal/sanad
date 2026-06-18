@@ -27,7 +27,6 @@ import AdminLogin from "./components/admin/AdminLogin";
 import Register from "./components/auth/Register";
 import UserLogin from "./components/auth/UserLogin";
 import UserDashboard from "./components/user/UserDashboard";
-import VoxDub from "./components/VoxDub";
 import NotFound from "./components/NotFound";
 
 export const router = createBrowserRouter([
@@ -57,7 +56,6 @@ export const router = createBrowserRouter([
       { path: "trainers", Component: Trainers },
       { path: "trainers/:id", Component: TrainerDetail },
       { path: "profile/:id", Component: ProfilePage },
-      { path: "voxdub", Component: VoxDub },
       { path: "*", Component: NotFound },
     ],
   },

@@ -35,7 +35,6 @@ export default function Layout() {
     { to: "/channels", label: "دليل القنوات" },
     { to: "/theses", label: "مذكرات التخرج" },
     { to: "/stores", label: "سوق المعدات" },
-    { to: "/voxdub", label: "التعليق الصوتي" },
   ];
 
   useEffect(() => {
