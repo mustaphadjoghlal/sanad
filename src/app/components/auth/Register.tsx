@@ -145,6 +145,11 @@ export default function Register() {
 
   const canProceedStep1 = mainType === "individual" ? !!individualSubType : mainType === "store" ? !!form.storePlan : !!mainType;
 
+  const hasLength = form.password.length >= 8 && form.password.length <= 20;
+  const hasLettersAndNumbers = /[a-zA-Zأ-ي]/.test(form.password) && /[0-9]/.test(form.password);
+  const passwordsMatch = form.password.length > 0 && form.password === form.confirmPassword;
+  const passwordValid = hasLength && hasLettersAndNumbers && passwordsMatch;
+
   const goToStep3 = () => {
     setError("");
     if (!form.name || !form.email || !form.password) {
@@ -155,12 +160,8 @@ export default function Register() {
       setError("البريد الإلكتروني مستخدم بالفعل، جرّب بريداً آخر");
       return;
     }
-    if (form.password.length < 6) {
-      setError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      setError("كلمات المرور غير متطابقة");
+    if (!passwordValid) {
+      setError("يرجى التحقق من شروط كلمة المرور");
       return;
     }
     setStep(3);
@@ -619,6 +620,25 @@ export default function Register() {
                     />
                   </div>
                 </div>
+
+                {/* Password validation checklist */}
+                {form.password.length > 0 && (
+                  <div className="mt-3 p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--p-20)" }}>
+                    <p className="text-sm font-semibold mb-3" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>يجب أن تحتوي كلمة المرور على:</p>
+                    <div className="space-y-2">
+                      {([
+                        [hasLength, "من 8 إلى 20 حرفاً"],
+                        [hasLettersAndNumbers, "أحرف وأرقام معاً"],
+                        [passwordsMatch, "كلمتا المرور متطابقتان"],
+                      ] as const).map(([valid, label], i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <Check size={16} style={{ color: valid ? "#4ade80" : "var(--theme-text-dim, #3a5e3a)", flexShrink: 0 }} />
+                          <span style={{ color: valid ? "#4ade80" : "var(--theme-text-dim, #3a5e3a)", fontSize: "0.85rem" }}>{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex justify-between items-center">
                   <button
