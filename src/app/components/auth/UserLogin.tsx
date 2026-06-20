@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Radio, LogIn } from "lucide-react";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../../../lib/firebase";
+import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
 
 export default function UserLogin() {
@@ -24,13 +24,16 @@ export default function UserLogin() {
     setLoading(true);
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
+      if (cred.user.email === ADMIN_EMAIL) {
+        navigate("/sanad-admin/dashboard");
+        return;
+      }
       const profile = await getUserProfile(cred.user.uid);
       if (profile) {
         navigate("/user/dashboard");
       } else {
         setError("لم يكتمل تسجيل حسابك. يرجى التسجيل مجدداً بنفس البريد الإلكتروني.");
         await auth.signOut();
-        await cred.user.delete().catch(() => {});
       }
     } catch (err: unknown) {
       const e = err as { code?: string };
