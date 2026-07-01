@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Users, Zap, Newspaper, ShoppingBag } from "lucide-react";
-import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, getLatestProducts } from "../../lib/firestore";
-import type { Course, Job, Equipment, Competition, VoiceArtist, SiteContent, NewsItem, Product } from "../../lib/types";
+import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Users, Zap, Newspaper } from "lucide-react";
+import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
+import type { Course, Job, Equipment, Competition, VoiceArtist, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
 /* ── Animated counter ── */
@@ -92,132 +92,6 @@ const services = [
   { icon: Tv2,       title: "دليل القنوات",        desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",        link: "/channels" },
 ];
 
-/* ── Rotating live section ── */
-const ROTATE_INTERVAL = 5000;
-const PANELS = [
-  { key: "products", label: "سوق المعدات",  icon: ShoppingBag, link: "/stores",  linkLabel: "تصفح المتاجر" },
-  { key: "news",     label: "آخر الأخبار", icon: Newspaper,   link: "/news",    linkLabel: "كل الأخبار" },
-  { key: "jobs",     label: "فرص توظيف",   icon: Briefcase,   link: "/jobs",    linkLabel: "كل الفرص" },
-] as const;
-type PanelKey = typeof PANELS[number]["key"];
-
-function RotatingSection({ products, news, jobs }: { products: Product[]; news: NewsItem[]; jobs: Job[] }) {
-  const [active, setActive] = useState<PanelKey>("products");
-  const [progress, setProgress] = useState(0);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const rotateRef   = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const startTimers = () => {
-    if (progressRef.current) clearInterval(progressRef.current);
-    if (rotateRef.current)   clearInterval(rotateRef.current);
-    setProgress(0);
-    const tick = 50;
-    let elapsed = 0;
-    progressRef.current = setInterval(() => { elapsed += tick; setProgress(Math.min((elapsed / ROTATE_INTERVAL) * 100, 100)); }, tick);
-    rotateRef.current = setInterval(() => {
-      setActive((prev) => { const idx = PANELS.findIndex((p) => p.key === prev); return PANELS[(idx + 1) % PANELS.length].key; });
-    }, ROTATE_INTERVAL);
-  };
-
-  useEffect(() => { startTimers(); return () => { if (progressRef.current) clearInterval(progressRef.current); if (rotateRef.current) clearInterval(rotateRef.current); }; }, []);
-  useEffect(() => { startTimers(); }, [active]);
-
-  const panel = PANELS.find((p) => p.key === active)!;
-  const handleTab = (key: PanelKey) => { if (progressRef.current) clearInterval(progressRef.current); if (rotateRef.current) clearInterval(rotateRef.current); setActive(key); };
-
-  const items = active === "products" ? products : active === "news" ? news : jobs;
-
-  return (
-    <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-      <div className="container mx-auto px-4 py-16">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div className="flex gap-1">
-            {PANELS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => handleTab(p.key)}
-                className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold transition-all duration-200"
-                style={{
-                  background: "none",
-                  border: "none",
-                  borderBottom: active === p.key ? `2px solid var(--theme-accent, #00a355)` : "2px solid transparent",
-                  color: active === p.key ? "var(--theme-text, #e8f5e9)" : "var(--theme-text-dim, #3a5e3a)",
-                  cursor: "pointer",
-                  paddingBottom: "0.4rem",
-                }}
-              >
-                <p.icon size={13} />{p.label}
-              </button>
-            ))}
-          </div>
-          <Link to={panel.link} className="flex items-center gap-1 text-sm" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>
-            {panel.linkLabel} <ArrowLeft size={14} />
-          </Link>
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ height: "1px", background: "var(--p-12)", marginBottom: "1.5rem", overflow: "hidden" }}>
-          <div style={{ height: "100%", width: `${progress}%`, background: "var(--theme-accent, #00a355)", transition: "width 0.05s linear" }} />
-        </div>
-
-        {items.length === 0 ? (
-          <p style={{ color: "var(--theme-text-dim)", textAlign: "center", padding: "3rem 0" }}>لا توجد عناصر حالياً</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
-            {items.slice(0, 3).map((item: Product | NewsItem | Job, i) => {
-              if (active === "products") {
-                const p = item as Product;
-                return (
-                  <Link key={p.id} to={`/products/${p.id}`} className="block animate-fade-in-up"
-                    style={{ textDecoration: "none", background: "#0a0d0a", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
-                    {p.image ? (
-                      <div style={{ height: "150px", overflow: "hidden" }}>
-                        <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      </div>
-                    ) : (
-                      <div style={{ height: "150px", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--p-05)", fontSize: "2rem" }}>📷</div>
-                    )}
-                    <div className="p-4">
-                      <h3 className="font-bold text-sm mb-1 truncate" style={{ color: "var(--theme-text)" }}>{p.name}</h3>
-                      <p className="text-sm font-semibold" style={{ color: "var(--theme-accent)" }}>{p.price.toLocaleString("ar-DZ")} دج</p>
-                    </div>
-                  </Link>
-                );
-              }
-              if (active === "news") {
-                const n = item as NewsItem;
-                return (
-                  <Link key={n.id} to={`/news/${n.id}`} className="block p-5 animate-fade-in-up"
-                    style={{ textDecoration: "none", background: "#0a0d0a", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
-                    {n.image && <div style={{ height: "140px", overflow: "hidden", marginBottom: "0.75rem" }}><img src={n.image} alt={n.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="flex items-center gap-2 mb-2"><Newspaper size={12} style={{ color: "var(--theme-accent)" }} /><span style={{ color: "var(--theme-text-dim)", fontSize: "0.72rem" }}>{n.date}</span></div>
-                    <h3 className="font-bold text-sm line-clamp-2 mb-1" style={{ color: "var(--theme-text)" }}>{n.title}</h3>
-                    <p className="text-xs line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{n.body}</p>
-                  </Link>
-                );
-              }
-              const j = item as Job;
-              return (
-                <Link key={j.id} to={`/jobs/${j.id}`} className="block animate-fade-in-up"
-                  style={{ textDecoration: "none", background: "#0a0d0a", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
-                  {j.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={j.image} alt={j.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                  <div className="p-5">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{j.title}</h3>
-                      {j.jobType && <span className="text-xs px-2 py-0.5 flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{j.jobType}</span>}
-                    </div>
-                    <p className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>{j.company}</p>
-                    {j.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{j.location}</p>}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
 
 export default function Home() {
   const [featuredCourses,   setFeaturedCourses]   = useState<Course[]>([]);
@@ -226,7 +100,6 @@ export default function Home() {
   const [featuredVoice,     setFeaturedVoice]     = useState<VoiceArtist[]>([]);
   const [upcomingComps,     setUpcomingComps]     = useState<Competition[]>([]);
   const [latestNews,        setLatestNews]        = useState<NewsItem[]>([]);
-  const [latestProducts,    setLatestProducts]    = useState<Product[]>([]);
   const [content, setContent] = useState<SiteContent | null>(() => {
     try { const cached = localStorage.getItem("sanad_site_content"); if (cached) return JSON.parse(cached) as SiteContent; } catch {}
     return null;
@@ -248,7 +121,6 @@ export default function Home() {
       }),
     ];
     getLatestNews(3).then(setLatestNews);
-    getLatestProducts(3).then(setLatestProducts);
     return () => unsubs.forEach((u) => u());
   }, []);
 
@@ -534,9 +406,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* ══ ROTATING LIVE SECTION ════════════════════════════════════ */}
-        <RotatingSection products={latestProducts} news={latestNews} jobs={featuredJobs} />
 
         {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
         {featuredCourses.length > 0 && (
