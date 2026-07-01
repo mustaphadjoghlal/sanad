@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown } from "lucide-react";
+import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Facebook } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL } from "../../lib/firebase";
@@ -595,10 +595,35 @@ export default function Layout() {
               سند
             </span>
           </div>
-          <p style={{ color: "var(--theme-text-secondary, #6aad6a)" }} className="mb-1 text-sm">
+          <p style={{ color: "var(--theme-text-secondary, #b0bec5)" }} className="mb-4 text-sm">
             المنصة الجزائرية الشاملة لمجال الإعلام
           </p>
-          <p style={{ color: "var(--theme-text-dim, #3a5e3a)" }} className="text-xs">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <a
+              href="mailto:contact@sanadz.media"
+              className="flex items-center gap-1.5 text-sm transition-colors"
+              style={{ color: "var(--theme-text-muted, #78909c)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-accent, #00a355)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted, #78909c)"; }}
+            >
+              <Mail size={14} />
+              <span>contact@sanadz.media</span>
+            </a>
+            <span style={{ color: "var(--p-30)", fontSize: "0.75rem" }}>|</span>
+            <a
+              href="https://www.facebook.com/profile.php?id=61590628561028"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm transition-colors"
+              style={{ color: "var(--theme-text-muted, #78909c)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#1877f2"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted, #78909c)"; }}
+            >
+              <Facebook size={14} />
+              <span>صفحتنا على فيسبوك</span>
+            </a>
+          </div>
+          <p style={{ color: "var(--theme-text-dim, #455a64)" }} className="text-xs">
             جميع الحقوق محفوظة © 2026
           </p>
         </div>
