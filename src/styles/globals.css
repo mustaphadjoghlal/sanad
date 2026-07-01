@@ -268,13 +268,13 @@ body {
 .input-dz {
   background: var(--theme-bg-card, #141414);
   border: 1px solid var(--p-30);
-  color: #006233 !important;
+  color: var(--theme-text, #e8f5e9) !important;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .input-dz::placeholder {
-  color: #2d6a3a !important;
-  opacity: 0.6;
+  color: rgba(184, 200, 184, 0.35) !important;
+  opacity: 1;
 }
 
 .input-dz:focus {
@@ -287,13 +287,13 @@ body {
 .select-dz {
   background: var(--theme-bg-card, #141414);
   border: 1px solid var(--p-30);
-  color: #006233 !important;
+  color: var(--theme-text, #e8f5e9) !important;
   transition: border-color 0.3s ease;
 }
 
 .select-dz option {
   background: var(--theme-bg-card, #141414);
-  color: #006233 !important;
+  color: var(--theme-text, #e8f5e9) !important;
 }
 
 .select-dz:focus {

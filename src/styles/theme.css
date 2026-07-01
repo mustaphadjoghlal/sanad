@@ -55,6 +55,39 @@
   --dz-bg-700: #141414;
   --dz-bg-600: #1a1a1a;
   --dz-bg-500: #222222;
+
+  /* ── Theme semantic variables (used as CSS var defaults throughout the app) ── */
+  --theme-primary: #006233;
+  --theme-accent: #00a355;
+  --theme-bg-main: #080b08;
+  --theme-bg-card: #141414;
+  --theme-bg-card-end: #101010;
+
+  /* Text: only primary accent uses green; secondary and below are neutral */
+  --theme-text: #e8f5e9;
+  --theme-text-secondary: #b0bec5;
+  --theme-text-muted: #78909c;
+  --theme-text-dim: #455a64;
+  --theme-badge-text: #b0bec5;
+
+  /* Card text mirrors global text */
+  --theme-card-text: #e0e8e0;
+  --theme-card-text-secondary: #b0bec5;
+  --theme-card-text-muted: #78909c;
+  --theme-card-text-dim: #455a64;
+
+  /* Alpha variants of primary (used for borders, glows, backgrounds) */
+  --p-05: rgba(0, 98, 51, 0.05);
+  --p-08: rgba(0, 98, 51, 0.08);
+  --p-10: rgba(0, 98, 51, 0.10);
+  --p-12: rgba(0, 98, 51, 0.12);
+  --p-15: rgba(0, 98, 51, 0.15);
+  --p-20: rgba(0, 98, 51, 0.20);
+  --p-25: rgba(0, 98, 51, 0.25);
+  --p-30: rgba(0, 98, 51, 0.30);
+  --p-35: rgba(0, 98, 51, 0.35);
+  --p-40: rgba(0, 98, 51, 0.40);
+  --p-60: rgba(0, 98, 51, 0.60);
 }
 
 .dark {
