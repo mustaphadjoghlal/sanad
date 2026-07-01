@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Star, Users, Zap, Newspaper, ShoppingBag } from "lucide-react";
+import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Users, Zap, Newspaper, ShoppingBag } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, getLatestProducts } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, VoiceArtist, SiteContent, NewsItem, Product } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
@@ -27,35 +27,72 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
   return <span ref={ref}>{val}{suffix}</span>;
 }
 
-/* ── Section header ── */
-function SectionHeader({ num, title, link, linkLabel }: { num: string; title: string; link: string; linkLabel: string }) {
+/* ── Editorial section header ── */
+function SectionHeader({ title, link, linkLabel }: { title: string; link: string; linkLabel: string }) {
   return (
-    <div className="flex items-end justify-between mb-8">
-      <div className="flex items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
-          <div className="h-0.5 mt-1 rounded-full" style={{ width: "3rem", background: "var(--theme-accent, #00a355)" }} />
-        </div>
+    <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className="flex-shrink-0 w-1 h-7 rounded-sm" style={{ background: "var(--theme-accent, #00a355)" }} />
+        <h2 className="text-xl font-black" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
+        <div className="h-px flex-1" style={{ background: "var(--p-15)" }} />
       </div>
-      <Link to={link} className="flex items-center gap-1 text-sm transition-colors" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
-        onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.opacity = "0.7"}
-        onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.opacity = "1"}>
+      <Link
+        to={link}
+        className="flex items-center gap-1.5 text-sm mr-6 flex-shrink-0 transition-all duration-200"
+        style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.7"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+      >
         {linkLabel} <ArrowLeft size={14} />
       </Link>
     </div>
   );
 }
 
+/* ── Editorial card ── */
+function EditorialCard({ to, children, delay = "0s" }: { to: string; children: React.ReactNode; delay?: string }) {
+  return (
+    <Link
+      to={to}
+      className="block animate-fade-in-up"
+      style={{
+        textDecoration: "none",
+        background: "#0a0d0a",
+        borderTop: "2px solid var(--p-20)",
+        borderRight: "1px solid var(--p-10)",
+        borderBottom: "1px solid var(--p-10)",
+        borderLeft: "1px solid var(--p-10)",
+        transition: "border-top-color 0.2s, transform 0.2s",
+        opacity: 0,
+        animationFillMode: "forwards",
+        animationDelay: delay,
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.borderTopColor = "var(--theme-accent, #00a355)";
+        el.style.transform = "translateY(-3px)";
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.borderTopColor = "var(--p-20)";
+        el.style.transform = "translateY(0)";
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
 const services = [
-  { icon: BookOpen,  title: "الدورات التدريبية",  desc: "برامج تدريبية احترافية في مجال الإعلام والصحافة والإنتاج",   link: "/courses",       delay: "0.05s" },
-  { icon: Briefcase,   title: "عروض التوظيف",         desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",      link: "/jobs",           delay: "0.10s" },
-  { icon: Package,     title: "عتاد إعلامي",          desc: "معدات تصوير وصوت وبث من أفضل الموردين",              link: "/equipment",      delay: "0.15s" },
-  { icon: Trophy,      title: "المسابقات",            desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",      link: "/competitions",   delay: "0.20s" },
-  { icon: Mic2,        title: "طلبات المنشطين",       desc: "ابحث عن منشطين محترفين أو قدّم نفسك للفرص المتاحة",   link: "/voice-requests", delay: "0.25s" },
-  { icon: Tv2,         title: "دليل القنوات",         desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",    link: "/channels",       delay: "0.30s" },
+  { icon: BookOpen,  title: "الدورات التدريبية",  desc: "برامج تدريبية احترافية في مجال الإعلام والصحافة والإنتاج",  link: "/courses" },
+  { icon: Briefcase, title: "عروض التوظيف",       desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",            link: "/jobs" },
+  { icon: Package,   title: "عتاد إعلامي",        desc: "معدات تصوير وصوت وبث من أفضل الموردين",                    link: "/equipment" },
+  { icon: Trophy,    title: "المسابقات",           desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",           link: "/competitions" },
+  { icon: Mic2,      title: "طلبات المنشطين",     desc: "ابحث عن منشطين محترفين أو قدّم نفسك للفرص المتاحة",       link: "/voice-requests" },
+  { icon: Tv2,       title: "دليل القنوات",        desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",        link: "/channels" },
 ];
 
-/* ── Rotating section ── */
+/* ── Rotating live section ── */
 const ROTATE_INTERVAL = 5000;
 const PANELS = [
   { key: "products", label: "سوق المعدات",  icon: ShoppingBag, link: "/stores",  linkLabel: "تصفح المتاجر" },
@@ -64,180 +101,117 @@ const PANELS = [
 ] as const;
 type PanelKey = typeof PANELS[number]["key"];
 
-function EmptyPlaceholder({ image, label }: { image?: string; label: string }) {
-  return (
-    <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "2rem 0" }}>
-      {image ? (
-        <img src={image} alt={label} style={{ maxHeight: "260px", maxWidth: "100%", margin: "0 auto", borderRadius: "1rem", objectFit: "cover", opacity: 0.85 }} />
-      ) : (
-        <p style={{ color: "var(--theme-text-dim)" }}>لا توجد {label} حالياً</p>
-      )}
-    </div>
-  );
-}
-
-function RotatingSection({ products, news, jobs, placeholders }: {
-  products: Product[];
-  news: NewsItem[];
-  jobs: Job[];
-  placeholders: { products?: string; news?: string; jobs?: string };
-}) {
+function RotatingSection({ products, news, jobs }: { products: Product[]; news: NewsItem[]; jobs: Job[] }) {
   const [active, setActive] = useState<PanelKey>("products");
   const [progress, setProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rotateRef   = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const startTimers = (current: PanelKey) => {
+  const startTimers = () => {
     if (progressRef.current) clearInterval(progressRef.current);
     if (rotateRef.current)   clearInterval(rotateRef.current);
     setProgress(0);
     const tick = 50;
     let elapsed = 0;
-    progressRef.current = setInterval(() => {
-      elapsed += tick;
-      setProgress(Math.min((elapsed / ROTATE_INTERVAL) * 100, 100));
-    }, tick);
+    progressRef.current = setInterval(() => { elapsed += tick; setProgress(Math.min((elapsed / ROTATE_INTERVAL) * 100, 100)); }, tick);
     rotateRef.current = setInterval(() => {
-      setActive((prev) => {
-        const idx = PANELS.findIndex((p) => p.key === prev);
-        return PANELS[(idx + 1) % PANELS.length].key;
-      });
+      setActive((prev) => { const idx = PANELS.findIndex((p) => p.key === prev); return PANELS[(idx + 1) % PANELS.length].key; });
     }, ROTATE_INTERVAL);
   };
 
-  useEffect(() => {
-    startTimers(active);
-    return () => {
-      if (progressRef.current) clearInterval(progressRef.current);
-      if (rotateRef.current)   clearInterval(rotateRef.current);
-    };
-  }, []);
-
-  useEffect(() => { startTimers(active); }, [active]);
+  useEffect(() => { startTimers(); return () => { if (progressRef.current) clearInterval(progressRef.current); if (rotateRef.current) clearInterval(rotateRef.current); }; }, []);
+  useEffect(() => { startTimers(); }, [active]);
 
   const panel = PANELS.find((p) => p.key === active)!;
+  const handleTab = (key: PanelKey) => { if (progressRef.current) clearInterval(progressRef.current); if (rotateRef.current) clearInterval(rotateRef.current); setActive(key); };
 
-  const handleTab = (key: PanelKey) => {
-    if (progressRef.current) clearInterval(progressRef.current);
-    if (rotateRef.current)   clearInterval(rotateRef.current);
-    setActive(key);
-  };
+  const items = active === "products" ? products : active === "news" ? news : jobs;
 
   return (
-    <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-      <div className="container mx-auto px-4">
-        {/* Header with tabs */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex gap-2 flex-wrap">
+    <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div className="flex gap-1">
             {PANELS.map((p) => (
               <button
                 key={p.key}
                 onClick={() => handleTab(p.key)}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all"
+                className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold transition-all duration-200"
                 style={{
-                  background: active === p.key ? "var(--theme-accent, #00a355)" : "var(--p-10)",
-                  color:      active === p.key ? "#fff" : "var(--theme-text-muted)",
-                  border:     `1px solid ${active === p.key ? "var(--theme-accent)" : "var(--p-20)"}`,
+                  background: "none",
+                  border: "none",
+                  borderBottom: active === p.key ? `2px solid var(--theme-accent, #00a355)` : "2px solid transparent",
+                  color: active === p.key ? "var(--theme-text, #e8f5e9)" : "var(--theme-text-dim, #3a5e3a)",
                   cursor: "pointer",
+                  paddingBottom: "0.4rem",
                 }}
               >
-                <p.icon size={13} />
-                {p.label}
+                <p.icon size={13} />{p.label}
               </button>
             ))}
           </div>
-          <Link
-            to={panel.link}
-            className="flex items-center gap-1 text-sm transition-opacity hover:opacity-70"
-            style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
-          >
+          <Link to={panel.link} className="flex items-center gap-1 text-sm" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>
             {panel.linkLabel} <ArrowLeft size={14} />
           </Link>
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: "2px", background: "var(--p-15)", borderRadius: "9999px", marginBottom: "1.5rem", overflow: "hidden" }}>
-          <div
-            style={{
-              height: "100%",
-              width: `${progress}%`,
-              background: "var(--theme-accent, #00a355)",
-              transition: "width 0.05s linear",
-              borderRadius: "9999px",
-            }}
-          />
+        <div style={{ height: "1px", background: "var(--p-12)", marginBottom: "1.5rem", overflow: "hidden" }}>
+          <div style={{ height: "100%", width: `${progress}%`, background: "var(--theme-accent, #00a355)", transition: "width 0.05s linear" }} />
         </div>
 
-        {/* Content panels */}
-        {active === "products" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.length === 0 ? (
-              <EmptyPlaceholder image={placeholders.products} label="منتجات" />
-            ) : products.map((prod, i) => (
-              <Link key={prod.id} to={`/products/${prod.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
-                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
-                {prod.image ? (
-                  <div style={{ height: "160px", overflow: "hidden" }}>
-                    <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        {items.length === 0 ? (
+          <p style={{ color: "var(--theme-text-dim)", textAlign: "center", padding: "3rem 0" }}>لا توجد عناصر حالياً</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
+            {items.slice(0, 3).map((item: Product | NewsItem | Job, i) => {
+              if (active === "products") {
+                const p = item as Product;
+                return (
+                  <Link key={p.id} to={`/products/${p.id}`} className="block animate-fade-in-up"
+                    style={{ textDecoration: "none", background: "#0a0d0a", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
+                    {p.image ? (
+                      <div style={{ height: "150px", overflow: "hidden" }}>
+                        <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      </div>
+                    ) : (
+                      <div style={{ height: "150px", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--p-05)", fontSize: "2rem" }}>📷</div>
+                    )}
+                    <div className="p-4">
+                      <h3 className="font-bold text-sm mb-1 truncate" style={{ color: "var(--theme-text)" }}>{p.name}</h3>
+                      <p className="text-sm font-semibold" style={{ color: "var(--theme-accent)" }}>{p.price.toLocaleString("ar-DZ")} دج</p>
+                    </div>
+                  </Link>
+                );
+              }
+              if (active === "news") {
+                const n = item as NewsItem;
+                return (
+                  <Link key={n.id} to={`/news/${n.id}`} className="block p-5 animate-fade-in-up"
+                    style={{ textDecoration: "none", background: "#0a0d0a", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
+                    {n.image && <div style={{ height: "140px", overflow: "hidden", marginBottom: "0.75rem" }}><img src={n.image} alt={n.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
+                    <div className="flex items-center gap-2 mb-2"><Newspaper size={12} style={{ color: "var(--theme-accent)" }} /><span style={{ color: "var(--theme-text-dim)", fontSize: "0.72rem" }}>{n.date}</span></div>
+                    <h3 className="font-bold text-sm line-clamp-2 mb-1" style={{ color: "var(--theme-text)" }}>{n.title}</h3>
+                    <p className="text-xs line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{n.body}</p>
+                  </Link>
+                );
+              }
+              const j = item as Job;
+              return (
+                <Link key={j.id} to={`/jobs/${j.id}`} className="block animate-fade-in-up"
+                  style={{ textDecoration: "none", background: "#0a0d0a", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
+                  {j.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={j.image} alt={j.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{j.title}</h3>
+                      {j.jobType && <span className="text-xs px-2 py-0.5 flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{j.jobType}</span>}
+                    </div>
+                    <p className="text-xs" style={{ color: "var(--theme-text-secondary)" }}>{j.company}</p>
+                    {j.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{j.location}</p>}
                   </div>
-                ) : (
-                  <div style={{ height: "160px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", background: "var(--p-08)" }}>📷</div>
-                )}
-                <div className="p-4">
-                  <h3 className="font-bold text-sm mb-1 truncate" style={{ color: "var(--theme-text)" }}>{prod.name}</h3>
-                  <p className="text-sm font-semibold" style={{ color: "var(--theme-accent)" }}>{prod.price.toLocaleString("ar-DZ")} دج</p>
-                  <span className="text-xs px-2 py-0.5 rounded-full mt-2 inline-block" style={{ background: "var(--p-10)", color: "var(--theme-text-muted)" }}>{prod.category}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {active === "news" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {news.length === 0 ? (
-              <EmptyPlaceholder image={placeholders.news} label="أخبار" />
-            ) : news.map((item, i) => (
-              <Link key={item.id} to={`/news/${item.id}`} className="card-glow p-5 rounded-2xl animate-fade-in-up block"
-                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
-                {item.image && (
-                  <div style={{ height: "150px", overflow: "hidden", borderRadius: "0.75rem", marginBottom: "0.75rem" }}>
-                    <img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  </div>
-                )}
-                <div className="flex items-center gap-2 mb-2">
-                  <Newspaper size={13} style={{ color: "var(--theme-accent)" }} />
-                  <span className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{item.date}</span>
-                </div>
-                <h3 className="font-bold text-base mb-2 line-clamp-2" style={{ color: "var(--theme-text)" }}>{item.title}</h3>
-                <p className="text-sm line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{item.body}</p>
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {active === "jobs" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.length === 0 ? (
-              <EmptyPlaceholder image={placeholders.jobs} label="فرص عمل" />
-            ) : jobs.map((job, i) => (
-              <Link key={job.id} to={`/jobs/${job.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
-                style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.08}s` }}>
-                {job.image && (
-                  <div style={{ height: "160px", overflow: "hidden" }}>
-                    <img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  </div>
-                )}
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{job.title}</h3>
-                    {job.jobType && <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{job.jobType}</span>}
-                  </div>
-                  <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{job.company}</p>
-                  {job.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{job.location}</p>}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
@@ -246,18 +220,15 @@ function RotatingSection({ products, news, jobs, placeholders }: {
 }
 
 export default function Home() {
-  const [featuredCourses,    setFeaturedCourses]    = useState<Course[]>([]);
-  const [featuredJobs,       setFeaturedJobs]       = useState<Job[]>([]);
-  const [featuredEquipment,  setFeaturedEquipment]  = useState<Equipment[]>([]);
-  const [featuredVoice,      setFeaturedVoice]      = useState<VoiceArtist[]>([]);
-  const [upcomingComps,      setUpcomingComps]      = useState<Competition[]>([]);
-  const [latestNews,         setLatestNews]         = useState<NewsItem[]>([]);
-  const [latestProducts,     setLatestProducts]     = useState<Product[]>([]);
+  const [featuredCourses,   setFeaturedCourses]   = useState<Course[]>([]);
+  const [featuredJobs,      setFeaturedJobs]      = useState<Job[]>([]);
+  const [featuredEquipment, setFeaturedEquipment] = useState<Equipment[]>([]);
+  const [featuredVoice,     setFeaturedVoice]     = useState<VoiceArtist[]>([]);
+  const [upcomingComps,     setUpcomingComps]     = useState<Competition[]>([]);
+  const [latestNews,        setLatestNews]        = useState<NewsItem[]>([]);
+  const [latestProducts,    setLatestProducts]    = useState<Product[]>([]);
   const [content, setContent] = useState<SiteContent | null>(() => {
-    try {
-      const cached = localStorage.getItem("sanad_site_content");
-      if (cached) return JSON.parse(cached) as SiteContent;
-    } catch {}
+    try { const cached = localStorage.getItem("sanad_site_content"); if (cached) return JSON.parse(cached) as SiteContent; } catch {}
     return null;
   });
 
@@ -282,334 +253,519 @@ export default function Home() {
   }, []);
 
   const c = content ?? DEFAULT_SITE_CONTENT;
-  const contentReady = content !== null;
+  const ready = content !== null;
+
+  const stats = [
+    { value: 6,   suffix: "",    label: "خدمات متكاملة" },
+    { value: 69,  suffix: "",    label: "ولاية" },
+    { value: 100, suffix: "%",   label: "محتوى جزائري" },
+    { value: 7,   suffix: "/24", label: "متاح دائماً" },
+  ];
 
   return (
-    <div style={{ background: "var(--theme-bg-main, #0e0e0e)", minHeight: "100vh" }}>
+    <div style={{ background: "#080b08", minHeight: "100vh", position: "relative" }}>
 
-      {/* ══ HERO ═════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden" style={{ minHeight: "92vh", display: "flex", alignItems: "center" }}>
+      {/* Grain texture overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          zIndex: 0,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+          opacity: 0.04,
+        }}
+      />
 
-        {/* Grid */}
-        <div className="absolute inset-0 bg-grid-pattern" style={{ opacity: 0.35 }} />
+      <div style={{ position: "relative", zIndex: 1 }}>
 
-        {/* Glow top */}
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -5%, var(--p-25) 0%, transparent 60%)" }} />
+        {/* ══ HERO ═══════════════════════════════════════════════════════ */}
+        <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", borderBottom: "1px solid var(--p-15)" }}>
+          {/* Top accent line */}
+          <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)", flexShrink: 0 }} />
 
-        {/* Glow blobs */}
-        <div className="absolute w-96 h-96 rounded-full" style={{ top: "10%", left: "5%", background: "radial-gradient(circle, var(--theme-accent), transparent 70%)", filter: "blur(80px)", opacity: 0.07 }} />
-        <div className="absolute w-96 h-96 rounded-full" style={{ bottom: "10%", right: "5%", background: "radial-gradient(circle, var(--theme-primary), transparent 70%)", filter: "blur(80px)", opacity: 0.07 }} />
+          <div className="container mx-auto px-4 flex-1 flex flex-col justify-center py-16">
+            <div className="grid md:grid-cols-5 gap-0 items-center" style={{ minHeight: "65vh" }}>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-3xl mx-auto text-center" style={{ opacity: contentReady ? 1 : 0, transition: "opacity 0.4s ease" }}>
-
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 animate-fade-in" style={{ background: "var(--p-12)", border: "1px solid var(--p-30)", opacity: 0, animationFillMode: "forwards" }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--theme-accent)" }} />
-              <span className="text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>{c.heroBadge}</span>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-5xl md:text-7xl font-black mb-4 animate-fade-in-up delay-100" style={{ color: "var(--theme-text, #e8f5e9)", lineHeight: 1.1, opacity: 0, animationFillMode: "forwards" }}>
-              {c.heroTitle}{" "}
-              <span className="text-shimmer">{c.siteName}</span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl mb-4 animate-fade-in-up delay-200" style={{ color: "var(--theme-text-secondary, #a5d6a7)", opacity: 0, animationFillMode: "forwards" }}>
-              {c.heroSubtitle}
-            </p>
-
-            {/* Description */}
-            <p className="text-base md:text-lg mb-10 animate-fade-in-up delay-300" style={{ color: "var(--theme-text-muted, #6aad6a)", maxWidth: "600px", margin: "0 auto 2.5rem", opacity: 0, animationFillMode: "forwards" }}>
-              {c.heroDescription}
-            </p>
-
-            {/* CTA */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400" style={{ opacity: 0, animationFillMode: "forwards" }}>
-              <Link to="/courses" className="btn-dz px-8 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center gap-2" style={{ textDecoration: "none" }}>
-                <span>{c.heroCta1}</span>
-                <ArrowLeft size={20} />
-              </Link>
-              <Link to="/register" className="px-8 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300" style={{ border: "1px solid var(--p-35)", color: "var(--theme-badge-text, #81c784)", textDecoration: "none" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
-                <Users size={20} />
-                {c.heroCta2}
-              </Link>
-            </div>
-          </div>
-
-          {/* Stats row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-xl mx-auto mt-16 animate-fade-in delay-500" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            {[
-              { value: 6,   suffix: "",    label: "خدمات متكاملة" },
-              { value: 69,  suffix: "",    label: "ولاية جزائرية" },
-              { value: 100, suffix: "%",   label: "محتوى جزائري" },
-              { value: 7,   suffix: "/24", label: "متاح دائماً" },
-            ].map((s, i) => (
-              <div key={i} className="text-center p-4 rounded-2xl" style={{ background: "var(--p-08)", border: "1px solid var(--p-20)" }}>
-                <div className="text-2xl font-black" style={{ color: "var(--theme-accent)" }}>
-                  <AnimatedCounter target={s.value} suffix={s.suffix} />
-                </div>
-                <div className="text-xs mt-1" style={{ color: "var(--theme-text-muted)" }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ SERVICES ═════════════════════════════════════════════════════ */}
-      <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>{c.servicesLabel}</p>
-            <h2 className="text-3xl font-bold" style={{ color: "var(--theme-text)" }}>{c.servicesTitle}</h2>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {services.map((s) => (
-              <Link
-                key={s.link}
-                to={s.link}
-                className="card-glow group rounded-2xl flex flex-col items-center justify-center gap-2 animate-fade-in-up"
-                style={{
-                  textDecoration: "none",
-                  background: "linear-gradient(145deg,#141414,#101010)",
-                  opacity: 0,
-                  animationFillMode: "forwards",
-                  animationDelay: s.delay,
-                  padding: "1rem 0.5rem",
-                  aspectRatio: "1 / 1",
-                }}
+              {/* Content — right column (RTL = displayed first) */}
+              <div
+                className="md:col-span-3 flex flex-col justify-center py-8 md:py-0 md:pl-16"
+                style={{ borderLeft: "1px solid var(--p-12)" }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--p-15)" }}>
-                  <s.icon size={20} style={{ color: "var(--theme-accent)" }} />
+                {/* Label */}
+                <div
+                  className="flex items-center gap-3 mb-8"
+                  style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s" }}
+                >
+                  <div style={{ width: "2rem", height: "1px", background: "var(--theme-accent, #00a355)" }} />
+                  <span style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.7rem", letterSpacing: "0.25em", fontWeight: 700, textTransform: "uppercase" }}>
+                    {c.heroBadge}
+                  </span>
                 </div>
-                <p className="font-semibold text-center leading-tight" style={{ color: "var(--theme-text)", fontSize: "0.72rem" }}>{s.title}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ══ FEATURED COURSES ════════════════════════════════════════════ */}
-      {featuredCourses.length > 0 && (
-        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4">
-            <SectionHeader num="01" title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredCourses.slice(0, 3).map((course, i) => (
-                <Link key={course.id} to={`/courses/${course.id}`}
-                  className="card-glow group rounded-2xl overflow-hidden animate-fade-in-up"
-                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  {course.image && (
-                    <div style={{ height: "180px", overflow: "hidden" }}>
-                      <img src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }}
-                        onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.05)"}
-                        onMouseLeave={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"} />
+                {/* H1 */}
+                <h1
+                  style={{
+                    fontSize: "clamp(2.8rem, 7vw, 5.5rem)",
+                    fontWeight: 900,
+                    lineHeight: 1.05,
+                    marginBottom: "1.5rem",
+                    color: "var(--theme-text, #e8f5e9)",
+                    opacity: ready ? 1 : 0,
+                    transition: "opacity 0.5s 0.1s",
+                  }}
+                >
+                  {c.heroTitle}{" "}
+                  <span style={{ color: "var(--theme-accent, #00a355)" }}>{c.siteName}</span>
+                </h1>
+
+                {/* Subtitle */}
+                <p
+                  style={{
+                    color: "var(--theme-text-secondary, #a5d6a7)",
+                    fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                    lineHeight: 1.6,
+                    marginBottom: "0.75rem",
+                    opacity: ready ? 1 : 0,
+                    transition: "opacity 0.5s 0.2s",
+                  }}
+                >
+                  {c.heroSubtitle}
+                </p>
+
+                {/* Description */}
+                <p
+                  style={{
+                    color: "var(--theme-text-muted, #6aad6a)",
+                    fontSize: "0.9rem",
+                    lineHeight: 1.9,
+                    maxWidth: "460px",
+                    marginBottom: "2.5rem",
+                    opacity: ready ? 1 : 0,
+                    transition: "opacity 0.5s 0.3s",
+                  }}
+                >
+                  {c.heroDescription}
+                </p>
+
+                {/* CTAs */}
+                <div
+                  className="flex flex-wrap gap-3"
+                  style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s 0.4s" }}
+                >
+                  <Link
+                    to="/courses"
+                    className="btn-dz flex items-center gap-2 font-semibold"
+                    style={{ textDecoration: "none", padding: "0.85rem 1.75rem", borderRadius: "4px", fontSize: "0.95rem" }}
+                  >
+                    <span>{c.heroCta1}</span>
+                    <ArrowLeft size={17} />
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="flex items-center gap-2 font-semibold transition-all duration-200"
+                    style={{
+                      border: "1px solid var(--p-30)",
+                      color: "var(--theme-text-secondary, #a5d6a7)",
+                      textDecoration: "none",
+                      padding: "0.85rem 1.75rem",
+                      borderRadius: "4px",
+                      fontSize: "0.95rem",
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.borderColor = "var(--theme-accent)";
+                      el.style.color = "var(--theme-accent)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.borderColor = "var(--p-30)";
+                      el.style.color = "var(--theme-text-secondary, #a5d6a7)";
+                    }}
+                  >
+                    <Users size={17} />
+                    {c.heroCta2}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Decorative — left column (hidden on mobile) */}
+              <div
+                className="hidden md:flex md:col-span-2 items-center justify-center relative"
+                style={{ minHeight: "60vh", paddingRight: "2rem" }}
+              >
+                {/* Large ghost "سند" */}
+                <span style={{
+                  position: "absolute",
+                  fontSize: "18rem",
+                  fontWeight: 900,
+                  color: "var(--theme-accent, #00a355)",
+                  opacity: 0.04,
+                  userSelect: "none",
+                  lineHeight: 1,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  whiteSpace: "nowrap",
+                  pointerEvents: "none",
+                }}>
+                  سند
+                </span>
+
+                {/* Decorative geometric lines */}
+                <div style={{ position: "absolute", top: "18%", right: "15%", width: "1px", height: "100px", background: "linear-gradient(to bottom, transparent, var(--p-25), transparent)" }} />
+                <div style={{ position: "absolute", bottom: "18%", left: "20%", width: "70px", height: "1px", background: "linear-gradient(to left, transparent, var(--p-25))" }} />
+                <div style={{ position: "absolute", top: "12%", left: "30%", width: "1px", height: "40px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+                <div style={{ position: "absolute", bottom: "30%", right: "20%", width: "30px", height: "1px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+
+                {/* Stats — 2×2 grid with gap-px */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1px",
+                    background: "var(--p-15)",
+                    border: "1px solid var(--p-15)",
+                    position: "relative",
+                    zIndex: 2,
+                    width: "240px",
+                  }}
+                >
+                  {stats.map((s, i) => (
+                    <div key={i} style={{ background: "#080b08", padding: "1.5rem 1rem", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--theme-accent, #00a355)", lineHeight: 1 }}>
+                        <AnimatedCounter target={s.value} suffix={s.suffix} />
+                      </div>
+                      <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.65rem", marginTop: "0.35rem", letterSpacing: "0.04em" }}>
+                        {s.label}
+                      </div>
                     </div>
-                  )}
-                  <div className="p-5">
-                    <h3 className="font-bold text-base mb-2" style={{ color: "var(--theme-text)" }}>{course.title}</h3>
-                    {course.instructor && <p className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{course.instructor}</p>}
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: course.type === "free" ? "var(--p-15)" : "rgba(26,82,118,0.3)", color: course.type === "free" ? "var(--theme-accent)" : "#64b5f6" }}>
-                        {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
-                      </span>
-                      {course.duration && <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-10)", color: "var(--theme-text-muted)" }}>{course.duration}</span>}
-                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile stats */}
+            <div
+              className="grid grid-cols-4 md:hidden mt-10"
+              style={{ gap: "1px", background: "var(--p-12)" }}
+            >
+              {stats.map((s, i) => (
+                <div key={i} style={{ background: "#080b08", padding: "1rem 0.25rem", textAlign: "center" }}>
+                  <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "var(--theme-accent, #00a355)" }}>
+                    <AnimatedCounter target={s.value} suffix={s.suffix} />
                   </div>
+                  <div style={{ color: "var(--theme-text-dim)", fontSize: "0.6rem", marginTop: "0.2rem" }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══ SERVICES — Editorial Numbered List ════════════════════════ */}
+        <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+          <div className="container mx-auto px-4 py-16">
+            <div className="mb-10">
+              <p style={{ color: "var(--theme-accent)", fontSize: "0.7rem", letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "0.5rem" }}>
+                {c.servicesLabel}
+              </p>
+              <h2 className="text-2xl font-black" style={{ color: "var(--theme-text)" }}>{c.servicesTitle}</h2>
+            </div>
+            <div>
+              {services.map((s, i) => (
+                <Link
+                  key={s.link}
+                  to={s.link}
+                  className="flex items-center gap-4 md:gap-6 transition-all duration-200"
+                  style={{
+                    textDecoration: "none",
+                    padding: "1.1rem 0.5rem",
+                    borderBottom: i < services.length - 1 ? "1px solid var(--p-10)" : "none",
+                    borderRight: "3px solid transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderRightColor = "var(--theme-accent, #00a355)";
+                    el.style.background = "var(--p-04)";
+                    el.style.paddingRight = "1rem";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderRightColor = "transparent";
+                    el.style.background = "transparent";
+                    el.style.paddingRight = "0.5rem";
+                  }}
+                >
+                  <span
+                    className="hidden sm:block flex-shrink-0 font-black"
+                    style={{
+                      fontSize: "1.8rem",
+                      color: "var(--theme-accent, #00a355)",
+                      opacity: 0.18,
+                      width: "60px",
+                      textAlign: "center",
+                      lineHeight: 1,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    0{i + 1}
+                  </span>
+                  <div
+                    className="flex-shrink-0"
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1px solid var(--p-20)",
+                    }}
+                  >
+                    <s.icon size={17} style={{ color: "var(--theme-accent, #00a355)" }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 style={{ fontWeight: 700, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>
+                      {s.title}
+                    </h3>
+                    <p className="hidden sm:block" style={{ color: "var(--theme-text-muted, #6aad6a)", fontSize: "0.78rem", lineHeight: 1.5 }}>
+                      {s.desc}
+                    </p>
+                  </div>
+                  <ArrowLeft size={15} style={{ color: "var(--theme-text-dim, #3a5e3a)", flexShrink: 0 }} />
                 </Link>
               ))}
             </div>
           </div>
         </section>
-      )}
 
+        {/* ══ ROTATING LIVE SECTION ════════════════════════════════════ */}
+        <RotatingSection products={latestProducts} news={latestNews} jobs={featuredJobs} />
 
-      {/* ══ FEATURED JOBS ═══════════════════════════════════════════════ */}
-      {featuredJobs.length > 0 && (
-        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4">
-            <SectionHeader num="03" title="فرص عمل مميزة" link="/jobs" linkLabel="كل الفرص" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredJobs.map((job, i) => (
-                <Link key={job.id} to={`/jobs/${job.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
-                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  {job.image && (
-                    <div style={{ height: "160px", overflow: "hidden" }}>
-                      <img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    </div>
-                  )}
-                  <div className="p-5">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{job.title}</h3>
-                      {job.jobType && <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{job.jobType}</span>}
-                    </div>
-                    <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{job.company}</p>
-                    {job.location && <p className="text-xs mt-1" style={{ color: "var(--theme-text-dim)" }}>{job.location}</p>}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══ FEATURED EQUIPMENT ══════════════════════════════════════════ */}
-      {featuredEquipment.length > 0 && (
-        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4">
-            <SectionHeader num="04" title="عتاد مميز" link="/equipment" linkLabel="كل العتاد" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredEquipment.map((eq, i) => (
-                <Link key={eq.id} to={`/equipment/${eq.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
-                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  {eq.image && (
-                    <div style={{ height: "160px", overflow: "hidden" }}>
-                      <img src={eq.image} alt={eq.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{eq.name}</h3>
-                    {eq.category && <p className="text-xs mt-1" style={{ color: "var(--theme-accent)" }}>{eq.category}</p>}
-                    <p className="text-xs mt-0.5" style={{ color: "var(--theme-text-dim)" }}>{eq.price?.toLocaleString()} دج</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══ UPCOMING COMPETITIONS ═══════════════════════════════════════ */}
-      {upcomingComps.length > 0 && (
-        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4">
-            <SectionHeader num="05" title="مسابقات قادمة" link="/competitions" linkLabel="كل المسابقات" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingComps.map((comp, i) => {
-                const typeBg: Record<string,string>  = { university: "#1a4f7a", national: "#1b5e35", international: "#7a3800" };
-                const typeClr: Record<string,string> = { university: "#ffffff", national: "#ffffff", international: "#ffffff" };
-                return (
-                  <Link key={comp.id} to={`/competitions/${comp.id}`} className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
-                    style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                    {comp.image && (
-                      <div style={{ height: "150px", overflow: "hidden" }}>
-                        <img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
+        {featuredCourses.length > 0 && (
+          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <div className="container mx-auto px-4 py-16">
+              <SectionHeader title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
+                {featuredCourses.slice(0, 3).map((course, i) => (
+                  <EditorialCard key={course.id} to={`/courses/${course.id}`} delay={`${i * 0.09}s`}>
+                    {course.image && (
+                      <div style={{ height: "170px", overflow: "hidden" }}>
+                        <img src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.04)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }} />
                       </div>
                     )}
                     <div className="p-5">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <h3 className="font-bold text-base" style={{ color: "var(--theme-text)" }}>{comp.name}</h3>
+                      <h3 className="font-bold mb-2" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{course.title}</h3>
+                      {course.instructor && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.78rem", marginBottom: "0.75rem" }}>{course.instructor}</p>}
+                      <div className="flex gap-2 flex-wrap">
+                        <span style={{ fontSize: "0.72rem", padding: "0.15rem 0.6rem", background: course.type === "free" ? "var(--p-15)" : "rgba(26,82,118,0.3)", color: course.type === "free" ? "var(--theme-accent)" : "#64b5f6" }}>
+                          {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
+                        </span>
+                        {course.duration && <span style={{ fontSize: "0.72rem", padding: "0.15rem 0.6rem", background: "var(--p-08)", color: "var(--theme-text-muted)" }}>{course.duration}</span>}
+                      </div>
+                    </div>
+                  </EditorialCard>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ══ FEATURED JOBS ═════════════════════════════════════════════ */}
+        {featuredJobs.length > 0 && (
+          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <div className="container mx-auto px-4 py-16">
+              <SectionHeader title="فرص عمل مميزة" link="/jobs" linkLabel="كل الفرص" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
+                {featuredJobs.map((job, i) => (
+                  <EditorialCard key={job.id} to={`/jobs/${job.id}`} delay={`${i * 0.09}s`}>
+                    {job.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{job.title}</h3>
+                        {job.jobType && <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", background: "var(--p-15)", color: "var(--theme-accent)", flexShrink: 0 }}>{job.jobType}</span>}
+                      </div>
+                      <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.83rem" }}>{job.company}</p>
+                      {job.location && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginTop: "0.3rem" }}>{job.location}</p>}
+                    </div>
+                  </EditorialCard>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ══ FEATURED EQUIPMENT ════════════════════════════════════════ */}
+        {featuredEquipment.length > 0 && (
+          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <div className="container mx-auto px-4 py-16">
+              <SectionHeader title="عتاد مميز" link="/equipment" linkLabel="كل العتاد" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
+                {featuredEquipment.map((eq, i) => (
+                  <EditorialCard key={eq.id} to={`/equipment/${eq.id}`} delay={`${i * 0.09}s`}>
+                    {eq.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={eq.image} alt={eq.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
+                    <div className="p-4">
+                      <h3 className="font-bold mb-1" style={{ color: "var(--theme-text)", fontSize: "0.9rem" }}>{eq.name}</h3>
+                      {eq.category && <p style={{ color: "var(--theme-accent)", fontSize: "0.75rem" }}>{eq.category}</p>}
+                      <p style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginTop: "0.25rem" }}>{eq.price?.toLocaleString()} دج</p>
+                    </div>
+                  </EditorialCard>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ══ UPCOMING COMPETITIONS ════════════════════════════════════ */}
+        {upcomingComps.length > 0 && (
+          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <div className="container mx-auto px-4 py-16">
+              <SectionHeader title="مسابقات قادمة" link="/competitions" linkLabel="كل المسابقات" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
+                {upcomingComps.map((comp, i) => (
+                  <EditorialCard key={comp.id} to={`/competitions/${comp.id}`} delay={`${i * 0.09}s`}>
+                    {comp.image && <div style={{ height: "140px", overflow: "hidden" }}><img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{comp.name}</h3>
                         {comp.type && (
-                          <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-                            style={{ background: typeBg[comp.type] ?? "#1b5e35", color: typeClr[comp.type] ?? "#ffffff" }}>
+                          <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", flexShrink: 0, background: comp.type === "international" ? "rgba(122,56,0,0.3)" : comp.type === "university" ? "rgba(26,79,122,0.3)" : "var(--p-15)", color: comp.type === "international" ? "#fb923c" : comp.type === "university" ? "#64b5f6" : "var(--theme-accent)" }}>
                             {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
                           </span>
                         )}
                       </div>
-                      {comp.organizer && <p className="text-sm" style={{ color: "var(--theme-text-secondary)" }}>{comp.organizer}</p>}
+                      {comp.organizer && <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.82rem" }}>{comp.organizer}</p>}
                       <div className="flex items-center gap-2 mt-3">
-                        <Zap size={13} style={{ color: "var(--theme-accent)" }} />
-                        <span className="text-xs" style={{ color: "var(--theme-text-dim)" }}>{comp.startDate}</span>
+                        <Zap size={12} style={{ color: "var(--theme-accent)" }} />
+                        <span style={{ color: "var(--theme-text-dim)", fontSize: "0.72rem" }}>{comp.startDate}</span>
                       </div>
                     </div>
-                  </Link>
-                );
-              })}
+                  </EditorialCard>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* ══ FEATURED VOICE ARTISTS ══════════════════════════════════════ */}
-      {featuredVoice.length > 0 && (
-        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4">
-            <SectionHeader num="06" title="منشطون مميزون" link="/voice-requests" linkLabel="كل المنشطين" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredVoice.map((v, i) => (
-                <div key={v.id} className="card-glow p-5 rounded-2xl animate-fade-in-up"
-                  style={{ background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0" style={{ background: "var(--p-15)" }}>
-                      {v.photoUrl
-                        ? <img src={v.photoUrl} alt={v.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        : <div className="w-full h-full flex items-center justify-center font-bold" style={{ color: "var(--theme-accent)" }}>{v.name?.[0]}</div>}
+        {/* ══ FEATURED VOICE ARTISTS ════════════════════════════════════ */}
+        {featuredVoice.length > 0 && (
+          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <div className="container mx-auto px-4 py-16">
+              <SectionHeader title="منشطون مميزون" link="/voice-requests" linkLabel="كل المنشطين" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
+                {featuredVoice.map((v, i) => (
+                  <div
+                    key={v.id}
+                    className="p-5 animate-fade-in-up"
+                    style={{ background: "#0a0d0a", borderTop: "2px solid var(--p-20)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.09}s` }}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div style={{ width: "44px", height: "44px", flexShrink: 0, overflow: "hidden", background: "var(--p-12)", border: "1px solid var(--p-20)" }}>
+                        {v.photoUrl
+                          ? <img src={v.photoUrl} alt={v.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--theme-accent)" }}>{v.name?.[0]}</div>}
+                      </div>
+                      <div>
+                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "0.9rem" }}>{v.name}</h3>
+                        {v.specialty && <p style={{ color: "var(--theme-accent)", fontSize: "0.72rem" }}>{v.specialty}</p>}
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-sm" style={{ color: "var(--theme-text)" }}>{v.name}</h3>
-                      {v.specialty && <p className="text-xs" style={{ color: "var(--theme-accent)" }}>{v.specialty}</p>}
-                    </div>
+                    {v.description && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.78rem", lineHeight: 1.65 }}>{v.description.slice(0, 90)}{v.description.length > 90 ? "…" : ""}</p>}
                   </div>
-                  {v.description && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.78rem", lineHeight: 1.6, marginTop: "0.4rem" }}>{v.description.slice(0, 80)}{v.description.length > 80 ? "…" : ""}</p>}
-                  <div className="flex gap-1 mt-3 flex-wrap">
-                    {v.languages?.slice(0, 3).map(l => (
-                      <span key={l} className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-12)", color: "var(--theme-text-secondary)" }}>{l}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* ══ LATEST NEWS ═════════════════════════════════════════════════ */}
-      {latestNews.length > 0 && (
-        <section className="py-20" style={{ borderTop: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4">
-            <SectionHeader num="07" title="آخر الأخبار" link="/news" linkLabel="كل الأخبار" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {latestNews.map((item, i) => (
-                <Link
-                  key={item.id}
-                  to={`/news/${item.id}`}
-                  className="card-glow p-5 rounded-2xl animate-fade-in-up block"
-                  style={{ textDecoration: "none", background: "linear-gradient(145deg,#141414,#101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.1}s` }}
+        {/* ══ LATEST NEWS ═══════════════════════════════════════════════ */}
+        {latestNews.length > 0 && (
+          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <div className="container mx-auto px-4 py-16">
+              <SectionHeader title="آخر الأخبار" link="/news" linkLabel="كل الأخبار" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
+                {latestNews.map((item, i) => (
+                  <EditorialCard key={item.id} to={`/news/${item.id}`} delay={`${i * 0.09}s`}>
+                    {item.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Newspaper size={12} style={{ color: "var(--theme-accent)" }} />
+                        <span style={{ color: "var(--theme-text-dim)", fontSize: "0.72rem" }}>{item.date}</span>
+                      </div>
+                      <h3 className="font-bold line-clamp-2 mb-2" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{item.title}</h3>
+                      <p className="text-xs line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{item.body}</p>
+                    </div>
+                  </EditorialCard>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ══ CTA — Full-bleed editorial ════════════════════════════════ */}
+        <section style={{ position: "relative", overflow: "hidden" }}>
+          {/* Accent line top */}
+          <div style={{ height: "1px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
+
+          <div className="container mx-auto px-4 py-20">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              {/* Left — big statement text */}
+              <div>
+                <p style={{ color: "var(--theme-accent)", fontSize: "0.7rem", letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "1rem" }}>
+                  انضم إلى المنصة
+                </p>
+                <h2
+                  style={{
+                    fontSize: "clamp(2rem, 5vw, 3.5rem)",
+                    fontWeight: 900,
+                    lineHeight: 1.1,
+                    color: "var(--theme-text, #e8f5e9)",
+                    marginBottom: "1.5rem",
+                  }}
                 >
-                  {item.image && (
-                    <div style={{ height: "150px", overflow: "hidden", borderRadius: "0.75rem", marginBottom: "0.75rem" }}>
-                      <img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 mb-2">
-                    <Newspaper size={13} style={{ color: "var(--theme-accent)" }} />
-                    <span className="text-xs" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>{item.date}</span>
-                  </div>
-                  <h3 className="font-bold text-base mb-2 line-clamp-2" style={{ color: "var(--theme-text)" }}>{item.title}</h3>
-                  <p className="text-sm line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{item.body}</p>
+                  {c.ctaTitle}
+                </h2>
+                <p style={{ color: "var(--theme-text-muted, #6aad6a)", lineHeight: 1.8, fontSize: "0.95rem", maxWidth: "400px" }}>
+                  {c.ctaSubtitle}
+                </p>
+              </div>
+
+              {/* Right — buttons + geometric accent */}
+              <div className="flex flex-col gap-4 md:items-end">
+                <div style={{ width: "60px", height: "1px", background: "var(--theme-accent, #00a355)", marginBottom: "0.5rem" }} />
+                <Link
+                  to="/register"
+                  className="btn-dz flex items-center gap-2 font-semibold"
+                  style={{ textDecoration: "none", padding: "1rem 2rem", borderRadius: "4px", fontSize: "1rem", width: "fit-content" }}
+                >
+                  <span>{c.ctaButton}</span>
+                  <ArrowLeft size={18} />
                 </Link>
-              ))}
+                <Link
+                  to="/courses"
+                  className="flex items-center gap-2 font-semibold transition-all duration-200"
+                  style={{
+                    border: "1px solid var(--p-25)",
+                    color: "var(--theme-text-secondary, #a5d6a7)",
+                    textDecoration: "none",
+                    padding: "1rem 2rem",
+                    borderRadius: "4px",
+                    fontSize: "1rem",
+                    width: "fit-content",
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--theme-accent)"; (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-25)"; (e.currentTarget as HTMLElement).style.color = "var(--theme-text-secondary, #a5d6a7)"; }}
+                >
+                  {c.ctaButton2}
+                </Link>
+              </div>
             </div>
           </div>
+
+          {/* Bottom accent line */}
+          <div style={{ height: "1px", background: "linear-gradient(to right, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
         </section>
-      )}
 
-      {/* ══ CTA ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 relative overflow-hidden" style={{ borderTop: "1px solid var(--p-15)" }}>
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, var(--p-12) 0%, transparent 70%)" }} />
-        <div className="container mx-auto px-4 relative z-10 text-center max-w-2xl">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 animate-float" style={{ background: "linear-gradient(135deg, var(--theme-primary), var(--theme-accent))", boxShadow: "0 0 32px var(--p-40)" }}>
-            <Star size={28} color="#fff" />
-          </div>
-          <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--theme-text)" }}>{c.ctaTitle}</h2>
-          <p className="mb-8" style={{ color: "var(--theme-text-muted)" }}>{c.ctaSubtitle}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="btn-dz px-8 py-3 rounded-xl font-semibold flex items-center justify-center gap-2" style={{ textDecoration: "none" }}>
-              <span>{c.ctaButton}</span>
-              <ArrowLeft size={18} />
-            </Link>
-            <Link to="/courses" className="px-8 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300" style={{ border: "1px solid var(--p-35)", color: "var(--theme-badge-text, #81c784)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
-              {c.ctaButton2}
-            </Link>
-          </div>
-        </div>
-      </section>
-
+      </div>
     </div>
   );
 }
