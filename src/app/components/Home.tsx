@@ -150,12 +150,12 @@ export default function Home() {
       <div style={{ position: "relative", zIndex: 1 }}>
 
         {/* ══ HERO ═══════════════════════════════════════════════════════ */}
-        <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", borderBottom: "1px solid var(--p-15)" }}>
+        <section style={{ borderBottom: "1px solid var(--p-15)" }}>
           {/* Top accent line */}
-          <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)", flexShrink: 0 }} />
+          <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
 
-          <div className="container mx-auto px-4 flex-1 flex flex-col justify-center py-16">
-            <div className="grid md:grid-cols-5 gap-0 items-center" style={{ minHeight: "55vh" }}>
+          <div className="container mx-auto px-4 py-16 md:py-24">
+            <div className="grid md:grid-cols-5 gap-0 items-center">
 
               {/* Content — right column (RTL = displayed first) */}
               <div
@@ -259,74 +259,18 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Hero Visual — desktop: left column, mobile: between CTAs and stats */}
-              <div
-                className="md:col-span-2 flex items-center justify-center relative"
-                style={{ minHeight: "60vh", paddingRight: "2rem", paddingTop: "2rem", paddingBottom: "2rem" }}
-              >
-                {/* Broadcast SVG illustration */}
-                <svg
-                  viewBox="0 0 360 420"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style={{ width: "100%", maxWidth: "320px", opacity: ready ? 1 : 0, transition: "opacity 0.8s 0.3s" }}
-                >
-                  {/* Background card */}
-                  <rect x="20" y="20" width="320" height="380" rx="4" fill="#0a0d0a" stroke="rgba(0,163,85,0.15)" strokeWidth="1"/>
-
-                  {/* Top accent bar */}
-                  <rect x="20" y="20" width="320" height="2" rx="0" fill="#00a355" opacity="0.7"/>
-
-                  {/* Signal waves — concentric arcs */}
-                  <g transform="translate(180, 155)" opacity="0.18">
-                    <path d="M-90,0 A90,90 0 0,1 90,0" fill="none" stroke="#00a355" strokeWidth="1.5"/>
-                    <path d="M-65,0 A65,65 0 0,1 65,0" fill="none" stroke="#00a355" strokeWidth="1.5"/>
-                    <path d="M-40,0 A40,40 0 0,1 40,0" fill="none" stroke="#00a355" strokeWidth="1.5"/>
-                  </g>
-
-                  {/* Microphone body */}
-                  <rect x="163" y="100" width="34" height="55" rx="17" fill="none" stroke="#00a355" strokeWidth="2" opacity="0.9"/>
-                  {/* Mic grille lines */}
-                  <line x1="163" y1="118" x2="197" y2="118" stroke="#00a355" strokeWidth="1" opacity="0.4"/>
-                  <line x1="163" y1="127" x2="197" y2="127" stroke="#00a355" strokeWidth="1" opacity="0.4"/>
-                  <line x1="163" y1="136" x2="197" y2="136" stroke="#00a355" strokeWidth="1" opacity="0.4"/>
-                  {/* Mic stand */}
-                  <path d="M148,155 Q148,175 180,175 Q212,175 212,155" fill="none" stroke="#00a355" strokeWidth="2" opacity="0.6"/>
-                  <line x1="180" y1="175" x2="180" y2="195" stroke="#00a355" strokeWidth="2" opacity="0.6"/>
-                  <line x1="158" y1="195" x2="202" y2="195" stroke="#00a355" strokeWidth="2" opacity="0.6"/>
-
-                  {/* Active dot */}
-                  <circle cx="180" cy="90" r="5" fill="#00a355" opacity="0.9"/>
-                  <circle cx="180" cy="90" r="9" fill="none" stroke="#00a355" strokeWidth="1" opacity="0.4"/>
-
-                  {/* Decorative grid lines */}
-                  <line x1="20" y1="230" x2="340" y2="230" stroke="rgba(0,163,85,0.08)" strokeWidth="1"/>
-                  <line x1="20" y1="260" x2="340" y2="260" stroke="rgba(0,163,85,0.08)" strokeWidth="1"/>
-                  <line x1="20" y1="290" x2="340" y2="290" stroke="rgba(0,163,85,0.08)" strokeWidth="1"/>
-                  <line x1="20" y1="320" x2="340" y2="320" stroke="rgba(0,163,85,0.08)" strokeWidth="1"/>
-                  <line x1="100" y1="230" x2="100" y2="400" stroke="rgba(0,163,85,0.06)" strokeWidth="1"/>
-                  <line x1="180" y1="230" x2="180" y2="400" stroke="rgba(0,163,85,0.06)" strokeWidth="1"/>
-                  <line x1="260" y1="230" x2="260" y2="400" stroke="rgba(0,163,85,0.06)" strokeWidth="1"/>
-
-                  {/* Stats grid */}
-                  <rect x="40" y="245" width="120" height="60" rx="2" fill="rgba(0,163,85,0.06)" stroke="rgba(0,163,85,0.12)" strokeWidth="1"/>
-                  <rect x="200" y="245" width="120" height="60" rx="2" fill="rgba(0,163,85,0.06)" stroke="rgba(0,163,85,0.12)" strokeWidth="1"/>
-                  <rect x="40" y="325" width="120" height="60" rx="2" fill="rgba(0,163,85,0.06)" stroke="rgba(0,163,85,0.12)" strokeWidth="1"/>
-                  <rect x="200" y="325" width="120" height="60" rx="2" fill="rgba(0,163,85,0.06)" stroke="rgba(0,163,85,0.12)" strokeWidth="1"/>
-
-                  {/* Stat numbers */}
-                  <text x="100" y="272" textAnchor="middle" fill="#00a355" fontSize="20" fontWeight="900" fontFamily="Cairo, Tajawal, sans-serif">7/24</text>
-                  <text x="100" y="288" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="Tajawal, sans-serif">متاح دائماً</text>
-                  <text x="260" y="272" textAnchor="middle" fill="#00a355" fontSize="20" fontWeight="900" fontFamily="Cairo, Tajawal, sans-serif">100%</text>
-                  <text x="260" y="288" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="Tajawal, sans-serif">محتوى جزائري</text>
-                  <text x="100" y="352" textAnchor="middle" fill="#00a355" fontSize="20" fontWeight="900" fontFamily="Cairo, Tajawal, sans-serif">69</text>
-                  <text x="100" y="368" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="Tajawal, sans-serif">ولاية</text>
-                  <text x="260" y="352" textAnchor="middle" fill="#00a355" fontSize="20" fontWeight="900" fontFamily="Cairo, Tajawal, sans-serif">6</text>
-                  <text x="260" y="368" textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="Tajawal, sans-serif">خدمات متكاملة</text>
-
-                  {/* Corner accent */}
-                  <line x1="20" y1="50" x2="50" y2="50" stroke="#00a355" strokeWidth="1.5" opacity="0.5"/>
-                  <line x1="310" y1="370" x2="340" y2="370" stroke="#00a355" strokeWidth="1.5" opacity="0.5"/>
-                </svg>
+              {/* Stats — desktop only */}
+              <div className="hidden md:flex md:col-span-2 items-center justify-center" style={{ paddingRight: "2rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--p-15)", border: "1px solid var(--p-15)", width: "240px" }}>
+                  {stats.map((s, i) => (
+                    <div key={i} style={{ background: "#080b08", padding: "1.5rem 1rem", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--theme-accent, #00a355)", lineHeight: 1 }}>
+                        <AnimatedCounter target={s.value} suffix={s.suffix} />
+                      </div>
+                      <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.65rem", marginTop: "0.35rem" }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
