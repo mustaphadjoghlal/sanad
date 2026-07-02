@@ -27,7 +27,6 @@ export default function Layout() {
     { to: "/equipment", label: "العتاد" },
     { to: "/jobs", label: "التوظيف" },
     { to: "/competitions", label: "المسابقات" },
-    { to: "/voice-artists", label: "منشطون / معلقون صوتيون" },
   ];
 
   const moreLinks = [

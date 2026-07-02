@@ -30,6 +30,7 @@ export interface Job {
   companyDescription?: string;
   image?: string;
   contentImages?: string[];
+  portfolioLinks?: string[];
   createdAt: number;
   status?: 'pending' | 'approved' | 'rejected';
   featured?: boolean;

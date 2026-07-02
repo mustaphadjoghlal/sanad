@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight, Globe, Mail, ExternalLink } from "lucide-react";
+import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight, Globe, Mail, ExternalLink, Link2 } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Job } from "../../lib/types";
@@ -223,6 +223,34 @@ export default function JobDetail() {
               style={{ color: "var(--theme-text-secondary, #6aad6a)" }}
               dangerouslySetInnerHTML={{ __html: j.companyDescription }}
             />
+          </div>
+        )}
+
+        {/* Portfolio links */}
+        {j.portfolioLinks && j.portfolioLinks.filter(Boolean).length > 0 && (
+          <div
+            className="p-5 rounded-xl mb-6"
+            style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Link2 size={16} style={{ color: "var(--theme-accent, #00a355)" }} />
+              <h3 className="font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>أعمال سابقة</h3>
+            </div>
+            <div className="space-y-2">
+              {j.portfolioLinks.filter(Boolean).map((url, idx) => (
+                <a
+                  key={idx}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg transition-colors hover:bg-white/5"
+                  style={{ border: "1px solid rgba(255,255,255,0.06)", textDecoration: "none" }}
+                >
+                  <ExternalLink size={14} style={{ color: "var(--theme-accent, #00a355)", flexShrink: 0 }} />
+                  <span style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.875rem", direction: "ltr", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{url}</span>
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

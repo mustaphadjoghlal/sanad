@@ -802,7 +802,7 @@ function CoursesSection() {
 
 // ── JOBS SECTION ────────────────────────────────────────────────
 type JobForm = Omit<Job, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", employmentType: undefined, description: "", deadline: "", contact: "", source: "", companyDescription: "", image: "", contentImages: [] };
+const emptyJob: JobForm = { title: "", company: "", location: "", jobType: "", employmentType: undefined, description: "", deadline: "", contact: "", source: "", companyDescription: "", image: "", contentImages: [], portfolioLinks: [] };
 
 function JobsSection() {
   const isMobile = useIsMobile();
@@ -826,7 +826,7 @@ function JobsSection() {
   });
 
   const openAdd = () => { setForm(emptyJob); setModal("add"); };
-  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, employmentType: j.employmentType, description: j.description, deadline: j.deadline || "", contact: j.contact, source: j.source || "", companyDescription: j.companyDescription || "", image: j.image || "", contentImages: j.contentImages || [] }); setModal("edit"); };
+  const openEdit = (j: Job) => { setEditId(j.id); setForm({ title: j.title, company: j.company, location: j.location, jobType: j.jobType, employmentType: j.employmentType, description: j.description, deadline: j.deadline || "", contact: j.contact, source: j.source || "", companyDescription: j.companyDescription || "", image: j.image || "", contentImages: j.contentImages || [], portfolioLinks: j.portfolioLinks || [] }); setModal("edit"); };
 
   const handleImageUpload = async (file: File) => {
     setImgUploading(true);
@@ -962,14 +962,17 @@ function JobsSection() {
               <div>
                 <label style={S.label}>نوع الوظيفة</label>
                 <select style={S.input} value={form.jobType} onChange={(e) => setForm({ ...form, jobType: e.target.value })}>
-                  <option value="">اختر المنصب</option>
+                  <option value="">اختر التخصص</option>
                   <option value="صحفي">صحفي</option>
                   <option value="مقدم برامج">مقدم برامج</option>
                   <option value="محرر">محرر</option>
                   <option value="مصور">مصور</option>
                   <option value="مونتير">مونتير</option>
-                  <option value="منشط صوتي">منشط صوتي</option>
+                  <option value="منشط">منشط</option>
+                  <option value="معلق صوتي">معلق صوتي</option>
                   <option value="مراسل">مراسل</option>
+                  <option value="مخرج">مخرج</option>
+                  <option value="ميكانيكيين صوت">ميكانيكيين صوت</option>
                   <option value="أخرى">أخرى</option>
                 </select>
               </div>
@@ -1040,6 +1043,31 @@ function JobsSection() {
                 {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
               </label>
             </div>
+
+            {/* روابط الأعمال */}
+            <div>
+              <label style={S.label}>روابط الأعمال (اختياري)</label>
+              <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem", marginBottom: "0.5rem" }}>يوتيوب، ساوندكلاود، إنستغرام، موقع شخصي...</p>
+              {(form.portfolioLinks || []).map((link, idx) => (
+                <div key={idx} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                  <input
+                    style={{ ...S.input, flex: 1, marginBottom: 0 }}
+                    value={link}
+                    onChange={(e) => setForm((f) => ({ ...f, portfolioLinks: (f.portfolioLinks || []).map((l, i) => i === idx ? e.target.value : l) }))}
+                    placeholder="https://..."
+                    dir="ltr"
+                  />
+                  <button type="button" onClick={() => setForm((f) => ({ ...f, portfolioLinks: (f.portfolioLinks || []).filter((_, i) => i !== idx) }))}
+                    style={{ padding: "0.25rem 0.6rem", background: "rgba(198,40,40,0.15)", border: "1px solid rgba(198,40,40,0.3)", borderRadius: "0.375rem", color: "#f87171", cursor: "pointer", fontSize: "0.8rem" }}>×</button>
+                </div>
+              ))}
+              <button type="button"
+                onClick={() => setForm((f) => ({ ...f, portfolioLinks: [...(f.portfolioLinks || []), ""] }))}
+                style={{ ...S.input, width: "100%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: "var(--theme-badge-text, #81c784)" }}>
+                + إضافة رابط عمل
+              </button>
+            </div>
+
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
