@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Users, Zap, Newspaper } from "lucide-react";
+import { BookOpen, Briefcase, Package, Trophy, Tv2, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
@@ -88,9 +88,92 @@ const services = [
   { icon: Briefcase, title: "عروض التوظيف",       desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",            link: "/jobs" },
   { icon: Package,   title: "عتاد إعلامي",        desc: "معدات تصوير وصوت وبث من أفضل الموردين",                    link: "/equipment" },
   { icon: Trophy,    title: "المسابقات",           desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",           link: "/competitions" },
-  { icon: Mic2,      title: "المنشطون والمعلقون",  desc: "ابحث عن منشطين ومعلقين صوتيين محترفين أو قدّم نفسك للفرص المتاحة",  link: "/jobs" },
   { icon: Tv2,       title: "دليل القنوات",        desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",        link: "/channels" },
 ];
+
+/* ── Auto carousel ── */
+function AutoCarousel({ children }: { children: React.ReactNode[] }) {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const n = children.length;
+
+  useEffect(() => {
+    if (paused || n <= 1) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % n), 3800);
+    return () => clearInterval(t);
+  }, [paused, n]);
+
+  const prev = () => setIdx((i) => (i - 1 + n) % n);
+  const next = () => setIdx((i) => (i + 1) % n);
+
+  return (
+    <div
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div style={{ overflow: "hidden" }}>
+        <div
+          dir="ltr"
+          style={{
+            display: "flex",
+            transform: `translateX(-${idx * 100}%)`,
+            transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1)",
+          }}
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+          onTouchEnd={(e) => {
+            if (touchStartX.current === null) return;
+            const dx = touchStartX.current - e.changedTouches[0].clientX;
+            if (Math.abs(dx) > 40) dx > 0 ? next() : prev();
+            touchStartX.current = null;
+          }}
+        >
+          {children.map((child, i) => (
+            <div key={i} dir="rtl" style={{ minWidth: "100%", flexShrink: 0 }}>
+              {child}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Controls */}
+      {n > 1 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginTop: "1.1rem" }}>
+          <button
+            onClick={prev}
+            style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+          >
+            <ChevronRight size={14} />
+          </button>
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            {children.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                style={{
+                  width: i === idx ? "18px" : "6px",
+                  height: "6px",
+                  borderRadius: "3px",
+                  background: i === idx ? "var(--theme-accent)" : "var(--p-20)",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  transition: "all 0.3s",
+                }}
+              />
+            ))}
+          </div>
+          <button
+            onClick={next}
+            style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
+          >
+            <ChevronLeft size={14} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 export default function Home() {
@@ -107,11 +190,14 @@ export default function Home() {
   useEffect(() => {
     const unsubs = [
       subscribeToFeatured<Course>("courses",       setFeaturedCourses),
-      subscribeToFeatured<Job>("jobs",             (d) => setFeaturedJobs(d.slice(0, 3))),
+      subscribeToCollection<Job>("jobs", (d) => {
+        const approved = d.filter((j) => j.status === "approved" || !j.status);
+        setFeaturedJobs([...approved].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8));
+      }),
       subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3))),
       subscribeToCollection<Competition>("competitions", (comps) => {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
-        setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 3));
+        setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 8));
       }),
       subscribeToSiteContent((data) => {
         setContent(data);
@@ -420,26 +506,35 @@ export default function Home() {
           </section>
         )}
 
-        {/* ══ FEATURED JOBS ═════════════════════════════════════════════ */}
+        {/* ══ JOBS CAROUSEL ═════════════════════════════════════════════ */}
         {featuredJobs.length > 0 && (
           <section style={{ borderBottom: "1px solid var(--p-15)" }}>
             <div className="container mx-auto px-4 py-8 md:py-14">
-              <SectionHeader title="فرص عمل مميزة" link="/jobs" linkLabel="كل الفرص" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
-                {featuredJobs.map((job, i) => (
-                  <EditorialCard key={job.id} to={`/jobs/${job.id}`} delay={`${i * 0.09}s`}>
-                    {job.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="p-5">
+              <SectionHeader title="فرص عمل" link="/jobs" linkLabel="كل الفرص" />
+              <AutoCarousel>
+                {featuredJobs.map((job) => (
+                  <Link
+                    key={job.id}
+                    to={`/jobs/${job.id}`}
+                    style={{ textDecoration: "none", display: "flex", gap: 0, background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
+                  >
+                    {job.image && (
+                      <div style={{ width: "120px", flexShrink: 0, overflow: "hidden" }}>
+                        <img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      </div>
+                    )}
+                    <div className="p-5 flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{job.title}</h3>
+                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem" }}>{job.title}</h3>
                         {job.jobType && <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", background: "var(--p-15)", color: "var(--theme-accent)", flexShrink: 0 }}>{job.jobType}</span>}
                       </div>
-                      <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.83rem" }}>{job.company}</p>
-                      {job.location && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginTop: "0.3rem" }}>{job.location}</p>}
+                      <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.85rem", marginBottom: "0.3rem" }}>{job.company}</p>
+                      {job.location && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.76rem" }}>{job.location}</p>}
+                      {job.deadline && <p style={{ color: "var(--theme-text-muted)", fontSize: "0.72rem", marginTop: "0.5rem" }}>الموعد النهائي: {job.deadline}</p>}
                     </div>
-                  </EditorialCard>
+                  </Link>
                 ))}
-              </div>
+              </AutoCarousel>
             </div>
           </section>
         )}
@@ -465,33 +560,42 @@ export default function Home() {
           </section>
         )}
 
-        {/* ══ UPCOMING COMPETITIONS ════════════════════════════════════ */}
+        {/* ══ COMPETITIONS CAROUSEL ════════════════════════════════════ */}
         {upcomingComps.length > 0 && (
           <section style={{ borderBottom: "1px solid var(--p-15)" }}>
             <div className="container mx-auto px-4 py-8 md:py-14">
               <SectionHeader title="مسابقات قادمة" link="/competitions" linkLabel="كل المسابقات" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
-                {upcomingComps.map((comp, i) => (
-                  <EditorialCard key={comp.id} to={`/competitions/${comp.id}`} delay={`${i * 0.09}s`}>
-                    {comp.image && <div style={{ height: "140px", overflow: "hidden" }}><img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="p-5">
+              <AutoCarousel>
+                {upcomingComps.map((comp) => (
+                  <Link
+                    key={comp.id}
+                    to={`/competitions/${comp.id}`}
+                    style={{ textDecoration: "none", display: "flex", gap: 0, background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
+                  >
+                    {comp.image && (
+                      <div style={{ width: "120px", flexShrink: 0, overflow: "hidden" }}>
+                        <img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      </div>
+                    )}
+                    <div className="p-5 flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{comp.name}</h3>
+                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem" }}>{comp.name}</h3>
                         {comp.type && (
                           <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", flexShrink: 0, background: comp.type === "international" ? "rgba(122,56,0,0.3)" : comp.type === "university" ? "rgba(26,79,122,0.3)" : "var(--p-15)", color: comp.type === "international" ? "#fb923c" : comp.type === "university" ? "#64b5f6" : "var(--theme-accent)" }}>
                             {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
                           </span>
                         )}
                       </div>
-                      {comp.organizer && <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.82rem" }}>{comp.organizer}</p>}
-                      <div className="flex items-center gap-2 mt-3">
+                      {comp.organizer && <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.83rem", marginBottom: "0.4rem" }}>{comp.organizer}</p>}
+                      <div className="flex items-center gap-2">
                         <Zap size={12} style={{ color: "var(--theme-accent)" }} />
-                        <span style={{ color: "var(--theme-text-dim)", fontSize: "0.72rem" }}>{comp.startDate}</span>
+                        <span style={{ color: "var(--theme-text-dim)", fontSize: "0.73rem" }}>{comp.startDate}</span>
+                        {comp.endDate && <><span style={{ color: "var(--p-25)" }}>—</span><span style={{ color: "var(--theme-text-dim)", fontSize: "0.73rem" }}>{comp.endDate}</span></>}
                       </div>
                     </div>
-                  </EditorialCard>
+                  </Link>
                 ))}
-              </div>
+              </AutoCarousel>
             </div>
           </section>
         )}
