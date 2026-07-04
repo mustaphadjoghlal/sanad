@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Briefcase, Package, Trophy, Mic2, Tv2, ArrowLeft, Users, Zap, Newspaper } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
-import type { Course, Job, Equipment, Competition, VoiceArtist, SiteContent, NewsItem } from "../../lib/types";
+import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
 /* ── Animated counter ── */
@@ -30,7 +30,7 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
 /* ── Editorial section header ── */
 function SectionHeader({ title, link, linkLabel }: { title: string; link: string; linkLabel: string }) {
   return (
-    <div className="flex items-center justify-between mb-10">
+    <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-4 flex-1 min-w-0">
         <div className="flex-shrink-0 w-1 h-7 rounded-sm" style={{ background: "var(--theme-accent, #00a355)" }} />
         <h2 className="text-xl font-black" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
@@ -88,7 +88,7 @@ const services = [
   { icon: Briefcase, title: "عروض التوظيف",       desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",            link: "/jobs" },
   { icon: Package,   title: "عتاد إعلامي",        desc: "معدات تصوير وصوت وبث من أفضل الموردين",                    link: "/equipment" },
   { icon: Trophy,    title: "المسابقات",           desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",           link: "/competitions" },
-  { icon: Mic2,      title: "طلبات المنشطين",     desc: "ابحث عن منشطين محترفين أو قدّم نفسك للفرص المتاحة",       link: "/voice-requests" },
+  { icon: Mic2,      title: "المنشطون والمعلقون",  desc: "ابحث عن منشطين ومعلقين صوتيين محترفين أو قدّم نفسك للفرص المتاحة",  link: "/jobs" },
   { icon: Tv2,       title: "دليل القنوات",        desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",        link: "/channels" },
 ];
 
@@ -97,7 +97,6 @@ export default function Home() {
   const [featuredCourses,   setFeaturedCourses]   = useState<Course[]>([]);
   const [featuredJobs,      setFeaturedJobs]      = useState<Job[]>([]);
   const [featuredEquipment, setFeaturedEquipment] = useState<Equipment[]>([]);
-  const [featuredVoice,     setFeaturedVoice]     = useState<VoiceArtist[]>([]);
   const [upcomingComps,     setUpcomingComps]     = useState<Competition[]>([]);
   const [latestNews,        setLatestNews]        = useState<NewsItem[]>([]);
   const [content, setContent] = useState<SiteContent | null>(() => {
@@ -110,7 +109,6 @@ export default function Home() {
       subscribeToFeatured<Course>("courses",       setFeaturedCourses),
       subscribeToFeatured<Job>("jobs",             (d) => setFeaturedJobs(d.slice(0, 3))),
       subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3))),
-      subscribeToFeatured<VoiceArtist>("voice",    (d) => setFeaturedVoice(d.slice(0, 3))),
       subscribeToCollection<Competition>("competitions", (comps) => {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
         setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 3));
@@ -316,8 +314,8 @@ export default function Home() {
 
         {/* ══ SERVICES — Editorial Numbered List ════════════════════════ */}
         <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4 py-16">
-            <div className="mb-10">
+          <div className="container mx-auto px-4 py-8 md:py-14">
+            <div className="mb-6">
               <p style={{ color: "var(--theme-accent)", fontSize: "0.7rem", letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "0.5rem" }}>
                 {c.servicesLabel}
               </p>
@@ -393,7 +391,7 @@ export default function Home() {
         {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
         {featuredCourses.length > 0 && (
           <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-16">
+            <div className="container mx-auto px-4 py-8 md:py-14">
               <SectionHeader title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {featuredCourses.slice(0, 3).map((course, i) => (
@@ -425,7 +423,7 @@ export default function Home() {
         {/* ══ FEATURED JOBS ═════════════════════════════════════════════ */}
         {featuredJobs.length > 0 && (
           <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-16">
+            <div className="container mx-auto px-4 py-8 md:py-14">
               <SectionHeader title="فرص عمل مميزة" link="/jobs" linkLabel="كل الفرص" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {featuredJobs.map((job, i) => (
@@ -449,7 +447,7 @@ export default function Home() {
         {/* ══ FEATURED EQUIPMENT ════════════════════════════════════════ */}
         {featuredEquipment.length > 0 && (
           <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-16">
+            <div className="container mx-auto px-4 py-8 md:py-14">
               <SectionHeader title="عتاد مميز" link="/equipment" linkLabel="كل العتاد" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {featuredEquipment.map((eq, i) => (
@@ -470,7 +468,7 @@ export default function Home() {
         {/* ══ UPCOMING COMPETITIONS ════════════════════════════════════ */}
         {upcomingComps.length > 0 && (
           <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-16">
+            <div className="container mx-auto px-4 py-8 md:py-14">
               <SectionHeader title="مسابقات قادمة" link="/competitions" linkLabel="كل المسابقات" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {upcomingComps.map((comp, i) => (
@@ -498,41 +496,11 @@ export default function Home() {
           </section>
         )}
 
-        {/* ══ FEATURED VOICE ARTISTS ════════════════════════════════════ */}
-        {featuredVoice.length > 0 && (
-          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-16">
-              <SectionHeader title="منشطون مميزون" link="/voice-requests" linkLabel="كل المنشطين" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
-                {featuredVoice.map((v, i) => (
-                  <div
-                    key={v.id}
-                    className="p-5 animate-fade-in-up"
-                    style={{ background: "#0a0d0a", borderTop: "2px solid var(--p-20)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.09}s` }}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div style={{ width: "44px", height: "44px", flexShrink: 0, overflow: "hidden", background: "var(--p-12)", border: "1px solid var(--p-20)" }}>
-                        {v.photoUrl
-                          ? <img src={v.photoUrl} alt={v.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--theme-accent)" }}>{v.name?.[0]}</div>}
-                      </div>
-                      <div>
-                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "0.9rem" }}>{v.name}</h3>
-                        {v.specialty && <p style={{ color: "var(--theme-accent)", fontSize: "0.72rem" }}>{v.specialty}</p>}
-                      </div>
-                    </div>
-                    {v.description && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.78rem", lineHeight: 1.65 }}>{v.description.slice(0, 90)}{v.description.length > 90 ? "…" : ""}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* ══ LATEST NEWS ═══════════════════════════════════════════════ */}
         {latestNews.length > 0 && (
           <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-16">
+            <div className="container mx-auto px-4 py-8 md:py-14">
               <SectionHeader title="آخر الأخبار" link="/news" linkLabel="كل الأخبار" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {latestNews.map((item, i) => (
@@ -558,7 +526,7 @@ export default function Home() {
           {/* Accent line top */}
           <div style={{ height: "1px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
 
-          <div className="container mx-auto px-4 py-20">
+          <div className="container mx-auto px-4 py-10 md:py-20">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               {/* Left — big statement text */}
               <div>
