@@ -118,7 +118,8 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
           dir="ltr"
           style={{
             display: "flex",
-            transform: `translateX(-${idx * 100}%)`,
+            width: `${n * 100}%`,
+            transform: `translateX(-${(idx / n) * 100}%)`,
             transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1)",
           }}
           onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
@@ -130,7 +131,7 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
           }}
         >
           {children.map((child, i) => (
-            <div key={i} dir="rtl" style={{ minWidth: "100%", flexShrink: 0 }}>
+            <div key={i} dir="rtl" style={{ width: `${100 / n}%`, flexShrink: 0 }}>
               {child}
             </div>
           ))}
