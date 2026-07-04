@@ -516,14 +516,14 @@ export default function Home() {
                   <Link
                     key={job.id}
                     to={`/jobs/${job.id}`}
-                    style={{ textDecoration: "none", display: "flex", gap: 0, background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
+                    style={{ textDecoration: "none", display: "block", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
                   >
                     {job.image && (
-                      <div style={{ width: "120px", flexShrink: 0, overflow: "hidden" }}>
+                      <div style={{ height: "200px", overflow: "hidden" }}>
                         <img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       </div>
                     )}
-                    <div className="p-5 flex-1 min-w-0">
+                    <div className="p-5">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem" }}>{job.title}</h3>
                         {job.jobType && <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", background: "var(--p-15)", color: "var(--theme-accent)", flexShrink: 0 }}>{job.jobType}</span>}
@@ -570,14 +570,14 @@ export default function Home() {
                   <Link
                     key={comp.id}
                     to={`/competitions/${comp.id}`}
-                    style={{ textDecoration: "none", display: "flex", gap: 0, background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
+                    style={{ textDecoration: "none", display: "block", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
                   >
                     {comp.image && (
-                      <div style={{ width: "120px", flexShrink: 0, overflow: "hidden" }}>
+                      <div style={{ height: "200px", overflow: "hidden" }}>
                         <img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       </div>
                     )}
-                    <div className="p-5 flex-1 min-w-0">
+                    <div className="p-5">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem" }}>{comp.name}</h3>
                         {comp.type && (
