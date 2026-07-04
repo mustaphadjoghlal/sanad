@@ -155,7 +155,7 @@ export default function Home() {
           <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
 
           <div className="container mx-auto px-4 py-16 md:py-24">
-            <div className="grid md:grid-cols-5 gap-0 items-center">
+            <div className="grid md:grid-cols-5 gap-0 items-center" style={{ minHeight: "65vh" }}>
 
               {/* Content — right column (RTL = displayed first) */}
               <div
@@ -259,15 +259,40 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Stats — desktop only */}
-              <div className="hidden md:flex md:col-span-2 items-center justify-center" style={{ paddingRight: "2rem" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--p-15)", border: "1px solid var(--p-15)", width: "240px" }}>
+              {/* Decorative — left column (hidden on mobile) */}
+              <div
+                className="hidden md:flex md:col-span-2 items-center justify-center relative"
+                style={{ minHeight: "60vh", paddingRight: "2rem" }}
+              >
+                {/* Large ghost "سند" */}
+                <span style={{
+                  position: "absolute",
+                  fontSize: "18rem",
+                  fontWeight: 900,
+                  color: "var(--theme-accent, #00a355)",
+                  opacity: 0.04,
+                  userSelect: "none",
+                  lineHeight: 1,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  whiteSpace: "nowrap",
+                  pointerEvents: "none",
+                }}>سند</span>
+
+                {/* Decorative geometric lines */}
+                <div style={{ position: "absolute", top: "18%", right: "15%", width: "1px", height: "100px", background: "linear-gradient(to bottom, transparent, var(--p-25), transparent)" }} />
+                <div style={{ position: "absolute", bottom: "18%", left: "20%", width: "70px", height: "1px", background: "linear-gradient(to left, transparent, var(--p-25))" }} />
+                <div style={{ position: "absolute", top: "12%", left: "30%", width: "1px", height: "40px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+                <div style={{ position: "absolute", bottom: "30%", right: "20%", width: "30px", height: "1px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+
+                {/* Stats — 2×2 grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--p-15)", border: "1px solid var(--p-15)", position: "relative", zIndex: 2, width: "240px" }}>
                   {stats.map((s, i) => (
                     <div key={i} style={{ background: "#080b08", padding: "1.5rem 1rem", textAlign: "center" }}>
                       <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--theme-accent, #00a355)", lineHeight: 1 }}>
                         <AnimatedCounter target={s.value} suffix={s.suffix} />
                       </div>
-                      <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.65rem", marginTop: "0.35rem" }}>{s.label}</div>
+                      <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.65rem", marginTop: "0.35rem", letterSpacing: "0.04em" }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
