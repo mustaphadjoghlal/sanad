@@ -299,6 +299,18 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Mobile stats */}
+            <div className="grid grid-cols-4 md:hidden mt-10" style={{ gap: "1px", background: "var(--p-12)" }}>
+              {stats.map((s, i) => (
+                <div key={i} style={{ background: "#080b08", padding: "1rem 0.25rem", textAlign: "center" }}>
+                  <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "var(--theme-accent, #00a355)" }}>
+                    <AnimatedCounter target={s.value} suffix={s.suffix} />
+                  </div>
+                  <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.6rem", marginTop: "0.2rem" }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+
           </div>
         </section>
 
