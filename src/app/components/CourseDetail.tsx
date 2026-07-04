@@ -4,6 +4,7 @@ import { BookOpen, Clock, User, ExternalLink, ArrowRight } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Course } from "../../lib/types";
+import BlurredCover from "./ui/BlurredCover";
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -59,14 +60,7 @@ export default function CourseDetail() {
 
       {/* Cover image */}
       {c.image ? (
-        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}>
-          <img
-            src={c.image}
-            alt={c.title}
-            className="w-full object-cover"
-            style={{ maxHeight: "420px", objectPosition: "center" }}
-          />
-        </div>
+        <BlurredCover src={c.image} alt={c.title} height={420} className="w-full mt-4" />
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"

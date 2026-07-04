@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Briefcase, MapPin, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
+import BlurredCover from "./ui/BlurredCover";
 import type { Job } from "../../lib/types";
 
 export default function Jobs() {
@@ -80,13 +81,13 @@ export default function Jobs() {
                 style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards", textDecoration: "none", display: "flex" }}
               >
                 {/* Thumbnail */}
-                <div style={{ width: "100px", minWidth: "100px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {j.image ? (
-                    <img src={j.image} alt={j.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
+                {j.image ? (
+                  <BlurredCover src={j.image} alt={j.title} height="100%" style={{ width: "96px", minWidth: "96px" }} />
+                ) : (
+                  <div style={{ width: "96px", minWidth: "96px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <Briefcase size={28} style={{ color: "var(--p-40)" }} />
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Content */}
                 <div className="flex-1 p-4 flex flex-col md:flex-row md:items-start justify-between gap-3">

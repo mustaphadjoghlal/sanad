@@ -4,6 +4,7 @@ import { ShoppingCart, Tag, DollarSign, User, Phone, ArrowRight } from "lucide-r
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Equipment } from "../../lib/types";
+import BlurredCover from "./ui/BlurredCover";
 
 export default function EquipmentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -59,14 +60,7 @@ export default function EquipmentDetail() {
 
       {/* Cover image */}
       {eq.image ? (
-        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}>
-          <img
-            src={eq.image}
-            alt={eq.name}
-            className="w-full object-cover"
-            style={{ maxHeight: "420px", objectPosition: "center" }}
-          />
-        </div>
+        <BlurredCover src={eq.image} alt={eq.name} height={420} className="w-full mt-4" />
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Trophy, Calendar, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
+import BlurredCover from "./ui/BlurredCover";
 import type { Competition } from "../../lib/types";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
@@ -97,29 +98,26 @@ export default function Competitions() {
                 }}
               >
                 {/* Cover image */}
-                <div className="relative overflow-hidden" style={{ height: "180px" }}>
-                  {c.image ? (
-                    <img
-                      src={c.image}
-                      alt={c.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{ background: "linear-gradient(135deg, var(--p-15), var(--p-05))" }}
+                {c.image ? (
+                  <BlurredCover src={c.image} alt={c.name} height={180}>
+                    <span
+                      className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full"
+                      style={{ zIndex: 2, background: typeBg[c.type] || "var(--p-60)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)", backdropFilter: "blur(4px)" }}
                     >
-                      <Trophy size={48} style={{ color: "var(--p-30)" }} />
-                    </div>
-                  )}
-                  {/* Type badge over image */}
-                  <span
-                    className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full"
-                    style={{ background: typeBg[c.type] || "var(--p-60)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)", backdropFilter: "blur(4px)" }}
-                  >
-                    {typeLabel[c.type]}
-                  </span>
-                </div>
+                      {typeLabel[c.type]}
+                    </span>
+                  </BlurredCover>
+                ) : (
+                  <div className="relative" style={{ height: "180px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Trophy size={48} style={{ color: "var(--p-30)" }} />
+                    <span
+                      className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full"
+                      style={{ background: typeBg[c.type] || "var(--p-60)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)" }}
+                    >
+                      {typeLabel[c.type]}
+                    </span>
+                  </div>
+                )}
 
                 {/* Content */}
                 <div className="p-4">
