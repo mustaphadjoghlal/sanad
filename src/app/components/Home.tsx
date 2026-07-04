@@ -516,16 +516,16 @@ export default function Home() {
                   <Link
                     key={job.id}
                     to={`/jobs/${job.id}`}
-                    style={{ textDecoration: "none", display: "block", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
+                    style={{ textDecoration: "none", display: "block", width: "100%", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
                   >
                     {job.image && (
                       <div style={{ height: "200px", overflow: "hidden" }}>
                         <img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       </div>
                     )}
-                    <div className="p-5">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem" }}>{job.title}</h3>
+                    <div className="p-5" style={{ minWidth: 0 }}>
+                      <div className="flex items-start gap-2 mb-2" style={{ justifyContent: "space-between" }}>
+                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem", minWidth: 0, wordBreak: "break-word", flex: 1 }}>{job.title}</h3>
                         {job.jobType && <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", background: "var(--p-15)", color: "var(--theme-accent)", flexShrink: 0 }}>{job.jobType}</span>}
                       </div>
                       <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.85rem", marginBottom: "0.3rem" }}>{job.company}</p>
@@ -570,16 +570,16 @@ export default function Home() {
                   <Link
                     key={comp.id}
                     to={`/competitions/${comp.id}`}
-                    style={{ textDecoration: "none", display: "block", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
+                    style={{ textDecoration: "none", display: "block", width: "100%", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
                   >
                     {comp.image && (
                       <div style={{ height: "200px", overflow: "hidden" }}>
                         <img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       </div>
                     )}
-                    <div className="p-5">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem" }}>{comp.name}</h3>
+                    <div className="p-5" style={{ minWidth: 0 }}>
+                      <div className="flex items-start gap-2 mb-2" style={{ justifyContent: "space-between" }}>
+                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem", minWidth: 0, wordBreak: "break-word", flex: 1 }}>{comp.name}</h3>
                         {comp.type && (
                           <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", flexShrink: 0, background: comp.type === "international" ? "rgba(122,56,0,0.3)" : comp.type === "university" ? "rgba(26,79,122,0.3)" : "var(--p-15)", color: comp.type === "international" ? "#fb923c" : comp.type === "university" ? "#64b5f6" : "var(--theme-accent)" }}>
                             {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
