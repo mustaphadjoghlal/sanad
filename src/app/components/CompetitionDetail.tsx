@@ -4,7 +4,6 @@ import { Trophy, Calendar, Users, Building2, ExternalLink, ArrowRight, Globe } f
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Competition } from "../../lib/types";
-import BlurredCover from "./ui/BlurredCover";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
 const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "var(--p-30)", international: "rgba(120,66,18,0.3)" };
@@ -64,7 +63,7 @@ export default function CompetitionDetail() {
 
       {/* Cover image */}
       {c.image ? (
-        <BlurredCover src={c.image} alt={c.name} height={420} className="w-full mt-4" />
+        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}><img src={c.image} alt={c.name} className="w-full object-cover" style={{ maxHeight: "420px", objectPosition: "center" }} /></div>
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"

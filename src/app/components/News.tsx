@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Newspaper, ArrowLeft } from "lucide-react";
 import { subscribeToNews } from "../../lib/firestore";
-import BlurredCover from "./ui/BlurredCover";
 import type { NewsItem, NewsCategory } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 
@@ -100,7 +99,7 @@ export default function NewsPage() {
                 className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
                 style={{ textDecoration: "none", background: "linear-gradient(145deg, #141414, #101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.05}s` }}
               >
-                {item.image && <BlurredCover src={item.image} alt={item.title} height={180} />}
+                {item.image && <div style={{ height: "180px", overflow: "hidden" }}><img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <span

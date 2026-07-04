@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Briefcase, Package, Trophy, Tv2, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
-import BlurredCover from "./ui/BlurredCover";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 
@@ -500,7 +499,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {featuredCourses.slice(0, 3).map((course, i) => (
                   <EditorialCard key={course.id} to={`/courses/${course.id}`} delay={`${i * 0.09}s`}>
-                    {course.image && <BlurredCover src={course.image} alt={course.title} height={170} />}
+                    {course.image && <div style={{ height: "170px", overflow: "hidden" }}><img src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
                     <div className="p-5">
                       <h3 className="font-bold mb-2" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{course.title}</h3>
                       {course.instructor && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.78rem", marginBottom: "0.75rem" }}>{course.instructor}</p>}
@@ -530,7 +529,7 @@ export default function Home() {
                     to={`/jobs/${job.id}`}
                     style={{ textDecoration: "none", display: "block", width: "100%", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
                   >
-                    {job.image && <BlurredCover src={job.image} alt={job.title} height={200} />}
+                    {job.image && <div style={{ height: "200px", overflow: "hidden" }}><img src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
                     <div className="p-5" style={{ minWidth: 0 }}>
                       <div className="flex items-start gap-2 mb-2" style={{ justifyContent: "space-between" }}>
                         <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem", minWidth: 0, wordBreak: "break-word", flex: 1 }}>{job.title}</h3>
@@ -555,7 +554,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {featuredEquipment.map((eq, i) => (
                   <EditorialCard key={eq.id} to={`/equipment/${eq.id}`} delay={`${i * 0.09}s`}>
-                    {eq.image && <BlurredCover src={eq.image} alt={eq.name} height={150} />}
+                    {eq.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={eq.image} alt={eq.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
                     <div className="p-4">
                       <h3 className="font-bold mb-1" style={{ color: "var(--theme-text)", fontSize: "0.9rem" }}>{eq.name}</h3>
                       {eq.category && <p style={{ color: "var(--theme-accent)", fontSize: "0.75rem" }}>{eq.category}</p>}
@@ -580,7 +579,7 @@ export default function Home() {
                     to={`/competitions/${comp.id}`}
                     style={{ textDecoration: "none", display: "block", width: "100%", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
                   >
-                    {comp.image && <BlurredCover src={comp.image} alt={comp.name} height={200} />}
+                    {comp.image && <div style={{ height: "200px", overflow: "hidden" }}><img src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
                     <div className="p-5" style={{ minWidth: 0 }}>
                       <div className="flex items-start gap-2 mb-2" style={{ justifyContent: "space-between" }}>
                         <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem", minWidth: 0, wordBreak: "break-word", flex: 1 }}>{comp.name}</h3>
@@ -613,7 +612,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
                 {latestNews.map((item, i) => (
                   <EditorialCard key={item.id} to={`/news/${item.id}`} delay={`${i * 0.09}s`}>
-                    {item.image && <BlurredCover src={item.image} alt={item.title} height={150} />}
+                    {item.image && <div style={{ height: "150px", overflow: "hidden" }}><img src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
                     <div className="p-5">
                       <div className="flex items-center gap-2 mb-2">
                         <Newspaper size={12} style={{ color: "var(--theme-accent)" }} />

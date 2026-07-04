@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Search, Briefcase, MapPin, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
-import BlurredCover from "./ui/BlurredCover";
 import type { Job } from "../../lib/types";
 
 export default function Jobs() {
@@ -82,7 +81,7 @@ export default function Jobs() {
               >
                 {/* Thumbnail */}
                 {j.image ? (
-                  <BlurredCover src={j.image} alt={j.title} height="100%" style={{ width: "96px", minWidth: "96px" }} />
+                  <div style={{ width: "96px", minWidth: "96px", flexShrink: 0, overflow: "hidden" }}><img src={j.image} alt={j.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>
                 ) : (
                   <div style={{ width: "96px", minWidth: "96px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <Briefcase size={28} style={{ color: "var(--p-40)" }} />

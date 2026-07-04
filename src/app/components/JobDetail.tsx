@@ -4,7 +4,6 @@ import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight, Globe, Mail,
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Job } from "../../lib/types";
-import BlurredCover from "./ui/BlurredCover";
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +59,7 @@ export default function JobDetail() {
 
       {/* Cover image */}
       {j.image ? (
-        <BlurredCover src={j.image} alt={j.title} height={420} className="w-full mt-4" />
+        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}><img src={j.image} alt={j.title} className="w-full object-cover" style={{ maxHeight: "420px", objectPosition: "center" }} /></div>
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"
