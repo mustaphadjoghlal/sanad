@@ -95,32 +95,48 @@ const services = [
 /* ── Auto carousel ── */
 function AutoCarousel({ children }: { children: React.ReactNode[] }) {
   const [idx, setIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [slideW, setSlideW] = useState(0);
+  const pausedRef = useRef(false);
+  const idxRef = useRef(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
   const n = children.length;
 
+  /* measure container width */
   useEffect(() => {
-    if (paused || n <= 1) return;
-    const t = setInterval(() => setIdx((i) => (i + 1) % n), 3800);
-    return () => clearInterval(t);
-  }, [paused, n]);
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setSlideW(el.offsetWidth));
+    ro.observe(el);
+    setSlideW(el.offsetWidth);
+    return () => ro.disconnect();
+  }, []);
 
-  const prev = () => setIdx((i) => (i - 1 + n) % n);
-  const next = () => setIdx((i) => (i + 1) % n);
+  const goTo = (i: number) => {
+    idxRef.current = i;
+    setIdx(i);
+  };
+
+  const prev = () => goTo((idxRef.current - 1 + n) % n);
+  const next = () => goTo((idxRef.current + 1) % n);
+
+  useEffect(() => {
+    if (n <= 1) return;
+    const t = setInterval(() => { if (!pausedRef.current) next(); }, 3800);
+    return () => clearInterval(t);
+  }, [n]);
 
   return (
     <div
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={() => { pausedRef.current = true; }}
+      onMouseLeave={() => { pausedRef.current = false; }}
     >
-      <div style={{ overflow: "hidden" }}>
+      <div ref={wrapRef} style={{ overflow: "hidden" }}>
         <div
-          dir="ltr"
           style={{
             display: "flex",
-            width: `${n * 100}%`,
-            transform: `translateX(-${(idx / n) * 100}%)`,
-            transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1)",
+            transform: `translateX(-${idx * slideW}px)`,
+            transition: slideW ? "transform 0.45s cubic-bezier(0.4,0,0.2,1)" : "none",
           }}
           onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
           onTouchEnd={(e) => {
@@ -131,7 +147,7 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
           }}
         >
           {children.map((child, i) => (
-            <div key={i} dir="rtl" style={{ width: `${100 / n}%`, flexShrink: 0 }}>
+            <div key={i} style={{ width: slideW || "100%", minWidth: slideW || "100%", flexShrink: 0, overflow: "hidden" }}>
               {child}
             </div>
           ))}
@@ -151,7 +167,7 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
             {children.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setIdx(i)}
+                onClick={() => goTo(i)}
                 style={{
                   width: i === idx ? "18px" : "6px",
                   height: "6px",
