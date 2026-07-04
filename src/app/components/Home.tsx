@@ -154,12 +154,12 @@ export default function Home() {
           {/* Top accent line */}
           <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
 
-          <div className="container mx-auto px-4 py-16 md:py-24">
-            <div className="grid md:grid-cols-5 gap-0 items-center" style={{ minHeight: "65vh" }}>
+          <div className="container mx-auto px-4 py-10 md:py-16">
+            <div className="grid md:grid-cols-5 gap-0 items-center">
 
               {/* Content — right column (RTL = displayed first) */}
               <div
-                className="md:col-span-3 flex flex-col justify-center py-8 md:py-0 md:pl-16"
+                className="md:col-span-3 flex flex-col justify-center md:pl-16"
                 style={{ borderLeft: "1px solid var(--p-12)" }}
               >
                 {/* Label */}
@@ -262,7 +262,7 @@ export default function Home() {
               {/* Decorative — left column (hidden on mobile) */}
               <div
                 className="hidden md:flex md:col-span-2 items-center justify-center relative"
-                style={{ minHeight: "60vh", paddingRight: "2rem" }}
+                style={{ paddingRight: "2rem" }}
               >
                 {/* Large ghost "سند" */}
                 <span style={{
