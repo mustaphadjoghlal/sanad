@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, Tv2, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, Briefcase, Package, Trophy, Tv2, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store, GraduationCap, FileText } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
@@ -84,11 +84,15 @@ function EditorialCard({ to, children, delay = "0s" }: { to: string; children: R
 }
 
 const services = [
-  { icon: BookOpen,  title: "الدورات التدريبية",  desc: "برامج تدريبية احترافية في مجال الإعلام والصحافة والإنتاج",  link: "/courses" },
-  { icon: Briefcase, title: "عروض التوظيف",       desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",            link: "/jobs" },
-  { icon: Package,   title: "عتاد إعلامي",        desc: "معدات تصوير وصوت وبث من أفضل الموردين",                    link: "/equipment" },
-  { icon: Trophy,    title: "المسابقات",           desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",           link: "/competitions" },
-  { icon: Tv2,       title: "دليل القنوات",        desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",        link: "/channels" },
+  { icon: BookOpen,     title: "الدورات التدريبية",  desc: "برامج تدريبية احترافية في مجال الإعلام والصحافة والإنتاج",  link: "/courses" },
+  { icon: Briefcase,    title: "عروض التوظيف",       desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",            link: "/jobs" },
+  { icon: Package,      title: "عتاد إعلامي",        desc: "معدات تصوير وصوت وبث من أفضل الموردين",                    link: "/equipment" },
+  { icon: Trophy,       title: "المسابقات",           desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",           link: "/competitions" },
+  { icon: Newspaper,    title: "أخبار الإعلام",      desc: "آخر مستجدات القطاع الإعلامي الجزائري",                    link: "/news" },
+  { icon: Store,        title: "سوق المعدات",        desc: "تسوّق معدات وأجهزة إعلامية من متاجر موثوقة",               link: "/stores" },
+  { icon: GraduationCap, title: "مراكز التدريب",    desc: "مدربون ومراكز متخصصة في تأهيل الإعلاميين",                link: "/trainers" },
+  { icon: Tv2,          title: "دليل القنوات",       desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",        link: "/channels" },
+  { icon: FileText,     title: "مذكرات التخرج",     desc: "بنك مذكرات في تخصصات الإعلام والصحافة والاتصال",           link: "/theses" },
 ];
 
 /* ── Auto carousel ── */

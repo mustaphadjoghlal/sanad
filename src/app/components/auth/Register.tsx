@@ -8,13 +8,8 @@ import { uploadProfilePhoto } from "../../../lib/storage";
 import type { AccountType, PortfolioLink } from "../../../lib/types";
 import { INTERESTS } from "../../../lib/types";
 
-const wilayas = [
-  "الجزائر", "وهران", "قسنطينة", "عنابة", "سطيف", "تيزي وزو", "البليدة", "بجاية",
-  "تلمسان", "باتنة", "بسكرة", "سكيكدة", "جيجل", "برج بوعريريج", "المدية", "تبسة",
-  "مستغانم", "معسكر", "سعيدة", "تيارت", "غليزان", "الشلف", "عين الدفلى", "ميلة",
-  "خنشلة", "أم البواقي", "سوق أهراس", "المسيلة", "الوادي", "ورقلة",
-  "غرداية", "بشار", "أدرار", "تمنراست", "إليزي",
-];
+import { WILAYAS } from "../../../lib/wilayas";
+const wilayas = WILAYAS;
 
 type MainType = "individual" | "store" | "trainer" | null;
 type IndividualSubType = "editor_news" | "web_digital" | "presenter_programs" | "presenter_news" | "monteur" | "graphic_designer" | "cameraman" | "producer" | "director" | "program_writer" | "voice" | "host_stage" | "student" | "other" | null;
@@ -606,7 +601,7 @@ export default function Register() {
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                       value={form.password}
                       onChange={(e) => f("password", e.target.value)}
-                      placeholder="6 أحرف على الأقل"
+                      placeholder="8 أحرف على الأقل (حروف وأرقام)"
                     />
                   </div>
                   <div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Phone, Mail, ExternalLink, Play, ArrowRight, User } from "lucide-react";
+import { MapPin, Phone, ExternalLink, Play, ArrowRight, User, Mic } from "lucide-react";
 import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 
@@ -68,16 +68,23 @@ export default function ProfilePage() {
             </div>
 
             <h1 className="text-2xl font-black mb-1" style={{ color: "var(--theme-text)" }}>{profile.name}</h1>
-            <span className="inline-block text-sm px-3 py-1 rounded-full mb-3" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>
-              {typeLabel[profile.type] ?? profile.type}
-            </span>
+            {profile.tagline && <p className="text-sm mb-2" style={{ color: "var(--theme-accent)", fontStyle: "italic" }}>{profile.tagline}</p>}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="inline-block text-sm px-3 py-1 rounded-full" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>
+                {typeLabel[profile.type] ?? profile.type}
+              </span>
+              {profile.gender && (
+                <span className="inline-block text-sm px-3 py-1 rounded-full" style={{ background: "var(--p-10)", color: "var(--theme-text-muted)" }}>
+                  {profile.gender === "male" ? "ذكر" : "أنثى"}
+                </span>
+              )}
+            </div>
             {profile.bio && <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--theme-text-muted)" }}>{profile.bio}</p>}
 
             {/* Contact */}
             <div className="flex flex-wrap gap-3">
               {profile.location && <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted)" }}><MapPin size={14} />{profile.location}</span>}
               {profile.phone && <a href={`tel:${profile.phone}`} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg" style={{ color: "var(--theme-badge-text)", border: "1px solid var(--p-25)", textDecoration: "none" }}><Phone size={14} />{profile.phone}</a>}
-              {profile.email && <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg" style={{ color: "var(--theme-badge-text)", border: "1px solid var(--p-25)", textDecoration: "none" }}><Mail size={14} />{profile.email}</a>}
             </div>
           </div>
         </div>
@@ -147,6 +154,26 @@ export default function ProfilePage() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Audio samples */}
+        {profile.audioSamples && profile.audioSamples.length > 0 && (
+          <div className="rounded-2xl p-5 mb-6" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-20)" }}>
+            <h2 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--theme-text)" }}>
+              <Mic size={16} style={{ color: "var(--theme-accent)" }} /> عينات صوتية
+            </h2>
+            <div className="flex flex-col gap-4">
+              {profile.audioSamples.map((s, i) => (
+                <div key={i} style={{ background: "var(--p-08)", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium" style={{ color: "var(--theme-text)" }}>{s.title}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--p-15)", color: "var(--theme-accent)" }}>{s.category}</span>
+                  </div>
+                  <audio controls src={s.url} style={{ width: "100%", height: "36px" }} />
+                </div>
+              ))}
             </div>
           </div>
         )}

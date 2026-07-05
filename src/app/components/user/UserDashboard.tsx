@@ -90,11 +90,8 @@ const S = {
   td: { color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", padding: "0.85rem 1rem", textAlign: "right" as const, borderBottom: "1px solid var(--p-08)" },
 };
 
-const wilayas = [
-  "الجزائر", "وهران", "قسنطينة", "عنابة", "سطيف", "تيزي وزو", "البليدة", "بجاية",
-  "تلمسان", "باتنة", "بسكرة", "سكيكدة", "جيجل", "برج بوعريريج", "المدية", "تبسة",
-  "مستغانم", "معسكر", "سعيدة", "تيارت", "غليزان", "الشلف", "عين الدفلى", "ميلة",
-];
+import { WILAYAS } from "../../../lib/wilayas";
+const wilayas = WILAYAS;
 
 type EquipForm = {
   name: string;
@@ -1254,10 +1251,10 @@ export default function UserDashboard() {
               <span style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600 }}>ملفك في قسم المنشطين</span>
             </div>
             <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
-              ملفك الشخصي معتمد ويظهر في صفحة طلبات المنشطين للعملاء.
+              ملفك الشخصي معتمد ويظهر في قسم المحترفين على منصة سند.
             </p>
-            <Link to="/voice-requests" style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.85rem", textDecoration: "none", marginTop: "0.5rem", display: "inline-block" }}>
-              عرض الصفحة
+            <Link to={`/profile/${profile.id}`} style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.85rem", textDecoration: "none", marginTop: "0.5rem", display: "inline-block" }}>
+              شاهد ملفك العام ←
             </Link>
           </div>
         )}
@@ -1275,6 +1272,9 @@ export default function UserDashboard() {
             <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
               ملفك الشخصي معتمد ويظهر في قسم المحترفين على منصة سند.
             </p>
+            <Link to={`/profile/${profile.id}`} style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.85rem", textDecoration: "none", marginTop: "0.5rem", display: "inline-block" }}>
+              شاهد ملفك العام ←
+            </Link>
           </div>
         )}
       </div>
