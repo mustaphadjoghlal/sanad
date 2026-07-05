@@ -285,6 +285,8 @@ body {
 
 /* Select dark style */
 .select-dz {
+  -webkit-appearance: none;
+  appearance: none;
   background: var(--theme-bg-card, #141414);
   border: 1px solid var(--p-30);
   color: var(--theme-text, #e8f5e9) !important;

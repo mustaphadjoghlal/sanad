@@ -114,7 +114,7 @@ export default function Professionals() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>
-                <div style={{ height: "140px", background: "var(--p-10)" }} />
+                <div style={{ height: "140px", background: "#1a1a1a" }} />
                 <div className="p-4 space-y-2">
                   <div style={{ height: "14px", background: "var(--p-10)", borderRadius: "4px", width: "65%" }} />
                   <div style={{ height: "11px", background: "var(--p-08)", borderRadius: "4px", width: "45%" }} />
@@ -140,7 +140,7 @@ export default function Professionals() {
                   style={{ background: "linear-gradient(145deg, #141414, #101010)", textDecoration: "none", animationDelay: `${i * 0.05}s`, opacity: 0, animationFillMode: "forwards" }}
                 >
                   {/* Photo */}
-                  <div className="relative overflow-hidden" style={{ height: "140px", background: "var(--p-10)" }}>
+                  <div className="relative overflow-hidden" style={{ height: "140px", background: "#1a1a1a" }}>
                     {p.photo ? (
                       <img src={p.photo} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
