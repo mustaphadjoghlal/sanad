@@ -4,9 +4,12 @@ import { MapPin, Phone, Search, BookOpen, Building2, UserPlus } from "lucide-rea
 import { subscribeToApprovedTrainers } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 
+const PAGE_SIZE = 9;
+
 export default function Trainers() {
   const [trainers, setTrainers] = useState<UserProfile[]>([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => subscribeToApprovedTrainers(setTrainers), []);
 
@@ -19,6 +22,9 @@ export default function Trainers() {
       (t.organization ?? "").toLowerCase().includes(q)
     );
   });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="min-h-screen py-12" style={{ background: "#0e0e0e" }} dir="rtl">
@@ -49,7 +55,7 @@ export default function Trainers() {
           <Search className="absolute right-3 top-1/2 -translate-y-1/2" size={18} style={{ color: "var(--theme-text-muted)" }} />
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="ابحث عن مدرب أو تخصص..."
             className="input-dz w-full pr-10 pl-4 py-3 rounded-xl text-sm"
           />
@@ -61,8 +67,15 @@ export default function Trainers() {
             <p>لا يوجد مدربون حالياً</p>
           </div>
         ) : (
+          <>
+          {filtered.length > 0 && (
+            <p className="text-sm mb-6 text-center" style={{ color: "var(--theme-text-muted)" }}>
+              {filtered.length} مدرب ومركز تدريب
+              {totalPages > 1 && <span> — صفحة {page} من {totalPages}</span>}
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((trainer, i) => (
+            {paginated.map((trainer, i) => (
               <Link
                 key={trainer.id}
                 to={`/trainers/${trainer.id}`}
@@ -126,6 +139,46 @@ export default function Trainers() {
               </Link>
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 mt-10">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="px-4 py-2 rounded-lg text-sm disabled:opacity-30"
+                style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-secondary)", cursor: page === 1 ? "not-allowed" : "pointer" }}
+              >
+                السابق
+              </button>
+              <div className="flex gap-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setPage(n)}
+                    className="w-9 h-9 rounded-lg text-sm font-medium"
+                    style={{
+                      background: n === page ? "var(--theme-accent)" : "var(--p-10)",
+                      border: "1px solid " + (n === page ? "var(--theme-accent)" : "var(--p-20)"),
+                      color: n === page ? "#fff" : "var(--theme-text-secondary)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-4 py-2 rounded-lg text-sm disabled:opacity-30"
+                style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-secondary)", cursor: page === totalPages ? "not-allowed" : "pointer" }}
+              >
+                التالي
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

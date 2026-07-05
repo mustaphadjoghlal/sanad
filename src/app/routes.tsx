@@ -25,7 +25,9 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/AdminLogin";
 import Register from "./components/auth/Register";
 import UserLogin from "./components/auth/UserLogin";
+import ForgotPassword from "./components/auth/ForgotPassword";
 import UserDashboard from "./components/user/UserDashboard";
+import Professionals from "./components/Professionals";
 import NotFound from "./components/NotFound";
 
 export const router = createBrowserRouter([
@@ -54,6 +56,7 @@ export const router = createBrowserRouter([
       { path: "trainers", Component: Trainers },
       { path: "trainers/:id", Component: TrainerDetail },
       { path: "profile/:id", Component: ProfilePage },
+      { path: "professionals", Component: Professionals },
       { path: "*", Component: NotFound },
     ],
   },
@@ -72,6 +75,10 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     Component: UserLogin,
+  },
+  {
+    path: "/forgot-password",
+    Component: ForgotPassword,
   },
   {
     path: "/user/dashboard",

@@ -30,6 +30,7 @@ export default function Layout() {
   ];
 
   const moreLinks = [
+    { to: "/professionals", label: "دليل المحترفين" },
     { to: "/trainers", label: "مراكز التدريب" },
     { to: "/channels", label: "دليل القنوات" },
     { to: "/theses", label: "مذكرات التخرج" },

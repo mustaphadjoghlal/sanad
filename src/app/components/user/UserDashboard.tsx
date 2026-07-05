@@ -439,17 +439,30 @@ export default function UserDashboard() {
   return (
     <div className="min-h-screen" dir="rtl" style={{ background: "#0e0e0e" }}>
       {/* Header */}
-      <div
-        className="px-6 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid var(--p-20)", background: "rgba(11,15,11,0.9)", backdropFilter: "blur(8px)" }}
+      <header
+        className="sticky top-0 z-50 px-6 py-3 flex items-center justify-between"
+        style={{ borderBottom: "1px solid var(--p-20)", background: "rgba(8,11,8,0.96)", backdropFilter: "blur(12px)" }}
       >
-        <Link to="/" style={{ textDecoration: "none" }}>
-          <span className="font-bold text-xl" style={{ background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-            سند
-          </span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <span className="font-bold text-xl" style={{ background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              سند
+            </span>
+          </Link>
+          <span style={{ color: "var(--p-25)", fontSize: "0.75rem" }}>/</span>
+          <span style={{ color: "var(--theme-text-muted)", fontSize: "0.82rem" }}>لوحة التحكم</span>
+        </div>
         <div className="flex items-center gap-3">
-          <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.85rem" }}>{profile.name}</span>
+          <Link
+            to="/"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
+            style={{ color: "var(--theme-text-secondary, #6aad6a)", textDecoration: "none", border: "1px solid var(--p-20)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-35)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-20)"; }}
+          >
+            الرئيسية
+          </Link>
+          <span className="hidden sm:block text-sm" style={{ color: "var(--theme-text-muted)", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.name}</span>
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
@@ -459,7 +472,7 @@ export default function UserDashboard() {
             <span>خروج</span>
           </button>
         </div>
-      </div>
+      </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Profile Card */}

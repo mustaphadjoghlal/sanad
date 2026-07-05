@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Radio, LogIn } from "lucide-react";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
 
@@ -11,8 +11,6 @@ export default function UserLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resetMode, setResetMode] = useState(false);
-  const [resetSent, setResetSent] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,29 +144,9 @@ export default function UserLogin() {
               </Link>
             </p>
             <p style={{ textAlign: "center" }}>
-              {resetSent ? (
-                <span style={{ color: "#4ade80", fontSize: "0.85rem" }}>✓ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك</span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!email) { setError("أدخل بريدك الإلكتروني أولاً"); return; }
-                    setLoading(true);
-                    try {
-                      await sendPasswordResetEmail(auth, email);
-                      setResetSent(true);
-                      setError("");
-                    } catch {
-                      setError("البريد الإلكتروني غير موجود");
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                  style={{ color: "var(--theme-text-secondary, #6aad6a)", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem" }}
-                >
-                  نسيت كلمة المرور؟
-                </button>
-              )}
+              <Link to="/forgot-password" style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.85rem", textDecoration: "none" }}>
+                نسيت كلمة المرور؟
+              </Link>
             </p>
           </div>
         </div>
