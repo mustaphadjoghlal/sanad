@@ -214,11 +214,13 @@ export function subscribeToAllProfiles(
 export function subscribeToApprovedProfessionals(
   callback: (profiles: UserProfile[]) => void
 ): () => void {
-  const q = query(col("users"), where("status", "==", "approved"), orderBy("createdAt", "desc"));
+  // No orderBy to avoid composite index requirement — sort client-side
+  const q = query(col("users"), where("status", "==", "approved"));
   return onSnapshot(q, (snap) => {
     const profiles = snap.docs
       .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
-      .filter((p) => p.type !== "store");
+      .filter((p) => p.type !== "store")
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     callback(profiles);
   });
 }
