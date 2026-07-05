@@ -154,17 +154,17 @@ export default function Professionals() {
                   </div>
 
                   {/* Info */}
-                  <div className="p-4">
-                    <h3 className="font-bold text-base mb-0.5 truncate" style={{ color: "var(--theme-text)" }}>{p.name}</h3>
-                    {p.tagline && <p className="text-xs mb-2 truncate" style={{ color: "var(--theme-accent)", fontStyle: "italic" }}>{p.tagline}</p>}
-                    {p.specialty && <p className="text-xs mb-2 truncate" style={{ color: "var(--theme-text-secondary)" }}>{p.specialty}</p>}
-                    <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: "1px solid var(--p-10)" }}>
+                  <div className="p-4" style={{ background: "#141414" }}>
+                    <h3 className="font-bold text-base mb-0.5 truncate" style={{ color: "#e0e8e0" }}>{p.name}</h3>
+                    {p.tagline && <p className="text-xs mb-2 truncate" style={{ color: "#00a355", fontStyle: "italic" }}>{p.tagline}</p>}
+                    {p.specialty && <p className="text-xs mb-2 truncate" style={{ color: "#b0bec5" }}>{p.specialty}</p>}
+                    <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: "1px solid rgba(0,98,51,0.15)" }}>
                       {p.location ? (
-                        <span className="flex items-center gap-1 text-xs" style={{ color: "var(--theme-text-muted)" }}>
+                        <span className="flex items-center gap-1 text-xs" style={{ color: "#78909c" }}>
                           <MapPin size={10} />{p.location}
                         </span>
                       ) : <span />}
-                      <span className="flex items-center gap-1 text-xs" style={{ color: "var(--theme-accent)" }}>
+                      <span className="flex items-center gap-1 text-xs" style={{ color: "#00a355" }}>
                         الملف <ArrowLeft size={10} />
                       </span>
                     </div>
