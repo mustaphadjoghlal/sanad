@@ -111,7 +111,17 @@ export default function Professionals() {
         )}
 
         {loading ? (
-          <div className="text-center py-16" style={{ color: "var(--theme-text-dim)" }}>جاري التحميل...</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>
+                <div style={{ height: "140px", background: "var(--p-10)" }} />
+                <div className="p-4 space-y-2">
+                  <div style={{ height: "14px", background: "var(--p-10)", borderRadius: "4px", width: "65%" }} />
+                  <div style={{ height: "11px", background: "var(--p-08)", borderRadius: "4px", width: "45%" }} />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>

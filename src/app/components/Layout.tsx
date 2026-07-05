@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Facebook } from "lucide-react";
+import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Facebook, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL } from "../../lib/firebase";
@@ -290,6 +290,13 @@ export default function Layout() {
                 )}
               </div>
             </nav>
+
+            {/* Search icon */}
+            <Link to="/search" className="hidden md:flex p-2 rounded-lg transition-all duration-200" style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--p-20)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-10)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
+              <Search size={16} />
+            </Link>
 
             {/* Right side: Auth buttons */}
             <div className="hidden md:flex items-center gap-2">
@@ -622,6 +629,31 @@ export default function Layout() {
               <Facebook size={14} />
               <span>صفحتنا على فيسبوك</span>
             </a>
+          </div>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Link to="/about" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
+              من نحن
+            </Link>
+            <span style={{ color: "var(--p-20)" }}>·</span>
+            <Link to="/privacy" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
+              الخصوصية
+            </Link>
+            <span style={{ color: "var(--p-20)" }}>·</span>
+            <Link to="/terms" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
+              الشروط
+            </Link>
+            <span style={{ color: "var(--p-20)" }}>·</span>
+            <Link to="/search" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
+              البحث
+            </Link>
           </div>
           <p style={{ color: "var(--theme-text-dim, #455a64)" }} className="text-xs">
             جميع الحقوق محفوظة © 2026

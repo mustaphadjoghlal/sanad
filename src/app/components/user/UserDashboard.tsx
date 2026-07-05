@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
 import {
   LogOut, User, Package, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check,
   AlertTriangle, ExternalLink, Award, Link as LinkIcon2, ImageIcon, Youtube, Trash2,
@@ -17,7 +17,7 @@ import {
   isUsernameAvailable,
 } from "../../../lib/firestore";
 import { uploadProfilePhoto, uploadAudioSample } from "../../../lib/storage";
-import type { UserProfile, Equipment, PortfolioLink, PortfolioVideo, AudioSample, Gender, VoiceSampleCategory } from "../../../lib/types";
+import type { UserProfile, Equipment, PortfolioLink, PortfolioVideo, AudioSample, Gender, VoiceSampleCategory, SocialLinks } from "../../../lib/types";
 import { VOICE_SAMPLE_CATEGORIES } from "../../../lib/types";
 import StoreManager from "../StoreManager";
 import TrainerManager from "../TrainerManager";
@@ -119,6 +119,7 @@ type EditFormState = {
   tagline: string;
   gender: Gender | "";
   audioSamples: AudioSample[];
+  socialLinks: SocialLinks;
 };
 
 function encodeWAV(buffer: AudioBuffer): Blob {
@@ -182,6 +183,129 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   );
 }
 
+function AccountSettings({ uid }: { uid: string }) {
+  const navigate = useNavigate();
+  const [section, setSection] = useState<"none" | "password" | "delete">("none");
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [delLoading, setDelLoading] = useState(false);
+  const [delMsg, setDelMsg] = useState("");
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwMsg(null);
+    if (pwNew.length < 8) { setPwMsg({ type: "err", text: "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل" }); return; }
+    if (pwNew !== pwConfirm) { setPwMsg({ type: "err", text: "كلمتا المرور غير متطابقتان" }); return; }
+    setPwLoading(true);
+    try {
+      const user = auth.currentUser!;
+      const cred = EmailAuthProvider.credential(user.email!, pwCurrent);
+      await reauthenticateWithCredential(user, cred);
+      await updatePassword(user, pwNew);
+      setPwMsg({ type: "ok", text: "تم تغيير كلمة المرور بنجاح" });
+      setPwCurrent(""); setPwNew(""); setPwConfirm("");
+    } catch (err: unknown) {
+      const e = err as { code?: string };
+      if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") {
+        setPwMsg({ type: "err", text: "كلمة المرور الحالية غير صحيحة" });
+      } else {
+        setPwMsg({ type: "err", text: "حدث خطأ. يرجى المحاولة مجدداً." });
+      }
+    } finally { setPwLoading(false); }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!delMsg.trim()) return;
+    setDelLoading(true);
+    try {
+      const user = auth.currentUser!;
+      const cred = EmailAuthProvider.credential(user.email!, delMsg.trim());
+      await reauthenticateWithCredential(user, cred);
+      const { deleteDoc, doc } = await import("firebase/firestore");
+      const { db } = await import("../../../lib/firebase");
+      await deleteDoc(doc(db, "users", uid));
+      await deleteUser(user);
+      navigate("/");
+    } catch (err: unknown) {
+      const e = err as { code?: string };
+      if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") {
+        setDelMsg("");
+        alert("كلمة المرور غير صحيحة");
+      } else {
+        alert("حدث خطأ. يرجى المحاولة مجدداً.");
+      }
+    } finally { setDelLoading(false); }
+  };
+
+  return (
+    <div className="p-5 mb-6 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-25)", borderRadius: "0.75rem", animationDelay: "0.15s", opacity: 0, animationFillMode: "forwards" }}>
+      <div className="flex items-center gap-2 mb-4">
+        <User size={16} style={{ color: "var(--theme-accent)" }} />
+        <span style={{ color: "var(--theme-text)", fontWeight: 600 }}>إعدادات الحساب</span>
+      </div>
+      <div className="flex flex-wrap gap-3 mb-4">
+        <button
+          onClick={() => setSection(section === "password" ? "none" : "password")}
+          className="text-sm px-4 py-2 rounded-lg transition-colors"
+          style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text)", background: section === "password" ? "var(--p-15)" : "transparent" }}
+        >
+          تغيير كلمة المرور
+        </button>
+        <button
+          onClick={() => setSection(section === "delete" ? "none" : "delete")}
+          className="text-sm px-4 py-2 rounded-lg transition-colors"
+          style={{ border: "1px solid rgba(198,40,40,0.3)", color: "#f87171", background: section === "delete" ? "rgba(198,40,40,0.08)" : "transparent" }}
+        >
+          حذف الحساب
+        </button>
+      </div>
+
+      {section === "password" && (
+        <form onSubmit={handleChangePassword} className="space-y-3 max-w-md">
+          {pwMsg && (
+            <div className="p-3 rounded-lg text-sm" style={{ background: pwMsg.type === "ok" ? "rgba(0,100,50,0.15)" : "rgba(198,40,40,0.1)", border: `1px solid ${pwMsg.type === "ok" ? "rgba(0,163,85,0.3)" : "rgba(198,40,40,0.3)"}`, color: pwMsg.type === "ok" ? "#4ade80" : "#f87171" }}>
+              {pwMsg.text}
+            </div>
+          )}
+          <div>
+            <label style={{ color: "var(--theme-badge-text)", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" }}>كلمة المرور الحالية</label>
+            <input type="password" style={{ background: "#161616", border: "1px solid var(--p-30)", color: "var(--theme-text)", borderRadius: "0.5rem", padding: "0.6rem 0.85rem", width: "100%", fontSize: "0.875rem" }} value={pwCurrent} onChange={(e) => setPwCurrent(e.target.value)} />
+          </div>
+          <div>
+            <label style={{ color: "var(--theme-badge-text)", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" }}>كلمة المرور الجديدة</label>
+            <input type="password" style={{ background: "#161616", border: "1px solid var(--p-30)", color: "var(--theme-text)", borderRadius: "0.5rem", padding: "0.6rem 0.85rem", width: "100%", fontSize: "0.875rem" }} value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder="8 أحرف على الأقل" />
+          </div>
+          <div>
+            <label style={{ color: "var(--theme-badge-text)", fontSize: "0.8rem", display: "block", marginBottom: "0.35rem" }}>تأكيد كلمة المرور</label>
+            <input type="password" style={{ background: "#161616", border: "1px solid var(--p-30)", color: "var(--theme-text)", borderRadius: "0.5rem", padding: "0.6rem 0.85rem", width: "100%", fontSize: "0.875rem" }} value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} />
+          </div>
+          <button type="submit" disabled={pwLoading} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
+            {pwLoading ? "جاري الحفظ..." : "حفظ كلمة المرور"}
+          </button>
+        </form>
+      )}
+
+      {section === "delete" && (
+        <div className="max-w-md">
+          <p className="text-sm mb-3" style={{ color: "#f87171", lineHeight: 1.6 }}>
+            سيتم حذف حسابك وملفك الشخصي نهائياً ولا يمكن استرجاعه. أدخل كلمة مرورك للتأكيد.
+          </p>
+          <div className="flex gap-3">
+            <input type="password" style={{ background: "#161616", border: "1px solid rgba(198,40,40,0.4)", color: "var(--theme-text)", borderRadius: "0.5rem", padding: "0.6rem 0.85rem", flex: 1, fontSize: "0.875rem" }} value={delMsg} onChange={(e) => setDelMsg(e.target.value)} placeholder="كلمة المرور" />
+            <button onClick={handleDeleteAccount} disabled={delLoading || !delMsg.trim()} className="px-4 py-2 rounded-lg text-sm disabled:opacity-40" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#f87171" }}>
+              {delLoading ? "..." : "حذف"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [uid, setUid] = useState<string | null>(null);
@@ -202,6 +326,7 @@ export default function UserDashboard() {
     tagline: "",
     gender: "",
     audioSamples: [],
+    socialLinks: {},
   });
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [saving, setSaving] = useState(false);
@@ -289,6 +414,7 @@ export default function UserDashboard() {
       tagline: profile.tagline || "",
       gender: profile.gender || "",
       audioSamples: profile.audioSamples ? [...profile.audioSamples] : [],
+      socialLinks: profile.socialLinks ?? {},
     });
     setUsernameStatus("idle");
     setPhotoUrl(profile.photo || "");
@@ -379,6 +505,7 @@ export default function UserDashboard() {
         location: editForm.location || undefined,
         phone: editForm.phone || undefined,
         experience: editForm.experience || undefined,
+        socialLinks: Object.keys(editForm.socialLinks).length > 0 ? editForm.socialLinks : undefined,
         otherType: profile.otherType,
         storeStatus: profile.storeStatus,
         username: profile.type === "store" && editForm.username ? editForm.username.toLowerCase() : undefined,
@@ -1114,6 +1241,40 @@ export default function UserDashboard() {
                     </div>
                   )}
 
+                  {/* Social links */}
+                  <div>
+                    <label style={S.label}>روابط التواصل الاجتماعي</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {(["instagram", "facebook", "linkedin", "youtube", "website", "twitter"] as (keyof SocialLinks)[]).map((key) => {
+                        const placeholders: Record<string, string> = {
+                          instagram: "https://instagram.com/username",
+                          facebook: "https://facebook.com/username",
+                          linkedin: "https://linkedin.com/in/username",
+                          youtube: "https://youtube.com/@channel",
+                          website: "https://monsite.com",
+                          twitter: "https://twitter.com/username",
+                        };
+                        const labels: Record<string, string> = {
+                          instagram: "Instagram", facebook: "Facebook",
+                          linkedin: "LinkedIn", youtube: "YouTube",
+                          website: "الموقع الشخصي", twitter: "Twitter / X",
+                        };
+                        return (
+                          <div key={key}>
+                            <label style={{ ...S.label, fontSize: "0.73rem", color: "var(--theme-text-muted)" }}>{labels[key]}</label>
+                            <input
+                              style={S.input}
+                              value={editForm.socialLinks[key] ?? ""}
+                              onChange={(e) => setEditForm((p) => ({ ...p, socialLinks: { ...p.socialLinks, [key]: e.target.value || undefined } }))}
+                              placeholder={placeholders[key]}
+                              dir="ltr"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="flex gap-3 pt-2">
                     <button
                       onClick={() => setEditing(false)}
@@ -1135,6 +1296,9 @@ export default function UserDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Change password + Delete account */}
+        <AccountSettings uid={uid!} />
 
         {/* Store status card */}
         {profile.type === "store" && (

@@ -28,6 +28,10 @@ import UserLogin from "./components/auth/UserLogin";
 import ForgotPassword from "./components/auth/ForgotPassword";
 import UserDashboard from "./components/user/UserDashboard";
 import Professionals from "./components/Professionals";
+import SearchPage from "./components/Search";
+import About from "./components/About";
+import Privacy from "./components/Privacy";
+import Terms from "./components/Terms";
 import NotFound from "./components/NotFound";
 
 export const router = createBrowserRouter([
@@ -57,6 +61,10 @@ export const router = createBrowserRouter([
       { path: "trainers/:id", Component: TrainerDetail },
       { path: "profile/:id", Component: ProfilePage },
       { path: "professionals", Component: Professionals },
+      { path: "search", Component: SearchPage },
+      { path: "about", Component: About },
+      { path: "privacy", Component: Privacy },
+      { path: "terms", Component: Terms },
       { path: "*", Component: NotFound },
     ],
   },

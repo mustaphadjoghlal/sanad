@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Phone, ExternalLink, Play, ArrowRight, User, Mic } from "lucide-react";
+import { MapPin, Phone, ExternalLink, Play, ArrowRight, User, Mic, Share2, Instagram, Linkedin, Facebook, Youtube, Globe, Twitter } from "lucide-react";
 import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 
@@ -18,6 +18,26 @@ const typeLabel: Record<string, string> = {
 function ytId(url: string) {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
   return m?.[1] ?? null;
+}
+
+function ShareButton() {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors"
+      style={{ border: "1px solid var(--p-25)", color: copied ? "var(--theme-accent)" : "var(--theme-text-muted)", background: "none", cursor: "pointer" }}
+    >
+      <Share2 size={13} />
+      {copied ? "تم نسخ الرابط ✓" : "مشاركة الملف"}
+    </button>
+  );
 }
 
 export default function ProfilePage() {
@@ -82,10 +102,25 @@ export default function ProfilePage() {
             {profile.bio && <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--theme-text-muted)" }}>{profile.bio}</p>}
 
             {/* Contact */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 mb-3">
               {profile.location && <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted)" }}><MapPin size={14} />{profile.location}</span>}
               {profile.phone && <a href={`tel:${profile.phone}`} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg" style={{ color: "var(--theme-badge-text)", border: "1px solid var(--p-25)", textDecoration: "none" }}><Phone size={14} />{profile.phone}</a>}
             </div>
+
+            {/* Social links */}
+            {profile.socialLinks && Object.values(profile.socialLinks).some(Boolean) && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {profile.socialLinks.instagram && <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style={{ color: "#e1306c", border: "1px solid rgba(225,48,108,0.25)", textDecoration: "none" }}><Instagram size={13} />Instagram</a>}
+                {profile.socialLinks.facebook && <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style={{ color: "#1877f2", border: "1px solid rgba(24,119,242,0.25)", textDecoration: "none" }}><Facebook size={13} />Facebook</a>}
+                {profile.socialLinks.linkedin && <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style={{ color: "#0a66c2", border: "1px solid rgba(10,102,194,0.25)", textDecoration: "none" }}><Linkedin size={13} />LinkedIn</a>}
+                {profile.socialLinks.youtube && <a href={profile.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style={{ color: "#ff0000", border: "1px solid rgba(255,0,0,0.25)", textDecoration: "none" }}><Youtube size={13} />YouTube</a>}
+                {profile.socialLinks.twitter && <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style={{ color: "#aaa", border: "1px solid rgba(170,170,170,0.25)", textDecoration: "none" }}><Twitter size={13} />X</a>}
+                {profile.socialLinks.website && <a href={profile.socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors" style={{ color: "var(--theme-accent)", border: "1px solid var(--p-25)", textDecoration: "none" }}><Globe size={13} />الموقع</a>}
+              </div>
+            )}
+
+            {/* Share button */}
+            <ShareButton />
           </div>
         </div>
 

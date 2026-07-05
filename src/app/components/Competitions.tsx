@@ -79,7 +79,18 @@ export default function Competitions() {
         )}
 
         {loading ? (
-          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>
+                <div style={{ height: "160px", background: "var(--p-10)" }} />
+                <div className="p-4 space-y-3">
+                  <div style={{ height: "16px", background: "var(--p-10)", borderRadius: "4px", width: "75%" }} />
+                  <div style={{ height: "12px", background: "var(--p-08)", borderRadius: "4px", width: "55%" }} />
+                  <div style={{ height: "12px", background: "var(--p-08)", borderRadius: "4px", width: "35%" }} />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>

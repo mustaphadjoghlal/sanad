@@ -8,10 +8,11 @@ const PAGE_SIZE = 9;
 
 export default function Trainers() {
   const [trainers, setTrainers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  useEffect(() => subscribeToApprovedTrainers(setTrainers), []);
+  useEffect(() => subscribeToApprovedTrainers((data) => { setTrainers(data); setLoading(false); }), []);
 
   const filtered = trainers.filter((t) => {
     const q = search.toLowerCase();
@@ -61,7 +62,20 @@ export default function Trainers() {
           />
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>
+                <div style={{ height: "160px", background: "var(--p-10)" }} />
+                <div className="p-5 space-y-3">
+                  <div style={{ height: "16px", background: "var(--p-10)", borderRadius: "4px", width: "60%" }} />
+                  <div style={{ height: "12px", background: "var(--p-08)", borderRadius: "4px", width: "80%" }} />
+                  <div style={{ height: "12px", background: "var(--p-08)", borderRadius: "4px", width: "45%" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "var(--theme-text-muted)" }}>
             <BookOpen size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
             <p>لا يوجد مدربون حالياً</p>

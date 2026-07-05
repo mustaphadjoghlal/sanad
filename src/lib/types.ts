@@ -254,6 +254,15 @@ export interface CourseRegistration {
 export const INTERESTS = ['الاقتصاد', 'الفن', 'الرياضة', 'السياسة'] as const;
 export type Interest = typeof INTERESTS[number];
 
+export interface SocialLinks {
+  instagram?: string;
+  linkedin?: string;
+  facebook?: string;
+  website?: string;
+  youtube?: string;
+  twitter?: string;
+}
+
 export interface PortfolioLink {
   label: string;
   url: string;
@@ -301,6 +310,7 @@ export interface UserProfile {
   tagline?: string;
   gender?: Gender;
   audioSamples?: AudioSample[];
+  socialLinks?: SocialLinks;
 }
 
 export const PRODUCT_CATEGORIES = ["كاميرات", "ميكروفونات", "إضاءة", "حوامل وأرجل", "بطاريات وشواحن", "أجهزة حاسوبية", "سماعات", "لوازم تصوير", "أخرى"] as const;
