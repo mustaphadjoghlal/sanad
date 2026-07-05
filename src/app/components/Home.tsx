@@ -94,28 +94,12 @@ const services = [
 /* ── Auto carousel ── */
 function AutoCarousel({ children }: { children: React.ReactNode[] }) {
   const [idx, setIdx] = useState(0);
-  const [slideW, setSlideW] = useState(0);
   const pausedRef = useRef(false);
   const idxRef = useRef(0);
-  const wrapRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
   const n = children.length;
 
-  /* measure container width */
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setSlideW(el.offsetWidth));
-    ro.observe(el);
-    setSlideW(el.offsetWidth);
-    return () => ro.disconnect();
-  }, []);
-
-  const goTo = (i: number) => {
-    idxRef.current = i;
-    setIdx(i);
-  };
-
+  const goTo = (i: number) => { idxRef.current = i; setIdx(i); };
   const prev = () => goTo((idxRef.current - 1 + n) % n);
   const next = () => goTo((idxRef.current + 1) % n);
 
@@ -129,61 +113,45 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
     <div
       onMouseEnter={() => { pausedRef.current = true; }}
       onMouseLeave={() => { pausedRef.current = false; }}
+      onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => {
+        if (touchStartX.current === null) return;
+        const dx = touchStartX.current - e.changedTouches[0].clientX;
+        if (Math.abs(dx) > 40) dx > 0 ? next() : prev();
+        touchStartX.current = null;
+      }}
     >
-      <div ref={wrapRef} style={{ overflow: "hidden" }}>
-        <div
-          style={{
-            display: "flex",
-            transform: `translateX(-${idx * slideW}px)`,
-            transition: slideW ? "transform 0.45s cubic-bezier(0.4,0,0.2,1)" : "none",
-          }}
-          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
-          onTouchEnd={(e) => {
-            if (touchStartX.current === null) return;
-            const dx = touchStartX.current - e.changedTouches[0].clientX;
-            if (Math.abs(dx) > 40) dx > 0 ? next() : prev();
-            touchStartX.current = null;
-          }}
-        >
-          {children.map((child, i) => (
-            <div key={i} style={{ width: slideW || "100%", minWidth: slideW || "100%", flexShrink: 0, overflow: "hidden" }}>
-              {child}
-            </div>
-          ))}
-        </div>
+      {/* Slide — show only active, fade between */}
+      <div style={{ position: "relative" }}>
+        {children.map((child, i) => (
+          <div
+            key={i}
+            style={{
+              opacity: i === idx ? 1 : 0,
+              transition: "opacity 0.4s ease",
+              position: i === idx ? "relative" : "absolute",
+              top: 0, left: 0, right: 0,
+              pointerEvents: i === idx ? "auto" : "none",
+              width: "100%",
+            }}
+          >
+            {child}
+          </div>
+        ))}
       </div>
 
       {/* Controls */}
       {n > 1 && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginTop: "1.1rem" }}>
-          <button
-            onClick={prev}
-            style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
-          >
+          <button onClick={prev} style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
             <ChevronRight size={14} />
           </button>
           <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
             {children.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => goTo(i)}
-                style={{
-                  width: i === idx ? "18px" : "6px",
-                  height: "6px",
-                  borderRadius: "3px",
-                  background: i === idx ? "var(--theme-accent)" : "var(--p-20)",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 0,
-                  transition: "all 0.3s",
-                }}
-              />
+              <button key={i} onClick={() => goTo(i)} style={{ width: i === idx ? "18px" : "6px", height: "6px", borderRadius: "3px", background: i === idx ? "var(--theme-accent)" : "var(--p-20)", border: "none", cursor: "pointer", padding: 0, transition: "all 0.3s" }} />
             ))}
           </div>
-          <button
-            onClick={next}
-            style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
-          >
+          <button onClick={next} style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
             <ChevronLeft size={14} />
           </button>
         </div>
