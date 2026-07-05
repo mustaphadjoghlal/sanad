@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, Tv2, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store, GraduationCap, FileText } from "lucide-react";
+import { BookOpen, Briefcase, Package, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
@@ -84,15 +84,12 @@ function EditorialCard({ to, children, delay = "0s" }: { to: string; children: R
 }
 
 const services = [
-  { icon: BookOpen,     title: "الدورات التدريبية",  desc: "برامج تدريبية احترافية في مجال الإعلام والصحافة والإنتاج",  link: "/courses" },
-  { icon: Briefcase,    title: "عروض التوظيف",       desc: "فرص عمل إعلامية وصحفية في جميع أنحاء الجزائر",            link: "/jobs" },
-  { icon: Package,      title: "عتاد إعلامي",        desc: "معدات تصوير وصوت وبث من أفضل الموردين",                    link: "/equipment" },
-  { icon: Trophy,       title: "المسابقات",           desc: "مسابقات إعلامية محلية ودولية للمحترفين والطلاب",           link: "/competitions" },
-  { icon: Newspaper,    title: "أخبار الإعلام",      desc: "آخر مستجدات القطاع الإعلامي الجزائري",                    link: "/news" },
-  { icon: Store,        title: "سوق المعدات",        desc: "تسوّق معدات وأجهزة إعلامية من متاجر موثوقة",               link: "/stores" },
-  { icon: GraduationCap, title: "مراكز التدريب",    desc: "مدربون ومراكز متخصصة في تأهيل الإعلاميين",                link: "/trainers" },
-  { icon: Tv2,          title: "دليل القنوات",       desc: "دليل شامل للقنوات الجزائرية التلفزيونية والإذاعية",        link: "/channels" },
-  { icon: FileText,     title: "مذكرات التخرج",     desc: "بنك مذكرات في تخصصات الإعلام والصحافة والاتصال",           link: "/theses" },
+  { icon: BookOpen,  title: "الدورات التدريبية", link: "/courses" },
+  { icon: Briefcase, title: "عروض التوظيف",      link: "/jobs" },
+  { icon: Package,   title: "عتاد إعلامي",       link: "/equipment" },
+  { icon: Trophy,    title: "المسابقات",          link: "/competitions" },
+  { icon: Newspaper, title: "أخبار الإعلام",     link: "/news" },
+  { icon: Store,     title: "سوق المعدات",       link: "/stores" },
 ];
 
 /* ── Auto carousel ── */
@@ -387,76 +384,136 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══ SERVICES — Editorial Numbered List ════════════════════════ */}
+        {/* ══ SERVICES — Orbital circle layout ═══════════════════════════ */}
         <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4 py-8 md:py-14">
-            <div className="mb-6">
+          <div className="container mx-auto px-4 py-10 md:py-16">
+            <div className="mb-8 text-center">
               <p style={{ color: "var(--theme-accent)", fontSize: "0.7rem", letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "0.5rem" }}>
                 {c.servicesLabel}
               </p>
               <h2 className="text-2xl font-black" style={{ color: "var(--theme-text)" }}>{c.servicesTitle}</h2>
             </div>
-            <div>
-              {services.map((s, i) => (
-                <Link
-                  key={s.link}
-                  to={s.link}
-                  className="flex items-center gap-4 md:gap-6 transition-all duration-200"
-                  style={{
-                    textDecoration: "none",
-                    padding: "1.1rem 0.5rem",
-                    borderBottom: i < services.length - 1 ? "1px solid var(--p-10)" : "none",
-                    borderRight: "3px solid transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderRightColor = "var(--theme-accent, #00a355)";
-                    el.style.background = "var(--p-04)";
-                    el.style.paddingRight = "1rem";
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderRightColor = "transparent";
-                    el.style.background = "transparent";
-                    el.style.paddingRight = "0.5rem";
-                  }}
-                >
-                  <span
-                    className="hidden sm:block flex-shrink-0 font-black"
-                    style={{
-                      fontSize: "1.8rem",
-                      color: "var(--theme-accent, #00a355)",
-                      opacity: 0.18,
-                      width: "60px",
-                      textAlign: "center",
-                      lineHeight: 1,
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    0{i + 1}
-                  </span>
-                  <div
-                    className="flex-shrink-0"
-                    style={{
-                      width: "40px",
-                      height: "40px",
+
+            {/* ── Desktop: orbital ── */}
+            <div className="hidden md:flex justify-center">
+              {(() => {
+                const W = 520, H = 560, CX = 260, CY = 280, R = 190, ITEM = 92;
+                const positions = services.map((_, i) => {
+                  const a = (-90 + i * 60) * Math.PI / 180;
+                  return { x: CX + R * Math.cos(a), y: CY + R * Math.sin(a) };
+                });
+                return (
+                  <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0 }}>
+                    {/* SVG: orbit ring + spokes */}
+                    <svg
+                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}
+                      viewBox={`0 0 ${W} ${H}`}
+                    >
+                      <circle cx={CX} cy={CY} r={R} fill="none" stroke="var(--p-15)" strokeWidth="1" strokeDasharray="5 7" />
+                      {positions.map((p, i) => (
+                        <line key={i} x1={CX} y1={CY} x2={p.x} y2={p.y} stroke="var(--p-10)" strokeWidth="1" />
+                      ))}
+                    </svg>
+
+                    {/* Center circle */}
+                    <div style={{
+                      position: "absolute",
+                      width: "128px", height: "128px",
+                      top: "50%", left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #141414, #101010)",
+                      border: "1px solid var(--p-30)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: "1px solid var(--p-20)",
-                    }}
-                  >
-                    <s.icon size={17} style={{ color: "var(--theme-accent, #00a355)" }} />
+                      textAlign: "center",
+                      zIndex: 2,
+                      boxShadow: "0 0 40px rgba(0,163,85,0.08)",
+                    }}>
+                      <span style={{ color: "var(--theme-accent)", fontWeight: 900, fontSize: "0.75rem", lineHeight: 1.4, padding: "0 12px" }}>
+                        خدمات<br />المنصة
+                      </span>
+                    </div>
+
+                    {/* Service items */}
+                    {services.map((s, i) => {
+                      const p = positions[i];
+                      return (
+                        <Link
+                          key={s.link}
+                          to={s.link}
+                          style={{
+                            position: "absolute",
+                            left: `${p.x}px`,
+                            top: `${p.y}px`,
+                            transform: "translate(-50%, -50%)",
+                            textDecoration: "none",
+                            textAlign: "center",
+                            zIndex: 3,
+                            width: `${ITEM}px`,
+                          }}
+                          onMouseEnter={(e) => {
+                            const circle = e.currentTarget.querySelector(".svc-circle") as HTMLElement;
+                            if (circle) { circle.style.borderColor = "var(--theme-accent)"; circle.style.boxShadow = "0 0 20px rgba(0,163,85,0.25)"; circle.style.transform = "scale(1.08)"; }
+                          }}
+                          onMouseLeave={(e) => {
+                            const circle = e.currentTarget.querySelector(".svc-circle") as HTMLElement;
+                            if (circle) { circle.style.borderColor = "var(--p-20)"; circle.style.boxShadow = "none"; circle.style.transform = "scale(1)"; }
+                          }}
+                        >
+                          <div
+                            className="svc-circle"
+                            style={{
+                              width: `${ITEM}px`, height: `${ITEM}px`,
+                              borderRadius: "50%",
+                              background: "linear-gradient(145deg, #141414, #101010)",
+                              border: "1px solid var(--p-20)",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "6px",
+                              transition: "border-color 0.25s, box-shadow 0.25s, transform 0.25s",
+                            }}
+                          >
+                            <s.icon size={22} style={{ color: "var(--theme-accent, #00a355)" }} />
+                          </div>
+                          <p style={{ marginTop: "8px", fontSize: "0.72rem", fontWeight: 700, color: "var(--theme-text-muted, #6aad6a)", lineHeight: 1.35, whiteSpace: "nowrap" }}>
+                            {s.title}
+                          </p>
+                        </Link>
+                      );
+                    })}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 style={{ fontWeight: 700, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>
-                      {s.title}
-                    </h3>
-                    <p className="hidden sm:block" style={{ color: "var(--theme-text-muted, #6aad6a)", fontSize: "0.78rem", lineHeight: 1.5 }}>
-                      {s.desc}
-                    </p>
+                );
+              })()}
+            </div>
+
+            {/* ── Mobile: 2×3 grid ── */}
+            <div className="md:hidden grid grid-cols-2 gap-4">
+              {services.map((s) => (
+                <Link
+                  key={s.link}
+                  to={s.link}
+                  style={{
+                    textDecoration: "none",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    padding: "1.25rem 0.75rem",
+                    borderRadius: "12px",
+                    background: "linear-gradient(145deg, #141414, #101010)",
+                    border: "1px solid var(--p-20)",
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "var(--p-10)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <s.icon size={22} style={{ color: "var(--theme-accent, #00a355)" }} />
                   </div>
-                  <ArrowLeft size={15} style={{ color: "var(--theme-text-dim, #3a5e3a)", flexShrink: 0 }} />
+                  <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--theme-text-muted, #6aad6a)" }}>{s.title}</span>
                 </Link>
               ))}
             </div>
