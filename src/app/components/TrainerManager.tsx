@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, X, Trash2, Check, Clock, MapPin, Calendar, Users, DollarSign, ImageIcon, BookOpen, Inbox } from "lucide-react";
 import { subscribeToTrainerCourses, addTrainerCourse, updateTrainerCourse, deleteTrainerCourse, subscribeToTrainerRegistrations } from "../../lib/firestore";
-import { uploadProfilePhoto } from "../../lib/storage";
+import { uploadImage } from "../../lib/storage";
 import type { TrainerCourse, CourseRegistration } from "../../lib/types";
 
 interface Props { trainerId: string; }
@@ -63,9 +63,7 @@ export default function TrainerManager({ trainerId }: Props) {
       let imageUrl = form.image ?? "";
       if (imageFile) {
         setUploadProgress(10);
-        const fakeUid = `tc_${trainerId}_${Date.now()}`;
-        imageUrl = await uploadProfilePhoto(imageFile, fakeUid);
-        setUploadProgress(80);
+        imageUrl = await uploadImage(`trainer-courses/${trainerId}`, imageFile, setUploadProgress);
       }
       const data = {
         ...form,

@@ -1,0 +1,56 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@sanadz.media';
+    }
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*')
+          && request.resource.size < 5 * 1024 * 1024; // 5MB max
+    }
+
+    function isAudio() {
+      return request.resource.contentType.matches('audio/.*')
+          && request.resource.size < 20 * 1024 * 1024; // 20MB max
+    }
+
+    // ── Admin-managed content images (site content, public read) ─────────
+    match /competitions/{allPaths=**} { allow read: if true; allow write: if isAdmin() && isImage(); }
+    match /courses/{allPaths=**}      { allow read: if true; allow write: if isAdmin() && isImage(); }
+    match /equipment/{allPaths=**}    { allow read: if true; allow write: if isAdmin() && isImage(); }
+    match /jobs/{allPaths=**}         { allow read: if true; allow write: if isAdmin() && isImage(); }
+    match /news/{allPaths=**}         { allow read: if true; allow write: if isAdmin() && isImage(); }
+
+    // ── Profile photos: public read, owner uploads to own folder ─────────
+    match /profile-photos/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+    }
+
+    // ── Store product images: public read, store owner uploads own ───────
+    match /product-images/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+    }
+
+    // ── Trainer course images: public read, trainer uploads own ──────────
+    match /trainer-courses/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+    }
+
+    // ── Voice artist audio samples: public read, owner uploads own ───────
+    match /audio-samples/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if (isOwner(uid) || isAdmin()) && isAudio();
+    }
+
+    // Everything else: denied by default.
+  }
+}
