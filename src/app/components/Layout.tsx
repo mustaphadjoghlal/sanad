@@ -3,7 +3,7 @@ import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Faceb
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL } from "../../lib/firebase";
-import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead, saveAdminFCMToken } from "../../lib/firestore";
+import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead, saveAdminFCMToken, saveUserFCMToken } from "../../lib/firestore";
 import type { UserProfile, AppNotification } from "../../lib/types";
 
 export default function Layout() {
@@ -113,11 +113,11 @@ export default function Layout() {
         const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: sw });
         if (token) {
           if (userProfile === "admin") {
-            const { setDoc, doc } = await import("firebase/firestore");
-            const { db } = await import("../../lib/firebase");
-            await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() }, { merge: true });
+            await saveAdminFCMToken(token);
           } else {
-            await saveAdminFCMToken(token, currentUser?.uid);
+            // Regular users only save their own token — writing to
+            // config/adminFCM here used to hijack the admin's push channel.
+            await saveUserFCMToken(currentUser.uid, token);
           }
         }
 

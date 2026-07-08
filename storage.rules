@@ -26,6 +26,7 @@ service firebase.storage {
     match /equipment/{allPaths=**}    { allow read: if true; allow write: if isAdmin() && isImage(); }
     match /jobs/{allPaths=**}         { allow read: if true; allow write: if isAdmin() && isImage(); }
     match /news/{allPaths=**}         { allow read: if true; allow write: if isAdmin() && isImage(); }
+    match /carousel-placeholders/{allPaths=**} { allow read: if true; allow write: if isAdmin() && isImage(); }
 
     // ── Profile photos: public read, owner uploads to own folder ─────────
     match /profile-photos/{uid}/{fileName} {
