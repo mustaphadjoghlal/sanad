@@ -79,7 +79,9 @@ export async function deleteJob(id: string) {
 
 // --- EQUIPMENT ---
 export async function addEquipment(data: Omit<Equipment, "id" | "createdAt">) {
-  return addDoc(col("equipment"), { ...data, createdAt: Date.now(), status: "approved", featured: false });
+  // Default to approved (admin adds) but let callers pass status: "pending"
+  // for user submissions that await admin approval.
+  return addDoc(col("equipment"), { status: "approved", featured: false, ...data, createdAt: Date.now() });
 }
 export async function updateEquipment(id: string, data: Partial<Omit<Equipment, "id">>) {
   return updateDoc(docRef("equipment", id), data);
@@ -155,14 +157,23 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 }
 
 export async function getStoreByUsername(username: string): Promise<UserProfile | null> {
-  const q = query(col("users"), where("username", "==", username.toLowerCase()), where("type", "==", "store"));
+  // status filter is required by security rules: only approved profiles are
+  // publicly readable, and Firestore rejects list queries that could match more
+  const q = query(
+    col("users"),
+    where("username", "==", username.toLowerCase()),
+    where("type", "==", "store"),
+    where("status", "==", "approved")
+  );
   const snap = await getDocs(q);
   if (snap.empty) return null;
   return { id: snap.docs[0].id, ...snap.docs[0].data() } as UserProfile;
 }
 
 export async function isUsernameAvailable(username: string, currentUid: string): Promise<boolean> {
-  const q = query(col("users"), where("username", "==", username.toLowerCase()));
+  // Rules only allow querying approved profiles, so the check can't see
+  // usernames of pending accounts — advisory only, like before.
+  const q = query(col("users"), where("username", "==", username.toLowerCase()), where("status", "==", "approved"));
   const snap = await getDocs(q);
   return snap.docs.every((d) => d.id === currentUid);
 }
@@ -228,12 +239,13 @@ export function subscribeToApprovedProfessionals(
 export function subscribeToApprovedStores(
   callback: (profiles: (UserProfile & { whatsapp?: string })[]) => void
 ): () => void {
-  // No orderBy to avoid composite index requirement — sort client-side
-  const q = query(col("users"), where("type", "==", "store"));
+  // status filter must be in the query (not client-side): rules deny list
+  // queries that could return non-approved profiles. Sort client-side to
+  // avoid a composite index.
+  const q = query(col("users"), where("type", "==", "store"), where("status", "==", "approved"));
   return onSnapshot(q, (snap) => {
     const profiles = snap.docs
       .map((d) => ({ id: d.id, ...d.data() } as UserProfile & { whatsapp?: string }))
-      .filter((p) => p.status === "approved")
       .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     callback(profiles);
   });
@@ -285,13 +297,16 @@ export function subscribeToSiteContent(callback: (content: SiteContent) => void)
   });
 }
 
-// --- FCM TOKEN ---
-export async function saveAdminFCMToken(token: string, uid?: string): Promise<void> {
-  await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() });
-  if (uid) {
-    // Use setDoc with merge so it works even if user doc doesn't exist (admin)
-    await setDoc(doc(db, "users", uid), { fcmToken: token }, { merge: true });
-  }
+// --- FCM TOKENS ---
+// Admin token lives in config/adminFCM (admin-only write per rules).
+export async function saveAdminFCMToken(token: string): Promise<void> {
+  await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() }, { merge: true });
+}
+
+// Regular users store their token on their own profile doc only — they must
+// never touch config/adminFCM, otherwise admin pushes go to the wrong device.
+export async function saveUserFCMToken(uid: string, token: string): Promise<void> {
+  await setDoc(doc(db, "users", uid), { fcmToken: token }, { merge: true });
 }
 
 // --- APP NOTIFICATIONS ---
@@ -446,11 +461,11 @@ export function subscribeToAllTrainerCourses(callback: (courses: TrainerCourse[]
   });
 }
 export function subscribeToApprovedTrainers(callback: (trainers: UserProfile[]) => void): () => void {
-  const q = query(col("users"), where("type", "==", "trainer"));
+  // status filter must be in the query — see subscribeToApprovedStores
+  const q = query(col("users"), where("type", "==", "trainer"), where("status", "==", "approved"));
   return onSnapshot(q, (snap) => {
     const trainers = snap.docs
       .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
-      .filter((t) => t.status === "approved")
       .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     callback(trainers);
   });

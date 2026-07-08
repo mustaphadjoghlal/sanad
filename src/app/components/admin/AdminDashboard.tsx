@@ -2005,7 +2005,7 @@ function SiteContentSection() {
   const handlePlaceholderUpload = async (key: keyof SiteContent, file: File) => {
     setUploading(key as string);
     try {
-      const url = await uploadImage(file, `carousel-placeholders/${key}`);
+      const url = await uploadImage(`carousel-placeholders/${key}`, file);
       setContentForm((prev) => ({ ...prev, [key]: url }));
     } finally { setUploading(null); }
   };

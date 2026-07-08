@@ -17,7 +17,6 @@ service cloud.firestore {
     // ── Public content (read-only for visitors, write for admin) ─────────
     match /courses/{id}      { allow read: if true; allow write: if isAdmin(); }
     match /jobs/{id}         { allow read: if true; allow write: if isAdmin(); }
-    match /equipment/{id}    { allow read: if true; allow write: if isAdmin(); }
     match /competitions/{id} { allow read: if true; allow write: if isAdmin(); }
     match /voice/{id}        { allow read: if true; allow write: if isAdmin(); }
     match /channels/{id}     { allow read: if true; allow write: if isAdmin(); }
@@ -34,6 +33,16 @@ service cloud.firestore {
       allow delete: if isOwner(userId) || isAdmin();
     }
 
+    // ── Equipment: public read; users submit pending items, admin manages ─
+    match /equipment/{id} {
+      allow read: if true;
+      allow create: if isAdmin()
+                    || (isAuth()
+                        && request.resource.data.submittedBy == request.auth.uid
+                        && request.resource.data.status == 'pending');
+      allow update, delete: if isAdmin();
+    }
+
     // ── Products: public read, store owner manages their own ─────────────
     match /products/{id} {
       allow read: if true;
@@ -41,9 +50,10 @@ service cloud.firestore {
       allow update, delete: if isAuth() && resource.data.storeId == request.auth.uid;
     }
 
-    // ── Orders: anyone authenticated can create, store owner can manage ──
+    // ── Orders: guest checkout (order form requires no account),
+    //    store owner and admin manage ────────────────────────────────────
     match /orders/{id} {
-      allow create: if isAuth();
+      allow create: if request.resource.data.status == 'pending';
       allow read, update: if isAuth() && resource.data.storeId == request.auth.uid || isAdmin();
       allow delete: if isAdmin();
     }
@@ -62,17 +72,26 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── Notifications: authenticated can read & mark-read, admin writes ──
+    // ── Notifications: user actions create them (registration, equipment
+    //    submissions, guest course sign-ups), so create is open but shape-
+    //    checked; non-admins may only mark-as-read ─────────────────────────
     match /notifications/{id} {
       allow read: if isAuth();
-      allow create: if isAdmin();
-      allow update: if isAuth();
+      allow create: if request.resource.data.keys().hasOnly(['title', 'body', 'link', 'createdAt', 'readBy'])
+                    && request.resource.data.title is string
+                    && request.resource.data.createdAt is number
+                    && request.resource.data.readBy is list
+                    && request.resource.data.readBy.size() == 0;
+      allow update: if isAdmin()
+                    || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']));
       allow delete: if isAdmin();
     }
 
-    // ── Config (FCM tokens): authenticated users ─────────────────────────
+    // ── Config (admin FCM token): /api/push reads it server-side without
+    //    auth (token is unusable without the FCM server key); admin writes ─
     match /config/{id} {
-      allow read, write: if isAuth() || isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

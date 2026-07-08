@@ -28,10 +28,29 @@ export default async function handler(req, res) {
 
   try {
     if (targetType) {
-      const fsRes = await fetch(`${baseUrl}/users?key=${apiKey}&pageSize=300`);
+      // Must be a query constrained to status == 'approved': security rules
+      // only allow unauthenticated reads of approved profiles, and a plain
+      // unfiltered list of /users is denied outright.
+      const fsRes = await fetch(`${baseUrl}:runQuery?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          structuredQuery: {
+            from: [{ collectionId: "users" }],
+            where: {
+              fieldFilter: {
+                field: { fieldPath: "status" },
+                op: "EQUAL",
+                value: { stringValue: "approved" },
+              },
+            },
+            limit: 300,
+          },
+        }),
+      });
       if (fsRes.ok) {
-        const data = await fsRes.json();
-        const docs = data.documents ?? [];
+        const rows = await fsRes.json();
+        const docs = (Array.isArray(rows) ? rows : []).map((r) => r.document).filter(Boolean);
         tokens = docs
           .filter((d) => {
             const type  = d.fields?.type?.stringValue;

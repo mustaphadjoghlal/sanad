@@ -51,12 +51,14 @@ export default function TrainerDetail() {
         wilaya: form.wilaya || undefined,
         note: form.note.trim() || undefined,
       });
+      // Best-effort: a failed notification must not surface an error for an
+      // already-successful registration.
       await sendNotification({
         title: "طلب تسجيل جديد في دورتك",
         body: `${form.name} طلب التسجيل في "${selectedCourse.title}"`,
         link: `/user/dashboard`,
         createdAt: Date.now(),
-      });
+      }).catch(() => {});
       setSubmitted(true);
     } catch {
       setRegError("حدث خطأ، حاول مجدداً");
