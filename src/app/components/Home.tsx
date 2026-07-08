@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store, Clock, ShieldCheck, MapPin, LayoutGrid } from "lucide-react";
+import { BookOpen, Briefcase, Package, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
@@ -199,10 +199,10 @@ export default function Home() {
   const ready = content !== null;
 
   const stats = [
-    { value: 6,   suffix: "",    label: "خدمات متكاملة", icon: LayoutGrid },
-    { value: 69,  suffix: "",    label: "ولاية",          icon: MapPin },
-    { value: 100, suffix: "%",   label: "محتوى جزائري",  icon: ShieldCheck },
-    { value: 7,   suffix: "/24", label: "متاح دائماً",    icon: Clock },
+    { value: 6,   suffix: "",    label: "خدمات متكاملة" },
+    { value: 69,  suffix: "",    label: "ولاية" },
+    { value: 100, suffix: "%",   label: "محتوى جزائري" },
+    { value: 7,   suffix: "/24", label: "متاح دائماً" },
   ];
 
   return (
@@ -221,15 +221,49 @@ export default function Home() {
       <div style={{ position: "relative", zIndex: 1 }}>
 
         {/* ══ HERO ═══════════════════════════════════════════════════════ */}
-        <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+        <section style={{ borderBottom: "1px solid var(--p-15)", position: "relative", overflow: "hidden" }}>
           {/* Top accent line */}
-          <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
+          <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)", position: "relative", zIndex: 1 }} />
 
-          <div className="container mx-auto px-4 py-10 md:py-16">
+          {/* Cinematic background — purely aesthetic, never intercepts
+              clicks. Edges dissolve via radial mask (no visible borders),
+              imperceptible 18s zoom. */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 0,
+              pointerEvents: "none",
+              backgroundImage: `url(${heroImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              WebkitMaskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
+              maskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
+              animation: "hero-zoom 18s ease-in-out infinite alternate",
+            }}
+          />
+          {/* Dark overlay — keeps the text fully readable */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 0,
+              pointerEvents: "none",
+              background: "linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.88))",
+            }}
+          />
+
+          <div className="container mx-auto px-4 py-10 md:py-16" style={{ position: "relative", zIndex: 1 }}>
             <div className="grid md:grid-cols-5 gap-0 items-center">
 
               {/* Content — right column (RTL = displayed first) */}
-              <div className="md:col-span-2 flex flex-col justify-center md:pl-10">
+              <div
+                className="md:col-span-3 flex flex-col justify-center md:pl-16"
+                style={{ borderLeft: "1px solid var(--p-12)" }}
+              >
                 {/* Label */}
                 <div
                   className="flex items-center gap-3 mb-8"
@@ -286,11 +320,19 @@ export default function Home() {
                   {c.heroDescription}
                 </p>
 
-                {/* CTAs — outlined join first (right in RTL), solid explore second */}
+                {/* CTAs */}
                 <div
                   className="flex flex-wrap gap-3"
                   style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s 0.4s" }}
                 >
+                  <Link
+                    to="/courses"
+                    className="btn-dz flex items-center gap-2 font-semibold"
+                    style={{ textDecoration: "none", padding: "0.85rem 1.75rem", borderRadius: "4px", fontSize: "0.95rem" }}
+                  >
+                    <span>{c.heroCta1}</span>
+                    <ArrowLeft size={17} />
+                  </Link>
                   <Link
                     to="/register"
                     className="flex items-center gap-2 font-semibold transition-all duration-200"
@@ -299,7 +341,7 @@ export default function Home() {
                       color: "var(--theme-text-secondary, #a5d6a7)",
                       textDecoration: "none",
                       padding: "0.85rem 1.75rem",
-                      borderRadius: "8px",
+                      borderRadius: "4px",
                       fontSize: "0.95rem",
                     }}
                     onMouseEnter={(e) => {
@@ -316,69 +358,57 @@ export default function Home() {
                     <Users size={17} />
                     {c.heroCta2}
                   </Link>
-                  <Link
-                    to="/courses"
-                    className="btn-dz flex items-center gap-2 font-semibold"
-                    style={{ textDecoration: "none", padding: "0.85rem 1.75rem", borderRadius: "8px", fontSize: "0.95rem" }}
-                  >
-                    <span>{c.heroCta1}</span>
-                    <ArrowLeft size={17} />
-                  </Link>
                 </div>
               </div>
 
-              {/* Hero illustration — left column, frameless: the artwork's
-                  dark vignette blends straight into the page background */}
-              <div className="md:col-span-3 flex items-center justify-center mt-8 md:mt-0">
-                <img
-                  src={heroImage}
-                  alt="منصة سند — الإعلام الجزائري"
-                  className="w-full pointer-events-none select-none"
-                  style={{
-                    maxWidth: "760px",
-                    opacity: ready ? 1 : 0,
-                    transition: "opacity 0.7s 0.2s",
-                  }}
-                />
+              {/* Decorative — left column (hidden on mobile) */}
+              <div
+                className="hidden md:flex md:col-span-2 items-center justify-center relative"
+                style={{ paddingRight: "2rem" }}
+              >
+                {/* Large ghost "سند" */}
+                <span style={{
+                  position: "absolute",
+                  fontSize: "18rem",
+                  fontWeight: 900,
+                  color: "var(--theme-accent, #00a355)",
+                  opacity: 0.04,
+                  userSelect: "none",
+                  lineHeight: 1,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  whiteSpace: "nowrap",
+                  pointerEvents: "none",
+                }}>سند</span>
+
+                {/* Decorative geometric lines */}
+                <div style={{ position: "absolute", top: "18%", right: "15%", width: "1px", height: "100px", background: "linear-gradient(to bottom, transparent, var(--p-25), transparent)" }} />
+                <div style={{ position: "absolute", bottom: "18%", left: "20%", width: "70px", height: "1px", background: "linear-gradient(to left, transparent, var(--p-25))" }} />
+                <div style={{ position: "absolute", top: "12%", left: "30%", width: "1px", height: "40px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+                <div style={{ position: "absolute", bottom: "30%", right: "20%", width: "30px", height: "1px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+
+                {/* Stats — 2×2 grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--p-15)", border: "1px solid var(--p-15)", position: "relative", zIndex: 2, width: "240px" }}>
+                  {stats.map((s, i) => (
+                    <div key={i} style={{ background: "#080b08", padding: "1.5rem 1rem", textAlign: "center" }}>
+                      <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--theme-accent, #00a355)", lineHeight: 1 }}>
+                        <AnimatedCounter target={s.value} suffix={s.suffix} />
+                      </div>
+                      <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.65rem", marginTop: "0.35rem", letterSpacing: "0.04em" }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Stats bar — single horizontal card with icon chips */}
-            <div
-              className="grid grid-cols-2 md:grid-cols-4 mt-10 md:mt-14"
-              style={{
-                background: "#0b0f0b",
-                border: "1px solid var(--p-15)",
-                borderRadius: "16px",
-                opacity: ready ? 1 : 0,
-                transition: "opacity 0.5s 0.5s",
-              }}
-            >
+            {/* Mobile stats */}
+            <div className="grid grid-cols-4 md:hidden mt-10" style={{ gap: "1px", background: "var(--p-12)" }}>
               {stats.map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-center gap-3 py-5 px-2"
-                  style={{ borderLeft: i === stats.length - 1 ? "none" : "1px solid var(--p-12)" }}
-                >
-                  <div
-                    className="flex items-center justify-center flex-shrink-0"
-                    style={{
-                      width: "44px",
-                      height: "44px",
-                      borderRadius: "12px",
-                      border: "1px solid var(--p-20)",
-                      background: "var(--p-10)",
-                      color: "var(--theme-accent, #00a355)",
-                    }}
-                  >
-                    <s.icon size={20} />
+                <div key={i} style={{ background: "#080b08", padding: "1rem 0.25rem", textAlign: "center" }}>
+                  <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "var(--theme-accent, #00a355)" }}>
+                    <AnimatedCounter target={s.value} suffix={s.suffix} />
                   </div>
-                  <div>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--theme-text, #e8f5e9)", lineHeight: 1.1 }}>
-                      <AnimatedCounter target={s.value} suffix={s.suffix} />
-                    </div>
-                    <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.7rem", marginTop: "0.2rem", letterSpacing: "0.04em" }}>{s.label}</div>
-                  </div>
+                  <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.6rem", marginTop: "0.2rem" }}>{s.label}</div>
                 </div>
               ))}
             </div>
