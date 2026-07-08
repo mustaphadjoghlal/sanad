@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Radio, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Facebook, Search } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Facebook, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL } from "../../lib/firebase";
@@ -80,7 +80,7 @@ export default function Layout() {
       if (prevCount > 0 && notifs.length > prevCount) {
         const newest = notifs[0];
         if ("Notification" in window && Notification.permission === "granted") {
-          new Notification(newest.title, { body: newest.body, icon: "/icon.svg", dir: "rtl", lang: "ar" });
+          new Notification(newest.title, { body: newest.body, icon: "/icon-192.png", dir: "rtl", lang: "ar" });
         }
       }
       prevNotifCountRef.current = notifs.length;
@@ -124,7 +124,7 @@ export default function Layout() {
         onMessage(messaging, (payload) => {
           const title = payload.notification?.title ?? "سند";
           const body = payload.notification?.body ?? "";
-          new Notification(title, { body, icon: "/icon.svg", dir: "rtl", lang: "ar" });
+          new Notification(title, { body, icon: "/icon-192.png", dir: "rtl", lang: "ar" });
         });
       } catch {
         // Silently ignore — FCM not configured yet
@@ -180,15 +180,12 @@ export default function Layout() {
               className="flex items-center gap-2 group"
               style={{ textDecoration: "none" }}
             >
-              <div
-                className="p-2 rounded-lg transition-all duration-300 group-hover:scale-110"
-                style={{
-                  background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))",
-                  boxShadow: "0 0 12px var(--p-40)",
-                }}
-              >
-                <Radio size={18} color="#ffffff" />
-              </div>
+              <img
+                src="/icon-192.png"
+                alt="شعار سند"
+                className="w-9 h-9 rounded-lg transition-all duration-300 group-hover:scale-110"
+                style={{ boxShadow: "0 0 12px var(--p-40)" }}
+              />
               <span
                 className="font-bold text-2xl"
                 style={{
@@ -584,12 +581,7 @@ export default function Layout() {
         />
         <div className="container mx-auto px-4 pb-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div
-              className="p-1.5 rounded-md"
-              style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))" }}
-            >
-              <Radio size={14} color="#ffffff" />
-            </div>
+            <img src="/icon-192.png" alt="شعار سند" className="w-7 h-7 rounded-md" />
             <span
               className="font-bold text-lg"
               style={{

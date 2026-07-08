@@ -11,8 +11,8 @@ self.addEventListener('message', (event) => {
       const { title, body, icon } = payload.notification ?? {};
       self.registration.showNotification(title ?? 'سند', {
         body: body ?? '',
-        icon: icon ?? '/icon.svg',
-        badge: '/icon.svg',
+        icon: icon ?? '/icon-192.png',
+        badge: '/icon-192.png',
         dir: 'rtl',
         lang: 'ar',
         data: payload.data,
