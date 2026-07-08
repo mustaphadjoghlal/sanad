@@ -88,7 +88,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         registration_ids: tokens,
-        notification: { title, body: body ?? "", icon: "/icon.svg" },
+        notification: { title, body: body ?? "", icon: "/icon-192.png" },
         android: { priority: "high" },
         apns: { payload: { aps: { sound: "default" } } },
       }),
