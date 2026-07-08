@@ -4,6 +4,7 @@ import { BookOpen, Briefcase, Package, Trophy, ArrowLeft, Users, Zap, Newspaper,
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
+import heroImage from "../assets/hero.webp";
 
 /* ── Animated counter ── */
 function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
@@ -329,31 +330,29 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Decorative — left column (hidden on mobile) */}
+              {/* Illustration — left column (hidden on mobile) */}
               <div
-                className="hidden md:flex md:col-span-2 items-center justify-center relative"
-                style={{ paddingRight: "2rem" }}
+                className="hidden md:flex md:col-span-2 flex-col items-center justify-center relative"
+                style={{ paddingRight: "2rem", gap: "1.5rem" }}
               >
-                {/* Large ghost "سند" */}
-                <span style={{
-                  position: "absolute",
-                  fontSize: "18rem",
-                  fontWeight: 900,
-                  color: "var(--theme-accent, #00a355)",
-                  opacity: 0.04,
-                  userSelect: "none",
-                  lineHeight: 1,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  whiteSpace: "nowrap",
-                  pointerEvents: "none",
-                }}>سند</span>
-
                 {/* Decorative geometric lines */}
-                <div style={{ position: "absolute", top: "18%", right: "15%", width: "1px", height: "100px", background: "linear-gradient(to bottom, transparent, var(--p-25), transparent)" }} />
-                <div style={{ position: "absolute", bottom: "18%", left: "20%", width: "70px", height: "1px", background: "linear-gradient(to left, transparent, var(--p-25))" }} />
-                <div style={{ position: "absolute", top: "12%", left: "30%", width: "1px", height: "40px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
-                <div style={{ position: "absolute", bottom: "30%", right: "20%", width: "30px", height: "1px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+                <div style={{ position: "absolute", top: "6%", left: "30%", width: "1px", height: "40px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+                <div style={{ position: "absolute", bottom: "8%", right: "20%", width: "30px", height: "1px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
+
+                {/* Hero illustration — dark edges blend into the page bg */}
+                <img
+                  src={heroImage}
+                  alt="منصة سند — الإعلام الجزائري"
+                  style={{
+                    width: "100%",
+                    maxWidth: "560px",
+                    display: "block",
+                    opacity: ready ? 1 : 0,
+                    transition: "opacity 0.7s 0.2s",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                  }}
+                />
 
                 {/* Stats — 2×2 grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--p-15)", border: "1px solid var(--p-15)", position: "relative", zIndex: 2, width: "240px" }}>
@@ -369,8 +368,16 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Mobile illustration — no inline display: it would override md:hidden */}
+            <img
+              src={heroImage}
+              alt="منصة سند — الإعلام الجزائري"
+              className="block md:hidden mt-8 w-full"
+              style={{ opacity: ready ? 1 : 0, transition: "opacity 0.7s 0.2s" }}
+            />
+
             {/* Mobile stats */}
-            <div className="grid grid-cols-4 md:hidden mt-10" style={{ gap: "1px", background: "var(--p-12)" }}>
+            <div className="grid grid-cols-4 md:hidden mt-8" style={{ gap: "1px", background: "var(--p-12)" }}>
               {stats.map((s, i) => (
                 <div key={i} style={{ background: "#080b08", padding: "1rem 0.25rem", textAlign: "center" }}>
                   <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "var(--theme-accent, #00a355)" }}>
