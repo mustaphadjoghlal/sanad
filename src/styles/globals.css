@@ -1,5 +1,17 @@
 /* Algeria-themed dark design system */
 
+/* ── Fluid scaling on large screens ─────────────────────────────
+   The design targets ~1440-1920px. Beyond that, scale the root
+   font-size with the viewport: every rem-based size (text, spacing,
+   buttons, container widths) grows proportionally, so 2K/4K screens
+   see the site at a comfortable size instead of tiny-in-a-void.
+   Media queries use the initial 16px, so breakpoints stay stable. */
+@media (min-width: 1920px) {
+  html {
+    font-size: min(calc(100vw / 120), 28px);
+  }
+}
+
 /* ── Dynamic theme overrides (applied via JS CSS variables) ── */
 body {
   background-color: var(--theme-bg-main, #0e0e0e) !important;
