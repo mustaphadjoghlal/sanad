@@ -181,22 +181,10 @@ export default function Layout() {
               style={{ textDecoration: "none" }}
             >
               <img
-                src="/icon-192.png"
-                alt="شعار سند"
-                className="w-9 h-9 rounded-lg transition-all duration-300 group-hover:scale-110"
-                style={{ boxShadow: "0 0 12px var(--p-40)" }}
+                src="/logo.png"
+                alt="سند — المنصة الجزائرية الإعلامية الشاملة"
+                className="h-10 w-auto transition-all duration-300 group-hover:scale-105"
               />
-              <span
-                className="font-bold text-2xl"
-                style={{
-                  background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                سند
-              </span>
             </Link>
 
             {/* Desktop Nav */}
@@ -581,18 +569,7 @@ export default function Layout() {
         />
         <div className="container mx-auto px-4 pb-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <img src="/icon-192.png" alt="شعار سند" className="w-7 h-7 rounded-md" />
-            <span
-              className="font-bold text-lg"
-              style={{
-                background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              سند
-            </span>
+            <img src="/logo.png" alt="سند" className="h-9 w-auto" />
           </div>
           <p style={{ color: "var(--theme-text-secondary, #b0bec5)" }} className="mb-4 text-sm">
             المنصة الجزائرية الشاملة لمجال الإعلام
