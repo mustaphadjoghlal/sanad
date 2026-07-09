@@ -226,22 +226,18 @@ export default function Home() {
           <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)", position: "relative", zIndex: 1 }} />
 
           {/* Cinematic background — purely aesthetic, never intercepts
-              clicks. Shifted down ~12% so the monument sits behind the
-              CTAs, focal point at 35% width so the text stays the hero.
+              clicks. Focal point at 35% width so the text stays the hero.
               One-shot settle zoom 1.02 -> 1 over 8s on page load. */}
           <div
             aria-hidden="true"
             style={{
               position: "absolute",
-              top: "12%",
-              bottom: 0,
-              left: 0,
-              right: 0,
+              inset: 0,
               zIndex: 0,
               pointerEvents: "none",
               backgroundImage: `url(${heroImage})`,
               backgroundSize: "cover",
-              backgroundPosition: "35% top",
+              backgroundPosition: "35% center",
               backgroundRepeat: "no-repeat",
               WebkitMaskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
               maskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
