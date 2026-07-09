@@ -226,25 +226,31 @@ export default function Home() {
           <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)", position: "relative", zIndex: 1 }} />
 
           {/* Cinematic background — purely aesthetic, never intercepts
-              clicks. Edges dissolve via radial mask (no visible borders),
-              imperceptible 18s zoom. */}
+              clicks. Shifted down ~12% so the monument sits behind the
+              CTAs, focal point at 35% width so the text stays the hero.
+              One-shot settle zoom 1.02 -> 1 over 8s on page load. */}
           <div
             aria-hidden="true"
             style={{
               position: "absolute",
-              inset: 0,
+              top: "12%",
+              bottom: 0,
+              left: 0,
+              right: 0,
               zIndex: 0,
               pointerEvents: "none",
               backgroundImage: `url(${heroImage})`,
               backgroundSize: "cover",
-              backgroundPosition: "center",
+              backgroundPosition: "35% top",
               backgroundRepeat: "no-repeat",
               WebkitMaskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
               maskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
-              animation: "hero-zoom 18s ease-in-out infinite alternate",
+              animation: "hero-zoom 8s ease-out forwards",
             }}
           />
-          {/* Dark overlay — keeps the text fully readable */}
+          {/* Dark overlay — lighter up top, dissolving to the page black at
+              the bottom so the transition into the services section is
+              seamless. Also dims the artwork's HUD details to ~20-30%. */}
           <div
             aria-hidden="true"
             style={{
@@ -252,12 +258,23 @@ export default function Home() {
               inset: 0,
               zIndex: 0,
               pointerEvents: "none",
-              background: "linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.88))",
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.82) 45%, rgba(0,0,0,0.92) 70%, rgba(8,11,8,1) 100%)",
+            }}
+          />
+          {/* Faint green glow behind the title column (right side, RTL) */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 0,
+              pointerEvents: "none",
+              background: "radial-gradient(ellipse 34% 30% at 80% 32%, rgba(0,163,85,0.12), transparent 70%)",
             }}
           />
 
-          <div className="container mx-auto px-4 py-10 md:py-16" style={{ position: "relative", zIndex: 1 }}>
-            <div className="grid md:grid-cols-5 gap-0 items-center">
+          <div className="container mx-auto px-4 py-14 md:py-24" style={{ position: "relative", zIndex: 1 }}>
+            <div className="grid md:grid-cols-5 gap-0 items-center md:min-h-[520px]">
 
               {/* Content — right column (RTL = displayed first) */}
               <div

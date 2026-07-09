@@ -113,10 +113,10 @@ body {
   to   { transform: rotate(360deg); }
 }
 
-/* Hero background: imperceptible slow zoom */
+/* Hero background: one-shot settle zoom on page load */
 @keyframes hero-zoom {
-  from { transform: scale(1); }
-  to   { transform: scale(1.06); }
+  from { transform: scale(1.02); }
+  to   { transform: scale(1); }
 }
 
 @keyframes slide-in-right {
