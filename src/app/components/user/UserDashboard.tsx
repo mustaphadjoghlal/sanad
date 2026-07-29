@@ -21,7 +21,6 @@ import type { UserProfile, Equipment, PortfolioLink, PortfolioVideo, AudioSample
 import { VOICE_SAMPLE_CATEGORIES } from "../../../lib/types";
 import StoreManager from "../StoreManager";
 import TrainerManager from "../TrainerManager";
-import CVMaker from "../CVMaker";
 
 const typeLabel: Record<string, string> = {
   editor_news:        "محرر",
@@ -756,9 +755,6 @@ export default function UserDashboard() {
                       <Pencil size={14} />
                       <span>تعديل الملف</span>
                     </button>
-                    {profile.status === "approved" && uid && (
-                      <CVMaker profile={profile} uid={uid} />
-                    )}
                   </div>
                 </>
               ) : (
