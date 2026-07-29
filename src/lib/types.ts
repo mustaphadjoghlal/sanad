@@ -273,6 +273,16 @@ export interface PortfolioVideo {
   url: string;
 }
 
+export const WORK_TYPES = ['article', 'video', 'audio', 'image'] as const;
+export type WorkType = typeof WORK_TYPES[number];
+
+export interface PortfolioWork {
+  id: string;
+  type: WorkType;
+  title: string;
+  url: string; // article: external link | video: youtube link | audio/image: uploaded file URL
+}
+
 export const VOICE_SAMPLE_CATEGORIES = ['وثائقي', 'دوبلاج', 'إعلاني', 'تعليمي', 'قصصي', 'إخباري', 'بودكاست', 'أخرى'] as const;
 export type VoiceSampleCategory = typeof VOICE_SAMPLE_CATEGORIES[number];
 
@@ -311,6 +321,7 @@ export interface UserProfile {
   gender?: Gender;
   audioSamples?: AudioSample[];
   socialLinks?: SocialLinks;
+  works?: PortfolioWork[];
 }
 
 export const PRODUCT_CATEGORIES = ["كاميرات", "ميكروفونات", "إضاءة", "حوامل وأرجل", "بطاريات وشواحن", "أجهزة حاسوبية", "سماعات", "لوازم تصوير", "أخرى"] as const;
