@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Phone, ExternalLink, Play, ArrowRight, User, Mic, Share2, Instagram, Linkedin, Facebook, Youtube, Globe, Twitter } from "lucide-react";
+import { MapPin, Phone, ExternalLink, Play, ArrowRight, User, Mic, Share2, Instagram, Linkedin, Facebook, Youtube, Globe, Twitter, FileText, ImageIcon, Briefcase } from "lucide-react";
 import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 
@@ -148,47 +148,88 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Portfolio links */}
-        {profile.portfolio && profile.portfolio.length > 0 && (
+        {/* Works (portfolio) — articles, videos, audio, images */}
+        {profile.works && profile.works.length > 0 && (
           <div className="rounded-2xl p-5 mb-6" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-20)" }}>
-            <h2 className="font-bold mb-4" style={{ color: "var(--theme-text)" }}>روابط الأعمال</h2>
-            <div className="flex flex-col gap-2">
-              {profile.portfolio.map((link, i) => (
-                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg" style={{ color: "var(--theme-accent)", border: "1px solid var(--p-20)", textDecoration: "none" }}>
-                  <ExternalLink size={13} /> {link.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
+            <h2 className="font-bold mb-4 flex items-center gap-2" style={{ color: "var(--theme-text)" }}>
+              <Briefcase size={16} style={{ color: "var(--theme-accent)" }} /> أعمالي
+            </h2>
 
-        {/* Portfolio videos */}
-        {profile.portfolioVideos && profile.portfolioVideos.length > 0 && (
-          <div className="rounded-2xl p-5 mb-6" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-20)" }}>
-            <h2 className="font-bold mb-4" style={{ color: "var(--theme-text)" }}>أعمالي — فيديو</h2>
-            <div className="flex flex-col gap-5">
-              {profile.portfolioVideos.map((v, i) => {
-                const vid = ytId(v.url);
-                return (
-                  <div key={i}>
-                    {v.title && <p className="text-sm font-medium mb-2" style={{ color: "var(--theme-badge-text)" }}>{v.title}</p>}
-                    {vid ? (
-                      <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "0.75rem", overflow: "hidden" }}>
-                        <iframe
-                          src={`https://www.youtube.com/embed/${vid}`}
-                          style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    ) : (
-                      <a href={v.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>
-                        <Play size={14} /> {v.url}
+            <div className="space-y-5">
+              {/* Articles */}
+              {profile.works.filter((w) => w.type === "article").length > 0 && (
+                <div>
+                  <p className="text-xs mb-2 flex items-center gap-1.5" style={{ color: "var(--theme-accent)" }}><FileText size={13} /> مقالات</p>
+                  <div className="flex flex-col gap-2">
+                    {profile.works.filter((w) => w.type === "article").map((w) => (
+                      <a key={w.id} href={w.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg" style={{ color: "var(--theme-accent)", border: "1px solid var(--p-20)", textDecoration: "none" }}>
+                        <ExternalLink size={13} /> {w.title}
                       </a>
-                    )}
+                    ))}
                   </div>
-                );
-              })}
+                </div>
+              )}
+
+              {/* Videos */}
+              {profile.works.filter((w) => w.type === "video").length > 0 && (
+                <div>
+                  <p className="text-xs mb-2 flex items-center gap-1.5" style={{ color: "var(--theme-accent)" }}><Youtube size={13} /> فيديوهات</p>
+                  <div className="flex flex-col gap-5">
+                    {profile.works.filter((w) => w.type === "video").map((w) => {
+                      const vid = ytId(w.url);
+                      return (
+                        <div key={w.id}>
+                          {w.title && <p className="text-sm font-medium mb-2" style={{ color: "var(--theme-badge-text)" }}>{w.title}</p>}
+                          {vid ? (
+                            <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "0.75rem", overflow: "hidden" }}>
+                              <iframe
+                                src={`https://www.youtube.com/embed/${vid}`}
+                                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                          ) : (
+                            <a href={w.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>
+                              <Play size={14} /> {w.url}
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Audio works */}
+              {profile.works.filter((w) => w.type === "audio").length > 0 && (
+                <div>
+                  <p className="text-xs mb-2 flex items-center gap-1.5" style={{ color: "var(--theme-accent)" }}><Mic size={13} /> أعمال صوتية</p>
+                  <div className="flex flex-col gap-3">
+                    {profile.works.filter((w) => w.type === "audio").map((w) => (
+                      <div key={w.id} style={{ background: "#161616", border: "1px solid var(--p-20)", borderRadius: "0.5rem", padding: "0.6rem 0.85rem" }}>
+                        {w.title && <p className="text-sm mb-2" style={{ color: "var(--theme-badge-text)" }}>{w.title}</p>}
+                        <audio controls src={w.url} style={{ width: "100%", height: "36px" }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Images */}
+              {profile.works.filter((w) => w.type === "image").length > 0 && (
+                <div>
+                  <p className="text-xs mb-2 flex items-center gap-1.5" style={{ color: "var(--theme-accent)" }}><ImageIcon size={13} /> صور</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {profile.works.filter((w) => w.type === "image").map((w) => (
+                      <a key={w.id} href={w.url} target="_blank" rel="noopener noreferrer">
+                        <img src={w.url} alt={w.title || "عمل"} style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-20)" }} />
+                        {w.title && <p className="text-xs mt-1 truncate" style={{ color: "var(--theme-text-muted)" }}>{w.title}</p>}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
