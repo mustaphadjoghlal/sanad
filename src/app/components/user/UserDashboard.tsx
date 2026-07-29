@@ -2,22 +2,20 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
 import {
-  LogOut, User, Package, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check,
+  LogOut, User, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check,
   AlertTriangle, ExternalLink, Award, Link as LinkIcon2, ImageIcon, Youtube, Trash2,
-  Upload, Play, Pause,
+  Upload, Play, Pause, FileText, Briefcase,
 } from "lucide-react";
 import { auth } from "../../../lib/firebase";
 import {
   subscribeToUserProfile,
   saveUserProfile,
   resubmitProfile,
-  subscribeToCollection,
-  addEquipment,
   sendNotification,
   isUsernameAvailable,
 } from "../../../lib/firestore";
-import { uploadProfilePhoto, uploadAudioSample } from "../../../lib/storage";
-import type { UserProfile, Equipment, PortfolioLink, PortfolioVideo, AudioSample, Gender, VoiceSampleCategory, SocialLinks } from "../../../lib/types";
+import { uploadProfilePhoto, uploadAudioSample, uploadImage } from "../../../lib/storage";
+import type { UserProfile, PortfolioWork, WorkType, AudioSample, Gender, VoiceSampleCategory, SocialLinks } from "../../../lib/types";
 import { VOICE_SAMPLE_CATEGORIES } from "../../../lib/types";
 import StoreManager from "../StoreManager";
 import TrainerManager from "../TrainerManager";
@@ -92,18 +90,6 @@ const S = {
 import { WILAYAS } from "../../../lib/wilayas";
 const wilayas = WILAYAS;
 
-type EquipForm = {
-  name: string;
-  category: string;
-  price: number;
-  seller: string;
-  description: string;
-  condition: "new" | "used";
-  contact: string;
-};
-
-const emptyEquip: EquipForm = { name: "", category: "", price: 0, seller: "", description: "", condition: "used", contact: "" };
-
 type EditFormState = {
   name: string;
   bio: string;
@@ -112,14 +98,31 @@ type EditFormState = {
   phone: string;
   experience: string;
   achievements: string;
-  portfolio: PortfolioLink[];
-  portfolioVideos: PortfolioVideo[];
+  works: PortfolioWork[];
   username: string;
   tagline: string;
   gender: Gender | "";
   audioSamples: AudioSample[];
   socialLinks: SocialLinks;
 };
+
+const workTypeLabel: Record<WorkType, string> = {
+  article: "مقال",
+  video: "فيديو",
+  audio: "عمل صوتي",
+  image: "صورة",
+};
+
+const workTypeIcon: Record<WorkType, React.ElementType> = {
+  article: FileText,
+  video: Youtube,
+  audio: Mic,
+  image: ImageIcon,
+};
+
+function genWorkId() {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
 
 function encodeWAV(buffer: AudioBuffer): Blob {
   const numCh = buffer.numberOfChannels;
@@ -319,8 +322,7 @@ export default function UserDashboard() {
     phone: "",
     experience: "",
     achievements: "",
-    portfolio: [],
-    portfolioVideos: [],
+    works: [],
     username: "",
     tagline: "",
     gender: "",
@@ -335,15 +337,13 @@ export default function UserDashboard() {
   const [photoUrl, setPhotoUrl] = useState<string>("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  // Portfolio link addition state
-  const [showAddLink, setShowAddLink] = useState(false);
-  const [newLinkLabel, setNewLinkLabel] = useState("");
-  const [newLinkUrl, setNewLinkUrl] = useState("");
-
-  // Portfolio videos state
-  const [showAddVideo, setShowAddVideo] = useState(false);
-  const [newVideoTitle, setNewVideoTitle] = useState("");
-  const [newVideoUrl, setNewVideoUrl] = useState("");
+  // Works (portfolio) addition state
+  const [showAddWork, setShowAddWork] = useState(false);
+  const [newWorkType, setNewWorkType] = useState<WorkType>("article");
+  const [newWorkTitle, setNewWorkTitle] = useState("");
+  const [newWorkUrl, setNewWorkUrl] = useState(""); // for article/video
+  const [uploadingWork, setUploadingWork] = useState(false);
+  const [workUploadProgress, setWorkUploadProgress] = useState(0);
 
   // Audio sample state
   const [showAddAudio, setShowAddAudio] = useState(false);
@@ -353,12 +353,6 @@ export default function UserDashboard() {
   const [audioUploadProgress, setAudioUploadProgress] = useState(0);
   const [audioPlayingIdx, setAudioPlayingIdx] = useState<number | null>(null);
   const audioPreviewRef = useState<HTMLAudioElement | null>(null);
-
-  // Equipment
-  const [myEquipment, setMyEquipment] = useState<Equipment[]>([]);
-  const [addEquipModal, setAddEquipModal] = useState(false);
-  const [equipForm, setEquipForm] = useState<EquipForm>(emptyEquip);
-  const [addingEquip, setAddingEquip] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -383,15 +377,6 @@ export default function UserDashboard() {
     return unsub;
   }, [uid, authLoading, navigate]);
 
-  // Equipment visible to all approved users
-  useEffect(() => {
-    if (!uid || !profile || profile.status !== "approved") return;
-    const unsub = subscribeToCollection<Equipment>("equipment", (items) => {
-      setMyEquipment(items.filter((eq) => eq.submittedBy === uid));
-    });
-    return unsub;
-  }, [uid, profile?.status]);
-
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/");
@@ -407,8 +392,7 @@ export default function UserDashboard() {
       phone: profile.phone || "",
       experience: profile.experience || "",
       achievements: profile.achievements || "",
-      portfolio: profile.portfolio ? [...profile.portfolio] : [],
-      portfolioVideos: profile.portfolioVideos ? [...profile.portfolioVideos] : [],
+      works: profile.works ? [...profile.works] : [],
       username: profile.username || "",
       tagline: profile.tagline || "",
       gender: profile.gender || "",
@@ -417,12 +401,10 @@ export default function UserDashboard() {
     });
     setUsernameStatus("idle");
     setPhotoUrl(profile.photo || "");
-    setShowAddLink(false);
-    setNewLinkLabel("");
-    setNewLinkUrl("");
-    setShowAddVideo(false);
-    setNewVideoTitle("");
-    setNewVideoUrl("");
+    setShowAddWork(false);
+    setNewWorkType("article");
+    setNewWorkTitle("");
+    setNewWorkUrl("");
     setShowAddAudio(false);
     setNewAudioTitle("");
     setNewAudioCategory("وثائقي");
@@ -445,22 +427,62 @@ export default function UserDashboard() {
     }
   };
 
-  const handleAddPortfolioLink = () => {
-    if (!newLinkLabel.trim() || !newLinkUrl.trim()) return;
-    setEditForm((p) => ({
-      ...p,
-      portfolio: [...p.portfolio, { label: newLinkLabel.trim(), url: newLinkUrl.trim() }],
-    }));
-    setNewLinkLabel("");
-    setNewLinkUrl("");
-    setShowAddLink(false);
+  const handleRemoveWork = (id: string) => {
+    setEditForm((p) => ({ ...p, works: p.works.filter((w) => w.id !== id) }));
   };
 
-  const handleRemovePortfolioLink = (index: number) => {
+  const handleAddLinkWork = () => {
+    // For article / video types — stored as a link, no upload
+    if (!newWorkTitle.trim() || !newWorkUrl.trim()) return;
     setEditForm((p) => ({
       ...p,
-      portfolio: p.portfolio.filter((_, i) => i !== index),
+      works: [...p.works, { id: genWorkId(), type: newWorkType, title: newWorkTitle.trim(), url: newWorkUrl.trim() }],
     }));
+    setNewWorkTitle("");
+    setNewWorkUrl("");
+    setShowAddWork(false);
+  };
+
+  const handleWorkFileUpload = async (file: File) => {
+    if (!uid) return;
+    if (!newWorkTitle.trim()) {
+      setEditError(newWorkType === "audio" ? "أدخل عنوان العمل الصوتي أولاً" : "أدخل عنوان العمل أولاً");
+      return;
+    }
+    setUploadingWork(true);
+    setWorkUploadProgress(0);
+    setEditError("");
+    try {
+      if (newWorkType === "audio") {
+        // Any uploaded video/audio file is converted to an audio file (wav)
+        let audioFile = file;
+        if (file.type.startsWith("video/")) {
+          const audioCtx = new AudioContext();
+          const arrayBuf = await file.arrayBuffer();
+          const audioBuf = await audioCtx.decodeAudioData(arrayBuf);
+          const offlineCtx = new OfflineAudioContext(audioBuf.numberOfChannels, audioBuf.length, audioBuf.sampleRate);
+          const source = offlineCtx.createBufferSource();
+          source.buffer = audioBuf;
+          source.connect(offlineCtx.destination);
+          source.start(0);
+          const rendered = await offlineCtx.startRendering();
+          const wavData = encodeWAV(rendered);
+          audioFile = new File([wavData], file.name.replace(/\.[^.]+$/, ".wav"), { type: "audio/wav" });
+          audioCtx.close();
+        }
+        const url = await uploadAudioSample(uid, audioFile, (p) => setWorkUploadProgress(p));
+        setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "audio", title: newWorkTitle.trim(), url }] }));
+      } else if (newWorkType === "image") {
+        const url = await uploadImage(`works/${uid}`, file, (p) => setWorkUploadProgress(p));
+        setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "image", title: newWorkTitle.trim(), url }] }));
+      }
+      setNewWorkTitle("");
+      setShowAddWork(false);
+    } catch (err: unknown) {
+      setEditError((err as Error)?.message ?? "فشل رفع الملف");
+    } finally {
+      setUploadingWork(false);
+    }
   };
 
   const handleUsernameChange = (val: string) => {
@@ -495,8 +517,7 @@ export default function UserDashboard() {
         bio: editForm.bio,
         photo: photoUrl || profile.photo,
         achievements: editForm.achievements || undefined,
-        portfolio: editForm.portfolio.length > 0 ? editForm.portfolio : undefined,
-        portfolioVideos: editForm.portfolioVideos.length > 0 ? editForm.portfolioVideos : undefined,
+        works: editForm.works.length > 0 ? editForm.works : undefined,
         tagline: editForm.tagline || undefined,
         gender: editForm.gender || undefined,
         audioSamples: editForm.audioSamples.length > 0 ? editForm.audioSamples : undefined,
@@ -525,32 +546,6 @@ export default function UserDashboard() {
       setSaving(false);
     }
   };
-
-  const handleAddEquipment = async () => {
-    if (!uid || !profile) return;
-    if (!equipForm.name) return;
-    setAddingEquip(true);
-    try {
-      await addEquipment({
-        ...equipForm,
-        status: "pending",
-        submittedBy: uid,
-        seller: profile.name,
-      } as Omit<Equipment, "id" | "createdAt">);
-      await sendNotification({
-        title: "طلب نشر عتاد جديد ⚙️",
-        body: `${profile.name} أضاف "${equipForm.name}" وينتظر الموافقة`,
-        link: "/sanad-admin",
-        createdAt: Date.now(),
-      }).catch(() => {});
-      setAddEquipModal(false);
-      setEquipForm(emptyEquip);
-    } finally {
-      setAddingEquip(false);
-    }
-  };
-
-  const ef = (key: string, val: string | number) => setEquipForm((p) => ({ ...p, [key]: val }));
 
   if (authLoading || !profile) {
     return (
@@ -654,73 +649,6 @@ export default function UserDashboard() {
                       <div>
                         <p style={{ color: "#fbbf24", fontSize: "0.78rem", fontWeight: 600, marginBottom: "0.2rem" }}>أبرز الإنجازات</p>
                         <p style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.85rem", lineHeight: 1.6 }}>{profile.achievements}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Portfolio */}
-                  {profile.portfolio && profile.portfolio.length > 0 && (
-                    <div className="mt-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <LinkIcon2 size={14} style={{ color: "var(--theme-text-secondary, #6aad6a)" }} />
-                        <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>البورتفوليو</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {profile.portfolio.map((link, i) => (
-                          <a
-                            key={i}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 transition-colors"
-                            style={{
-                              background: "var(--p-12)",
-                              border: "1px solid var(--p-30)",
-                              color: "var(--theme-badge-text, #81c784)",
-                              padding: "0.2rem 0.65rem",
-                              borderRadius: "9999px",
-                              fontSize: "0.8rem",
-                              textDecoration: "none",
-                            }}
-                          >
-                            <ExternalLink size={11} />
-                            <span>{link.label}</span>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Portfolio videos */}
-                  {profile.portfolioVideos && profile.portfolioVideos.length > 0 && (
-                    <div className="mt-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Youtube size={14} style={{ color: "#f87171" }} />
-                        <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>أعمال مرئية</p>
-                      </div>
-                      <div className="flex flex-col gap-4">
-                        {profile.portfolioVideos.map((v, i) => {
-                          const vid = ytId(v.url);
-                          return (
-                            <div key={i}>
-                              {v.title && <p style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", marginBottom: "0.4rem" }}>{v.title}</p>}
-                              {vid ? (
-                                <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "0.75rem", overflow: "hidden" }}>
-                                  <iframe
-                                    src={`https://www.youtube.com/embed/${vid}`}
-                                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                  />
-                                </div>
-                              ) : (
-                                <a href={v.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm" style={{ color: "#f87171", textDecoration: "none" }}>
-                                  <Youtube size={13} /> {v.url}
-                                </a>
-                              )}
-                            </div>
-                          );
-                        })}
                       </div>
                     </div>
                   )}
@@ -1067,157 +995,136 @@ export default function UserDashboard() {
                     </>
                   )}
 
-                  {/* Portfolio links — individual accounts only */}
-                  {profile.type !== "store" && <div>
-                    <label style={S.label}>روابط البورتفوليو</label>
-                    {editForm.portfolio.length > 0 && (
-                      <div className="space-y-2 mb-2">
-                        {editForm.portfolio.map((link, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center gap-2"
-                            style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
-                          >
-                            <LinkIcon2 size={13} style={{ color: "var(--theme-text-muted, #4a7a4a)", flexShrink: 0 }} />
-                            <span style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {link.label}
-                            </span>
-                            <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "180px" }}>
-                              {link.url}
-                            </span>
-                            <button
-                              onClick={() => handleRemovePortfolioLink(i)}
-                              style={{ color: "#f87171", flexShrink: 0, lineHeight: 0 }}
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {showAddLink ? (
-                      <div
-                        className="space-y-2"
-                        style={{ background: "#161616", border: "1px solid var(--p-30)", borderRadius: "0.5rem", padding: "0.75rem" }}
-                      >
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label style={S.label}>التسمية</label>
-                            <input
-                              style={S.input}
-                              value={newLinkLabel}
-                              onChange={(e) => setNewLinkLabel(e.target.value)}
-                              placeholder="مثال: موقع شخصي"
-                            />
-                          </div>
-                          <div>
-                            <label style={S.label}>الرابط</label>
-                            <input
-                              style={S.input}
-                              value={newLinkUrl}
-                              onChange={(e) => setNewLinkUrl(e.target.value)}
-                              placeholder="https://..."
-                              dir="ltr"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleAddPortfolioLink}
-                            disabled={!newLinkLabel.trim() || !newLinkUrl.trim()}
-                            className="btn-dz px-4 py-1.5 rounded-lg text-sm disabled:opacity-40 flex items-center gap-1.5"
-                          >
-                            <Check size={13} />
-                            <span>إضافة</span>
-                          </button>
-                          <button
-                            onClick={() => { setShowAddLink(false); setNewLinkLabel(""); setNewLinkUrl(""); }}
-                            style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary, #6aad6a)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem" }}
-                          >
-                            إلغاء
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setShowAddLink(true)}
-                        className="flex items-center gap-1.5 text-sm"
-                        style={{ color: "var(--theme-text-secondary, #6aad6a)", border: "1px solid var(--p-30)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem" }}
-                      >
-                        <Plus size={13} />
-                        <span>إضافة رابط</span>
-                      </button>
-                    )}
-                  </div>}
-
-                  {/* Portfolio videos — non-store accounts */}
+                  {/* Works (portfolio) — individual accounts only */}
                   {profile.type !== "store" && (
                     <div>
-                      <label style={S.label}>أعمالي — فيديو (يوتيوب)</label>
-                      {editForm.portfolioVideos.length > 0 && (
+                      <label style={S.label}>أعمالي</label>
+
+                      {editForm.works.length > 0 && (
                         <div className="space-y-2 mb-2">
-                          {editForm.portfolioVideos.map((v, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center gap-2"
-                              style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
-                            >
-                              <Youtube size={13} style={{ color: "#f87171", flexShrink: 0 }} />
-                              <span style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {v.title || v.url}
-                              </span>
-                              <button
-                                onClick={() => setEditForm((p) => ({ ...p, portfolioVideos: p.portfolioVideos.filter((_, j) => j !== i) }))}
-                                style={{ color: "#f87171", flexShrink: 0, lineHeight: 0 }}
+                          {editForm.works.map((w) => {
+                            const WIcon = workTypeIcon[w.type];
+                            return (
+                              <div
+                                key={w.id}
+                                className="flex items-center gap-2"
+                                style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.45rem 0.75rem" }}
                               >
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
-                          ))}
+                                <WIcon size={13} style={{ color: "var(--theme-text-muted, #4a7a4a)", flexShrink: 0 }} />
+                                <span style={{ background: "var(--p-20)", color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.68rem", padding: "0.1rem 0.4rem", borderRadius: "4px", flexShrink: 0 }}>
+                                  {workTypeLabel[w.type]}
+                                </span>
+                                <span style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {w.title || w.url}
+                                </span>
+                                <button
+                                  onClick={() => handleRemoveWork(w.id)}
+                                  style={{ color: "#f87171", flexShrink: 0, lineHeight: 0, background: "none", border: "none", cursor: "pointer" }}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
-                      {showAddVideo ? (
+
+                      {showAddWork ? (
                         <div
-                          className="space-y-2"
+                          className="space-y-3"
                           style={{ background: "#161616", border: "1px solid var(--p-30)", borderRadius: "0.5rem", padding: "0.75rem" }}
                         >
-                          <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label style={S.label}>نوع العمل</label>
+                            <select
+                              style={S.input}
+                              value={newWorkType}
+                              onChange={(e) => { setNewWorkType(e.target.value as WorkType); setNewWorkUrl(""); setEditError(""); }}
+                            >
+                              <option value="article">مقال (رابط)</option>
+                              <option value="video">فيديو (رابط يوتيوب)</option>
+                              <option value="audio">عمل صوتي (رفع ملف)</option>
+                              <option value="image">صورة (رفع مباشر)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label style={S.label}>عنوان العمل</label>
+                            <input
+                              style={S.input}
+                              value={newWorkTitle}
+                              onChange={(e) => setNewWorkTitle(e.target.value)}
+                              placeholder="مثال: تقرير قناة النهار"
+                            />
+                          </div>
+
+                          {(newWorkType === "article" || newWorkType === "video") ? (
                             <div>
-                              <label style={S.label}>عنوان الفيديو</label>
+                              <label style={S.label}>{newWorkType === "video" ? "رابط يوتيوب" : "الرابط"}</label>
                               <input
                                 style={S.input}
-                                value={newVideoTitle}
-                                onChange={(e) => setNewVideoTitle(e.target.value)}
-                                placeholder="مثال: تقرير قناة النهار"
-                              />
-                            </div>
-                            <div>
-                              <label style={S.label}>رابط يوتيوب</label>
-                              <input
-                                style={S.input}
-                                value={newVideoUrl}
-                                onChange={(e) => setNewVideoUrl(e.target.value)}
-                                placeholder="https://youtube.com/watch?v=..."
+                                value={newWorkUrl}
+                                onChange={(e) => setNewWorkUrl(e.target.value)}
+                                placeholder={newWorkType === "video" ? "https://youtube.com/watch?v=..." : "https://..."}
                                 dir="ltr"
                               />
                             </div>
-                          </div>
+                          ) : (
+                            <div>
+                              <label style={S.label}>
+                                {newWorkType === "audio" ? "ملف صوتي أو فيديو (يُحوَّل تلقائياً إلى صوت)" : "ملف صورة"}
+                              </label>
+                              <label
+                                htmlFor="work-upload"
+                                style={{
+                                  cursor: uploadingWork ? "not-allowed" : "pointer",
+                                  background: "var(--p-12)",
+                                  border: "1px solid var(--p-30)",
+                                  color: uploadingWork ? "var(--theme-text-muted, #4a7a4a)" : "var(--theme-badge-text, #81c784)",
+                                  padding: "0.5rem 1rem",
+                                  borderRadius: "0.5rem",
+                                  fontSize: "0.8rem",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "0.4rem",
+                                }}
+                              >
+                                <Upload size={14} />
+                                {uploadingWork ? `جاري ${workUploadProgress > 0 ? `الرفع... ${workUploadProgress}%` : "التحويل..."}` : (newWorkType === "audio" ? "اختر ملف صوتي أو فيديو" : "اختر صورة")}
+                              </label>
+                              <input
+                                id="work-upload"
+                                type="file"
+                                accept={newWorkType === "audio" ? "audio/*,video/*" : "image/*"}
+                                style={{ display: "none" }}
+                                disabled={uploadingWork}
+                                onChange={async (e) => {
+                                  if (!e.target.files?.length) return;
+                                  const file = e.target.files[0];
+                                  if (newWorkType === "audio" && file.size > 15 * 1024 * 1024) {
+                                    setEditError("حجم الملف يتجاوز 15MB");
+                                    return;
+                                  }
+                                  await handleWorkFileUpload(file);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </div>
+                          )}
+
                           <div className="flex gap-2">
+                            {(newWorkType === "article" || newWorkType === "video") && (
+                              <button
+                                onClick={handleAddLinkWork}
+                                disabled={!newWorkTitle.trim() || !newWorkUrl.trim()}
+                                className="btn-dz px-4 py-1.5 rounded-lg text-sm disabled:opacity-40 flex items-center gap-1.5"
+                              >
+                                <Check size={13} />
+                                <span>إضافة</span>
+                              </button>
+                            )}
                             <button
-                              onClick={() => {
-                                if (!newVideoUrl.trim()) return;
-                                setEditForm((p) => ({ ...p, portfolioVideos: [...p.portfolioVideos, { title: newVideoTitle.trim(), url: newVideoUrl.trim() }] }));
-                                setNewVideoTitle(""); setNewVideoUrl(""); setShowAddVideo(false);
-                              }}
-                              disabled={!newVideoUrl.trim()}
-                              className="btn-dz px-4 py-1.5 rounded-lg text-sm disabled:opacity-40 flex items-center gap-1.5"
-                            >
-                              <Check size={13} />
-                              <span>إضافة</span>
-                            </button>
-                            <button
-                              onClick={() => { setShowAddVideo(false); setNewVideoTitle(""); setNewVideoUrl(""); }}
+                              onClick={() => { setShowAddWork(false); setNewWorkTitle(""); setNewWorkUrl(""); setEditError(""); }}
                               style={{ border: "1px solid var(--p-30)", color: "var(--theme-text-secondary, #6aad6a)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem" }}
                             >
                               إلغاء
@@ -1226,12 +1133,12 @@ export default function UserDashboard() {
                         </div>
                       ) : (
                         <button
-                          onClick={() => setShowAddVideo(true)}
+                          onClick={() => setShowAddWork(true)}
                           className="flex items-center gap-1.5 text-sm"
                           style={{ color: "var(--theme-text-secondary, #6aad6a)", border: "1px solid var(--p-30)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem" }}
                         >
                           <Plus size={13} />
-                          <span>إضافة فيديو</span>
+                          <span>إضافة عمل جديد</span>
                         </button>
                       )}
                     </div>
@@ -1354,61 +1261,114 @@ export default function UserDashboard() {
           </div>
         )}
 
-        {/* Equipment section — non-store approved users */}
-        {profile.status === "approved" && profile.type !== "store" && (
-          <div className="animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.15s" }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Package size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
-                <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>معداتي الإعلامية</h3>
-                <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem" }}>({myEquipment.length} منتج)</span>
-              </div>
-              <button
-                onClick={() => setAddEquipModal(true)}
-                className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm"
-              >
-                <Plus size={15} />
-                <span>إضافة عتاد جديد</span>
-              </button>
+        {/* Works (portfolio) section — non-store approved users */}
+        {profile.status === "approved" && profile.type !== "store" && profile.works && profile.works.length > 0 && (
+          <div className="animate-fade-in-up mb-8" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.12s" }}>
+            <div className="flex items-center gap-2 mb-4">
+              <Briefcase size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
+              <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>أعمالي</h3>
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem" }}>({profile.works.length})</span>
             </div>
 
-            <div style={S.card} className="overflow-hidden mb-6">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      {["المنتج", "الفئة", "السعر (دج)", "الحالة", "الموافقة"].map((h) => (
-                        <th key={h} style={S.th}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {myEquipment.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
-                          لم تضف أي عتاد بعد. اضغط "إضافة عتاد جديد" للبدء.
-                        </td>
-                      </tr>
-                    ) : myEquipment.map((eq) => (
-                      <tr key={eq.id} className="hover:bg-green-950/20 transition-colors">
-                        <td style={S.td}>{eq.name}</td>
-                        <td style={S.td}>{eq.category}</td>
-                        <td style={S.td}>{eq.price.toLocaleString()}</td>
-                        <td style={S.td}>
-                          <span style={{ background: eq.condition === "new" ? "var(--p-30)" : "rgba(120,66,18,0.3)", color: eq.condition === "new" ? "var(--theme-badge-text, #81c784)" : "#f0b27a", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
-                            {eq.condition === "new" ? "جديد" : "مستعمل"}
-                          </span>
-                        </td>
-                        <td style={S.td}>
-                          <span style={statusStyle[eq.status || "pending"]}>
-                            {statusLabel[eq.status || "pending"]}
-                          </span>
-                        </td>
-                      </tr>
+            <div style={S.card} className="p-5 space-y-5">
+              {/* Articles */}
+              {profile.works.filter((w) => w.type === "article").length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText size={14} style={{ color: "var(--theme-text-secondary, #6aad6a)" }} />
+                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>مقالات</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.works.filter((w) => w.type === "article").map((w) => (
+                      <a
+                        key={w.id}
+                        href={w.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 transition-colors"
+                        style={{ background: "var(--p-12)", border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.2rem 0.65rem", borderRadius: "9999px", fontSize: "0.8rem", textDecoration: "none" }}
+                      >
+                        <ExternalLink size={11} />
+                        <span>{w.title}</span>
+                      </a>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Videos */}
+              {profile.works.filter((w) => w.type === "video").length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Youtube size={14} style={{ color: "#f87171" }} />
+                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>أعمال مرئية</p>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    {profile.works.filter((w) => w.type === "video").map((w) => {
+                      const vid = ytId(w.url);
+                      return (
+                        <div key={w.id}>
+                          {w.title && <p style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", marginBottom: "0.4rem" }}>{w.title}</p>}
+                          {vid ? (
+                            <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "0.75rem", overflow: "hidden" }}>
+                              <iframe
+                                src={`https://www.youtube.com/embed/${vid}`}
+                                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                          ) : (
+                            <a href={w.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm" style={{ color: "#f87171", textDecoration: "none" }}>
+                              <Youtube size={13} /> {w.url}
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Audio works */}
+              {profile.works.filter((w) => w.type === "audio").length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Mic size={14} style={{ color: "var(--theme-accent, #00a355)" }} />
+                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>أعمال صوتية</p>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {profile.works.filter((w) => w.type === "audio").map((w) => (
+                      <div key={w.id} style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.6rem 0.85rem" }}>
+                        {w.title && <p style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", marginBottom: "0.4rem" }}>{w.title}</p>}
+                        <audio controls src={w.url} style={{ width: "100%", height: "36px" }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Images */}
+              {profile.works.filter((w) => w.type === "image").length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <ImageIcon size={14} style={{ color: "var(--theme-text-secondary, #6aad6a)" }} />
+                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>صور</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {profile.works.filter((w) => w.type === "image").map((w) => (
+                      <a key={w.id} href={w.url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={w.url}
+                          alt={w.title || "عمل"}
+                          style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-25)" }}
+                        />
+                        {w.title && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem", marginTop: "0.3rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{w.title}</p>}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1452,63 +1412,6 @@ export default function UserDashboard() {
         )}
       </div>
 
-      {/* Add Equipment Modal */}
-      {addEquipModal && (
-        <Modal title="إضافة عتاد جديد" onClose={() => setAddEquipModal(false)}>
-          <div className="space-y-4">
-            <div>
-              <label style={S.label}>اسم المنتج *</label>
-              <input style={S.input} value={equipForm.name} onChange={(e) => ef("name", e.target.value)} placeholder="مثال: كاميرا Sony A7III" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label style={S.label}>الفئة</label>
-                <select style={S.input} value={equipForm.category} onChange={(e) => ef("category", e.target.value)}>
-                  <option value="">اختر الفئة</option>
-                  <option value="كاميرات">كاميرات</option>
-                  <option value="ميكروفونات">ميكروفونات</option>
-                  <option value="إضاءة">إضاءة</option>
-                  <option value="ملحقات">ملحقات</option>
-                  <option value="أجهزة">أجهزة</option>
-                </select>
-              </div>
-              <div>
-                <label style={S.label}>الحالة</label>
-                <select style={S.input} value={equipForm.condition} onChange={(e) => ef("condition", e.target.value)}>
-                  <option value="new">جديد</option>
-                  <option value="used">مستعمل</option>
-                </select>
-              </div>
-              <div>
-                <label style={S.label}>السعر (دج)</label>
-                <input type="number" style={S.input} value={equipForm.price} onChange={(e) => ef("price", +e.target.value)} />
-              </div>
-              <div>
-                <label style={S.label}>معلومات التواصل</label>
-                <input style={S.input} value={equipForm.contact} onChange={(e) => ef("contact", e.target.value)} placeholder="هاتف أو بريد" />
-              </div>
-            </div>
-            <div>
-              <label style={S.label}>الوصف</label>
-              <textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={equipForm.description} onChange={(e) => ef("description", e.target.value)} />
-            </div>
-            <div
-              className="p-3 rounded-lg text-sm"
-              style={{ background: "rgba(180,120,0,0.1)", border: "1px solid rgba(180,120,0,0.25)", color: "#fbbf24" }}
-            >
-              سيتم مراجعة إعلانك من قِبل الإدارة قبل نشره.
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => setAddEquipModal(false)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>
-                إلغاء
-              </button>
-              <button onClick={handleAddEquipment} disabled={addingEquip || !equipForm.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
-                <span>{addingEquip ? "جاري الإرسال..." : "إرسال للمراجعة"}</span>
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
