@@ -3,8 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
 import {
   LogOut, User, Plus, X, ShoppingCart, Mic, BookOpen, Pencil, Check,
-  AlertTriangle, ExternalLink, Award, Link as LinkIcon2, ImageIcon, Youtube, Trash2,
-  Upload, Play, Pause, FileText, Briefcase,
+  AlertTriangle, Award, ImageIcon, Youtube, Trash2,
+  Upload, Play, Pause, FileText,
 } from "lucide-react";
 import { auth } from "../../../lib/firebase";
 import {
@@ -43,11 +43,6 @@ const typeLabel: Record<string, string> = {
   vendor:             "بائع عتاد",
   trainer:            "مدرب / مركز تدريب",
 };
-
-function ytId(url: string) {
-  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  return m?.[1] ?? null;
-}
 
 const typeIcon: Record<string, React.ElementType> = {
   journalist: BookOpen,
