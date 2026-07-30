@@ -52,6 +52,12 @@ service firebase.storage {
       allow write: if (isOwner(uid) || isAdmin()) && isAudio();
     }
 
+    // ── Portfolio works — images: public read, owner uploads own ─────────
+    match /works/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+    }
+
     // Everything else: denied by default.
   }
 }
