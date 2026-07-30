@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Phone, ExternalLink, Play, ArrowRight, User, Mic, Share2, Instagram, Linkedin, Facebook, Youtube, Globe, Twitter, FileText, ImageIcon, Briefcase } from "lucide-react";
+import { MapPin, Phone, ArrowRight, User, Mic, Share2, Instagram, Linkedin, Facebook, Youtube, Globe, Twitter } from "lucide-react";
 import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 import WorksSection from "./WorksSection";
@@ -15,11 +15,6 @@ const typeLabel: Record<string, string> = {
   journalist: "صحفي", photographer: "مصور", editor: "مخرج / مونتير",
   store: "متجر عتاد", trainer: "مدرب", other: "إعلامي",
 };
-
-function ytId(url: string) {
-  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  return m?.[1] ?? null;
-}
 
 function ShareButton() {
   const [copied, setCopied] = useState(false);
