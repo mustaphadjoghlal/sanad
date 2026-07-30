@@ -19,6 +19,7 @@ import type { UserProfile, PortfolioWork, WorkType, AudioSample, Gender, VoiceSa
 import { VOICE_SAMPLE_CATEGORIES } from "../../../lib/types";
 import StoreManager from "../StoreManager";
 import TrainerManager from "../TrainerManager";
+import WorksSection from "../WorksSection";
 
 const typeLabel: Record<string, string> = {
   editor_news:        "محرر",
@@ -332,6 +333,11 @@ export default function UserDashboard() {
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
+  const [uploadToast, setUploadToast] = useState<string | null>(null);
+  const showUploadToast = (msg: string) => {
+    setUploadToast(msg);
+    setTimeout(() => setUploadToast(null), 3000);
+  };
 
   // Photo upload state
   const [photoUrl, setPhotoUrl] = useState<string>("");
@@ -457,9 +463,15 @@ export default function UserDashboard() {
         // Any uploaded video/audio file is converted to an audio file (wav)
         let audioFile = file;
         if (file.type.startsWith("video/")) {
+          let audioBuf: AudioBuffer;
           const audioCtx = new AudioContext();
-          const arrayBuf = await file.arrayBuffer();
-          const audioBuf = await audioCtx.decodeAudioData(arrayBuf);
+          try {
+            const arrayBuf = await file.arrayBuffer();
+            audioBuf = await audioCtx.decodeAudioData(arrayBuf);
+          } catch {
+            audioCtx.close();
+            throw new Error("تعذر استخراج الصوت من هذا الفيديو. جرّب صيغة MP4 أو ارفع ملفاً صوتياً مباشرة.");
+          }
           const offlineCtx = new OfflineAudioContext(audioBuf.numberOfChannels, audioBuf.length, audioBuf.sampleRate);
           const source = offlineCtx.createBufferSource();
           source.buffer = audioBuf;
@@ -472,9 +484,11 @@ export default function UserDashboard() {
         }
         const url = await uploadAudioSample(uid, audioFile, (p) => setWorkUploadProgress(p));
         setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "audio", title: newWorkTitle.trim(), url }] }));
+        showUploadToast("✓ تم رفع العمل الصوتي بنجاح");
       } else if (newWorkType === "image") {
         const url = await uploadImage(`works/${uid}`, file, (p) => setWorkUploadProgress(p));
         setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "image", title: newWorkTitle.trim(), url }] }));
+        showUploadToast("✓ تم رفع الصورة بنجاح");
       }
       setNewWorkTitle("");
       setShowAddWork(false);
@@ -559,6 +573,15 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen" dir="rtl" style={{ background: "#0e0e0e" }}>
+      {uploadToast && (
+        <div
+          className="fixed top-4 left-1/2 z-[100] flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm animate-fade-in-up"
+          style={{ transform: "translateX(-50%)", background: "rgba(0,100,50,0.95)", border: "1px solid rgba(0,163,85,0.4)", color: "#e8f5e9", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+        >
+          <Check size={15} />
+          <span>{uploadToast}</span>
+        </div>
+      )}
       {/* Header */}
       <header
         className="sticky top-0 z-50 px-6 py-3 flex items-center justify-between"
@@ -938,8 +961,14 @@ export default function UserDashboard() {
                                     if (file.type.startsWith("video/")) {
                                       setEditError("");
                                       const audioCtx = new AudioContext();
-                                      const arrayBuf = await file.arrayBuffer();
-                                      const audioBuf = await audioCtx.decodeAudioData(arrayBuf);
+                                      let audioBuf: AudioBuffer;
+                                      try {
+                                        const arrayBuf = await file.arrayBuffer();
+                                        audioBuf = await audioCtx.decodeAudioData(arrayBuf);
+                                      } catch {
+                                        audioCtx.close();
+                                        throw new Error("تعذر استخراج الصوت من هذا الفيديو. جرّب صيغة MP4 أو ارفع ملفاً صوتياً مباشرة.");
+                                      }
                                       const offlineCtx = new OfflineAudioContext(
                                         audioBuf.numberOfChannels,
                                         audioBuf.length,
@@ -963,6 +992,7 @@ export default function UserDashboard() {
                                     setNewAudioCategory("وثائقي");
                                     setShowAddAudio(false);
                                     setEditError("");
+                                    showUploadToast("✓ تم رفع العيّنة الصوتية بنجاح");
                                   } catch (err: unknown) {
                                     setEditError((err as Error)?.message ?? "فشل رفع الملف");
                                   } finally {
@@ -971,6 +1001,11 @@ export default function UserDashboard() {
                                   }
                                 }}
                               />
+                              {uploadingAudio && (
+                                <div style={{ marginTop: "0.5rem", background: "#0e0e0e", border: "1px solid var(--p-25)", borderRadius: "9999px", height: "6px", overflow: "hidden" }}>
+                                  <div style={{ width: `${audioUploadProgress}%`, height: "100%", background: "var(--theme-accent, #00a355)", transition: "width 0.2s ease" }} />
+                                </div>
+                              )}
                             </div>
                             <div className="flex gap-2">
                               <button
@@ -1109,6 +1144,11 @@ export default function UserDashboard() {
                                   e.target.value = "";
                                 }}
                               />
+                              {uploadingWork && (
+                                <div style={{ marginTop: "0.5rem", background: "#0e0e0e", border: "1px solid var(--p-25)", borderRadius: "9999px", height: "6px", overflow: "hidden" }}>
+                                  <div style={{ width: `${workUploadProgress}%`, height: "100%", background: "var(--theme-accent, #00a355)", transition: "width 0.2s ease" }} />
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -1264,112 +1304,7 @@ export default function UserDashboard() {
         {/* Works (portfolio) section — non-store approved users */}
         {profile.status === "approved" && profile.type !== "store" && profile.works && profile.works.length > 0 && (
           <div className="animate-fade-in-up mb-8" style={{ opacity: 0, animationFillMode: "forwards", animationDelay: "0.12s" }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Briefcase size={18} style={{ color: "var(--theme-accent, #00a355)" }} />
-              <h3 className="text-lg font-semibold" style={{ color: "var(--theme-text, #c8e6c9)" }}>أعمالي</h3>
-              <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem" }}>({profile.works.length})</span>
-            </div>
-
-            <div style={S.card} className="p-5 space-y-5">
-              {/* Articles */}
-              {profile.works.filter((w) => w.type === "article").length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText size={14} style={{ color: "var(--theme-text-secondary, #6aad6a)" }} />
-                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>مقالات</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.works.filter((w) => w.type === "article").map((w) => (
-                      <a
-                        key={w.id}
-                        href={w.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 transition-colors"
-                        style={{ background: "var(--p-12)", border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.2rem 0.65rem", borderRadius: "9999px", fontSize: "0.8rem", textDecoration: "none" }}
-                      >
-                        <ExternalLink size={11} />
-                        <span>{w.title}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Videos */}
-              {profile.works.filter((w) => w.type === "video").length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Youtube size={14} style={{ color: "#f87171" }} />
-                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>أعمال مرئية</p>
-                  </div>
-                  <div className="flex flex-col gap-4">
-                    {profile.works.filter((w) => w.type === "video").map((w) => {
-                      const vid = ytId(w.url);
-                      return (
-                        <div key={w.id}>
-                          {w.title && <p style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", marginBottom: "0.4rem" }}>{w.title}</p>}
-                          {vid ? (
-                            <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "0.75rem", overflow: "hidden" }}>
-                              <iframe
-                                src={`https://www.youtube.com/embed/${vid}`}
-                                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                              />
-                            </div>
-                          ) : (
-                            <a href={w.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm" style={{ color: "#f87171", textDecoration: "none" }}>
-                              <Youtube size={13} /> {w.url}
-                            </a>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Audio works */}
-              {profile.works.filter((w) => w.type === "audio").length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Mic size={14} style={{ color: "var(--theme-accent, #00a355)" }} />
-                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>أعمال صوتية</p>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    {profile.works.filter((w) => w.type === "audio").map((w) => (
-                      <div key={w.id} style={{ background: "#161616", border: "1px solid var(--p-25)", borderRadius: "0.5rem", padding: "0.6rem 0.85rem" }}>
-                        {w.title && <p style={{ color: "var(--theme-badge-text, #81c784)", fontSize: "0.82rem", marginBottom: "0.4rem" }}>{w.title}</p>}
-                        <audio controls src={w.url} style={{ width: "100%", height: "36px" }} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Images */}
-              {profile.works.filter((w) => w.type === "image").length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <ImageIcon size={14} style={{ color: "var(--theme-text-secondary, #6aad6a)" }} />
-                    <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.78rem", fontWeight: 600 }}>صور</p>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {profile.works.filter((w) => w.type === "image").map((w) => (
-                      <a key={w.id} href={w.url} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={w.url}
-                          alt={w.title || "عمل"}
-                          style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-25)" }}
-                        />
-                        {w.title && <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem", marginTop: "0.3rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{w.title}</p>}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <WorksSection works={profile.works} />
           </div>
         )}
 
