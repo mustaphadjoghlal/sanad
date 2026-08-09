@@ -237,7 +237,7 @@ export default function Register() {
         body: `${form.name} سجّل في المنصة كـ ${typeLabel}`,
         link: "/sanad-admin",
         createdAt: Date.now(),
-      }).catch(() => {});
+      }, undefined, "admin").catch(() => {});
 
       setSuccess(true);
       setTimeout(() => navigate("/login"), 3000);
