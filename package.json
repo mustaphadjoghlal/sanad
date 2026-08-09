@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "firebase": "^12.13.0",
+    "google-auth-library": "^11.0.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "0.487.0",
