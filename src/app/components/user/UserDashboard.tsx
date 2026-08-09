@@ -546,7 +546,7 @@ export default function UserDashboard() {
           body: `${editForm.name} أعاد تقديم ملفه الشخصي بعد الرفض`,
           link: "/sanad-admin",
           createdAt: Date.now(),
-        }).catch(() => {});
+        }, undefined, "admin").catch(() => {});
       }
       setEditing(false);
     } catch {
@@ -1341,7 +1341,3 @@ export default function UserDashboard() {
           </div>
         )}
       </div>
-
-    </div>
-  );
-}
