@@ -323,9 +323,19 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user || user.email !== ADMIN_EMAIL) {
-        if (user) signOut(auth);
+      if (user && user.email !== ADMIN_EMAIL) {
+        // Wrong account is logged in — sign out immediately, this is real.
+        signOut(auth);
         navigate("/sanad-admin");
+      } else if (!user) {
+        // Firebase can briefly report `user = null` on refresh while
+        // restoring the persisted session — don't sign out/redirect on
+        // that transient flash, re-check shortly after.
+        setTimeout(() => {
+          if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+            navigate("/sanad-admin");
+          }
+        }, 800);
       }
     });
     return unsub;
