@@ -192,6 +192,9 @@ export interface AppNotification {
   link?: string;
   createdAt: number;
   readBy?: string[];
+  // "admin" = only visible to the admin (e.g. new registration, resubmission).
+  // Missing/"all" = visible to every logged-in user (jobs, competitions, announcements).
+  audience?: "all" | "admin";
 }
 
 export interface Channel {
