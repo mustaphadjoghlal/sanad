@@ -357,11 +357,18 @@ export default function UserDashboard() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        navigate("/login");
-      } else {
+      if (user) {
         setUid(user.uid);
         setAuthLoading(false);
+      } else {
+        // Firebase can briefly report `user = null` on page refresh while it
+        // finishes restoring the persisted session from storage. Redirecting
+        // to /login immediately on that first flash was logging people out
+        // even though they were still authenticated — wait a beat and
+        // re-check before treating it as a real sign-out.
+        setTimeout(() => {
+          if (!auth.currentUser) navigate("/login");
+        }, 800);
       }
     });
     return unsub;
