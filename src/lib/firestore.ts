@@ -310,8 +310,12 @@ export async function saveUserFCMToken(uid: string, token: string): Promise<void
 }
 
 // --- APP NOTIFICATIONS ---
-export async function sendNotification(notif: Omit<AppNotification, "id" | "readBy">, targetType?: string): Promise<void> {
-  await addDoc(col("notifications"), { ...notif, readBy: [] });
+export async function sendNotification(
+  notif: Omit<AppNotification, "id" | "readBy" | "audience">,
+  targetType?: string,
+  audience: "all" | "admin" = "all"
+): Promise<void> {
+  await addDoc(col("notifications"), { ...notif, audience, readBy: [] });
   fetch("/api/push", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -319,10 +323,14 @@ export async function sendNotification(notif: Omit<AppNotification, "id" | "read
   }).catch(() => {});
 }
 
-export function subscribeToNotifications(callback: (notifs: AppNotification[]) => void): () => void {
+export function subscribeToNotifications(isAdmin: boolean, callback: (notifs: AppNotification[]) => void): () => void {
   const q = query(col("notifications"), orderBy("createdAt", "desc"));
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppNotification)));
+    const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppNotification));
+    // Admin-only notifications (new registrations, resubmissions, etc.) must
+    // never reach regular users — older docs without `audience` are treated as public.
+    const visible = isAdmin ? all : all.filter((n) => n.audience !== "admin");
+    callback(visible);
   });
 }
 
