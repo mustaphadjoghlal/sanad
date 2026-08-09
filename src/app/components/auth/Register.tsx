@@ -1,1063 +1,282 @@
-import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Radio, ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store, GraduationCap } from "lucide-react";
-import { createUserWithEmailAndPassword, deleteUser, fetchSignInMethodsForEmail } from "firebase/auth";
-import { auth } from "../../../lib/firebase";
-import { saveUserProfile, sendNotification } from "../../../lib/firestore";
-import { uploadProfilePhoto } from "../../../lib/storage";
-import type { AccountType, PortfolioLink } from "../../../lib/types";
-import { INTERESTS } from "../../../lib/types";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  MapPin, Phone, MessageCircle, Globe, Building2, Calendar, Clock,
+  Users, DollarSign, ArrowRight, CheckCircle, X, BookOpen,
+} from "lucide-react";
+import { getTrainer, subscribeToApprovedTrainerCourses, submitCourseRegistration, sendNotification } from "../../lib/firestore";
+import type { UserProfile, TrainerCourse } from "../../lib/types";
 
-import { WILAYAS } from "../../../lib/wilayas";
-const wilayas = WILAYAS;
-
-type MainType = "individual" | "store" | "trainer" | null;
-type IndividualSubType = "editor_news" | "web_digital" | "presenter_programs" | "presenter_news" | "monteur" | "graphic_designer" | "cameraman" | "producer" | "director" | "program_writer" | "voice" | "host_stage" | "student" | "other" | null;
-type StorePlan = "trial" | "paid" | null;
-
-interface FormState {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  specialty: string;
-  location: string;
-  experience: string;
-  bio: string;
-  phone: string;
-  achievements: string;
-  storeName: string;
-  storeDescription: string;
-  whatsapp: string;
-  otherTypeText: string;
-  storePlan: StorePlan;
-  organization: string;
-  trainerSpecialty: string;
-}
-
-interface NewLink {
-  label: string;
-  url: string;
-}
-
-const individualSubcategories: { type: IndividualSubType; label: string }[] = [
-  { type: "editor_news",        label: "محرر" },
-  { type: "web_digital",        label: "ويب ديجيتال" },
-  { type: "presenter_programs", label: "مقدم برامج" },
-  { type: "presenter_news",     label: "مقدم أخبار" },
-  { type: "monteur",            label: "مونتير" },
-  { type: "graphic_designer",   label: "جرافيك ديزاينر" },
-  { type: "cameraman",          label: "كاميرا مان" },
-  { type: "producer",           label: "منتج" },
-  { type: "director",           label: "مخرج" },
-  { type: "program_writer",     label: "معد برامج" },
-  { type: "voice",              label: "معلق صوتي" },
-  { type: "host_stage",         label: "منشط على الركح" },
-  { type: "student",            label: "طالب إعلام" },
-  { type: "other",              label: "أخرى" },
+const wilayas = [
+  "الجزائر","وهران","قسنطينة","عنابة","سطيف","تيزي وزو","البليدة","بجاية",
+  "تلمسان","باتنة","بسكرة","سكيكدة","جيجل","برج بوعريريج","المدية","تبسة",
+  "مستغانم","معسكر","سعيدة","تيارت","غليزان","الشلف","عين الدفلى","ميلة",
+  "خنشلة","أم البواقي","سوق أهراس","المسيلة","الوادي","ورقلة",
+  "غرداية","بشار","أدرار","تمنراست","إليزي",
 ];
 
-export default function Register() {
-  const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface RegForm { name: string; phone: string; email: string; wilaya: string; note: string; }
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [mainType, setMainType] = useState<MainType>(null);
-  const [individualSubType, setIndividualSubType] = useState<IndividualSubType>(null);
-  const [saving, setSaving] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [portfolioLinks, setPortfolioLinks] = useState<PortfolioLink[]>([]);
-  const [showAddLink, setShowAddLink] = useState(false);
-  const [newLink, setNewLink] = useState<NewLink>({ label: "", url: "" });
-  const [interests, setInterests] = useState<string[]>([]);
-  const [emailStatus, setEmailStatus] = useState<"idle" | "checking" | "taken" | "ok">("idle");
-
-  const [form, setForm] = useState<FormState>({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    specialty: "",
-    location: "",
-    experience: "",
-    bio: "",
-    phone: "",
-    achievements: "",
-    storeName: "",
-    storeDescription: "",
-    whatsapp: "",
-    otherTypeText: "",
-    storePlan: null,
-    organization: "",
-    trainerSpecialty: "",
-  });
-
-  const f = (key: keyof FormState, val: string) =>
-    setForm((p) => ({ ...p, [key]: val }));
+export default function TrainerDetail() {
+  const { id } = useParams<{ id: string }>();
+  const [trainer, setTrainer] = useState<UserProfile | null>(null);
+  const [courses, setCourses] = useState<TrainerCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCourse, setSelectedCourse] = useState<TrainerCourse | null>(null);
+  const [form, setForm] = useState<RegForm>({ name: "", phone: "", email: "", wilaya: "", note: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [regError, setRegError] = useState("");
 
   useEffect(() => {
-    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) { setEmailStatus("idle"); return; }
-    setEmailStatus("checking");
-    const timer = setTimeout(async () => {
-      try {
-        const methods = await fetchSignInMethodsForEmail(auth, form.email);
-        setEmailStatus(methods.length > 0 ? "taken" : "ok");
-      } catch { setEmailStatus("idle"); }
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [form.email]);
+    if (!id) return;
+    getTrainer(id).then((t) => { setTrainer(t); setLoading(false); });
+    return subscribeToApprovedTrainerCourses(id, setCourses);
+  }, [id]);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleAddLink = () => {
-    if (!newLink.label.trim() || !newLink.url.trim()) return;
-    setPortfolioLinks((prev) => [...prev, { label: newLink.label.trim(), url: newLink.url.trim() }]);
-    setNewLink({ label: "", url: "" });
-    setShowAddLink(false);
-  };
-
-  const handleDeleteLink = (idx: number) => {
-    setPortfolioLinks((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const goToStep2 = () => {
-    if (!mainType) return;
-    if (mainType === "individual" && !individualSubType) return;
-    if (mainType === "store" && !form.storePlan) return;
-    setStep(2);
-  };
-
-  const canProceedStep1 = mainType === "individual" ? !!individualSubType : mainType === "store" ? !!form.storePlan : !!mainType;
-
-  const hasLength = form.password.length >= 8 && form.password.length <= 20;
-  const hasLettersAndNumbers = /[a-zA-Zأ-ي]/.test(form.password) && /[0-9]/.test(form.password);
-  const passwordsMatch = form.password.length > 0 && form.password === form.confirmPassword;
-  const passwordValid = hasLength && hasLettersAndNumbers && passwordsMatch;
-
-  const goToStep3 = () => {
-    setError("");
-    if (!form.name || !form.email || !form.password) {
-      setError("يرجى ملء جميع الحقول الإلزامية");
-      return;
-    }
-    if (emailStatus === "taken") {
-      setError("البريد الإلكتروني مستخدم بالفعل، جرّب بريداً آخر");
-      return;
-    }
-    if (!passwordValid) {
-      setError("يرجى التحقق من شروط كلمة المرور");
-      return;
-    }
-    setStep(3);
-  };
-
-  const handleRegister = async () => {
-    setError("");
-    if (!form.location) {
-      setError("يرجى اختيار الولاية");
-      return;
-    }
-    if (mainType === "store" && !form.storeName.trim()) {
-      setError("يرجى إدخال اسم المتجر");
-      return;
-    }
-    if (mainType === "trainer" && !form.name.trim()) {
-      setError("يرجى إدخال اسمك أو اسم مركز التدريب");
-      return;
-    }
-
-    setSaving(true);
-    let createdUser = null;
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCourse || !trainer) return;
+    if (!form.name.trim() || !form.phone.trim()) { setRegError("الاسم والهاتف مطلوبان"); return; }
+    setSubmitting(true);
+    setRegError("");
     try {
-      const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
-      createdUser = cred.user;
-      const uid = cred.user.uid;
-
-      // Photo upload is best-effort — don't block registration if it fails
-      let photoUrl: string | undefined;
-      if (photoFile) {
-        photoUrl = await uploadProfilePhoto(uid, photoFile, setUploadProgress).catch((e) => {
-          console.error("Photo upload failed:", e?.message);
-          return undefined;
-        });
-      }
-
-      const accountType: AccountType =
-        mainType === "store" ? "store" : mainType === "trainer" ? "trainer" : (individualSubType as AccountType);
-
-      const baseProfile = {
-        email: form.email,
-        name: mainType === "store" ? form.storeName : form.name,
-        type: accountType,
-        bio: mainType === "store" ? form.storeDescription : form.bio,
-        photo: photoUrl,
-        specialty: mainType === "trainer" ? (form.trainerSpecialty || undefined) : (form.specialty || undefined),
-        location: form.location || undefined,
-        phone: form.phone || undefined,
-      };
-
-      if (mainType === "individual") {
-        await saveUserProfile(uid, {
-          ...baseProfile,
-          achievements: form.achievements || undefined,
-          portfolio: portfolioLinks.length > 0 ? portfolioLinks : undefined,
-          experience: individualSubType !== "student" ? (form.experience || undefined) : undefined,
-          otherType: individualSubType === "other" ? form.otherTypeText || undefined : undefined,
-          interests: interests.length > 0 ? interests : undefined,
-        });
-      } else if (mainType === "trainer") {
-        await saveUserProfile(uid, {
-          ...baseProfile,
-          organization: form.organization || undefined,
-          whatsapp: form.whatsapp || undefined,
-        });
-      } else {
-        await saveUserProfile(uid, {
-          ...baseProfile,
-          storeStatus: form.storePlan as "trial" | "paid",
-          whatsapp: form.whatsapp || undefined,
-        });
-      }
-
-      // Notify admin of new registration
-      const typeLabel = mainType === "store" ? "متجر عتاد" : mainType === "trainer" ? "مدرب / مركز تدريب" : "محترف إعلامي";
+      await submitCourseRegistration({
+        courseId: selectedCourse.id,
+        courseTitle: selectedCourse.title,
+        trainerId: trainer.id,
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim() || undefined,
+        wilaya: form.wilaya || undefined,
+        note: form.note.trim() || undefined,
+      });
+      // Best-effort: a failed notification must not surface an error for an
+      // already-successful registration.
       await sendNotification({
-        title: "مستخدم جديد 🎉",
-        body: `${form.name} سجّل في المنصة كـ ${typeLabel}`,
-        link: "/sanad-admin",
+        title: "طلب تسجيل جديد في دورتك",
+        body: `${form.name} طلب التسجيل في "${selectedCourse.title}"`,
+        link: `/user/dashboard`,
         createdAt: Date.now(),
       }, undefined, "admin").catch(() => {});
-
-      setSuccess(true);
-      setTimeout(() => navigate("/login"), 3000);
-    } catch (err: unknown) {
-      const e = err as { code?: string; message?: string };
-      if (e.code === "auth/email-already-in-use") {
-        setError("البريد الإلكتروني مستخدم بالفعل");
-      } else if (e.code === "auth/invalid-email") {
-        setError("البريد الإلكتروني غير صالح");
-      } else {
-        if (createdUser) {
-          await deleteUser(createdUser).catch(() => {});
-        }
-        setError(e.message ?? "حدث خطأ. يرجى المحاولة مجدداً.");
-      }
+      setSubmitted(true);
+    } catch {
+      setRegError("حدث خطأ، حاول مجدداً");
     } finally {
-      setSaving(false);
+      setSubmitting(false);
     }
   };
 
-  const stepLabels = ["نوع الحساب", "المعلومات الأساسية", "تفاصيل الملف"];
+  const closeModal = () => { setSelectedCourse(null); setSubmitted(false); setForm({ name: "", phone: "", email: "", wilaya: "", note: "" }); setRegError(""); };
+  const f = (key: keyof RegForm, val: string) => setForm((p) => ({ ...p, [key]: val }));
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4" dir="rtl" style={{ background: "#0e0e0e" }}>
-        <div
-          className="w-full max-w-md text-center p-8 rounded-2xl animate-fade-in-up"
-          style={{
-            background: "linear-gradient(145deg, #141414, #101010)",
-            border: "1px solid var(--p-35)",
-            opacity: 0,
-            animationFillMode: "forwards",
-          }}
-        >
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ background: "var(--p-20)", border: "2px solid var(--p-40)" }}
-          >
-            <Check size={36} style={{ color: "var(--theme-accent, #00a355)" }} />
-          </div>
-          <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--theme-text, #e8f5e9)" }}>تم التسجيل بنجاح!</h2>
-          <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7 }}>
-            ملفك قيد المراجعة. سيتم إشعارك عند الموافقة.
-          </p>
-          <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.85rem", marginTop: "1rem" }}>
-            سيتم تحويلك لصفحة تسجيل الدخول خلال ثوانٍ...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#0e0e0e" }}>
+      <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "var(--theme-accent) transparent transparent transparent" }} />
+    </div>
+  );
+
+  if (!trainer) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#0e0e0e", color: "var(--theme-text)" }} dir="rtl">
+      <p>المدرب غير موجود</p>
+      <Link to="/trainers" className="text-sm" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>← العودة للمدربين</Link>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" dir="rtl" style={{ background: "#0e0e0e" }}>
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at 50% -10%, var(--p-12) 0%, transparent 60%)" }}
-      />
+    <div className="min-h-screen py-12" style={{ background: "#0e0e0e" }} dir="rtl">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Back */}
+        <Link to="/trainers" className="inline-flex items-center gap-1 text-sm mb-6" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>
+          <ArrowRight size={14} /> العودة للمدربين
+        </Link>
 
-      <div className="w-full max-w-2xl relative z-10">
-        {/* Logo */}
-        <div className="text-center mb-8 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-          <Link to="/" className="inline-flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <div
-              className="p-2.5 rounded-xl"
-              style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))", boxShadow: "0 0 16px var(--p-40)" }}
-            >
-              <Radio size={22} color="#fff" />
+        {/* Profile card */}
+        <div className="rounded-2xl overflow-hidden mb-8" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-20)" }}>
+          {/* Cover / Photo */}
+          <div style={{ height: "200px", background: "linear-gradient(135deg, var(--theme-primary), var(--theme-accent))", position: "relative" }}>
+            <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.3)" }} />
+            {trainer.photo && (
+              <img src={trainer.photo} alt={trainer.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.4 }} />
+            )}
+          </div>
+
+          <div className="p-6 -mt-8 relative z-10">
+            {/* Avatar */}
+            <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 border-4" style={{ borderColor: "#141414", background: "var(--p-20)" }}>
+              {trainer.photo
+                ? <img src={trainer.photo} alt={trainer.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : <div className="w-full h-full flex items-center justify-center"><Building2 size={32} style={{ color: "var(--p-40)" }} /></div>
+              }
             </div>
-            <span
-              className="text-3xl font-bold"
-              style={{
-                background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              سند
-            </span>
-          </Link>
-          <p className="mt-2" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem" }}>إنشاء حساب جديد</p>
+
+            <h1 className="text-2xl font-black mb-1" style={{ color: "var(--theme-text)" }}>{trainer.name}</h1>
+            {trainer.organization && <p className="text-sm mb-2" style={{ color: "var(--theme-accent)" }}>{trainer.organization}</p>}
+            {trainer.specialty && (
+              <span className="inline-block text-xs px-3 py-1 rounded-full mb-4" style={{ background: "var(--p-15)", color: "var(--theme-badge-text)" }}>
+                {trainer.specialty}
+              </span>
+            )}
+            {trainer.bio && <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--theme-text-muted)" }}>{trainer.bio}</p>}
+
+            {/* Contact */}
+            <div className="flex flex-wrap gap-3">
+              {trainer.location && (
+                <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-muted)" }}>
+                  <MapPin size={14} /> {trainer.location}
+                </span>
+              )}
+              {trainer.phone && (
+                <a href={`tel:${trainer.phone}`} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg" style={{ color: "var(--theme-badge-text)", border: "1px solid var(--p-25)", textDecoration: "none" }}>
+                  <Phone size={14} /> {trainer.phone}
+                </a>
+              )}
+              {(trainer as any).whatsapp && (
+                <a href={`https://wa.me/${(trainer as any).whatsapp?.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg" style={{ color: "#4ade80", border: "1px solid rgba(74,222,128,0.2)", textDecoration: "none" }}>
+                  <MessageCircle size={14} /> واتساب
+                </a>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div
-          className="rounded-2xl overflow-hidden animate-fade-in-up"
-          style={{
-            background: "linear-gradient(145deg, #141414, #101010)",
-            border: "1px solid var(--p-25)",
-            boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
-            animationDelay: "0.1s",
-            opacity: 0,
-            animationFillMode: "forwards",
-          }}
-        >
-          {/* Step indicators */}
-          <div
-            className="flex items-center gap-2 px-6 pt-6 pb-5"
-            style={{ borderBottom: "1px solid var(--p-15)" }}
-          >
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center gap-2">
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300"
-                  style={{
-                    background: step >= s ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-15)",
-                    color: step >= s ? "#fff" : "var(--theme-text-dim, #3a5e3a)",
-                    border: step >= s ? "none" : "1px solid var(--p-20)",
-                    flexShrink: 0,
-                  }}
-                >
-                  {step > s ? <Check size={13} /> : s}
-                </div>
-                <span style={{ color: step >= s ? "var(--theme-badge-text, #81c784)" : "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>
-                  {stepLabels[s - 1]}
-                </span>
-                {s < 3 && (
-                  <div
-                    className="w-6 h-px mx-1"
-                    style={{ background: step > s ? "var(--theme-primary, #006233)" : "var(--p-20)", flexShrink: 0 }}
-                  />
+        {/* Courses */}
+        <h2 className="text-xl font-bold mb-4" style={{ color: "var(--theme-text)" }}>الدورات التدريبية ({courses.length})</h2>
+        {courses.length === 0 ? (
+          <div className="rounded-2xl p-12 text-center" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>
+            <BookOpen size={40} style={{ color: "var(--p-25)", margin: "0 auto 1rem" }} />
+            <p style={{ color: "var(--theme-text-muted)" }}>لا توجد دورات معتمدة حالياً</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {courses.map((course) => (
+              <div key={course.id} className="rounded-2xl overflow-hidden" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-20)" }}>
+                {course.image && (
+                  <div style={{ height: "200px", overflow: "hidden" }}>
+                    <img src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
                 )}
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <h3 className="font-bold text-lg" style={{ color: "var(--theme-text)" }}>{course.title}</h3>
+                    <span className="text-xs px-2 py-1 rounded-full flex-shrink-0" style={{ background: course.type === "free" ? "var(--p-15)" : "rgba(26,82,118,0.3)", color: course.type === "free" ? "var(--theme-accent)" : "#64b5f6" }}>
+                      {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
+                    </span>
+                  </div>
+
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--theme-text-muted)" }}>{course.description}</p>
+
+                  {/* Meta grid */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {course.duration && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-muted)" }}>
+                        <Clock size={14} style={{ color: "var(--theme-accent)" }} /> {course.duration}
+                      </div>
+                    )}
+                    {course.location && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-muted)" }}>
+                        <MapPin size={14} style={{ color: "var(--theme-accent)" }} /> {course.location}
+                      </div>
+                    )}
+                    {course.schedule && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-muted)" }}>
+                        <Calendar size={14} style={{ color: "var(--theme-accent)" }} /> {course.schedule}
+                      </div>
+                    )}
+                    {course.startDate && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-muted)" }}>
+                        <Calendar size={14} style={{ color: "var(--theme-accent)" }} /> تبدأ: {new Date(course.startDate).toLocaleDateString("ar-DZ")}
+                      </div>
+                    )}
+                    {course.seats && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--theme-text-muted)" }}>
+                        <Users size={14} style={{ color: "var(--theme-accent)" }} /> {course.seats} مقعد
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content images */}
+                  {course.contentImages && course.contentImages.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                      {course.contentImages.map((img, i) => (
+                        <div key={i} style={{ height: "80px", borderRadius: "0.5rem", overflow: "hidden" }}>
+                          <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => { setSelectedCourse(course); setSubmitted(false); }}
+                    className="btn-dz w-full py-3 rounded-xl font-medium text-sm"
+                  >
+                    التسجيل في الدورة
+                  </button>
+                </div>
               </div>
             ))}
           </div>
+        )}
+      </div>
 
-          <div className="p-6">
-
-            {/* ─── STEP 1: Account Type ─── */}
-            {step === 1 && (
-              <div>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--theme-text, #e8f5e9)" }}>اختر نوع حسابك</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {/* Individual card */}
-                  <button
-                    onClick={() => { setMainType("individual"); setIndividualSubType(null); }}
-                    className="p-5 rounded-xl text-right transition-all duration-200"
-                    style={{
-                      background: mainType === "individual"
-                        ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
-                        : "rgba(0,0,0,0.2)",
-                      border: mainType === "individual"
-                        ? "2px solid var(--p-60)"
-                        : "1px solid var(--p-20)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
-                      style={{
-                        background: mainType === "individual" ? "rgba(0,163,85,0.25)" : "var(--p-15)",
-                        border: `1px solid ${mainType === "individual" ? "var(--p-40)" : "var(--p-30)"}`,
-                      }}
-                    >
-                      <User size={22} style={{ color: mainType === "individual" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
-                    </div>
-                    <div className="font-semibold mb-1" style={{ color: mainType === "individual" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
-                      حساب فردي
-                    </div>
-                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>صحفي، مصور، طالب، وغيرهم</div>
-                  </button>
-
-                  {/* Store card */}
-                  <button
-                    onClick={() => { setMainType("store"); setIndividualSubType(null); }}
-                    className="p-5 rounded-xl text-right transition-all duration-200"
-                    style={{
-                      background: mainType === "store"
-                        ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
-                        : "rgba(0,0,0,0.2)",
-                      border: mainType === "store"
-                        ? "2px solid var(--p-60)"
-                        : "1px solid var(--p-20)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
-                      style={{
-                        background: mainType === "store" ? "rgba(0,163,85,0.25)" : "var(--p-15)",
-                        border: `1px solid ${mainType === "store" ? "var(--p-40)" : "var(--p-30)"}`,
-                      }}
-                    >
-                      <Store size={22} style={{ color: mainType === "store" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
-                    </div>
-                    <div className="font-semibold mb-1" style={{ color: mainType === "store" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
-                      متجر احترافي
-                    </div>
-                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>معدات إعلام، كاميرات، صوتيات</div>
-                  </button>
-
-                  {/* Trainer card */}
-                  <button
-                    onClick={() => { setMainType("trainer"); setIndividualSubType(null); }}
-                    className="p-5 rounded-xl text-right transition-all duration-200"
-                    style={{
-                      background: mainType === "trainer" ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))" : "rgba(0,0,0,0.2)",
-                      border: mainType === "trainer" ? "2px solid var(--p-60)" : "1px solid var(--p-20)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: mainType === "trainer" ? "rgba(0,163,85,0.25)" : "var(--p-15)", border: `1px solid ${mainType === "trainer" ? "var(--p-40)" : "var(--p-30)"}` }}>
-                      <GraduationCap size={22} style={{ color: mainType === "trainer" ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)" }} />
-                    </div>
-                    <div className="font-semibold mb-1" style={{ color: mainType === "trainer" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.95rem" }}>
-                      مدرب / مركز تدريب
-                    </div>
-                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem" }}>دورات تدريبية في مجال الإعلام</div>
-                  </button>
-                </div>
-
-                {/* Individual subcategories */}
-                {mainType === "individual" && (
-                  <div className="mb-6">
-                    <p className="text-sm mb-3" style={{ color: "var(--theme-badge-text, #81c784)" }}>اختر تخصصك:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {individualSubcategories.map(({ type, label }) => (
-                        <button
-                          key={type}
-                          onClick={() => setIndividualSubType(type)}
-                          className="px-4 py-1.5 rounded-full text-sm transition-all duration-200"
-                          style={{
-                            background: individualSubType === type
-                              ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))"
-                              : "var(--p-12)",
-                            border: individualSubType === type
-                              ? "1px solid var(--p-60)"
-                              : "1px solid var(--p-30)",
-                            color: individualSubType === type ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    {individualSubType === "other" && (
-                      <div className="mt-3">
-                        <input
-                          type="text"
-                          className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                          placeholder="اذكر تخصصك"
-                          value={form.otherTypeText}
-                          onChange={(e) => f("otherTypeText", e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Store plan options */}
-                {mainType === "store" && (
-                  <div className="mb-6">
-                    <p className="text-sm mb-3" style={{ color: "var(--theme-badge-text, #81c784)" }}>اختر الخطة:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <button
-                        onClick={() => setForm((p) => ({ ...p, storePlan: "trial" }))}
-                        className="p-4 rounded-xl text-right transition-all duration-200"
-                        style={{
-                          background: form.storePlan === "trial"
-                            ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
-                            : "rgba(0,0,0,0.2)",
-                          border: form.storePlan === "trial"
-                            ? "2px solid var(--p-60)"
-                            : "1px solid var(--p-20)",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "trial" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>
-                          تجريبي مجاني
-                        </div>
-                        <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem" }}>شهر واحد</div>
-                      </button>
-                      <button
-                        onClick={() => setForm((p) => ({ ...p, storePlan: "paid" }))}
-                        className="p-4 rounded-xl text-right transition-all duration-200"
-                        style={{
-                          background: form.storePlan === "paid"
-                            ? "linear-gradient(145deg, var(--p-25), rgba(0,133,69,0.15))"
-                            : "rgba(0,0,0,0.2)",
-                          border: form.storePlan === "paid"
-                            ? "2px solid var(--p-60)"
-                            : "1px solid var(--p-20)",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <div className="font-semibold mb-1" style={{ color: form.storePlan === "paid" ? "var(--theme-text, #c8e6c9)" : "var(--theme-text-secondary, #6aad6a)", fontSize: "0.9rem" }}>
-                          مدفوع
-                        </div>
-                        <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem" }}>يتم التفعيل بعد التواصل معنا</div>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center">
-                  <Link to="/login" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", textDecoration: "none" }}>
-                    لديك حساب؟ سجل دخول
-                  </Link>
-                  <button
-                    onClick={goToStep2}
-                    disabled={
-                      !mainType ||
-                      (mainType === "individual" && !individualSubType) ||
-                      (mainType === "store" && !form.storePlan)
-                    }
-                    className="btn-dz px-6 py-2.5 rounded-xl text-sm disabled:opacity-40 flex items-center gap-2"
-                  >
-                    <span>التالي</span>
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
+      {/* Registration Modal */}
+      {selectedCourse && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-2xl p-6 animate-fade-in-up" style={{ background: "linear-gradient(145deg,#181818,#141414)", border: "1px solid var(--p-25)", maxHeight: "90vh", overflowY: "auto" }}>
+            {submitted ? (
+              <div className="text-center py-6">
+                <CheckCircle size={48} style={{ color: "var(--theme-accent)", margin: "0 auto 1rem" }} />
+                <h3 className="text-xl font-bold mb-2" style={{ color: "var(--theme-text)" }}>تم إرسال طلبك!</h3>
+                <p className="text-sm mb-6" style={{ color: "var(--theme-text-muted)" }}>سيتواصل معك المدرب قريباً</p>
+                <button onClick={closeModal} className="btn-dz px-6 py-2.5 rounded-xl text-sm">حسناً</button>
               </div>
-            )}
-
-            {/* ─── STEP 2: Basic Info ─── */}
-            {step === 2 && (
-              <div>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--theme-text, #e8f5e9)" }}>المعلومات الأساسية</h2>
-
-                {error && (
-                  <div
-                    className="mb-4 p-3 rounded-lg text-sm"
-                    style={{ background: "rgba(198,40,40,0.1)", border: "1px solid rgba(198,40,40,0.3)", color: "#f87171" }}
-                  >
-                    {error}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الاسم الكامل *</label>
-                    <input
-                      type="text"
-                      className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                      value={form.name}
-                      onChange={(e) => f("name", e.target.value)}
-                      placeholder="أدخل اسمك الكامل"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>البريد الإلكتروني *</label>
-                    <input
-                      type="email"
-                      className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                      value={form.email}
-                      onChange={(e) => f("email", e.target.value)}
-                      placeholder="example@email.com"
-                      dir="ltr"
-                      style={{ borderColor: emailStatus === "taken" ? "#ef4444" : emailStatus === "ok" ? "#4ade80" : undefined }}
-                    />
-                    {emailStatus === "checking" && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginTop: "0.25rem" }}>جاري التحقق...</p>}
-                    {emailStatus === "taken" && <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>✗ البريد مستخدم بالفعل</p>}
-                    {emailStatus === "ok" && <p style={{ color: "#4ade80", fontSize: "0.75rem", marginTop: "0.25rem" }}>✓ البريد متاح</p>}
-                  </div>
-                  <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>كلمة المرور *</label>
-                    <input
-                      type="password"
-                      className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                      value={form.password}
-                      onChange={(e) => f("password", e.target.value)}
-                      placeholder="8 أحرف على الأقل (حروف وأرقام)"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>تأكيد كلمة المرور *</label>
-                    <input
-                      type="password"
-                      className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                      value={form.confirmPassword}
-                      onChange={(e) => f("confirmPassword", e.target.value)}
-                      placeholder="أعد إدخال كلمة المرور"
-                    />
-                  </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="font-bold text-lg" style={{ color: "var(--theme-text)" }}>التسجيل في الدورة</h3>
+                  <button onClick={closeModal} style={{ color: "var(--theme-text-muted)", background: "none", border: "none", cursor: "pointer" }}><X size={20} /></button>
                 </div>
+                <p className="text-sm mb-5 px-3 py-2 rounded-lg" style={{ color: "var(--theme-accent)", background: "var(--p-10)", border: "1px solid var(--p-20)" }}>
+                  {selectedCourse.title}
+                </p>
 
-                {/* Password validation checklist */}
-                {form.password.length > 0 && (
-                  <div className="mt-3 p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--p-20)" }}>
-                    <p className="text-sm font-semibold mb-3" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>يجب أن تحتوي كلمة المرور على:</p>
-                    <div className="space-y-2">
-                      {([
-                        [hasLength, "من 8 إلى 20 حرفاً"],
-                        [hasLettersAndNumbers, "أحرف وأرقام معاً"],
-                        [passwordsMatch, "كلمتا المرور متطابقتان"],
-                      ] as const).map(([valid, label], i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <Check size={16} style={{ color: valid ? "#4ade80" : "var(--theme-text-dim, #3a5e3a)", flexShrink: 0 }} />
-                          <span style={{ color: valid ? "#4ade80" : "var(--theme-text-dim, #3a5e3a)", fontSize: "0.85rem" }}>{label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {regError && (
+                  <p className="text-sm mb-4 text-center" style={{ color: "#f87171" }}>{regError}</p>
                 )}
 
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={() => { setStep(1); setError(""); }}
-                    className="flex items-center gap-2"
-                    style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    <ArrowLeft size={15} />
-                    <span>رجوع</span>
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>الاسم الكامل *</label>
+                    <input value={form.name} onChange={(e) => f("name", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="اسمك الكامل" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>رقم الهاتف *</label>
+                    <input value={form.phone} onChange={(e) => f("phone", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="05XXXXXXXX" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>البريد الإلكتروني</label>
+                    <input type="email" value={form.email} onChange={(e) => f("email", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="اختياري" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>الولاية</label>
+                    <select value={form.wilaya} onChange={(e) => f("wilaya", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm">
+                      <option value="">اختر الولاية</option>
+                      {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>ملاحظة</label>
+                    <textarea value={form.note} onChange={(e) => f("note", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm resize-none" rows={3} placeholder="أي معلومة إضافية (اختياري)" />
+                  </div>
+                  <button type="submit" disabled={submitting} className="btn-dz w-full py-3 rounded-xl font-medium text-sm disabled:opacity-60">
+                    {submitting ? "جاري الإرسال..." : "إرسال طلب التسجيل"}
                   </button>
-                  <button
-                    onClick={goToStep3}
-                    className="btn-dz px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                  >
-                    <span>التالي</span>
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
+                </form>
+              </>
             )}
-
-            {/* ─── STEP 3: Profile Details ─── */}
-            {step === 3 && (
-              <div>
-                <h2 className="text-xl font-bold mb-6" style={{ color: "var(--theme-text, #e8f5e9)" }}>تفاصيل الملف الشخصي</h2>
-
-                {error && (
-                  <div
-                    className="mb-4 p-3 rounded-lg text-sm"
-                    style={{ background: "rgba(198,40,40,0.1)", border: "1px solid rgba(198,40,40,0.3)", color: "#f87171" }}
-                  >
-                    {error}
-                  </div>
-                )}
-
-                {/* Individual profile fields */}
-                {mainType === "individual" && (
-                  <div className="space-y-4">
-                    {/* Profile photo */}
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>صورة شخصية</label>
-                      <div className="flex items-center gap-4">
-                        {photoPreview ? (
-                          <img
-                            src={photoPreview}
-                            alt="preview"
-                            className="w-16 h-16 rounded-full object-cover"
-                            style={{ border: "2px solid var(--p-40)" }}
-                          />
-                        ) : (
-                          <div
-                            className="w-16 h-16 rounded-full flex items-center justify-center"
-                            style={{ background: "var(--p-15)", border: "2px dashed var(--p-40)" }}
-                          >
-                            <User size={24} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} />
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="px-4 py-2 rounded-lg text-sm transition-all duration-200"
-                          style={{
-                            background: "var(--p-15)",
-                            border: "1px solid var(--p-40)",
-                            color: "var(--theme-text-secondary, #6aad6a)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {photoFile ? "تغيير الصورة" : "رفع صورة"}
-                        </button>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          style={{ display: "none" }}
-                          onChange={handlePhotoChange}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>التخصص</label>
-                        <input
-                          type="text"
-                          className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                          value={form.specialty}
-                          onChange={(e) => f("specialty", e.target.value)}
-                          placeholder="مثال: تلفزيون، إذاعة..."
-                        />
-                      </div>
-                      <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
-                        <select
-                          className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                          value={form.location}
-                          onChange={(e) => f("location", e.target.value)}
-                          style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}
-                        >
-                          <option value="">اختر الولاية (إلزامي)</option>
-                          {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
-                        <input
-                          type="tel"
-                          className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                          value={form.phone}
-                          onChange={(e) => f("phone", e.target.value)}
-                          placeholder="05xxxxxxxx"
-                          dir="ltr"
-                        />
-                      </div>
-                      {individualSubType !== "student" && (
-                        <div>
-                          <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>سنوات الخبرة</label>
-                          <input
-                            type="text"
-                            className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                            value={form.experience}
-                            onChange={(e) => f("experience", e.target.value)}
-                            placeholder="مثال: 5 سنوات"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {individualSubType === "other" && (
-                      <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اذكر تخصصك</label>
-                        <input
-                          type="text"
-                          className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                          value={form.otherTypeText}
-                          onChange={(e) => f("otherTypeText", e.target.value)}
-                          placeholder="صف تخصصك"
-                        />
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نبذة / السيرة الذاتية</label>
-                      <textarea
-                        className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        style={{ minHeight: "80px", resize: "vertical" }}
-                        value={form.bio}
-                        onChange={(e) => f("bio", e.target.value)}
-                        placeholder="اكتب نبذة عنك وعن تجربتك المهنية"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>أبرز الإنجازات</label>
-                      <textarea
-                        className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        style={{ minHeight: "80px", resize: "vertical" }}
-                        value={form.achievements}
-                        onChange={(e) => f("achievements", e.target.value)}
-                        placeholder="اذكر أبرز إنجازاتك ومحطاتك المهنية"
-                      />
-                    </div>
-
-                    {/* Interests */}
-                    <div>
-                      <label className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الاهتمامات (يمكن تحديد أكثر من خيار)</label>
-                      <div className="flex flex-wrap gap-2">
-                        {INTERESTS.map((interest) => (
-                          <button
-                            key={interest}
-                            type="button"
-                            onClick={() => setInterests((prev) => prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest])}
-                            className="px-4 py-1.5 rounded-full text-sm transition-all duration-200"
-                            style={{
-                              background: interests.includes(interest) ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-12)",
-                              border: interests.includes(interest) ? "1px solid var(--p-60)" : "1px solid var(--p-30)",
-                              color: interests.includes(interest) ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {interest}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Portfolio links */}
-                    <div>
-                      <label className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>روابط البورتفوليو</label>
-                      {portfolioLinks.length > 0 && (
-                        <div className="space-y-2 mb-3">
-                          {portfolioLinks.map((link, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg"
-                              style={{ background: "var(--p-10)", border: "1px solid var(--p-25)" }}
-                            >
-                              <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-medium truncate" style={{ color: "var(--theme-text, #c8e6c9)" }}>{link.label}</span>
-                                <span className="text-xs truncate" style={{ color: "var(--theme-text-muted, #4a7a4a)" }} dir="ltr">{link.url}</span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteLink(idx)}
-                                className="mr-2 p-1 rounded transition-all duration-150"
-                                style={{ background: "none", border: "none", cursor: "pointer", color: "#6a3a3a", flexShrink: 0 }}
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {showAddLink ? (
-                        <div
-                          className="p-4 rounded-lg space-y-3"
-                          style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--p-20)" }}
-                        >
-                          <div>
-                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>التسمية</label>
-                            <input
-                              type="text"
-                              className="input-dz w-full px-3 py-2 rounded-lg text-sm"
-                              placeholder="مثال: موقعي الشخصي"
-                              value={newLink.label}
-                              onChange={(e) => setNewLink((p) => ({ ...p, label: e.target.value }))}
-                            />
-                          </div>
-                          <div>
-                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>الرابط</label>
-                            <input
-                              type="url"
-                              className="input-dz w-full px-3 py-2 rounded-lg text-sm"
-                              placeholder="https://..."
-                              value={newLink.url}
-                              onChange={(e) => setNewLink((p) => ({ ...p, url: e.target.value }))}
-                              dir="ltr"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={handleAddLink}
-                              className="btn-dz px-4 py-1.5 rounded-lg text-sm"
-                            >
-                              إضافة
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { setShowAddLink(false); setNewLink({ label: "", url: "" }); }}
-                              className="px-4 py-1.5 rounded-lg text-sm"
-                              style={{ background: "none", border: "1px solid var(--p-20)", color: "var(--theme-text-muted, #4a7a4a)", cursor: "pointer" }}
-                            >
-                              إلغاء
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setShowAddLink(true)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all duration-200"
-                          style={{
-                            background: "var(--p-10)",
-                            border: "1px dashed var(--p-40)",
-                            color: "var(--theme-text-secondary, #6aad6a)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <Plus size={15} />
-                          <span>إضافة رابط</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Store profile fields */}
-                {mainType === "store" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسم المتجر *</label>
-                      <input
-                        type="text"
-                        className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        value={form.storeName}
-                        onChange={(e) => f("storeName", e.target.value)}
-                        placeholder="أدخل اسم متجرك"
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نوع المعدات</label>
-                      <input
-                        type="text"
-                        className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        value={form.specialty}
-                        onChange={(e) => f("specialty", e.target.value)}
-                        placeholder="مثال: كاميرات، معدات صوت..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
-                      <select
-                        className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        value={form.location}
-                        onChange={(e) => f("location", e.target.value)}
-                        style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}
-                      >
-                        <option value="">اختر الولاية (إلزامي)</option>
-                        {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
-                      <input
-                        type="tel"
-                        className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        value={form.phone}
-                        onChange={(e) => f("phone", e.target.value)}
-                        placeholder="05xxxxxxxx"
-                        dir="ltr"
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>واتساب</label>
-                      <input
-                        type="tel"
-                        className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        value={form.whatsapp}
-                        onChange={(e) => f("whatsapp", e.target.value)}
-                        placeholder="05xxxxxxxx"
-                        dir="ltr"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>وصف المتجر</label>
-                      <textarea
-                        className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
-                        style={{ minHeight: "80px", resize: "vertical" }}
-                        value={form.storeDescription}
-                        onChange={(e) => f("storeDescription", e.target.value)}
-                        placeholder="صف متجرك والمنتجات التي تقدمها"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Trainer profile fields */}
-                {mainType === "trainer" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسمك أو اسم مركز التدريب *</label>
-                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.name} onChange={(e) => f("name", e.target.value)} placeholder="مثال: مركز سند للتدريب" />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسم المؤسسة / المركز</label>
-                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.organization} onChange={(e) => f("organization", e.target.value)} placeholder="إذا كنت تمثل مركز تدريب (اختياري)" />
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>مجال التدريب</label>
-                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.trainerSpecialty} onChange={(e) => f("trainerSpecialty", e.target.value)} placeholder="مثال: تصوير، صحافة، إنتاج..." />
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
-                      <select className="select-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.location} onChange={(e) => f("location", e.target.value)} style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}>
-                        <option value="">اختر الولاية (إلزامي)</option>
-                        {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
-                      <input type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.phone} onChange={(e) => f("phone", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
-                    </div>
-                    <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>واتساب</label>
-                      <input type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.whatsapp} onChange={(e) => f("whatsapp", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نبذة تعريفية</label>
-                      <textarea className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" style={{ minHeight: "80px", resize: "vertical" }} value={form.bio} onChange={(e) => f("bio", e.target.value)} placeholder="اشرح خبرتك وما الذي تقدمه من تدريب" />
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center mt-6">
-                  <button
-                    onClick={() => { setStep(2); setError(""); }}
-                    className="flex items-center gap-2"
-                    style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    <ArrowLeft size={15} />
-                    <span>رجوع</span>
-                  </button>
-                  <div className="flex flex-col items-end gap-2">
-                    {saving && photoFile && uploadProgress > 0 && uploadProgress < 100 && (
-                      <div className="w-40">
-                        <div className="flex justify-between mb-1" style={{ fontSize: "0.75rem", color: "var(--theme-badge-text, #81c784)" }}>
-                          <span>رفع الصورة...</span>
-                          <span>{uploadProgress}%</span>
-                        </div>
-                        <div className="w-full rounded-full h-1.5" style={{ background: "var(--p-20)" }}>
-                          <div
-                            className="h-1.5 rounded-full transition-all"
-                            style={{ width: `${uploadProgress}%`, background: "linear-gradient(90deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <button
-                      onClick={handleRegister}
-                      disabled={saving}
-                      className="btn-dz px-8 py-2.5 rounded-xl text-sm disabled:opacity-50"
-                    >
-                      <span>{saving ? (photoFile && uploadProgress > 0 && uploadProgress < 100 ? `${uploadProgress}%` : "جاري التسجيل...") : "إنشاء الحساب"}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
