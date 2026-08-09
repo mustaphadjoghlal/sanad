@@ -58,7 +58,7 @@ export default function TrainerDetail() {
         body: `${form.name} طلب التسجيل في "${selectedCourse.title}"`,
         link: `/user/dashboard`,
         createdAt: Date.now(),
-      }).catch(() => {});
+      }, undefined, "admin").catch(() => {});
       setSubmitted(true);
     } catch {
       setRegError("حدث خطأ، حاول مجدداً");
