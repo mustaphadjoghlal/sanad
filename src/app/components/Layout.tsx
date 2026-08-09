@@ -75,7 +75,8 @@ export default function Layout() {
   // Subscribe to notifications for logged-in users
   useEffect(() => {
     if (!currentUser) { setNotifications([]); prevNotifCountRef.current = 0; return; }
-    const unsub = subscribeToNotifications((notifs) => {
+    const isAdminUser = currentUser.email === ADMIN_EMAIL;
+    const unsub = subscribeToNotifications(isAdminUser, (notifs) => {
       const prevCount = prevNotifCountRef.current;
       if (prevCount > 0 && notifs.length > prevCount) {
         const newest = notifs[0];
