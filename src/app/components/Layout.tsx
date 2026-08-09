@@ -103,7 +103,14 @@ export default function Layout() {
       if (permission !== "granted") return;
 
       try {
-        const sw = await navigator.serviceWorker.ready;
+        // Register the Firebase messaging service worker explicitly.
+        // navigator.serviceWorker.ready resolves to WHATEVER service worker
+        // is currently controlling the page — with vite-plugin-pwa's
+        // auto-registered sw.js in place, that was silently hijacking this
+        // flow (config posted to the wrong SW, wrong SW used for getToken),
+        // which is why FCM tokens/notifications never worked.
+        const sw = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+        await navigator.serviceWorker.ready;
         sw.active?.postMessage({ type: "FIREBASE_CONFIG", config: firebaseConfig });
 
         if (!FCM_VAPID_KEY) return;
