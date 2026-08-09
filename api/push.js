@@ -1,3 +1,18 @@
+import { GoogleAuth } from "google-auth-library";
+
+let cachedAuth = null;
+function getAuth() {
+  if (cachedAuth) return cachedAuth;
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  if (!raw) return null;
+  const credentials = JSON.parse(raw);
+  cachedAuth = new GoogleAuth({
+    credentials,
+    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
+  });
+  return cachedAuth;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -6,12 +21,18 @@ export default async function handler(req, res) {
   const { title, body, targetType } = req.body ?? {};
   if (!title) return res.status(400).json({ error: "Missing title" });
 
-  const serverKey = process.env.FCM_SERVER_KEY;
   const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
   const apiKey    = process.env.VITE_FIREBASE_API_KEY;
+  const auth      = getAuth();
 
-  if (!serverKey || !projectId || !apiKey) {
-    return res.status(200).json({ ok: false, reason: "FCM not configured", serverKey: !!serverKey, projectId: !!projectId, apiKey: !!apiKey });
+  if (!auth || !projectId || !apiKey) {
+    return res.status(200).json({
+      ok: false,
+      reason: "FCM not configured",
+      hasServiceAccount: !!auth,
+      projectId: !!projectId,
+      apiKey: !!apiKey,
+    });
   }
 
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
@@ -79,22 +100,43 @@ export default async function handler(req, res) {
 
   tokens = [...new Set(tokens)];
 
+  // FCM HTTP v1 has no multicast endpoint like the legacy API — send one
+  // request per token (the legacy `fcm.googleapis.com/fcm/send` endpoint
+  // used before this is permanently disabled by Google, which is why
+  // pushes were silently failing regardless of any other fix).
   try {
-    const fcmRes = await fetch("https://fcm.googleapis.com/fcm/send", {
-      method: "POST",
-      headers: {
-        Authorization: `key=${serverKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        registration_ids: tokens,
-        notification: { title, body: body ?? "", icon: "/icon-192.png" },
-        android: { priority: "high" },
-        apns: { payload: { aps: { sound: "default" } } },
-      }),
-    });
-    const result = await fcmRes.json();
-    return res.status(200).json({ ok: true, result, count: tokens.length });
+    const client = await auth.getClient();
+    const { token: accessToken } = await client.getAccessToken();
+
+    const results = await Promise.all(
+      tokens.map(async (regToken) => {
+        const fcmRes = await fetch(
+          `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: {
+                token: regToken,
+                notification: { title, body: body ?? "" },
+                webpush: {
+                  notification: { icon: "/icon-192.png" },
+                  fcm_options: {},
+                },
+                android: { priority: "high" },
+                apns: { payload: { aps: { sound: "default" } } },
+              },
+            }),
+          }
+        );
+        return fcmRes.json();
+      })
+    );
+
+    return res.status(200).json({ ok: true, result: results, count: tokens.length });
   } catch (e) {
     return res.status(200).json({ ok: false, reason: "FCM send failed", error: e.message });
   }
