@@ -2078,7 +2078,7 @@ function NotificationsSection() {
   const handleSend = async () => {
     if (!form.title.trim() || !form.body.trim()) return;
     setSending(true);
-    await sendNotification({ title: form.title.trim(), body: form.body.trim(), link: form.link.trim() || undefined, createdAt: Date.now() });
+    await sendNotification({ title: form.title.trim(), body: form.body.trim(), link: form.link.trim() || undefined, createdAt: Date.now() }, "all");
     setForm({ title: "", body: "", link: "" });
     setSent(true); setTimeout(() => setSent(false), 2500);
     setSending(false);
