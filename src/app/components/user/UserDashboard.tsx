@@ -5,10 +5,10 @@ import {
   CheckCircle, ExternalLink, ImageIcon, Upload, Trash2, Plus, Play, Pause, Mic, Check
 } from "lucide-react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, storage } from "../../lib/firebase";
+import { auth, storage } from "../../../lib/firebase";
 import { 
   subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification
-} from "../../lib/firestore";
+} from "../../../lib/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import type { UserProfile, PortfolioWork, WorkType, VoiceSampleCategory, Gender, AudioSample, SocialLinks } from "../../lib/types";
 import WorksSection from "../WorksSection";
