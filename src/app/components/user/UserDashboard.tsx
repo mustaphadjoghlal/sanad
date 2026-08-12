@@ -100,6 +100,10 @@ type EditFormState = {
   gender: Gender | "";
   audioSamples: AudioSample[];
   socialLinks: SocialLinks;
+  languages: string;
+  voiceStyles: string;
+  services: string;
+  availability: "available" | "busy" | "";
 };
 
 const workTypeLabel: Record<WorkType, string> = {
@@ -324,6 +328,10 @@ export default function UserDashboard() {
     gender: "",
     audioSamples: [],
     socialLinks: {},
+    languages: "",
+    voiceStyles: "",
+    services: "",
+    availability: "",
   });
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [saving, setSaving] = useState(false);
@@ -354,6 +362,8 @@ export default function UserDashboard() {
   const [audioUploadProgress, setAudioUploadProgress] = useState(0);
   const [audioPlayingIdx, setAudioPlayingIdx] = useState<number | null>(null);
   const audioPreviewRef = useState<HTMLAudioElement | null>(null);
+
+  const csvToTags = (value: string) => value.split(",").map((v) => v.trim()).filter(Boolean).slice(0, 20);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -406,6 +416,10 @@ export default function UserDashboard() {
       gender: profile.gender || "",
       audioSamples: profile.audioSamples ? [...profile.audioSamples] : [],
       socialLinks: profile.socialLinks ?? {},
+      languages: (profile.languages ?? []).join(", "),
+      voiceStyles: (profile.voiceStyles ?? []).join(", "),
+      services: (profile.services ?? []).join(", "),
+      availability: profile.availability ?? "",
     });
     setUsernameStatus("idle");
     setPhotoUrl(profile.photo || "");
@@ -542,6 +556,10 @@ export default function UserDashboard() {
         phone: editForm.phone || undefined,
         experience: editForm.experience || undefined,
         socialLinks: Object.keys(editForm.socialLinks).length > 0 ? editForm.socialLinks : undefined,
+        languages: csvToTags(editForm.languages).length > 0 ? csvToTags(editForm.languages) : undefined,
+        voiceStyles: csvToTags(editForm.voiceStyles).length > 0 ? csvToTags(editForm.voiceStyles) : undefined,
+        services: csvToTags(editForm.services).length > 0 ? csvToTags(editForm.services) : undefined,
+        availability: editForm.availability || undefined,
         otherType: profile.otherType,
         storeStatus: profile.storeStatus,
         username: profile.type === "store" && editForm.username ? editForm.username.toLowerCase() : undefined,
@@ -831,6 +849,38 @@ export default function UserDashboard() {
                       </div>
                     )}
                   </div>
+
+                  {/* Professional showcase fields */}
+                  {profile.type !== "store" && (
+                    <div className="space-y-3" style={{ background: "#121812", border: "1px solid var(--p-20)", borderRadius: "0.6rem", padding: "0.85rem" }}>
+                      <div>
+                        <p style={{ color: "var(--theme-text)", fontSize: "0.86rem", fontWeight: 600 }}>معلومات الظهور الاحترافي</p>
+                        <p style={{ color: "var(--theme-text-muted)", fontSize: "0.73rem", marginTop: "0.2rem" }}>افصل بين العناصر بفاصلة، وستظهر كوسوم في صفحتك العامة.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label style={S.label}>اللغات واللهجات</label>
+                          <input style={S.input} value={editForm.languages} onChange={(e) => setEditForm((p) => ({ ...p, languages: e.target.value }))} placeholder="العربية، الجزائرية، الفرنسية" />
+                        </div>
+                        <div>
+                          <label style={S.label}>الأساليب الصوتية</label>
+                          <input style={S.input} value={editForm.voiceStyles} onChange={(e) => setEditForm((p) => ({ ...p, voiceStyles: e.target.value }))} placeholder="وثائقي، إعلاني، دوبلاج" />
+                        </div>
+                        <div>
+                          <label style={S.label}>الخدمات</label>
+                          <input style={S.input} value={editForm.services} onChange={(e) => setEditForm((p) => ({ ...p, services: e.target.value }))} placeholder="تعليق صوتي، تسجيل إعلانات" />
+                        </div>
+                        <div>
+                          <label style={S.label}>حالة التوفر</label>
+                          <select style={S.input} value={editForm.availability} onChange={(e) => setEditForm((p) => ({ ...p, availability: e.target.value as "available" | "busy" | "" }))}>
+                            <option value="">لم أحدد</option>
+                            <option value="available">متاح للعمل</option>
+                            <option value="busy">مشغول حالياً</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Voice-specific fields */}
                   {(profile.type === "voice" || profile.type === "host_stage") && (

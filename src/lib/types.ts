@@ -325,6 +325,10 @@ export interface UserProfile {
   audioSamples?: AudioSample[];
   socialLinks?: SocialLinks;
   works?: PortfolioWork[];
+  languages?: string[];
+  voiceStyles?: string[];
+  services?: string[];
+  availability?: "available" | "busy";
 }
 
 export const PRODUCT_CATEGORIES = ["كاميرات", "ميكروفونات", "إضاءة", "حوامل وأرجل", "بطاريات وشواحن", "أجهزة حاسوبية", "سماعات", "لوازم تصوير", "أخرى"] as const;
