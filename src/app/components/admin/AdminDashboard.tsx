@@ -2073,7 +2073,7 @@ function NotificationsSection() {
   const [sent, setSent] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useEffect(() => { return subscribeToNotifications(setNotifs); }, []);
+  useEffect(() => { return subscribeToNotifications(true, setNotifs); }, []);
 
   const handleSend = async () => {
     if (!form.title.trim() || !form.body.trim()) return;
