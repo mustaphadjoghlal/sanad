@@ -103,39 +103,57 @@ export default function Layout() {
       if (permission !== "granted") return;
 
       try {
-        // Register the Firebase messaging service worker explicitly.
-        // navigator.serviceWorker.ready resolves to WHATEVER service worker
-        // is currently controlling the page — with vite-plugin-pwa's
-        // auto-registered sw.js in place, that was silently hijacking this
-        // flow (config posted to the wrong SW, wrong SW used for getToken),
-        // which is why FCM tokens/notifications never worked.
         const sw = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-        await navigator.serviceWorker.ready;
-        sw.active?.postMessage({ type: "FIREBASE_CONFIG", config: firebaseConfig });
+        // Wait for the specific service worker to be active
+        let retry = 0;
+        while (!sw.active && retry < 10) {
+          await new Promise(r => setTimeout(r, 500));
+          retry++;
+        }
+        
+        if (sw.active) {
+          sw.active.postMessage({ type: "FIREBASE_CONFIG", config: firebaseConfig });
+        }
 
-        if (!FCM_VAPID_KEY) return;
+        if (!FCM_VAPID_KEY) {
+          console.warn("FCM_VAPID_KEY is missing");
+          return;
+        }
         const messaging = await getMessagingInstance();
         if (!messaging) return;
 
         const { getToken, onMessage } = await import("firebase/messaging");
         const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: sw });
+        
         if (token) {
           if (userProfile === "admin") {
             await saveAdminFCMToken(token);
           } else {
-            // Regular users only save their own token — writing to
-            // config/adminFCM here used to hijack the admin's push channel.
             await saveUserFCMToken(currentUser.uid, token);
           }
+          console.log("FCM Token registered successfully");
         }
 
         onMessage(messaging, (payload) => {
           const title = payload.notification?.title ?? "سند";
           const body = payload.notification?.body ?? "";
-          new Notification(title, { body, icon: "/icon-192.png", dir: "rtl", lang: "ar" });
+          
+          // Use service worker to show notification for better mobile support
+          if (sw.active) {
+            sw.showNotification(title, {
+              body,
+              icon: "/icon-192.png",
+              dir: "rtl",
+              lang: "ar",
+              tag: "sanad-notif-" + Date.now(),
+              data: payload.data
+            });
+          } else {
+            new Notification(title, { body, icon: "/icon-192.png", dir: "rtl", lang: "ar" });
+          }
         });
-      } catch {
-        // Silently ignore — FCM not configured yet
+      } catch (err) {
+        console.error("FCM Registration Error:", err);
       }
     };
 
@@ -165,6 +183,22 @@ export default function Layout() {
   const unreadCount = currentUser
     ? notifications.filter((n) => !n.readBy?.includes(currentUser.uid)).length
     : 0;
+
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestNotifPermission = async () => {
+    if (!("Notification" in window)) return;
+    const permission = await Notification.requestPermission();
+    setNotifPermission(permission);
+    if (permission === "granted") {
+      window.location.reload(); // Reload to trigger the FCM registration effect
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0e0e0e" }}>
@@ -293,6 +327,17 @@ export default function Layout() {
 
             {/* Right side: Auth buttons */}
             <div className="hidden md:flex items-center gap-2">
+              {/* Notification Permission Prompt */}
+              {currentUser && notifPermission === "default" && (
+                <button
+                  onClick={requestNotifPermission}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs animate-pulse"
+                  style={{ color: "#fff", background: "var(--theme-accent, #00a355)", border: "none" }}
+                >
+                  <Bell size={14} />
+                  <span>تفعيل التنبيهات</span>
+                </button>
+              )}
               {isLoggedOut && (
                 <>
                   <Link
