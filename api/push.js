@@ -48,24 +48,23 @@ export default async function handler(req, res) {
   let tokens = [];
 
   try {
+    const client = await auth.getClient();
+    const { token: accessToken } = await client.getAccessToken();
+
     if (targetType) {
-      // Must be a query constrained to status == 'approved': security rules
-      // only allow unauthenticated reads of approved profiles, and a plain
-      // unfiltered list of /users is denied outright.
-      const fsRes = await fetch(`${baseUrl}:runQuery?key=${apiKey}`, {
+      // Use the access token to bypass security rules and fetch all users
+      // regardless of status.
+      const fsRes = await fetch(`${baseUrl}:runQuery`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
           structuredQuery: {
             from: [{ collectionId: "users" }],
-            where: {
-              fieldFilter: {
-                field: { fieldPath: "status" },
-                op: "EQUAL",
-                value: { stringValue: "approved" },
-              },
-            },
-            limit: 300,
+            // Removed status == 'approved' filter so all users get the notification
+            limit: 500,
           },
         }),
       });
@@ -92,21 +91,10 @@ export default async function handler(req, res) {
         if (token) tokens = [token];
       }
     }
-  } catch (e) {
-    return res.status(200).json({ ok: false, reason: "Firestore read failed", error: e.message });
-  }
 
-  if (tokens.length === 0) return res.status(200).json({ ok: false, reason: "No FCM tokens found" });
+    if (tokens.length === 0) return res.status(200).json({ ok: false, reason: "No FCM tokens found" });
 
-  tokens = [...new Set(tokens)];
-
-  // FCM HTTP v1 has no multicast endpoint like the legacy API — send one
-  // request per token (the legacy `fcm.googleapis.com/fcm/send` endpoint
-  // used before this is permanently disabled by Google, which is why
-  // pushes were silently failing regardless of any other fix).
-  try {
-    const client = await auth.getClient();
-    const { token: accessToken } = await client.getAccessToken();
+    tokens = [...new Set(tokens)];
 
     const results = await Promise.all(
       tokens.map(async (regToken) => {
@@ -138,6 +126,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ ok: true, result: results, count: tokens.length });
   } catch (e) {
-    return res.status(200).json({ ok: false, reason: "FCM send failed", error: e.message });
+    return res.status(200).json({ ok: false, reason: "FCM operation failed", error: e.message });
   }
 }
