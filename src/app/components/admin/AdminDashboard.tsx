@@ -2079,7 +2079,15 @@ function NotificationsSection() {
     if (!form.title.trim() || !form.body.trim()) return;
     setSending(true);
     try {
+      try {
       await sendNotification({ title: form.title.trim(), body: form.body.trim(), link: form.link.trim() || undefined, createdAt: Date.now() }, "all");
+      setForm({ title: "", body: "", link: "" });
+      setSent(true); setTimeout(() => setSent(false), 2500);
+    } catch (err: any) {
+      alert("خطأ في الإرسال: " + (err.message || "حدث خطأ غير معروف"));
+    } finally {
+      setSending(false);
+    }
       setForm({ title: "", body: "", link: "" });
       setSent(true); setTimeout(() => setSent(false), 2500);
     } catch (err: any) {

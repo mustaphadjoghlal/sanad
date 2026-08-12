@@ -316,11 +316,15 @@ export async function sendNotification(
   audience: "all" | "admin" = "all"
 ): Promise<void> {
   await addDoc(col("notifications"), { ...notif, audience, readBy: [] });
-  fetch("/api/push", {
+  const res = await fetch("/api/push", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title: notif.title, body: notif.body, targetType }),
-  }).catch(() => {});
+  });
+  const result = await res.json();
+  if (!result.ok) {
+    throw new Error(result.reason || "FCM delivery failed");
+  }
 }
 
 export function subscribeToNotifications(isAdmin: boolean, callback: (notifs: AppNotification[]) => void): () => void {

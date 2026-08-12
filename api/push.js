@@ -37,7 +37,6 @@ export default async function handler(req, res) {
 
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
-  // Non-store media professional types
   const MEDIA_TYPES = new Set([
     "journalist", "voice", "photographer", "editor", "student",
     "editor_news", "web_digital", "presenter_programs", "presenter_news",
@@ -46,14 +45,13 @@ export default async function handler(req, res) {
   ]);
 
   let tokens = [];
+  let checkedCount = 0;
 
   try {
     const client = await auth.getClient();
     const { token: accessToken } = await client.getAccessToken();
 
     if (targetType) {
-      // Use the access token to bypass security rules and fetch all users
-      // regardless of status.
       const fsRes = await fetch(`${baseUrl}:runQuery`, {
         method: "POST",
         headers: { 
@@ -63,7 +61,6 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           structuredQuery: {
             from: [{ collectionId: "users" }],
-            // Removed status == 'approved' filter so all users get the notification
             limit: 500,
           },
         }),
@@ -71,6 +68,7 @@ export default async function handler(req, res) {
       if (fsRes.ok) {
         const rows = await fsRes.json();
         const docs = (Array.isArray(rows) ? rows : []).map((r) => r.document).filter(Boolean);
+        checkedCount = docs.length;
         tokens = docs
           .filter((d) => {
             const type  = d.fields?.type?.stringValue;
@@ -83,7 +81,6 @@ export default async function handler(req, res) {
           .map((d) => d.fields.fcmToken.stringValue);
       }
     } else {
-      // Admin-only notification: use saved admin token
       const fsRes = await fetch(`${baseUrl}/config/adminFCM?key=${apiKey}`);
       if (fsRes.ok) {
         const data = await fsRes.json();
@@ -96,7 +93,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ 
         ok: false, 
         reason: "No FCM tokens found in database. Users must allow notifications on their devices first.",
-        checkedCount: (docs || []).length 
+        checkedCount
       });
     }
 
