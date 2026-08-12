@@ -92,7 +92,13 @@ export default async function handler(req, res) {
       }
     }
 
-    if (tokens.length === 0) return res.status(200).json({ ok: false, reason: "No FCM tokens found" });
+    if (tokens.length === 0) {
+      return res.status(200).json({ 
+        ok: false, 
+        reason: "No FCM tokens found in database. Users must allow notifications on their devices first.",
+        checkedCount: (docs || []).length 
+      });
+    }
 
     tokens = [...new Set(tokens)];
 
