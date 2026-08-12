@@ -2078,10 +2078,15 @@ function NotificationsSection() {
   const handleSend = async () => {
     if (!form.title.trim() || !form.body.trim()) return;
     setSending(true);
-    await sendNotification({ title: form.title.trim(), body: form.body.trim(), link: form.link.trim() || undefined, createdAt: Date.now() }, "all");
-    setForm({ title: "", body: "", link: "" });
-    setSent(true); setTimeout(() => setSent(false), 2500);
-    setSending(false);
+    try {
+      await sendNotification({ title: form.title.trim(), body: form.body.trim(), link: form.link.trim() || undefined, createdAt: Date.now() }, "all");
+      setForm({ title: "", body: "", link: "" });
+      setSent(true); setTimeout(() => setSent(false), 2500);
+    } catch (err: any) {
+      alert("خطأ في الإرسال: " + (err.message || "حدث خطأ غير معروف"));
+    } finally {
+      setSending(false);
+    }
   };
 
   const inputStyle: React.CSSProperties = { width: "100%", background: "var(--p-08)", border: "1px solid var(--p-25)", borderRadius: "8px", padding: "8px 12px", color: "var(--theme-text)", fontSize: "0.9rem", outline: "none" };
