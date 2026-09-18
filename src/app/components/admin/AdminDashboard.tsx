@@ -31,6 +31,7 @@ import { WILAYAS } from "../../../lib/algeria";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
 import { usePageTitle } from "../../../lib/usePageTitle";
+import { useLogoutFlow } from "../LogoutConfirm";
 
 // ── Quill toolbar config (shared) ──────────────────────────────
 const QUILL_MODULES = {
@@ -444,10 +445,7 @@ export default function AdminDashboard() {
     { id: "settings"       as Section, label: "الإعدادات",    icon: Settings },
   ];
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/sanad-admin");
-  };
+  const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
 
   const handleNavClick = (id: Section) => {
     setActiveSection(id);
@@ -457,6 +455,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen flex" dir="rtl" style={{ background: "#0e0e0e", position: "relative", overflow: "hidden" }}>
       <ToastHost />
+      {logoutDialog}
 
       {isMobile && sidebarOpen && (
         <div
@@ -534,7 +533,7 @@ export default function AdminDashboard() {
             {(sidebarOpen || isMobile) && "عرض الموقع"}
           </Link>
           <button
-            onClick={handleLogout}
+            onClick={requestLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             style={{ color: "#ef9a9a", fontSize: "0.875rem", justifyContent: (sidebarOpen || isMobile) ? "flex-start" : "center" }}
           >

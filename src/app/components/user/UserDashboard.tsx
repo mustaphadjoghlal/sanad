@@ -4,7 +4,7 @@ import {
   LogOut, Pencil, User, MapPin,  AlertTriangle, 
   CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check
 } from "lucide-react";
-import { onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "firebase/auth";
+import { onAuthStateChanged, sendPasswordResetEmail, deleteUser } from "firebase/auth";
 import { auth, storage } from "../../../lib/firebase";
 import { 
   subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification, deleteAccountData
@@ -14,6 +14,7 @@ import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialL
 import { WORK_TYPES } from "../../../lib/types";
 import WorksSection from "../WorksSection";
 import { usePageTitle } from "../../../lib/usePageTitle";
+import { useLogoutFlow } from "../LogoutConfirm";
 
 const typeLabel: Record<string, string> = {
   editor_news: "محرر أخبار",
@@ -218,10 +219,7 @@ export default function UserDashboard() {
     return unsub;
   }, [uid, authLoading, navigate]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/");
-  };
+  const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
 
   // Both of these were rendered as buttons with no onClick, while the privacy
   // policy told users they could change their password and delete their data.
@@ -467,7 +465,7 @@ export default function UserDashboard() {
         <div className="flex items-center gap-3">
           <Link to="/" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors" style={{ color: "var(--theme-text-secondary, #6aad6a)", textDecoration: "none", border: "1px solid var(--p-20)" }}>الرئيسية</Link>
           <span className="hidden sm:block text-sm" style={{ color: "var(--theme-text-muted)", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.name}</span>
-          <button onClick={handleLogout} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.25)" }}>
+          <button onClick={requestLogout} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.25)" }}>
             <LogOut size={15} /> <span>خروج</span>
           </button>
         </div>
@@ -870,6 +868,8 @@ export default function UserDashboard() {
           )}
         </div>
       </div>
+
+      {logoutDialog}
     </div>
   );
 }

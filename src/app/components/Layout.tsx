@@ -1,10 +1,11 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { Menu, X, LogOut, LayoutDashboard, Bell, ChevronDown, Facebook, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL, FCM_SW_URL, FCM_SW_SCOPE } from "../../lib/firebase";
 import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead, saveAdminFCMToken, saveUserFCMToken } from "../../lib/firestore";
 import type { UserProfile, AppNotification } from "../../lib/types";
+import { useLogoutFlow } from "./LogoutConfirm";
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,7 +22,6 @@ export default function Layout() {
     typeof Notification !== "undefined" ? Notification.permission : "denied"
   );
   const location = useLocation();
-  const navigate = useNavigate();
 
   const navLinks = [
     { to: "/", label: "الرئيسية" },
@@ -177,10 +177,8 @@ export default function Layout() {
 
   useEffect(() => { setMoreOpen(false); }, [location.pathname]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/");
-  };
+  // All four logout buttons in this header share the one confirm flow.
+  const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
 
   // Asked for only on an explicit click — the registration effect above picks
   // it up through `notifPermission`, so no page reload is needed.
@@ -381,7 +379,7 @@ export default function Layout() {
                     <span>لوحتي</span>
                   </Link>
                   <button
-                    onClick={handleLogout}
+                    onClick={requestLogout}
                     type="button"
                     aria-label="تسجيل الخروج"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
@@ -405,7 +403,7 @@ export default function Layout() {
                     <span>لوحة الأدمن</span>
                   </Link>
                   <button
-                    onClick={handleLogout}
+                    onClick={requestLogout}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
                     style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}
                   >
@@ -588,7 +586,7 @@ export default function Layout() {
                       <LayoutDashboard size={14} />
                       <span>لوحتي</span>
                     </Link>
-                    <button onClick={handleLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
+                    <button onClick={requestLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
                       <LogOut size={14} />
                       <span>خروج</span>
                     </button>
@@ -600,7 +598,7 @@ export default function Layout() {
                       <LayoutDashboard size={14} />
                       <span>لوحة الأدمن</span>
                     </Link>
-                    <button onClick={handleLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
+                    <button onClick={requestLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
                       <LogOut size={14} />
                       <span>خروج</span>
                     </button>
@@ -688,6 +686,8 @@ export default function Layout() {
           </p>
         </div>
       </footer>
+
+      {logoutDialog}
     </div>
   );
 }
