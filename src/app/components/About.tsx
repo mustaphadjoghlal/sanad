@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Radio, Mail, Facebook, Users, Briefcase, BookOpen, Trophy } from "lucide-react";
+import { Radio, Facebook, Users, Briefcase, BookOpen, Trophy } from "lucide-react";
 import { usePageTitle } from "../../lib/usePageTitle";
 
 export default function About() {
@@ -64,15 +64,6 @@ export default function About() {
         <div className="rounded-2xl p-8 mb-8" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}>
           <h2 className="text-2xl font-black mb-6" style={{ color: "var(--theme-text)" }}>تواصل معنا</h2>
           <div className="space-y-4">
-            <a href="mailto:contact@sanadz.media" className="flex items-center gap-3 p-4 rounded-xl transition-colors" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-25)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-15)"; }}>
-              <Mail size={18} style={{ color: "var(--theme-accent)" }} />
-              <div>
-                <p className="text-sm font-medium" style={{ color: "var(--theme-text)" }}>البريد الإلكتروني</p>
-                <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>contact@sanadz.media</p>
-              </div>
-            </a>
             <a href="https://www.facebook.com/profile.php?id=61590628561028" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 rounded-xl transition-colors" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)", textDecoration: "none" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-25)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-15)"; }}>

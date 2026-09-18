@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Facebook, Search } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Bell, ChevronDown, Facebook, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL, FCM_SW_URL, FCM_SW_SCOPE } from "../../lib/firebase";
@@ -643,17 +643,6 @@ export default function Layout() {
             المنصة الجزائرية الشاملة لمجال الإعلام
           </p>
           <div className="flex items-center justify-center gap-4 mb-4">
-            <a
-              href="mailto:contact@sanadz.media"
-              className="flex items-center gap-1.5 text-sm transition-colors"
-              style={{ color: "var(--theme-text-muted, #78909c)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-accent, #00a355)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted, #78909c)"; }}
-            >
-              <Mail size={14} />
-              <span>contact@sanadz.media</span>
-            </a>
-            <span style={{ color: "var(--p-30)", fontSize: "0.75rem" }}>|</span>
             <a
               href="https://www.facebook.com/profile.php?id=61590628561028"
               target="_blank"

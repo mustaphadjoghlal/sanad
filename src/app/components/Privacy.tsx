@@ -28,7 +28,7 @@ const sections = [
   },
   {
     title: "حقوقك",
-    content: "يحق لك في أي وقت: الاطلاع على بياناتك وتعديلها من لوحة التحكم، إخفاء ملفك أو حذف حسابك بالكامل مع بياناتك، أو طلب نسخة من بياناتك. للاستفسار أو تقديم طلب: contact@sanadz.media.",
+    content: "يحق لك في أي وقت: الاطلاع على بياناتك وتعديلها من لوحة التحكم، إخفاء ملفك أو حذف حسابك بالكامل مع بياناتك، أو طلب نسخة من بياناتك. للاستفسار أو تقديم طلب، تواصل معنا عبر صفحتنا الرسمية على فيسبوك.",
   },
   {
     title: "الأطفال",
@@ -61,7 +61,7 @@ export default function Privacy() {
         </div>
         <div className="mt-8 text-center space-y-2">
           <p className="text-sm" style={{ color: "var(--theme-text-dim)" }}>
-            للاستفسار: <a href="mailto:contact@sanadz.media" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>contact@sanadz.media</a>
+            للاستفسار: <a href="https://www.facebook.com/profile.php?id=61590628561028" target="_blank" rel="noopener noreferrer" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>صفحتنا على فيسبوك</a>
           </p>
           <p className="text-sm">
             <Link to="/terms" style={{ color: "var(--theme-text-muted)", textDecoration: "none" }}>شروط الاستخدام</Link>

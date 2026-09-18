@@ -53,7 +53,7 @@ export default function Terms() {
         </div>
         <div className="mt-8 text-center space-y-2">
           <p className="text-sm" style={{ color: "var(--theme-text-dim)" }}>
-            للاستفسار: <a href="mailto:contact@sanadz.media" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>contact@sanadz.media</a>
+            للاستفسار: <a href="https://www.facebook.com/profile.php?id=61590628561028" target="_blank" rel="noopener noreferrer" style={{ color: "var(--theme-accent)", textDecoration: "none" }}>صفحتنا على فيسبوك</a>
           </p>
           <p className="text-sm">
             <Link to="/privacy" style={{ color: "var(--theme-text-muted)", textDecoration: "none" }}>سياسة الخصوصية</Link>
