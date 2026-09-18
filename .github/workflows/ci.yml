@@ -22,6 +22,8 @@ jobs:
       # reach production the way the broken import path in UserDashboard did.
       - run: npm run typecheck
 
+      - run: npm test
+
       - run: npm run build
 
       # Report known advisories without failing the build on a transitive

@@ -4,8 +4,10 @@ import { Radio, LogIn } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
+import { usePageTitle } from "../../../lib/usePageTitle";
 
 export default function UserLogin() {
+  usePageTitle("تسجيل الدخول", "سجّل دخولك إلى حسابك على منصة سند الإعلامية.", { noindex: true });
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

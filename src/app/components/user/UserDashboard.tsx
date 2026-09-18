@@ -13,6 +13,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialLinks } from "../../../lib/types";
 import { WORK_TYPES } from "../../../lib/types";
 import WorksSection from "../WorksSection";
+import { usePageTitle } from "../../../lib/usePageTitle";
 
 const typeLabel: Record<string, string> = {
   editor_news: "محرر أخبار",
@@ -151,6 +152,7 @@ type EditFormState = {
 };
 
 export default function UserDashboard() {
+  usePageTitle("لوحة حسابي", undefined, { noindex: true });
   const navigate = useNavigate();
   const [uid, setUid] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);

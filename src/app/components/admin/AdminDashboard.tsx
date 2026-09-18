@@ -30,6 +30,7 @@ import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
+import { usePageTitle } from "../../../lib/usePageTitle";
 
 // ── Quill toolbar config (shared) ──────────────────────────────
 const QUILL_MODULES = {
@@ -371,6 +372,7 @@ function ItemActions({
 
 // ── Main Dashboard ──────────────────────────────────────────────
 export default function AdminDashboard() {
+  usePageTitle("لوحة التحكم الإدارية", undefined, { noindex: true });
   const [activeSection, setActiveSection] = useState<Section>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);

@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import { Lock, Mail, Radio, AlertCircle } from "lucide-react";
+import { usePageTitle } from "../../../lib/usePageTitle";
 
 export default function AdminLogin() {
+  usePageTitle("لوحة التحكم", undefined, { noindex: true });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

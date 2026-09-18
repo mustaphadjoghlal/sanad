@@ -29,6 +29,10 @@
     <meta name="twitter:description" content="منصة سند الإعلامية — دورات، وظائف، معدات، مسابقات، منشطون، ودليل القنوات الجزائرية." />
     <meta name="twitter:image" content="https://sanadz.media/og-image.png" />
 
+    <!-- The header logo is the largest element above the fold; preloading it
+         here starts the fetch before the JS bundle has even parsed. -->
+    <link rel="preload" as="image" href="/logo.png" />
+
     <!-- Fonts: loaded here rather than through an @import inside CSS, which
          made the browser fetch index.css, then the font CSS, then the font
          files — three round trips before any text could paint. -->

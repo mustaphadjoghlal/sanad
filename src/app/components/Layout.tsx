@@ -225,7 +225,6 @@ export default function Layout() {
                 src="/logo.png"
                 width={120}
                 height={40}
-                fetchPriority="high"
                 alt="سند — المنصة الجزائرية الإعلامية الشاملة"
                 className="h-10 w-auto transition-all duration-300 group-hover:scale-105"
               />

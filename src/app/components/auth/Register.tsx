@@ -9,6 +9,7 @@ import type { AccountType, PortfolioLink } from "../../../lib/types";
 import { INTERESTS } from "../../../lib/types";
 
 import { WILAYAS } from "../../../lib/wilayas";
+import { usePageTitle } from "../../../lib/usePageTitle";
 const wilayas = WILAYAS;
 
 type MainType = "individual" | "store" | "trainer" | null;
@@ -58,6 +59,7 @@ const individualSubcategories: { type: IndividualSubType; label: string }[] = [
 ];
 
 export default function Register() {
+  usePageTitle("إنشاء حساب", "أنشئ حسابك على منصة سند الإعلامية وانضم إلى دليل المحترفين والمتاجر ومراكز التدريب في الجزائر.", { noindex: false });
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

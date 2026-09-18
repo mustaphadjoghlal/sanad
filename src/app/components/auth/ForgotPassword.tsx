@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { Radio, Mail, ArrowRight, CheckCircle } from "lucide-react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
+import { usePageTitle } from "../../../lib/usePageTitle";
 
 export default function ForgotPassword() {
+  usePageTitle("استعادة كلمة المرور", "استعد كلمة مرور حسابك على منصة سند الإعلامية.", { noindex: true });
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
