@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store, GraduationCap } from "lucide-react";
-import { createUserWithEmailAndPassword, deleteUser, sendEmailVerification, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, signOut } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { saveUserProfile, sendNotification } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
@@ -240,9 +240,12 @@ export default function Register() {
         createdAt: Date.now(),
       }, undefined, "admin").catch(() => {});
 
-      // Anyone could previously register with someone else's address, because
-      // nothing ever proved the address belonged to them.
-      await sendEmailVerification(createdUser).catch(() => {});
+      // No verification email: every profile is reviewed by hand before it
+      // goes live, so the address is checked by a person either way. Firebase's
+      // verification page is an English page on a firebaseapp.com domain, and
+      // it lands in spam often enough that it mostly served to strand people
+      // who had in fact registered correctly. Nothing ever gated on
+      // emailVerified, so the mail was a dead end even when it arrived.
 
       // createUserWithEmailAndPassword signs the new account in. Sending them
       // to /login while still authenticated left the header showing them as
@@ -298,10 +301,10 @@ export default function Register() {
           </div>
           <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--theme-text, #e8f5e9)" }}>تم التسجيل بنجاح!</h2>
           <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7 }}>
-            أرسلنا رابط تأكيد إلى بريدك الإلكتروني — افتحه لتفعيل حسابك.
+            ملفك الآن قيد المراجعة، وسيتم إشعارك فور الموافقة عليه.
           </p>
           <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7, marginTop: "0.5rem" }}>
-            ملفك قيد المراجعة أيضاً، وسيتم إشعارك عند الموافقة.
+            يمكنك تسجيل الدخول إلى حسابك من الآن.
           </p>
           <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.85rem", marginTop: "1rem" }}>
             سيتم تحويلك لصفحة تسجيل الدخول خلال ثوانٍ...
