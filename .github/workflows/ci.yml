@@ -18,15 +18,37 @@ jobs:
 
       - run: npm ci
 
-      # Typecheck runs first: the build gate exists so a type error cannot
-      # reach production the way the broken import path in UserDashboard did.
+      # Typecheck runs first: this gate exists so a type error cannot reach
+      # production the way the broken import path in UserDashboard did.
       - run: npm run typecheck
 
       - run: npm test
 
       - run: npm run build
 
-      # Report known advisories without failing the build on a transitive
-      # low-severity one that has no upstream fix yet.
+      # Report known advisories without failing on a transitive low-severity
+      # one that has no upstream fix yet.
       - run: npm audit --omit=dev --audit-level=high
         continue-on-error: true
+
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # The Firestore emulator is a Java process.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - run: npm ci
+
+      # Security rules are the only thing standing between the database and
+      # the open internet, so they get tested like code.
+      - run: npx firebase-tools@13.29.1 emulators:exec --only firestore --project sanad-rules-test "npm run test:rules"
