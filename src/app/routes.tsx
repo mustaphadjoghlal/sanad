@@ -36,6 +36,7 @@ const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
 const Register = lazy(() => import("./components/auth/Register"));
 const UserLogin = lazy(() => import("./components/auth/UserLogin"));
 const ForgotPassword = lazy(() => import("./components/auth/ForgotPassword"));
+const AuthAction = lazy(() => import("./components/auth/AuthAction"));
 const UserDashboard = lazy(() => import("./components/user/UserDashboard"));
 
 function PageLoader() {
@@ -116,6 +117,13 @@ export const router = createBrowserRouter([
     path: "/forgot-password",
     errorElement: <RouteErrorBoundary />,
     element: page(ForgotPassword),
+  },
+  {
+    // Where Firebase's account emails land once the action URL is pointed
+    // here, instead of the unbranded English page on firebaseapp.com.
+    path: "/auth/action",
+    errorElement: <RouteErrorBoundary />,
+    element: page(AuthAction),
   },
   {
     path: "/user/dashboard",
