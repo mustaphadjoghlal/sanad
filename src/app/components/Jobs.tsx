@@ -5,6 +5,7 @@ import { subscribeToCollection } from "../../lib/firestore";
 import type { Job } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 const employmentMap: Record<string, { label: string; bg: string; color: string }> = {
   fulltime:        { label: "دوام كلي",          bg: "rgba(0,80,40,0.35)",   color: "#66bb6a" },
@@ -20,9 +21,10 @@ export default function Jobs() {
   const [locationFilter, setLocationFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribeToCollection<Job>("jobs", (data) => { setItems(data); setLoading(false); });
+    const unsub = subscribeToCollection<Job>("jobs", (data) => { setItems(data); setLoading(false); }, () => { setLoadError(true); setLoading(false); });
     return unsub;
   }, []);
 
@@ -81,7 +83,9 @@ export default function Jobs() {
           </p>
         )}
 
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>

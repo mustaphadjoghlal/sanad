@@ -5,6 +5,7 @@ import { subscribeToChannels } from "../../lib/firestore";
 import type { Channel } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 const categoryColors: Record<string, string> = {
   "وطنية":   "var(--p-25)",
@@ -170,11 +171,12 @@ export default function ChannelsPage() {
   usePageTitle("دليل القنوات الجزائرية", "دليل شامل للقنوات التلفزيونية والإذاعية والمواقع الإخبارية والنوادي الإعلامية في الجزائر.");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [tab, setTab] = useState<"tv" | "electronic" | "radio" | "news" | "club">("tv");
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const unsub = subscribeToChannels((data) => { setChannels(data); setLoading(false); });
+    const unsub = subscribeToChannels((data) => { setChannels(data); setLoading(false); }, () => { setLoadError(true); setLoading(false); });
     return unsub;
   }, []);
 
@@ -275,7 +277,9 @@ export default function ChannelsPage() {
         </div>
 
         {/* Results */}
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>

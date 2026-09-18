@@ -4,6 +4,7 @@ import { subscribeToCollection } from "../../lib/firestore";
 import type { Course } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 export default function Courses() {
   usePageTitle("الدورات التدريبية", "دورات تدريبية مجانية ومدفوعة في الصحافة، التصوير، المونتاج والتقديم — منصة سند الإعلامية.");
@@ -11,12 +12,13 @@ export default function Courses() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeToCollection<Course>("courses", (data) => {
       setItems(data);
       setLoading(false);
-    });
+    }, () => { setLoadError(true); setLoading(false); });
     return unsub;
   }, []);
 
@@ -67,7 +69,9 @@ export default function Courses() {
         </div>
 
         {/* Results */}
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ animationDelay: "0.35s", opacity: 0, animationFillMode: "forwards" }}>

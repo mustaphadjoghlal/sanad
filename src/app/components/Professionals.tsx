@@ -5,6 +5,7 @@ import { subscribeToApprovedProfessionals } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 const typeLabel: Record<string, string> = {
   editor_news:        "محرر أخبار",
@@ -36,13 +37,14 @@ export default function Professionals() {
   const [typeFilter, setTypeFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     const unsub = subscribeToApprovedProfessionals((profiles) => {
       setAll(profiles.filter((p) => !EXCLUDED_TYPES.has(p.type)));
       setLoading(false);
-    });
+    }, () => { setLoadError(true); setLoading(false); });
     return unsub;
   }, []);
 
@@ -113,7 +115,9 @@ export default function Professionals() {
           </p>
         )}
 
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>

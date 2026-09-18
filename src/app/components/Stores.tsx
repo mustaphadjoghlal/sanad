@@ -5,17 +5,23 @@ import { subscribeToApprovedStores } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { matchesQuery } from "../../lib/text";
+import LoadError from "./LoadError";
 
 type StoreProfile = UserProfile & { whatsapp?: string };
 
 export default function Stores() {
   usePageTitle("دليل متاجر العتاد الإعلامي", "دليل متاجر بيع وشراء المعدات الإعلامية في الجزائر: كاميرات، إضاءة، صوتيات وأكثر");
 
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [stores, setStores] = useState<StoreProfile[]>([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    return subscribeToApprovedStores(setStores);
+    return subscribeToApprovedStores(
+      (data) => { setStores(data); setLoading(false); },
+      () => { setLoadError(true); setLoading(false); }
+    );
   }, []);
 
   const filtered = stores.filter((s) => matchesQuery(search, s.name, s.specialty, s.location));
@@ -40,7 +46,13 @@ export default function Stores() {
           style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text, #e8f5e9)" }}
         />
 
-        {filtered.length === 0 ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
+          <p className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
+            جاري التحميل...
+          </p>
+        ) : filtered.length === 0 ? (
           <p className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
             لا توجد متاجر
           </p>

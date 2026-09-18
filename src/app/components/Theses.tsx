@@ -5,6 +5,7 @@ import { subscribeToTheses } from "../../lib/firestore";
 import type { Thesis, ThesisSpecialty } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { matchesQuery } from "../../lib/text";
+import LoadError from "./LoadError";
 
 const SPECIALTIES: ThesisSpecialty[] = ["إعلام واتصال", "صحافة", "سمعي بصري", "إعلام آلي"];
 
@@ -26,12 +27,13 @@ export default function ThesesPage() {
 
   const [items, setItems] = useState<Thesis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [spec, setSpec] = useState<ThesisSpecialty | "all">("all");
   const [year, setYear] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    return subscribeToTheses((data) => { setItems(data); setLoading(false); });
+    return subscribeToTheses((data) => { setItems(data); setLoading(false); }, () => { setLoadError(true); setLoading(false); });
   }, []);
 
   const years = [...new Set(items.map((t) => String(t.year)))].sort((a, b) => +b - +a);
@@ -127,7 +129,9 @@ export default function ThesesPage() {
           </div>
         </div>
 
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>

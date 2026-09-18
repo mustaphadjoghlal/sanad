@@ -5,6 +5,7 @@ import { subscribeToApprovedTrainers } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 const PAGE_SIZE = 9;
 
@@ -12,10 +13,11 @@ export default function Trainers() {
   usePageTitle("مراكز ومدربو الإعلام", "دليل المدربين ومراكز التكوين في مجال الإعلام والصحافة بالجزائر ودوراتهم المتاحة.");
   const [trainers, setTrainers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  useEffect(() => subscribeToApprovedTrainers((data) => { setTrainers(data); setLoading(false); }), []);
+  useEffect(() => subscribeToApprovedTrainers((data) => { setTrainers(data); setLoading(false); }, () => { setLoadError(true); setLoading(false); }), []);
 
   const filtered = trainers.filter((t) => matchesQuery(search, t.name, t.specialty, t.location, t.organization));
 
@@ -57,7 +59,9 @@ export default function Trainers() {
           />
         </div>
 
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>

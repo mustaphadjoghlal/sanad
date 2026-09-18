@@ -5,6 +5,7 @@ import { subscribeToCollection } from "../../lib/firestore";
 import type { Equipment } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 export default function EquipmentPage() {
   usePageTitle("سوق العتاد الإعلامي", "بيع وشراء الكاميرات، الميكروفونات، الإضاءة ومعدات الإنتاج المستعملة والجديدة في الجزائر.");
@@ -12,9 +13,10 @@ export default function EquipmentPage() {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribeToCollection<Equipment>("equipment", (data) => { setItems(data); setLoading(false); });
+    const unsub = subscribeToCollection<Equipment>("equipment", (data) => { setItems(data); setLoading(false); }, () => { setLoadError(true); setLoading(false); });
     return unsub;
   }, []);
 
@@ -68,7 +70,9 @@ export default function EquipmentPage() {
         </div>
 
         {/* Results */}
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>

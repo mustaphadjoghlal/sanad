@@ -4,6 +4,7 @@ import { Newspaper, ArrowLeft } from "lucide-react";
 import { subscribeToNews } from "../../lib/firestore";
 import type { NewsItem, NewsCategory } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 const categoryColors: Record<NewsCategory, string> = {
   "قناة جديدة": "rgba(0,80,40,0.3)",
@@ -25,10 +26,11 @@ export default function NewsPage() {
 
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [cat, setCat] = useState<NewsCategory | "all">("all");
 
   useEffect(() => {
-    return subscribeToNews((data) => { setItems(data); setLoading(false); });
+    return subscribeToNews((data) => { setItems(data); setLoading(false); }, () => { setLoadError(true); setLoading(false); });
   }, []);
 
   const filtered = cat === "all" ? items : items.filter((n) => n.category === cat);
@@ -84,7 +86,9 @@ export default function NewsPage() {
           })}
         </div>
 
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>

@@ -5,6 +5,7 @@ import { subscribeToCollection } from "../../lib/firestore";
 import type { Competition } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import LoadError from "./LoadError";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
 const typeBg: Record<string, string>    = { university: "rgba(30,100,180,0.45)", national: "rgba(0,100,50,0.45)", international: "rgba(160,80,0,0.45)" };
@@ -16,12 +17,13 @@ export default function Competitions() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeToCollection<Competition>("competitions", (data) => {
       setItems(data);
       setLoading(false);
-    });
+    }, () => { setLoadError(true); setLoading(false); });
     return unsub;
   }, []);
 
@@ -81,7 +83,9 @@ export default function Competitions() {
           </p>
         )}
 
-        {loading ? (
+        {loadError ? (
+          <LoadError />
+        ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden animate-pulse" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15)" }}>
