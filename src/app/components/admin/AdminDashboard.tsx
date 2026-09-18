@@ -5,6 +5,7 @@ import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
   X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
+  KeyRound, Copy, MessageCircle,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -24,10 +25,12 @@ import {
   sendNotification, subscribeToNotifications,
   addNews, updateNews, deleteNews, subscribeToNews,
   addThesis, updateThesis, deleteThesis, subscribeToTheses,
+  adminResetPassword,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
+import { normalizePhone, isValidAlgerianPhone } from "../../../lib/text";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
 import { usePageTitle } from "../../../lib/usePageTitle";
@@ -256,6 +259,165 @@ function RejectModal({ label, onConfirm, onClose }: { label: string; onConfirm: 
           تأكيد الرفض
         </button>
       </div>
+    </Modal>
+  );
+}
+
+// ── Password reset ──────────────────────────────────────────────
+/**
+ * Hands the admin a new password for a member who cannot use the emailed
+ * reset link — which is most of them, since the address they registered with
+ * is one they rarely read.
+ *
+ * The password is shown once, here, and is never written to Firestore or
+ * logged. It is deliberately not pre-filled into the WhatsApp link: wa.me
+ * URLs are resolved by WhatsApp's own servers, so a password placed in one
+ * would travel further than this screen. The admin copies it and pastes it
+ * into the chat the button opens.
+ */
+function PasswordResetModal({ profile, onClose }: { profile: UserProfile; onClose: () => void }) {
+  const [phase, setPhase] = useState<"confirm" | "working" | "done">("confirm");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const rawPhone = profile.whatsapp || profile.phone || "";
+  const waNumber = isValidAlgerianPhone(rawPhone)
+    ? "213" + normalizePhone(rawPhone).slice(1)
+    : null;
+
+  const run = async () => {
+    setPhase("working");
+    setError("");
+    try {
+      const result = await adminResetPassword(profile.id);
+      setPassword(result.password);
+      setPhase("done");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذّر إنشاء كلمة مرور جديدة");
+      setPhase("confirm");
+    }
+  };
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard access can be refused; the password is on screen to read.
+      setError("تعذّر النسخ تلقائياً — انسخ كلمة المرور يدوياً من الأعلى.");
+    }
+  };
+
+  return (
+    <Modal title="كلمة مرور جديدة" onClose={onClose}>
+      {phase === "done" ? (
+        <div>
+          <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "1rem", lineHeight: 1.8 }}>
+            كلمة المرور الجديدة لحساب <strong style={{ color: "var(--theme-accent)" }}>{profile.name}</strong>.
+            تظهر مرة واحدة فقط — انسخها الآن قبل إغلاق النافذة.
+          </p>
+
+          <div
+            style={{
+              padding: "1rem",
+              borderRadius: "0.75rem",
+              background: "var(--p-12)",
+              border: "1px solid var(--p-30)",
+              textAlign: "center",
+              marginBottom: "1rem",
+            }}
+          >
+            <code
+              dir="ltr"
+              style={{
+                color: "var(--theme-text, #e8f5e9)",
+                fontSize: "1.35rem",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                userSelect: "all",
+              }}
+            >
+              {password}
+            </code>
+          </div>
+
+          {error && (
+            <p style={{ color: "#f87171", fontSize: "0.8rem", marginBottom: "0.75rem" }}>{error}</p>
+          )}
+
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={copy}
+              className="btn-dz flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm"
+              style={{ minWidth: "9rem" }}
+            >
+              <Copy size={15} />
+              {copied ? "تم النسخ ✓" : "نسخ كلمة المرور"}
+            </button>
+            {waNumber && (
+              <a
+                href={`https://wa.me/${waNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm"
+                style={{
+                  background: "rgba(37,211,102,0.12)",
+                  border: "1px solid rgba(37,211,102,0.35)",
+                  color: "#4ade80",
+                  textDecoration: "none",
+                  minWidth: "9rem",
+                }}
+              >
+                <MessageCircle size={15} />
+                فتح واتساب
+              </a>
+            )}
+          </div>
+
+          <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.78rem", marginTop: "1rem", lineHeight: 1.7 }}>
+            تم تسجيل خروج الحساب من كل الأجهزة. انصح صاحبه بتغيير كلمة المرور من لوحته الشخصية بعد الدخول.
+          </p>
+
+          <div className="flex justify-end mt-4">
+            <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
+              إغلاق
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "0.75rem", lineHeight: 1.8 }}>
+            إنشاء كلمة مرور جديدة لحساب <strong style={{ color: "var(--theme-accent)" }}>{profile.name}</strong>
+            {profile.email && <span dir="ltr" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}> ({profile.email})</span>}؟
+          </p>
+          <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.82rem", marginBottom: "1.25rem", lineHeight: 1.8 }}>
+            كلمة المرور الحالية ستتوقف عن العمل فوراً، وسيُسجَّل خروج الحساب من كل الأجهزة.
+            استخدم هذا فقط عندما يطلبه صاحب الحساب.
+          </p>
+
+          {error && (
+            <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: "rgba(198,40,40,0.1)", border: "1px solid rgba(198,40,40,0.3)", color: "#f87171" }}>
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-end">
+            <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
+              إلغاء
+            </button>
+            <button
+              onClick={run}
+              disabled={phase === "working"}
+              className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50"
+            >
+              {phase === "working" ? "جاري الإنشاء..." : "إنشاء كلمة مرور"}
+            </button>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }
@@ -1694,6 +1856,7 @@ function ProfessionalsSection() {
 
   const pendingCount = profiles.filter((p) => p.status === "pending").length;
   const [rejectTarget, setRejectTarget] = useState<UserProfile | null>(null);
+  const [resetTarget, setResetTarget] = useState<UserProfile | null>(null);
 
   return (
     <div>
@@ -1740,6 +1903,9 @@ function ProfessionalsSection() {
                         <AlertTriangle size={14} />
                       </button>
                     )}
+                    <button onClick={() => setResetTarget(p)} title="كلمة مرور جديدة" aria-label={`كلمة مرور جديدة لـ ${p.name}`} className="p-2 rounded" style={{ color: "#fbbf24", background: "rgba(180,120,0,0.12)" }}>
+                      <KeyRound size={14} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1782,6 +1948,9 @@ function ProfessionalsSection() {
                             <AlertTriangle size={14} />
                           </button>
                         )}
+                        <button onClick={() => setResetTarget(p)} title="كلمة مرور جديدة" aria-label={`كلمة مرور جديدة لـ ${p.name}`} className="p-1.5 rounded" style={{ color: "#fbbf24", background: "rgba(180,120,0,0.12)" }}>
+                          <KeyRound size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1798,6 +1967,10 @@ function ProfessionalsSection() {
           onConfirm={async (note) => { await rejectItem("users", rejectTarget.id, note); setRejectTarget(null); }}
           onClose={() => setRejectTarget(null)}
         />
+      )}
+
+      {resetTarget && (
+        <PasswordResetModal profile={resetTarget} onClose={() => setResetTarget(null)} />
       )}
     </div>
   );

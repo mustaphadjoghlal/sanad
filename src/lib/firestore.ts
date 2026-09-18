@@ -437,6 +437,47 @@ export async function sendNotification(
   }
 }
 
+/**
+ * Asks /api/admin-reset-password for a fresh password for a member's account.
+ *
+ * Members who never read their email cannot use the reset link, so the admin
+ * — who reviews every profile by hand anyway — hands them a new password
+ * directly. The endpoint refuses anyone who is not the admin.
+ *
+ * The returned password is shown once and never stored anywhere.
+ */
+export async function adminResetPassword(
+  uid: string
+): Promise<{ password: string; email: string | null }> {
+  const user = auth.currentUser;
+  if (!user) throw new Error("يجب تسجيل الدخول كمسؤول");
+
+  const idToken = await user.getIdToken();
+  const res = await fetch("/api/admin-reset-password", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ uid }),
+  });
+  const result = await res.json().catch(() => ({}));
+  if (!res.ok || !result.ok || !result.password) {
+    throw new Error(
+      result.code === "missing-permission"
+        ? "حساب الخدمة لا يملك صلاحية إدارة الحسابات. أضف دور Firebase Authentication Admin إليه في Google Cloud."
+        : res.status === 404
+        ? "لا يوجد حساب بهذا المعرّف"
+        : res.status === 403
+        ? "هذه العملية للمسؤول فقط"
+        : res.status === 503
+        ? "الخدمة غير مهيّأة على الخادم"
+        : "تعذّر إنشاء كلمة مرور جديدة. حاول مجدداً."
+    );
+  }
+  return { password: result.password as string, email: result.email ?? null };
+}
+
 export function subscribeToNotifications(
   isAdmin: boolean,
   callback: (notifs: AppNotification[]) => void,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, ArrowRight, CheckCircle } from "lucide-react";
+import { Mail, ArrowRight, CheckCircle, MessageCircle } from "lucide-react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { usePageTitle } from "../../../lib/usePageTitle";
@@ -101,7 +101,27 @@ export default function ForgotPassword() {
                 </button>
               </form>
 
-              <div className="mt-6 pt-5 text-center" style={{ borderTop: "1px solid var(--p-15)" }}>
+              {/* Many members registered with an address they never read, so
+                  the emailed link is a dead end for them. The admin reviews
+                  every profile by hand and can issue a new password directly,
+                  which is what this points them to. */}
+              <div className="mt-6 pt-5" style={{ borderTop: "1px solid var(--p-15)" }}>
+                <p className="text-sm mb-3" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.7 }}>
+                  لا تستطيع الوصول إلى بريدك الإلكتروني؟ راسلنا على صفحتنا وسنعيد لك حسابك.
+                </p>
+                <a
+                  href="https://www.facebook.com/profile.php?id=61590628561028"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm w-full justify-center"
+                  style={{ background: "var(--p-12)", border: "1px solid var(--p-25)", color: "var(--theme-text-secondary, #6aad6a)", textDecoration: "none" }}
+                >
+                  <MessageCircle size={15} />
+                  تواصل معنا عبر فيسبوك
+                </a>
+              </div>
+
+              <div className="mt-5 text-center">
                 <Link to="/login" className="inline-flex items-center gap-1.5 text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)", textDecoration: "none" }}>
                   <ArrowRight size={14} />
                   العودة لتسجيل الدخول
