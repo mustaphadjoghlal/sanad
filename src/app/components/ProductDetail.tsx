@@ -6,6 +6,7 @@ import type { Product } from "../../lib/types";
 import { WILAYAS } from "../../lib/algeria";
 import { normalizePhone, isValidAlgerianPhone } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { productSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 const S = {
   input: {
@@ -56,6 +57,12 @@ export default function ProductDetail() {
   const [error, setError] = useState("");
 
   usePageTitle(product?.name ?? "", product ? `${product.name} — ${product.price} دج. ${product.description?.slice(0, 120) ?? ""}` : undefined, { image: product?.image, type: "article" });
+
+  useStructuredData(
+    product
+      ? [productSchema(product), breadcrumbs([{ name: "المتاجر", path: "/stores" }, { name: product.name, path: window.location.pathname }])]
+      : null
+  );
 
   useEffect(() => {
     if (!id) return;

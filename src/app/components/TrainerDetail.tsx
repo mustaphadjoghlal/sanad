@@ -8,6 +8,7 @@ import { getTrainer, subscribeToApprovedTrainerCourses, submitCourseRegistration
 import type { UserProfile, TrainerCourse } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { normalizePhone, isValidAlgerianPhone } from "../../lib/text";
+import { personSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 const wilayas = [
   "الجزائر","وهران","قسنطينة","عنابة","سطيف","تيزي وزو","البليدة","بجاية",
@@ -31,6 +32,12 @@ export default function TrainerDetail() {
   const [regError, setRegError] = useState("");
 
   usePageTitle(trainer?.name ?? "", trainer ? `${trainer.name}${trainer.specialty ? ` — ${trainer.specialty}` : ""}. مدرب إعلامي ودوراته على منصة سند.` : undefined, { image: trainer?.photo, type: "article" });
+
+  useStructuredData(
+    trainer
+      ? [personSchema(trainer, `/trainers/${trainer.id}`), breadcrumbs([{ name: "المدربون", path: "/trainers" }, { name: trainer.name, path: window.location.pathname }])]
+      : null
+  );
 
   useEffect(() => {
     if (!id) return;

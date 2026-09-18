@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Course } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { courseSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,12 @@ export default function CourseDetail() {
   const [notFound, setNotFound] = useState(false);
 
   usePageTitle(course?.title ?? "", course ? `${course.title} — ${course.instructor}. ${course.type === "paid" ? "دورة مدفوعة" : "دورة مجانية"} على منصة سند الإعلامية.` : undefined, { image: course?.image, type: "article" });
+
+  useStructuredData(
+    course
+      ? [courseSchema(course), breadcrumbs([{ name: "الدورات", path: "/courses" }, { name: course.title, path: window.location.pathname }])]
+      : null
+  );
 
   useEffect(() => {
     if (!id) return;

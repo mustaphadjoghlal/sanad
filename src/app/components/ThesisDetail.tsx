@@ -4,6 +4,7 @@ import { ArrowRight, GraduationCap, FileText, ExternalLink } from "lucide-react"
 import { getThesis } from "../../lib/firestore";
 import type { Thesis, ThesisSpecialty } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { thesisSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 const specColors: Record<ThesisSpecialty, string> = {
   "إعلام واتصال": "var(--p-25)",
@@ -26,6 +27,12 @@ export default function ThesisDetail() {
   usePageTitle(
     thesis?.title ?? "",
     thesis ? `${thesis.title} — مذكرة تخرج ${thesis.specialty} — ${thesis.university} ${thesis.year}` : undefined
+  );
+
+  useStructuredData(
+    thesis
+      ? [thesisSchema(thesis), breadcrumbs([{ name: "المذكرات", path: "/theses" }, { name: thesis.title, path: window.location.pathname }])]
+      : null
   );
 
   useEffect(() => {

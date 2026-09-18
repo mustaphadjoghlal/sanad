@@ -4,6 +4,7 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 import { getNewsItem } from "../../lib/firestore";
 import type { NewsItem, NewsCategory } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { newsArticle, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 const categoryColors: Record<NewsCategory, string> = {
   "قناة جديدة": "rgba(0,80,40,0.3)",
@@ -24,6 +25,12 @@ export default function NewsDetail() {
   const [loading, setLoading] = useState(true);
 
   usePageTitle(item?.title ?? "", item ? `${item.title} - أخبار سند الإعلامية` : undefined);
+
+  useStructuredData(
+    item
+      ? [newsArticle(item), breadcrumbs([{ name: "أخبار سند", path: "/news" }, { name: item.title, path: window.location.pathname }])]
+      : null
+  );
 
   useEffect(() => {
     if (!id) return;

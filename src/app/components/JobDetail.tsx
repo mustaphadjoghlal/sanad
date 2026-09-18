@@ -6,6 +6,7 @@ import { db } from "../../lib/firebase";
 import type { Job } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { sanitizeHtml } from "../../lib/sanitize";
+import { jobPosting, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,12 @@ export default function JobDetail() {
   const [notFound, setNotFound] = useState(false);
 
   usePageTitle(job?.title ?? "", job ? `${job.title} في ${job.company} — ${job.location}. فرصة عمل في الإعلام الجزائري عبر منصة سند.` : undefined, { image: job?.image, type: "article" });
+
+  useStructuredData(
+    job
+      ? [jobPosting(job), breadcrumbs([{ name: "فرص العمل", path: "/jobs" }, { name: job.title, path: window.location.pathname }])]
+      : null
+  );
 
   useEffect(() => {
     if (!id) return;

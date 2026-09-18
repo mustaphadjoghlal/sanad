@@ -9,6 +9,7 @@ import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 import WorksSection from "./WorksSection";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { personSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 const typeLabel: Record<string, string> = {
   editor_news: "محرر أخبار", web_digital: "ويب ديجيتال", presenter_programs: "مقدم برامج",
@@ -88,6 +89,12 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   usePageTitle(profile?.name ?? "", profile ? `${profile.name}${profile.specialty ? ` — ${profile.specialty}` : ""}${profile.location ? ` · ${profile.location}` : ""}. ملف احترافي على منصة سند الإعلامية.` : undefined, { image: profile?.photo, type: "article" });
+
+  useStructuredData(
+    profile
+      ? [personSchema(profile, `/profile/${profile.id}`), breadcrumbs([{ name: "دليل المحترفين", path: "/professionals" }, { name: profile.name, path: window.location.pathname }])]
+      : null
+  );
 
   useEffect(() => {
     if (!id) return;

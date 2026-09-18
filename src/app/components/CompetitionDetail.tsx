@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Competition } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { competitionEvent, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
 const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "var(--p-30)", international: "rgba(120,66,18,0.3)" };
@@ -17,6 +18,12 @@ export default function CompetitionDetail() {
   const [notFound, setNotFound] = useState(false);
 
   usePageTitle(competition?.name ?? "", competition ? `${competition.name} — ${competition.organizer}. مسابقة إعلامية على منصة سند.` : undefined, { image: competition?.image, type: "article" });
+
+  useStructuredData(
+    competition
+      ? [competitionEvent(competition), breadcrumbs([{ name: "المسابقات", path: "/competitions" }, { name: competition.name, path: window.location.pathname }])]
+      : null
+  );
 
   useEffect(() => {
     if (!id) return;
