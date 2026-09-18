@@ -974,7 +974,7 @@ function JobsSection() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr>{["المسمى الوظيفي", "الجهة", "الموقع", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+                <tr>{["العنوان", "الجهة", "الموقع", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
@@ -999,7 +999,10 @@ function JobsSection() {
       {modal && (
         <Modal title={modal === "add" ? "إضافة عرض توظيف" : "تعديل الوظيفة"} onClose={() => setModal(null)}>
           <div className="space-y-4">
-            <div><label style={S.label}>المسمى الوظيفي *</label><input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+            <div>
+              <label style={S.label}>العنوان *</label>
+              <input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان الإعلان — مثال: قناة الشروق توظّف مصوّراً صحفياً" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div><label style={S.label}>الجهة / المؤسسة</label><input style={S.input} value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
               <div className="md:col-span-2">
@@ -1072,7 +1075,7 @@ function JobsSection() {
 
             {/* ✅ حقل تفاصيل الوظيفة — Rich Text Editor */}
             <div>
-              <label style={S.label}>تفاصيل الوظيفة</label>
+              <label style={S.label}>نص الإعلان</label>
               <ReactQuill
                 theme="snow"
                 value={form.description}
