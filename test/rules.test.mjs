@@ -11,7 +11,7 @@ import {
   assertSucceeds,
   assertFails,
 } from "@firebase/rules-unit-testing";
-import { doc, setDoc, getDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField, addDoc, collection, getDocs, query, where } from "firebase/firestore";
 
 const ADMIN = "admin@sanadz.media";
 let env;
@@ -295,5 +295,141 @@ describe("public content stays public and admin-only stays admin-only", () => {
   it("lets a user submit equipment for review but not pre-approved", async () => {
     await assertSucceeds(addDoc(collection(user(), "equipment"), { name: "كاميرا", submittedBy: "user1", status: "pending", featured: false, createdAt: Date.now() }));
     await assertFails(addDoc(collection(user(), "equipment"), { name: "كاميرا", submittedBy: "user1", status: "approved", featured: false, createdAt: Date.now() }));
+  });
+});
+
+describe("the app's real write payloads", () => {
+  // These mirror exactly what the client sends, so a rules change that looks
+  // fine in isolation cannot quietly break a screen.
+
+  it("accepts the full profile payload the user dashboard sends", async () => {
+    await seed((db) => setDoc(doc(db, "users/user1"), profile({ status: "approved", type: "journalist" })));
+    // Note it re-sends `type` and `storeStatus` unchanged — Firestore's diff()
+    // only reports keys whose value actually changed, so this must pass.
+    await assertSucceeds(updateDoc(doc(user(), "users/user1"), {
+      name: "اسم محدّث",
+      type: "journalist",
+      bio: "نبذة",
+      photo: "https://example.com/p.jpg",
+      specialty: "مونتاج",
+      location: "الجزائر",
+      phone: "0551234567",
+      tagline: "سطر تعريفي",
+      languages: ["العربية", "الفرنسية"],
+      works: [{ id: "w1", type: "article", title: "مقال", url: "https://example.com" }],
+      socialLinks: { facebook: "https://facebook.com/x" },
+      availability: "available",
+    }));
+  });
+
+  it("accepts the profile the registration form creates", async () => {
+    await assertSucceeds(setDoc(doc(user("newbie"), "users/newbie"), {
+      id: "newbie",
+      email: "newbie@example.com",
+      name: "مستخدم جديد",
+      type: "store",
+      bio: "وصف المتجر",
+      status: "pending",
+      featured: false,
+      createdAt: Date.now(),
+      location: "وهران",
+      phone: "0551234567",
+      whatsapp: "0551234567",
+      storeStatus: "trial",
+    }));
+  });
+
+  it("accepts the exact order the product page sends", async () => {
+    await assertSucceeds(addDoc(collection(guest(), "orders"), {
+      productId: "p1",
+      productName: "كاميرا Sony",
+      storeId: "store1",
+      buyerFirstName: "أمين",
+      buyerLastName: "بن علي",
+      buyerPhone: "0551234567",
+      wilaya: "الجزائر",
+      city: "باب الوادي",
+      quantity: 2,
+      note: "أرجو الاتصال مساءً",
+      status: "pending",
+      createdAt: Date.now(),
+    }));
+  });
+
+  it("accepts an order with the optional note omitted", async () => {
+    const { note, ...withoutNote } = order();
+    await assertSucceeds(addDoc(collection(guest(), "orders"), withoutNote));
+  });
+
+  it("accepts the notification the registration flow raises", async () => {
+    await assertSucceeds(addDoc(collection(user("newbie"), "notifications"), {
+      title: "مستخدم جديد 🎉",
+      body: "فلان سجّل في المنصة كـ محترف إعلامي",
+      link: "/sanad-admin",
+      createdAt: Date.now(),
+      readBy: [],
+      audience: "admin",
+    }));
+  });
+
+  it("accepts the notification a guest course sign-up raises", async () => {
+    await assertSucceeds(addDoc(collection(guest(), "notifications"), {
+      title: "طلب تسجيل جديد في دورتك",
+      body: 'سارة طلبت التسجيل في "دورة المونتاج"',
+      link: "/user/dashboard",
+      createdAt: Date.now(),
+      readBy: [],
+      audience: "admin",
+    }));
+  });
+
+  it("accepts the admin broadcast the dashboard sends", async () => {
+    await assertSucceeds(addDoc(collection(admin(), "notifications"), {
+      title: "وظيفة جديدة: مصور",
+      body: "قناة الشروق — الجزائر",
+      link: "/jobs",
+      createdAt: Date.now(),
+      readBy: [],
+      audience: "all",
+    }));
+  });
+
+  it("accepts the course registration the trainer page sends", async () => {
+    await assertSucceeds(addDoc(collection(guest(), "courseRegistrations"), {
+      courseId: "c1",
+      courseTitle: "دورة المونتاج",
+      trainerId: "t1",
+      name: "سارة بن يوسف",
+      phone: "0551234567",
+      email: "sara@example.com",
+      wilaya: "قسنطينة",
+      note: "مبتدئة",
+      createdAt: Date.now(),
+    }));
+  });
+
+  it("accepts the token write the FCM registration performs", async () => {
+    await assertSucceeds(setDoc(doc(user(), "fcmTokens/user1"), { token: "abc123", updatedAt: Date.now() }, { merge: true }));
+  });
+});
+
+describe("legacy fcmToken migration", () => {
+  // Profiles written by older builds still carry a token on the public doc.
+  // saveUserFCMToken strips it on the next sign-in, so removal must be allowed
+  // — and a profile that still has one must stay editable in the meantime,
+  // otherwise a user who never re-grants notifications is locked out of their
+  // own profile forever.
+  beforeEach(() => seed((db) => setDoc(doc(db, "users/user1"), profile({ fcmToken: "legacy-token" }))));
+
+  it("ALLOWS removing the legacy token", async () => {
+    await assertSucceeds(updateDoc(doc(user(), "users/user1"), { fcmToken: deleteField() }));
+  });
+
+  it("ALLOWS editing a profile that still carries one", async () => {
+    await assertSucceeds(updateDoc(doc(user(), "users/user1"), { bio: "نبذة" }));
+  });
+
+  it("BLOCKS replacing it with a new token", async () => {
+    await assertFails(updateDoc(doc(user(), "users/user1"), { fcmToken: "new-token" }));
   });
 });
