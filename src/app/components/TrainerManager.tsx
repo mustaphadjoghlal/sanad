@@ -201,59 +201,59 @@ export default function TrainerManager({ trainerId }: Props) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>عنوان الدورة *</label>
-                <input value={form.title} onChange={(e) => f("title", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="مثال: دورة التصوير الاحترافي" required />
+                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-1-acfdd7">عنوان الدورة *</label>
+                <input id="trainermanager-1-acfdd7" value={form.title} onChange={(e) => f("title", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="مثال: دورة التصوير الاحترافي" required />
               </div>
 
               <div>
-                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>وصف الدورة *</label>
-                <textarea value={form.description} onChange={(e) => f("description", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm resize-none" rows={4} placeholder="اشرح محتوى الدورة والمهارات التي سيكتسبها المتدرب" required />
+                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-2-93b697">وصف الدورة *</label>
+                <textarea id="trainermanager-2-93b697" value={form.description} onChange={(e) => f("description", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm resize-none" rows={4} placeholder="اشرح محتوى الدورة والمهارات التي سيكتسبها المتدرب" required />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>النوع</label>
-                  <select value={form.type} onChange={(e) => f("type", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm">
+                  <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-3-3e36ee">النوع</label>
+                  <select id="trainermanager-3-3e36ee" value={form.type} onChange={(e) => f("type", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm">
                     <option value="paid">مدفوعة</option>
                     <option value="free">مجانية</option>
                   </select>
                 </div>
                 {form.type === "paid" && (
                   <div>
-                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>السعر (دج)</label>
-                    <input type="number" value={form.price ?? ""} onChange={(e) => f("price", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm" placeholder="5000" min={0} />
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-4-368398">السعر (دج)</label>
+                    <input id="trainermanager-4-368398" type="number" value={form.price ?? ""} onChange={(e) => f("price", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm" placeholder="5000" min={0} />
                   </div>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>المدة *</label>
-                  <input value={form.duration} onChange={(e) => f("duration", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm" placeholder="3 أيام / أسبوع" required />
+                  <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-5-a59469">المدة *</label>
+                  <input id="trainermanager-5-a59469" value={form.duration} onChange={(e) => f("duration", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm" placeholder="3 أيام / أسبوع" required />
                 </div>
                 <div>
-                  <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>عدد المقاعد</label>
-                  <input type="number" value={form.seats ?? ""} onChange={(e) => f("seats", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm" placeholder="20" min={1} />
+                  <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-6-bf6bf4">عدد المقاعد</label>
+                  <input id="trainermanager-6-bf6bf4" type="number" value={form.seats ?? ""} onChange={(e) => f("seats", e.target.value)} className="input-dz w-full px-3 py-2.5 rounded-xl text-sm" placeholder="20" min={1} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>مكان الدورة *</label>
-                <input value={form.location} onChange={(e) => f("location", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="مثال: وهران — شارع ابن بادي / عن بعد (أونلاين)" required />
+                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-7-33b583">مكان الدورة *</label>
+                <input id="trainermanager-7-33b583" value={form.location} onChange={(e) => f("location", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="مثال: وهران — شارع ابن بادي / عن بعد (أونلاين)" required />
               </div>
 
               <div>
-                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>الجدول الزمني *</label>
-                <input value={form.schedule} onChange={(e) => f("schedule", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="كل جمعة 09:00 - 13:00" required />
+                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-8-5926dc">الجدول الزمني *</label>
+                <input id="trainermanager-8-5926dc" value={form.schedule} onChange={(e) => f("schedule", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="كل جمعة 09:00 - 13:00" required />
               </div>
 
               <div>
-                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>تاريخ البداية</label>
-                <input type="date" value={form.startDate ?? ""} onChange={(e) => f("startDate", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" />
+                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainermanager-9-e3f685">تاريخ البداية</label>
+                <input id="trainermanager-9-e3f685" type="date" value={form.startDate ?? ""} onChange={(e) => f("startDate", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" />
               </div>
 
               <div>
-                <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>صورة الغلاف</label>
+                <span className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>صورة الغلاف</span>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm cursor-pointer" style={{ background: "var(--p-12)", border: "1px solid var(--p-25)", color: "var(--theme-text-muted)" }}>
                     <ImageIcon size={16} /> اختر صورة

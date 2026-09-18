@@ -136,8 +136,8 @@ export default function TrainerDetail() {
                   <Phone size={14} /> {trainer.phone}
                 </a>
               )}
-              {(trainer as any).whatsapp && (
-                <a href={`https://wa.me/${(trainer as any).whatsapp?.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg" style={{ color: "#4ade80", border: "1px solid rgba(74,222,128,0.2)", textDecoration: "none" }}>
+              {trainer.whatsapp && (
+                <a href={`https://wa.me/${trainer.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg" style={{ color: "#4ade80", border: "1px solid rgba(74,222,128,0.2)", textDecoration: "none" }}>
                   <MessageCircle size={14} /> واتساب
                 </a>
               )}
@@ -239,7 +239,7 @@ export default function TrainerDetail() {
               <>
                 <div className="flex items-center justify-between mb-5">
                   <h3 className="font-bold text-lg" style={{ color: "var(--theme-text)" }}>التسجيل في الدورة</h3>
-                  <button onClick={closeModal} style={{ color: "var(--theme-text-muted)", background: "none", border: "none", cursor: "pointer" }}><X size={20} /></button>
+                  <button onClick={closeModal} style={{ color: "var(--theme-text-muted)", background: "none", border: "none", cursor: "pointer" }} type="button" aria-label="إغلاق"><X size={20} /></button>
                 </div>
                 <p className="text-sm mb-5 px-3 py-2 rounded-lg" style={{ color: "var(--theme-accent)", background: "var(--p-10)", border: "1px solid var(--p-20)" }}>
                   {selectedCourse.title}
@@ -251,27 +251,27 @@ export default function TrainerDetail() {
 
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
-                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>الاسم الكامل *</label>
-                    <input value={form.name} onChange={(e) => f("name", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="اسمك الكامل" required />
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainerdetail-1-b428f2">الاسم الكامل *</label>
+                    <input id="trainerdetail-1-b428f2" value={form.name} onChange={(e) => f("name", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="اسمك الكامل" required />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>رقم الهاتف *</label>
-                    <input value={form.phone} onChange={(e) => f("phone", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="05XXXXXXXX" required />
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainerdetail-2-c43450">رقم الهاتف *</label>
+                    <input id="trainerdetail-2-c43450" value={form.phone} onChange={(e) => f("phone", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="05XXXXXXXX" required />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>البريد الإلكتروني</label>
-                    <input type="email" value={form.email} onChange={(e) => f("email", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="اختياري" />
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainerdetail-3-e59ca5">البريد الإلكتروني</label>
+                    <input id="trainerdetail-3-e59ca5" type="email" value={form.email} onChange={(e) => f("email", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm" placeholder="اختياري" />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>الولاية</label>
-                    <select value={form.wilaya} onChange={(e) => f("wilaya", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm">
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainerdetail-4-041ad7">الولاية</label>
+                    <select id="trainerdetail-4-041ad7" value={form.wilaya} onChange={(e) => f("wilaya", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm">
                       <option value="">اختر الولاية</option>
                       {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }}>ملاحظة</label>
-                    <textarea value={form.note} onChange={(e) => f("note", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm resize-none" rows={3} placeholder="أي معلومة إضافية (اختياري)" />
+                    <label className="block text-sm mb-1" style={{ color: "var(--theme-badge-text)" }} htmlFor="trainerdetail-5-a8fe31">ملاحظة</label>
+                    <textarea id="trainerdetail-5-a8fe31" value={form.note} onChange={(e) => f("note", e.target.value)} className="input-dz w-full px-4 py-2.5 rounded-xl text-sm resize-none" rows={3} placeholder="أي معلومة إضافية (اختياري)" />
                   </div>
                   <button type="submit" disabled={submitting} className="btn-dz w-full py-3 rounded-xl font-medium text-sm disabled:opacity-60">
                     {submitting ? "جاري الإرسال..." : "إرسال طلب التسجيل"}

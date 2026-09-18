@@ -126,6 +126,7 @@ export default function AdminLogin() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
+                htmlFor="admin-email"
                 className="block text-sm mb-2"
                 style={{ color: "var(--theme-badge-text, #81c784)" }}
               >
@@ -138,7 +139,9 @@ export default function AdminLogin() {
                   style={{ color: "var(--theme-text-muted, #4a7a4a)" }}
                 />
                 <input
+                  id="admin-email"
                   type="email"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-dz w-full pr-10 pl-4 py-3 rounded-xl text-sm"
@@ -150,6 +153,7 @@ export default function AdminLogin() {
 
             <div>
               <label
+                htmlFor="admin-password"
                 className="block text-sm mb-2"
                 style={{ color: "var(--theme-badge-text, #81c784)" }}
               >
@@ -162,7 +166,9 @@ export default function AdminLogin() {
                   style={{ color: "var(--theme-text-muted, #4a7a4a)" }}
                 />
                 <input
+                  id="admin-password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-dz w-full pr-10 pl-4 py-3 rounded-xl text-sm"

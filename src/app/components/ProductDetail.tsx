@@ -287,8 +287,8 @@ export default function ProductDetail() {
             <form onSubmit={handleSubmit}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
                 <div>
-                  <label style={S.label}>الاسم *</label>
-                  <input
+                  <label style={S.label} htmlFor="productdetail-1-87302e">الاسم *</label>
+                  <input id="productdetail-1-87302e"
                     style={S.input}
                     value={form.buyerFirstName}
                     onChange={(e) => sf("buyerFirstName", e.target.value)}
@@ -297,8 +297,8 @@ export default function ProductDetail() {
                   />
                 </div>
                 <div>
-                  <label style={S.label}>اللقب *</label>
-                  <input
+                  <label style={S.label} htmlFor="productdetail-2-89b6fc">اللقب *</label>
+                  <input id="productdetail-2-89b6fc"
                     style={S.input}
                     value={form.buyerLastName}
                     onChange={(e) => sf("buyerLastName", e.target.value)}
@@ -329,8 +329,8 @@ export default function ProductDetail() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
                 <div>
-                  <label style={S.label}>الولاية *</label>
-                  <select
+                  <label style={S.label} htmlFor="productdetail-3-f35715">الولاية *</label>
+                  <select id="productdetail-3-f35715"
                     style={S.input}
                     value={form.wilaya}
                     onChange={(e) => sf("wilaya", e.target.value)}
@@ -343,8 +343,8 @@ export default function ProductDetail() {
                   </select>
                 </div>
                 <div>
-                  <label style={S.label}>المدينة/البلدية *</label>
-                  <input
+                  <label style={S.label} htmlFor="productdetail-4-c2451e">المدينة/البلدية *</label>
+                  <input id="productdetail-4-c2451e"
                     style={S.input}
                     value={form.city}
                     onChange={(e) => sf("city", e.target.value)}
@@ -355,8 +355,8 @@ export default function ProductDetail() {
               </div>
 
               <div style={{ marginBottom: "1rem" }}>
-                <label style={S.label}>الكمية</label>
-                <input
+                <label style={S.label} htmlFor="productdetail-5-b89f8c">الكمية</label>
+                <input id="productdetail-5-b89f8c"
                   type="number"
                   style={{ ...S.input, width: "120px" }}
                   value={form.quantity}
@@ -367,8 +367,8 @@ export default function ProductDetail() {
               </div>
 
               <div style={{ marginBottom: "1.25rem" }}>
-                <label style={S.label}>ملاحظة (اختياري)</label>
-                <textarea
+                <label style={S.label} htmlFor="productdetail-6-59ec80">ملاحظة (اختياري)</label>
+                <textarea id="productdetail-6-59ec80"
                   style={{ ...S.input, minHeight: "80px", resize: "vertical" }}
                   value={form.note}
                   onChange={(e) => sf("note", e.target.value)}

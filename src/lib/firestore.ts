@@ -15,7 +15,7 @@ import {
   limit,
   arrayUnion,
 } from "firebase/firestore";
-import type { FirestoreError } from "firebase/firestore";
+import type { FirestoreError, UpdateData, DocumentData } from "firebase/firestore";
 import { db, auth } from "./firebase";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
@@ -156,7 +156,10 @@ export async function toggleFeatured(colName: string, id: string, current: boole
 }
 
 // --- USER PROFILES ---
-function stripUndefined<T extends object>(obj: T): { [key: string]: any } {
+// Firestore rejects an explicit `undefined`, so optional fields the form left
+// blank are dropped rather than sent. The return type is what updateDoc and
+// setDoc accept for a partial write.
+function stripUndefined<T extends object>(obj: T): UpdateData<DocumentData> {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 }
 

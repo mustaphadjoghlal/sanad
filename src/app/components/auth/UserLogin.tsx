@@ -106,8 +106,8 @@ export default function UserLogin() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>البريد الإلكتروني</label>
-              <input
+              <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="userlogin-1-06a9ea">البريد الإلكتروني</label>
+              <input id="userlogin-1-06a9ea"
                 type="email"
                 className="input-dz w-full px-4 py-3 rounded-lg"
                 value={email}
@@ -118,8 +118,8 @@ export default function UserLogin() {
               />
             </div>
             <div>
-              <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>كلمة المرور</label>
-              <input
+              <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="userlogin-2-a48112">كلمة المرور</label>
+              <input id="userlogin-2-a48112"
                 type="password"
                 className="input-dz w-full px-4 py-3 rounded-lg"
                 value={password}

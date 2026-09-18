@@ -80,10 +80,11 @@ export default function ForgotPassword() {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>البريد الإلكتروني</label>
+                  <label htmlFor="reset-email" className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>البريد الإلكتروني</label>
                   <div className="relative">
                     <Mail className="absolute right-3 top-1/2 -translate-y-1/2" size={16} style={{ color: "var(--theme-text-muted)" }} />
                     <input
+                      id="reset-email"
                       type="email"
                       className="input-dz w-full pr-10 pl-4 py-3 rounded-lg"
                       value={email}

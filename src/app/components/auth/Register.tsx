@@ -587,8 +587,8 @@ export default function Register() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الاسم الكامل *</label>
-                    <input
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-1-17e7c5">الاسم الكامل *</label>
+                    <input id="register-1-17e7c5"
                       type="text"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                       value={form.name}
@@ -597,8 +597,8 @@ export default function Register() {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>البريد الإلكتروني *</label>
-                    <input
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-2-efaa14">البريد الإلكتروني *</label>
+                    <input id="register-2-efaa14"
                       type="email"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                       value={form.email}
@@ -612,8 +612,8 @@ export default function Register() {
                     )}
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>كلمة المرور *</label>
-                    <input
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-3-c2d705">كلمة المرور *</label>
+                    <input id="register-3-c2d705"
                       type="password"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                       value={form.password}
@@ -622,8 +622,8 @@ export default function Register() {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>تأكيد كلمة المرور *</label>
-                    <input
+                    <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-4-8ad818">تأكيد كلمة المرور *</label>
+                    <input id="register-4-8ad818"
                       type="password"
                       className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                       value={form.confirmPassword}
@@ -691,7 +691,7 @@ export default function Register() {
                   <div className="space-y-4">
                     {/* Profile photo */}
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>صورة شخصية</label>
+                      <span className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>صورة شخصية</span>
                       <div className="flex items-center gap-4">
                         {photoPreview ? (
                           <img loading="lazy" decoding="async"
@@ -733,8 +733,8 @@ export default function Register() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>التخصص</label>
-                        <input
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-5-b96510">التخصص</label>
+                        <input id="register-5-b96510"
                           type="text"
                           className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                           value={form.specialty}
@@ -743,8 +743,8 @@ export default function Register() {
                         />
                       </div>
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
-                        <select
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-6-0ca4c7">الولاية *</label>
+                        <select id="register-6-0ca4c7"
                           className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
                           value={form.location}
                           onChange={(e) => f("location", e.target.value)}
@@ -755,8 +755,8 @@ export default function Register() {
                         </select>
                       </div>
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
-                        <input
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-7-ad1f30">رقم الهاتف</label>
+                        <input id="register-7-ad1f30"
                           type="tel"
                           className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                           value={form.phone}
@@ -767,8 +767,8 @@ export default function Register() {
                       </div>
                       {individualSubType !== "student" && (
                         <div>
-                          <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>سنوات الخبرة</label>
-                          <input
+                          <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-8-f0a06d">سنوات الخبرة</label>
+                          <input id="register-8-f0a06d"
                             type="text"
                             className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                             value={form.experience}
@@ -781,8 +781,8 @@ export default function Register() {
 
                     {individualSubType === "other" && (
                       <div>
-                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اذكر تخصصك</label>
-                        <input
+                        <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-9-e77f38">اذكر تخصصك</label>
+                        <input id="register-9-e77f38"
                           type="text"
                           className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                           value={form.otherTypeText}
@@ -793,8 +793,8 @@ export default function Register() {
                     )}
 
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نبذة / السيرة الذاتية</label>
-                      <textarea
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-10-86bedc">نبذة / السيرة الذاتية</label>
+                      <textarea id="register-10-86bedc"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         style={{ minHeight: "80px", resize: "vertical" }}
                         value={form.bio}
@@ -804,8 +804,8 @@ export default function Register() {
                     </div>
 
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>أبرز الإنجازات</label>
-                      <textarea
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-11-c12299">أبرز الإنجازات</label>
+                      <textarea id="register-11-c12299"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         style={{ minHeight: "80px", resize: "vertical" }}
                         value={form.achievements}
@@ -816,7 +816,7 @@ export default function Register() {
 
                     {/* Interests */}
                     <div>
-                      <label className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الاهتمامات (يمكن تحديد أكثر من خيار)</label>
+                      <span className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الاهتمامات (يمكن تحديد أكثر من خيار)</span>
                       <div className="flex flex-wrap gap-2">
                         {INTERESTS.map((interest) => (
                           <button
@@ -839,7 +839,7 @@ export default function Register() {
 
                     {/* Portfolio links */}
                     <div>
-                      <label className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>روابط البورتفوليو</label>
+                      <span className="block mb-2 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>روابط البورتفوليو</span>
                       {portfolioLinks.length > 0 && (
                         <div className="space-y-2 mb-3">
                           {portfolioLinks.map((link, idx) => (
@@ -871,8 +871,8 @@ export default function Register() {
                           style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--p-20)" }}
                         >
                           <div>
-                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>التسمية</label>
-                            <input
+                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }} htmlFor="register-12-bc79a7">التسمية</label>
+                            <input id="register-12-bc79a7"
                               type="text"
                               className="input-dz w-full px-3 py-2 rounded-lg text-sm"
                               placeholder="مثال: موقعي الشخصي"
@@ -881,8 +881,8 @@ export default function Register() {
                             />
                           </div>
                           <div>
-                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>الرابط</label>
-                            <input
+                            <label className="block mb-1 text-xs" style={{ color: "var(--theme-text-secondary, #6aad6a)" }} htmlFor="register-13-cab21b">الرابط</label>
+                            <input id="register-13-cab21b"
                               type="url"
                               className="input-dz w-full px-3 py-2 rounded-lg text-sm"
                               placeholder="https://..."
@@ -933,8 +933,8 @@ export default function Register() {
                 {mainType === "store" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسم المتجر *</label>
-                      <input
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-14-a7bef9">اسم المتجر *</label>
+                      <input id="register-14-a7bef9"
                         type="text"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         value={form.storeName}
@@ -943,8 +943,8 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نوع المعدات</label>
-                      <input
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-15-741341">نوع المعدات</label>
+                      <input id="register-15-741341"
                         type="text"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         value={form.specialty}
@@ -953,8 +953,8 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
-                      <select
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-16-94e66e">الولاية *</label>
+                      <select id="register-16-94e66e"
                         className="select-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         value={form.location}
                         onChange={(e) => f("location", e.target.value)}
@@ -965,8 +965,8 @@ export default function Register() {
                       </select>
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
-                      <input
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-17-c1a43b">رقم الهاتف</label>
+                      <input id="register-17-c1a43b"
                         type="tel"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         value={form.phone}
@@ -976,8 +976,8 @@ export default function Register() {
                       />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>واتساب</label>
-                      <input
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-18-555d56">واتساب</label>
+                      <input id="register-18-555d56"
                         type="tel"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         value={form.whatsapp}
@@ -987,8 +987,8 @@ export default function Register() {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>وصف المتجر</label>
-                      <textarea
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-19-fb1f16">وصف المتجر</label>
+                      <textarea id="register-19-fb1f16"
                         className="input-dz w-full px-4 py-2.5 rounded-lg text-sm"
                         style={{ minHeight: "80px", resize: "vertical" }}
                         value={form.storeDescription}
@@ -1003,35 +1003,35 @@ export default function Register() {
                 {mainType === "trainer" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسمك أو اسم مركز التدريب *</label>
-                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.name} onChange={(e) => f("name", e.target.value)} placeholder="مثال: مركز سند للتدريب" />
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-20-0bd9f0">اسمك أو اسم مركز التدريب *</label>
+                      <input id="register-20-0bd9f0" type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.name} onChange={(e) => f("name", e.target.value)} placeholder="مثال: مركز سند للتدريب" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>اسم المؤسسة / المركز</label>
-                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.organization} onChange={(e) => f("organization", e.target.value)} placeholder="إذا كنت تمثل مركز تدريب (اختياري)" />
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-21-5e954a">اسم المؤسسة / المركز</label>
+                      <input id="register-21-5e954a" type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.organization} onChange={(e) => f("organization", e.target.value)} placeholder="إذا كنت تمثل مركز تدريب (اختياري)" />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>مجال التدريب</label>
-                      <input type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.trainerSpecialty} onChange={(e) => f("trainerSpecialty", e.target.value)} placeholder="مثال: تصوير، صحافة، إنتاج..." />
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-22-978a25">مجال التدريب</label>
+                      <input id="register-22-978a25" type="text" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.trainerSpecialty} onChange={(e) => f("trainerSpecialty", e.target.value)} placeholder="مثال: تصوير، صحافة، إنتاج..." />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>الولاية *</label>
-                      <select className="select-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.location} onChange={(e) => f("location", e.target.value)} style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}>
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-23-da0a6b">الولاية *</label>
+                      <select id="register-23-da0a6b" className="select-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.location} onChange={(e) => f("location", e.target.value)} style={{ borderColor: !form.location ? "rgba(239,68,68,0.4)" : undefined }}>
                         <option value="">اختر الولاية (إلزامي)</option>
                         {wilayas.map((w) => <option key={w} value={w}>{w}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>رقم الهاتف</label>
-                      <input type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.phone} onChange={(e) => f("phone", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-24-266756">رقم الهاتف</label>
+                      <input id="register-24-266756" type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.phone} onChange={(e) => f("phone", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
                     </div>
                     <div>
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>واتساب</label>
-                      <input type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.whatsapp} onChange={(e) => f("whatsapp", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-25-409822">واتساب</label>
+                      <input id="register-25-409822" type="tel" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" value={form.whatsapp} onChange={(e) => f("whatsapp", e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>نبذة تعريفية</label>
-                      <textarea className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" style={{ minHeight: "80px", resize: "vertical" }} value={form.bio} onChange={(e) => f("bio", e.target.value)} placeholder="اشرح خبرتك وما الذي تقدمه من تدريب" />
+                      <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }} htmlFor="register-26-efd1ca">نبذة تعريفية</label>
+                      <textarea id="register-26-efd1ca" className="input-dz w-full px-4 py-2.5 rounded-lg text-sm" style={{ minHeight: "80px", resize: "vertical" }} value={form.bio} onChange={(e) => f("bio", e.target.value)} placeholder="اشرح خبرتك وما الذي تقدمه من تدريب" />
                     </div>
                   </div>
                 )}

@@ -79,7 +79,7 @@ export function applyTheme(t: ThemeSettings) {
   r.style.setProperty("--p-60",  hexToRgba(t.primaryGreen, 0.60));
 
   // Cache to localStorage for instant re-apply on next load
-  try { localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(t)); } catch {}
+  try { localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(t)); } catch { /* private mode — the theme still applies, it just is not cached */ }
 }
 
 function hexToRgba(hex: string, alpha: number): string {

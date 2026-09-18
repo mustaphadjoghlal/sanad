@@ -96,6 +96,17 @@ function ProductModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
   const [form, setForm] = useState<ProductForm>(
     initial
       ? {
@@ -186,8 +197,11 @@ function ProductModal({
         padding: "1rem",
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      role="presentation"
     >
       <div
+        role="dialog"
+        aria-modal="true"
         dir="rtl"
         style={{
           background: "#141414",
@@ -204,21 +218,21 @@ function ProductModal({
           <h3 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, fontSize: "1.05rem" }}>
             {initial ? "تعديل المنتج" : "إضافة منتج جديد"}
           </h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--theme-text-dim, #3a5e3a)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--theme-text-dim, #3a5e3a)", cursor: "pointer" }} type="button" aria-label="إغلاق">
             <X size={20} />
           </button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div>
-            <label style={S.label}>اسم المنتج *</label>
-            <input style={S.input} value={form.name} onChange={(e) => pf("name", e.target.value)} placeholder="مثال: كاميرا Sony A7 IV" />
+            <label style={S.label} htmlFor="storemanager-1-62db52">اسم المنتج *</label>
+            <input id="storemanager-1-62db52" style={S.input} value={form.name} onChange={(e) => pf("name", e.target.value)} placeholder="مثال: كاميرا Sony A7 IV" />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
             <div>
-              <label style={S.label}>الفئة</label>
-              <select style={S.input} value={form.category} onChange={(e) => pf("category", e.target.value)}>
+              <label style={S.label} htmlFor="storemanager-2-d19792">الفئة</label>
+              <select id="storemanager-2-d19792" style={S.input} value={form.category} onChange={(e) => pf("category", e.target.value)}>
                 <option value="">اختر الفئة</option>
                 {PRODUCT_CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -227,23 +241,23 @@ function ProductModal({
             </div>
             {form.category === "أخرى" && (
               <div>
-                <label style={S.label}>الفئة المخصصة</label>
-                <input style={S.input} value={form.customCategory} onChange={(e) => pf("customCategory", e.target.value)} placeholder="اكتب الفئة..." />
+                <label style={S.label} htmlFor="storemanager-3-9651c4">الفئة المخصصة</label>
+                <input id="storemanager-3-9651c4" style={S.input} value={form.customCategory} onChange={(e) => pf("customCategory", e.target.value)} placeholder="اكتب الفئة..." />
               </div>
             )}
             <div>
-              <label style={S.label}>السعر (دج)</label>
-              <input type="number" style={S.input} value={form.price} min={0} onChange={(e) => pf("price", +e.target.value)} />
+              <label style={S.label} htmlFor="storemanager-4-840714">السعر (دج)</label>
+              <input id="storemanager-4-840714" type="number" style={S.input} value={form.price} min={0} onChange={(e) => pf("price", +e.target.value)} />
             </div>
             <div>
-              <label style={S.label}>الكمية المتوفرة</label>
-              <input type="number" style={S.input} value={form.quantity} min={0} onChange={(e) => pf("quantity", +e.target.value)} />
+              <label style={S.label} htmlFor="storemanager-5-6deefc">الكمية المتوفرة</label>
+              <input id="storemanager-5-6deefc" type="number" style={S.input} value={form.quantity} min={0} onChange={(e) => pf("quantity", +e.target.value)} />
             </div>
           </div>
 
           <div>
-            <label style={S.label}>الوصف</label>
-            <textarea
+            <label style={S.label} htmlFor="storemanager-6-935703">الوصف</label>
+            <textarea id="storemanager-6-935703"
               style={{ ...S.input, minHeight: "80px", resize: "vertical" }}
               value={form.description}
               onChange={(e) => pf("description", e.target.value)}
@@ -251,16 +265,16 @@ function ProductModal({
           </div>
 
           <div>
-            <label style={S.label}>الحالة</label>
-            <select style={S.input} value={form.status} onChange={(e) => pf("status", e.target.value as "active" | "archived")}>
+            <label style={S.label} htmlFor="storemanager-7-f179ee">الحالة</label>
+            <select id="storemanager-7-f179ee" style={S.input} value={form.status} onChange={(e) => pf("status", e.target.value as "active" | "archived")}>
               <option value="active">نشط</option>
               <option value="archived">مؤرشف</option>
             </select>
           </div>
 
           <div>
-            <label style={S.label}>صورة المنتج</label>
-            <input
+            <label style={S.label} htmlFor="storemanager-8-cd1a2f">صورة المنتج</label>
+            <input id="storemanager-8-cd1a2f"
               type="file"
               accept="image/*"
               style={{ ...S.input, padding: "0.4rem 0.85rem" }}
@@ -272,8 +286,8 @@ function ProductModal({
           </div>
 
           <div>
-            <label style={S.label}>صور إضافية (يمكن اختيار أكثر من صورة)</label>
-            <input
+            <label style={S.label} htmlFor="storemanager-9-cbe00c">صور إضافية (يمكن اختيار أكثر من صورة)</label>
+            <input id="storemanager-9-cbe00c"
               type="file"
               accept="image/*"
               multiple

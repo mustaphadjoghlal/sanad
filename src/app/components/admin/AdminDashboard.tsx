@@ -174,19 +174,37 @@ function ToastHost() {
 
 // ── Modal wrapper ───────────────────────────────────────────────
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  // Clicking the backdrop closed the dialog, but a keyboard user had no way
+  // out at all. Escape closes it, and the body is locked so the page behind
+  // does not scroll under the dialog.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      role="presentation"
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up"
         style={{ ...S.card, boxShadow: "0 24px 60px rgba(0,0,0,0.6)", opacity: 0, animationFillMode: "forwards" }}
       >
         <div className="flex items-center justify-between p-5" style={{ borderBottom: "1px solid var(--p-20)" }}>
           <h3 style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600 }}>{title}</h3>
-          <button onClick={onClose} style={{ color: "var(--theme-text-muted, #4a7a4a)" }} className="hover:text-white transition-colors">
+          <button onClick={onClose} type="button" aria-label="إغلاق" style={{ color: "var(--theme-text-muted, #4a7a4a)" }} className="hover:text-white transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -356,8 +374,8 @@ function ItemActions({
             <AlertTriangle size={14} />
           </button>
         )}
-        <button onClick={onEdit} className="p-2 rounded" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={16} /></button>
-        <button onClick={onDelete} className="p-2 rounded" style={{ color: "#ef9a9a" }}><Trash2 size={16} /></button>
+        <button onClick={onEdit} type="button" aria-label="تعديل" className="p-2 rounded" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}><Pencil size={16} /></button>
+        <button onClick={onDelete} type="button" aria-label="حذف" className="p-2 rounded" style={{ color: "#ef9a9a" }}><Trash2 size={16} /></button>
       </div>
       {rejecting && (
         <RejectModal
@@ -443,6 +461,7 @@ export default function AdminDashboard() {
       {isMobile && sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
           style={{
             position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
             zIndex: 40, backdropFilter: "blur(2px)",
@@ -819,25 +838,25 @@ function CoursesSection() {
       {modal && (
         <Modal title={modal === "add" ? "إضافة دورة جديدة" : "تعديل الدورة"} onClose={() => setModal(null)}>
           <div className="space-y-4">
-            <div><label style={S.label}>عنوان الدورة *</label><input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="مثال: التصوير الصحفي الاحترافي" /></div>
-            <div><label style={S.label}>اسم المدرب *</label><input style={S.input} value={form.instructor} onChange={(e) => setForm({ ...form, instructor: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-1-e4d8ce">عنوان الدورة *</label><input id="admindashboard-1-e4d8ce" style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="مثال: التصوير الصحفي الاحترافي" /></div>
+            <div><label style={S.label} htmlFor="admindashboard-2-a72036">اسم المدرب *</label><input id="admindashboard-2-a72036" style={S.input} value={form.instructor} onChange={(e) => setForm({ ...form, instructor: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label style={S.label}>نوع الدورة</label>
-                <select style={S.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as "free" | "paid" })}>
+                <label style={S.label} htmlFor="admindashboard-3-00335e">نوع الدورة</label>
+                <select id="admindashboard-3-00335e" style={S.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as "free" | "paid" })}>
                   <option value="free">مجانية</option>
                   <option value="paid">مدفوعة</option>
                 </select>
               </div>
               {form.type === "paid" && (
-                <div><label style={S.label}>السعر (دج)</label><input type="number" style={S.input} value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} /></div>
+                <div><label style={S.label} htmlFor="admindashboard-4-ade0e4">السعر (دج)</label><input id="admindashboard-4-ade0e4" type="number" style={S.input} value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} /></div>
               )}
-              <div><label style={S.label}>المدة</label><input style={S.input} value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} placeholder="مثال: 4 أسابيع" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-5-72f0ca">المدة</label><input id="admindashboard-5-72f0ca" style={S.input} value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} placeholder="مثال: 4 أسابيع" /></div>
             </div>
-            <div><label style={S.label}>وصف الدورة</label><textarea style={{ ...S.input, minHeight: "80px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-            <div><label style={S.label}>رابط الدورة (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
+            <div><label style={S.label} htmlFor="admindashboard-6-389a61">وصف الدورة</label><textarea id="admindashboard-6-389a61" style={{ ...S.input, minHeight: "80px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-7-998588">رابط الدورة (اختياري)</label><input id="admindashboard-7-998588" style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
             <div>
-              <label style={S.label}>صورة الغلاف</label>
+              <span style={S.label}>صورة الغلاف</span>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
@@ -847,7 +866,7 @@ function CoursesSection() {
               </div>
             </div>
             <div>
-              <label style={S.label}>صور المحتوى</label>
+              <span style={S.label}>صور المحتوى</span>
               {form.contentImages && form.contentImages.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
@@ -1000,13 +1019,13 @@ function JobsSection() {
         <Modal title={modal === "add" ? "إضافة عرض توظيف" : "تعديل الوظيفة"} onClose={() => setModal(null)}>
           <div className="space-y-4">
             <div>
-              <label style={S.label}>العنوان *</label>
-              <input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان الإعلان — مثال: قناة الشروق توظّف مصوّراً صحفياً" />
+              <label style={S.label} htmlFor="admindashboard-8-ff12d9">العنوان *</label>
+              <input id="admindashboard-8-ff12d9" style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان الإعلان — مثال: قناة الشروق توظّف مصوّراً صحفياً" />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label style={S.label}>الجهة / المؤسسة</label><input style={S.input} value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-9-37d0f5">الجهة / المؤسسة</label><input id="admindashboard-9-37d0f5" style={S.input} value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
               <div className="md:col-span-2">
-                <label style={S.label}>الولاية (يمكن اختيار أكثر من ولاية)</label>
+                <span style={S.label}>الولاية (يمكن اختيار أكثر من ولاية)</span>
                 <div style={{ ...S.input, padding: "0.5rem", maxHeight: "130px", overflowY: "auto", display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
                   {["عن بعد", "كل الجزائر", ...WILAYAS].map((w) => {
                     const selected = form.location.split(",").map(s => s.trim()).includes(w);
@@ -1042,8 +1061,8 @@ function JobsSection() {
                 )}
               </div>
               <div>
-                <label style={S.label}>نوع الوظيفة</label>
-                <select style={S.input} value={form.jobType} onChange={(e) => setForm({ ...form, jobType: e.target.value })}>
+                <label style={S.label} htmlFor="admindashboard-10-b41add">نوع الوظيفة</label>
+                <select id="admindashboard-10-b41add" style={S.input} value={form.jobType} onChange={(e) => setForm({ ...form, jobType: e.target.value })}>
                   <option value="">اختر التخصص</option>
                   <option value="صحفي">صحفي</option>
                   <option value="مقدم برامج">مقدم برامج</option>
@@ -1059,8 +1078,8 @@ function JobsSection() {
                 </select>
               </div>
               <div>
-                <label style={S.label}>طبيعة العمل</label>
-                <select style={S.input} value={form.employmentType ?? ""} onChange={(e) => setForm({ ...form, employmentType: (e.target.value as Job["employmentType"]) || undefined })}>
+                <label style={S.label} htmlFor="admindashboard-11-83fbbf">طبيعة العمل</label>
+                <select id="admindashboard-11-83fbbf" style={S.input} value={form.employmentType ?? ""} onChange={(e) => setForm({ ...form, employmentType: (e.target.value as Job["employmentType"]) || undefined })}>
                   <option value="">اختر الطبيعة</option>
                   <option value="fulltime">دوام كلي</option>
                   <option value="parttime">دوام جزئي</option>
@@ -1068,14 +1087,14 @@ function JobsSection() {
                   <option value="internship_paid">تدريب مدفوع</option>
                 </select>
               </div>
-              <div><label style={S.label}>الموعد النهائي</label><input type="date" style={S.input} value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-12-29425a">الموعد النهائي</label><input id="admindashboard-12-29425a" type="date" style={S.input} value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></div>
             </div>
-            <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} placeholder="بريد / هاتف" /></div>
-            <div><label style={S.label}>المصدر</label><input style={S.input} value={form.source || ""} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="مثال: وزارة الاتصال، موقع LinkedIn..." /></div>
+            <div><label style={S.label} htmlFor="admindashboard-13-2a44a0">معلومات التواصل</label><input id="admindashboard-13-2a44a0" style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} placeholder="بريد / هاتف" /></div>
+            <div><label style={S.label} htmlFor="admindashboard-14-a2c399">المصدر</label><input id="admindashboard-14-a2c399" style={S.input} value={form.source || ""} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="مثال: وزارة الاتصال، موقع LinkedIn..." /></div>
 
             {/* ✅ حقل تفاصيل الوظيفة — Rich Text Editor */}
             <div>
-              <label style={S.label}>نص الإعلان</label>
+              <span style={S.label}>نص الإعلان</span>
               <ReactQuill
                 theme="snow"
                 value={form.description}
@@ -1087,7 +1106,7 @@ function JobsSection() {
 
             {/* ✅ حقل تعريف بالجهة المُوظِّفة — Rich Text Editor */}
             <div>
-              <label style={S.label}>تعريف بالجهة المُوظِّفة</label>
+              <span style={S.label}>تعريف بالجهة المُوظِّفة</span>
               <ReactQuill
                 theme="snow"
                 value={form.companyDescription || ""}
@@ -1098,7 +1117,7 @@ function JobsSection() {
             </div>
 
             <div>
-              <label style={S.label}>صورة الغلاف</label>
+              <span style={S.label}>صورة الغلاف</span>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
@@ -1108,7 +1127,7 @@ function JobsSection() {
               </div>
             </div>
             <div>
-              <label style={S.label}>صور المحتوى</label>
+              <span style={S.label}>صور المحتوى</span>
               {form.contentImages && form.contentImages.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
@@ -1261,11 +1280,11 @@ function EquipmentSection() {
       {modal && (
         <Modal title={modal === "add" ? "إضافة منتج" : "تعديل المنتج"} onClose={() => setModal(null)}>
           <div className="space-y-4">
-            <div><label style={S.label}>اسم المنتج *</label><input style={S.input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-15-89236c">اسم المنتج *</label><input id="admindashboard-15-89236c" style={S.input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label style={S.label}>الفئة</label>
-                <select style={S.input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                <label style={S.label} htmlFor="admindashboard-16-44ebef">الفئة</label>
+                <select id="admindashboard-16-44ebef" style={S.input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                   <option value="">اختر الفئة</option>
                   <option value="كاميرات">كاميرات</option>
                   <option value="ميكروفونات">ميكروفونات</option>
@@ -1275,19 +1294,19 @@ function EquipmentSection() {
                 </select>
               </div>
               <div>
-                <label style={S.label}>الحالة</label>
-                <select style={S.input} value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value as "new" | "used" })}>
+                <label style={S.label} htmlFor="admindashboard-17-4fc6ba">الحالة</label>
+                <select id="admindashboard-17-4fc6ba" style={S.input} value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value as "new" | "used" })}>
                   <option value="new">جديد</option>
                   <option value="used">مستعمل</option>
                 </select>
               </div>
-              <div><label style={S.label}>السعر (دج)</label><input type="number" style={S.input} value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} /></div>
-              <div><label style={S.label}>اسم البائع</label><input style={S.input} value={form.seller} onChange={(e) => setForm({ ...form, seller: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-18-cd9efe">السعر (دج)</label><input id="admindashboard-18-cd9efe" type="number" style={S.input} value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-19-cf2c8d">اسم البائع</label><input id="admindashboard-19-cf2c8d" style={S.input} value={form.seller} onChange={(e) => setForm({ ...form, seller: e.target.value })} /></div>
             </div>
-            <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
-            <div><label style={S.label}>الوصف</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-20-0ac8d3">معلومات التواصل</label><input id="admindashboard-20-0ac8d3" style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-21-17e3f6">الوصف</label><textarea id="admindashboard-21-17e3f6" style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div>
-              <label style={S.label}>صورة الغلاف</label>
+              <span style={S.label}>صورة الغلاف</span>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
@@ -1297,7 +1316,7 @@ function EquipmentSection() {
               </div>
             </div>
             <div>
-              <label style={S.label}>صور المحتوى</label>
+              <span style={S.label}>صور المحتوى</span>
               {form.contentImages && form.contentImages.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
@@ -1454,22 +1473,22 @@ function CompetitionsSection() {
       {modal && (
         <Modal title={modal === "add" ? "إضافة مسابقة" : "تعديل المسابقة"} onClose={() => setModal(null)}>
           <div className="space-y-4">
-            <div><label style={S.label}>اسم المسابقة *</label><input style={S.input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-22-378662">اسم المسابقة *</label><input id="admindashboard-22-378662" style={S.input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label style={S.label}>النوع</label>
-                <select style={S.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as CompForm["type"] })}>
+                <label style={S.label} htmlFor="admindashboard-23-546bde">النوع</label>
+                <select id="admindashboard-23-546bde" style={S.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as CompForm["type"] })}>
                   <option value="university">جامعية</option>
                   <option value="national">وطنية</option>
                   <option value="international">دولية</option>
                 </select>
               </div>
-              <div><label style={S.label}>المنظم</label><input style={S.input} value={form.organizer} onChange={(e) => setForm({ ...form, organizer: e.target.value })} /></div>
-              <div><label style={S.label}>تاريخ البداية</label><input type="date" style={S.input} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
-              <div><label style={S.label}>تاريخ النهاية</label><input type="date" style={S.input} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-24-1328f2">المنظم</label><input id="admindashboard-24-1328f2" style={S.input} value={form.organizer} onChange={(e) => setForm({ ...form, organizer: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-25-9bac64">تاريخ البداية</label><input id="admindashboard-25-9bac64" type="date" style={S.input} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-26-c6ae78">تاريخ النهاية</label><input id="admindashboard-26-c6ae78" type="date" style={S.input} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
             </div>
             <div>
-              <label style={S.label}>صورة الغلاف</label>
+              <span style={S.label}>صورة الغلاف</span>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
@@ -1479,7 +1498,7 @@ function CompetitionsSection() {
               </div>
             </div>
             <div>
-              <label style={S.label}>صور المحتوى</label>
+              <span style={S.label}>صور المحتوى</span>
               {form.contentImages && form.contentImages.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
@@ -1496,14 +1515,14 @@ function CompetitionsSection() {
                 {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
               </label>
             </div>
-            <div><label style={S.label}>مقدمة / وصف مختصر</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-            <div><label style={S.label}>محتوى المقال</label><textarea style={{ ...S.input, minHeight: "140px", resize: "vertical" }} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="اكتب تفاصيل المسابقة كاملة هنا..." /></div>
+            <div><label style={S.label} htmlFor="admindashboard-27-beebbf">مقدمة / وصف مختصر</label><textarea id="admindashboard-27-beebbf" style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-28-ed0ce3">محتوى المقال</label><textarea id="admindashboard-28-ed0ce3" style={{ ...S.input, minHeight: "140px", resize: "vertical" }} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="اكتب تفاصيل المسابقة كاملة هنا..." /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label style={S.label}>الفئة المستهدفة</label><input style={S.input} value={form.targetAudience} onChange={(e) => setForm({ ...form, targetAudience: e.target.value })} placeholder="مثال: طلبة جامعيون، صحفيون..." /></div>
-              <div><label style={S.label}>المصدر</label><input style={S.input} value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="مثال: وزارة الاتصال" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-29-e32ffc">الفئة المستهدفة</label><input id="admindashboard-29-e32ffc" style={S.input} value={form.targetAudience} onChange={(e) => setForm({ ...form, targetAudience: e.target.value })} placeholder="مثال: طلبة جامعيون، صحفيون..." /></div>
+              <div><label style={S.label} htmlFor="admindashboard-30-b76bee">المصدر</label><input id="admindashboard-30-b76bee" style={S.input} value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="مثال: وزارة الاتصال" /></div>
             </div>
-            <div><label style={S.label}>تعريف الجهة المنظمة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.organizerDescription} onChange={(e) => setForm({ ...form, organizerDescription: e.target.value })} /></div>
-            <div><label style={S.label}>الرابط الرسمي (اختياري)</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." dir="ltr" /></div>
+            <div><label style={S.label} htmlFor="admindashboard-31-eaaacb">تعريف الجهة المنظمة</label><textarea id="admindashboard-31-eaaacb" style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.organizerDescription} onChange={(e) => setForm({ ...form, organizerDescription: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-32-b390a4">الرابط الرسمي (اختياري)</label><input id="admindashboard-32-b390a4" style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." dir="ltr" /></div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
@@ -1623,11 +1642,11 @@ function VoiceSection() {
       {modal && (
         <Modal title={modal === "add" ? "إضافة منشط" : "تعديل المنشط"} onClose={() => setModal(null)}>
           <div className="space-y-4">
-            <div><label style={S.label}>الاسم الكامل *</label><input style={S.input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-33-96e311">الاسم الكامل *</label><input id="admindashboard-33-96e311" style={S.input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label style={S.label}>التخصص</label>
-                <select style={S.input} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}>
+                <label style={S.label} htmlFor="admindashboard-34-4c579e">التخصص</label>
+                <select id="admindashboard-34-4c579e" style={S.input} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}>
                   <option value="">اختر التخصص</option>
                   <option value="إذاعي">إذاعي</option>
                   <option value="تلفزيوني">تلفزيوني</option>
@@ -1635,10 +1654,10 @@ function VoiceSection() {
                   <option value="تعليق صوتي">تعليق صوتي</option>
                 </select>
               </div>
-              <div><label style={S.label}>سنوات الخبرة</label><input style={S.input} value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} placeholder="مثال: 5 سنوات" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-35-ef317d">سنوات الخبرة</label><input id="admindashboard-35-ef317d" style={S.input} value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} placeholder="مثال: 5 سنوات" /></div>
             </div>
-            <div><label style={S.label}>معلومات التواصل</label><input style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
-            <div><label style={S.label}>نبذة</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-36-6e0261">معلومات التواصل</label><input id="admindashboard-36-6e0261" style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-37-69b730">نبذة</label><textarea id="admindashboard-37-69b730" style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
@@ -1956,10 +1975,10 @@ function ChannelsSection() {
         <Modal title={editId ? "تعديل القناة" : "إضافة قناة"} onClose={() => { setShowForm(false); setEditId(null); }}>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2"><label style={S.label}>اسم القناة *</label><input style={S.input} value={form.name} onChange={(e) => cf("name", e.target.value)} placeholder="مثال: الشروق تيفي" /></div>
+              <div className="col-span-2"><label style={S.label} htmlFor="admindashboard-38-e93118">اسم القناة *</label><input id="admindashboard-38-e93118" style={S.input} value={form.name} onChange={(e) => cf("name", e.target.value)} placeholder="مثال: الشروق تيفي" /></div>
               <div>
-                <label style={S.label}>التصنيف الرئيسي</label>
-                <select style={S.input} value={form.category === "قنوات الكترونية" ? "electronic" : form.category === "نوادي إعلامية" ? "club" : form.type === "tv" ? "tv" : form.type === "radio" ? "radio" : "news"}
+                <label style={S.label} htmlFor="admindashboard-39-3e3e0c">التصنيف الرئيسي</label>
+                <select id="admindashboard-39-3e3e0c" style={S.input} value={form.category === "قنوات الكترونية" ? "electronic" : form.category === "نوادي إعلامية" ? "club" : form.type === "tv" ? "tv" : form.type === "radio" ? "radio" : "news"}
                   onChange={(e) => {
                     const v = e.target.value;
                     if (v === "tv") setForm((f) => ({ ...f, type: "tv", category: "وطنية" }));
@@ -1977,8 +1996,8 @@ function ChannelsSection() {
               </div>
               {(form.type === "tv" || form.type === "radio") && (
                 <div>
-                  <label style={S.label}>الفئة الفرعية</label>
-                  <select style={S.input} value={form.category} onChange={(e) => cf("category", e.target.value)}>
+                  <label style={S.label} htmlFor="admindashboard-40-dccf77">الفئة الفرعية</label>
+                  <select id="admindashboard-40-dccf77" style={S.input} value={form.category} onChange={(e) => cf("category", e.target.value)}>
                     <option value="وطنية">وطنية</option><option value="خاصة">خاصة</option><option value="محلية">محلية</option>
                     <option value="دينية">دينية</option><option value="متخصصة">متخصصة</option><option value="رياضية">رياضية</option><option value="ثقافية">ثقافية</option>
                   </select>
@@ -1986,21 +2005,21 @@ function ChannelsSection() {
               )}
               {form.type === "website" && form.category !== "قنوات الكترونية" && form.category !== "نوادي إعلامية" && (
                 <div>
-                  <label style={S.label}>الفئة الفرعية</label>
-                  <select style={S.input} value={form.category} onChange={(e) => cf("category", e.target.value)}>
+                  <label style={S.label} htmlFor="admindashboard-41-ac88b7">الفئة الفرعية</label>
+                  <select id="admindashboard-41-ac88b7" style={S.input} value={form.category} onChange={(e) => cf("category", e.target.value)}>
                     <option value="إخبارية">إخبارية</option><option value="رياضية">رياضية</option><option value="ثقافية">ثقافية</option><option value="متخصصة">متخصصة</option>
                   </select>
                 </div>
               )}
-              <div className="col-span-2"><label style={S.label}>التردد</label><input style={S.input} value={form.frequency} onChange={(e) => cf("frequency", e.target.value)} dir="ltr" /></div>
-              <div><label style={S.label}>البريد الإلكتروني</label><input style={S.input} value={form.email} onChange={(e) => cf("email", e.target.value)} dir="ltr" /></div>
-              <div><label style={S.label}>الهاتف</label><input style={S.input} value={form.phone} onChange={(e) => cf("phone", e.target.value)} dir="ltr" /></div>
-              <div className="col-span-2"><label style={S.label}>العنوان</label><input style={S.input} value={form.address} onChange={(e) => cf("address", e.target.value)} /></div>
-              <div className="col-span-2"><label style={S.label}>الموقع الإلكتروني</label><input style={S.input} value={form.website} onChange={(e) => cf("website", e.target.value)} dir="ltr" placeholder="https://..." /></div>
-              <div><label style={S.label}>فيسبوك</label><input style={S.input} value={form.facebook} onChange={(e) => cf("facebook", e.target.value)} dir="ltr" /></div>
-              <div><label style={S.label}>يوتيوب</label><input style={S.input} value={form.youtube} onChange={(e) => cf("youtube", e.target.value)} dir="ltr" /></div>
-              <div><label style={S.label}>إنستغرام</label><input style={S.input} value={form.instagram} onChange={(e) => cf("instagram", e.target.value)} dir="ltr" /></div>
-              <div><label style={S.label}>تويتر/X</label><input style={S.input} value={form.twitter} onChange={(e) => cf("twitter", e.target.value)} dir="ltr" /></div>
+              <div className="col-span-2"><label style={S.label} htmlFor="admindashboard-42-0d930f">التردد</label><input id="admindashboard-42-0d930f" style={S.input} value={form.frequency} onChange={(e) => cf("frequency", e.target.value)} dir="ltr" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-43-69ca09">البريد الإلكتروني</label><input id="admindashboard-43-69ca09" style={S.input} value={form.email} onChange={(e) => cf("email", e.target.value)} dir="ltr" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-44-4927e7">الهاتف</label><input id="admindashboard-44-4927e7" style={S.input} value={form.phone} onChange={(e) => cf("phone", e.target.value)} dir="ltr" /></div>
+              <div className="col-span-2"><label style={S.label} htmlFor="admindashboard-45-af3d25">العنوان</label><input id="admindashboard-45-af3d25" style={S.input} value={form.address} onChange={(e) => cf("address", e.target.value)} /></div>
+              <div className="col-span-2"><label style={S.label} htmlFor="admindashboard-46-0d46b2">الموقع الإلكتروني</label><input id="admindashboard-46-0d46b2" style={S.input} value={form.website} onChange={(e) => cf("website", e.target.value)} dir="ltr" placeholder="https://..." /></div>
+              <div><label style={S.label} htmlFor="admindashboard-47-da6b5d">فيسبوك</label><input id="admindashboard-47-da6b5d" style={S.input} value={form.facebook} onChange={(e) => cf("facebook", e.target.value)} dir="ltr" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-48-9ec984">يوتيوب</label><input id="admindashboard-48-9ec984" style={S.input} value={form.youtube} onChange={(e) => cf("youtube", e.target.value)} dir="ltr" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-49-ffe2cf">إنستغرام</label><input id="admindashboard-49-ffe2cf" style={S.input} value={form.instagram} onChange={(e) => cf("instagram", e.target.value)} dir="ltr" /></div>
+              <div><label style={S.label} htmlFor="admindashboard-50-80eae9">تويتر/X</label><input id="admindashboard-50-80eae9" style={S.input} value={form.twitter} onChange={(e) => cf("twitter", e.target.value)} dir="ltr" /></div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => { setShowForm(false); setEditId(null); }} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
@@ -2153,9 +2172,9 @@ function NotificationsSection() {
       <div className="rounded-xl p-6" style={S.card}>
         <h3 className="font-semibold mb-5" style={{ color: "var(--theme-text)" }}>إرسال إشعار جديد</h3>
         <div className="space-y-4">
-          <div><label style={S.label}>عنوان الإشعار *</label><input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} style={inputStyle} dir="rtl" placeholder="مثال: دورة جديدة متاحة!" /></div>
-          <div><label style={S.label}>نص الإشعار *</label><textarea rows={3} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} style={{ ...inputStyle, resize: "vertical" }} dir="rtl" /></div>
-          <div><label style={S.label}>رابط (اختياري)</label><input type="text" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} style={inputStyle} dir="ltr" placeholder="/courses" /></div>
+          <div><label style={S.label} htmlFor="admindashboard-51-67c0b3">عنوان الإشعار *</label><input id="admindashboard-51-67c0b3" type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} style={inputStyle} dir="rtl" placeholder="مثال: دورة جديدة متاحة!" /></div>
+          <div><label style={S.label} htmlFor="admindashboard-52-9a43cd">نص الإشعار *</label><textarea id="admindashboard-52-9a43cd" rows={3} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} style={{ ...inputStyle, resize: "vertical" }} dir="rtl" /></div>
+          <div><label style={S.label} htmlFor="admindashboard-53-b14e40">رابط (اختياري)</label><input id="admindashboard-53-b14e40" type="text" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} style={inputStyle} dir="ltr" placeholder="/courses" /></div>
         </div>
         <button onClick={handleSend} disabled={sending || !form.title.trim() || !form.body.trim()} className="btn-dz mt-5 flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm disabled:opacity-50">
           <Send size={15} /><span>{sent ? "✓ تم الإرسال!" : sending ? "جاري الإرسال..." : "إرسال للجميع"}</span>
@@ -2237,7 +2256,9 @@ function AppearanceSection() {
             return (
               <div key={key} className="flex items-center gap-4">
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-xl" style={{ background: colorVal, border: "2px solid rgba(255,255,255,0.1)", cursor: "pointer" }} onClick={() => document.getElementById(`picker-${key}`)?.click()} />
+                  <label htmlFor={`picker-${key}`} className="block w-12 h-12 rounded-xl" style={{ background: colorVal, border: "2px solid rgba(255,255,255,0.1)", cursor: "pointer" }}>
+                    <span className="sr-only">{label}</span>
+                  </label>
                   <input id={`picker-${key}`} type="color" value={colorVal} onChange={(e) => handleChange(key, e.target.value)} style={{ position: "absolute", opacity: 0, width: "1px", height: "1px", top: 0, left: 0 }} />
                 </div>
                 <div className="flex-1">
@@ -2373,15 +2394,15 @@ function NewsSection() {
       {modal && (
         <Modal title={modal === "add" ? "إضافة خبر جديد" : "تعديل الخبر"} onClose={() => setModal(null)}>
           <div className="space-y-4">
-            <div><label style={S.label}>العنوان *</label><input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-54-0c8512">العنوان *</label><input id="admindashboard-54-0c8512" style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label style={S.label}>الفئة</label><select style={S.input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as NewsCategory })}>{NEWS_CATS.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-              <div><label style={S.label}>التاريخ</label><input type="date" style={S.input} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-55-44e1c2">الفئة</label><select id="admindashboard-55-44e1c2" style={S.input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as NewsCategory })}>{NEWS_CATS.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+              <div><label style={S.label} htmlFor="admindashboard-56-e7f8a2">التاريخ</label><input id="admindashboard-56-e7f8a2" type="date" style={S.input} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></div>
             </div>
-            <div><label style={S.label}>محتوى الخبر *</label><textarea style={{ ...S.input, minHeight: "120px", resize: "vertical" }} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
-            <div><label style={S.label}>رابط المصدر</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
+            <div><label style={S.label} htmlFor="admindashboard-57-1eb1ba">محتوى الخبر *</label><textarea id="admindashboard-57-1eb1ba" style={{ ...S.input, minHeight: "120px", resize: "vertical" }} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-58-60f36c">رابط المصدر</label><input id="admindashboard-58-60f36c" style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
             <div>
-              <label style={S.label}>صورة الغلاف</label>
+              <span style={S.label}>صورة الغلاف</span>
               {form.image && <img loading="lazy" decoding="async" src={form.image} alt="" style={{ width: "100%", maxHeight: "150px", objectFit: "cover", borderRadius: "0.5rem", marginBottom: "0.5rem", border: "1px solid var(--p-30)" }} />}
               <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }} disabled={imgUploading} />
@@ -2393,7 +2414,7 @@ function NewsSection() {
                 handler both existed, but the form had no control for them, so
                 no article could ever carry one. */}
             <div>
-              <label style={S.label}>صور المحتوى</label>
+              <span style={S.label}>صور المحتوى</span>
               {form.contentImages && form.contentImages.length > 0 && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
@@ -2504,19 +2525,19 @@ function ThesesSection() {
       {modal && (
         <Modal title={modal === "add" ? "إضافة مذكرة جديدة" : "تعديل المذكرة"} onClose={() => setModal(null)}>
           <div className="space-y-4">
-            <div><label style={S.label}>عنوان المذكرة *</label><input style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-59-0bfc28">عنوان المذكرة *</label><input id="admindashboard-59-0bfc28" style={S.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label style={S.label}>اسم المؤلف *</label><input style={S.input} value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} /></div>
-              <div><label style={S.label}>سنة المناقشة</label><input type="number" style={S.input} value={form.year} onChange={(e) => setForm({ ...form, year: +e.target.value })} min={1990} max={2030} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-60-22deda">اسم المؤلف *</label><input id="admindashboard-60-22deda" style={S.input} value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-61-737e66">سنة المناقشة</label><input id="admindashboard-61-737e66" type="number" style={S.input} value={form.year} onChange={(e) => setForm({ ...form, year: +e.target.value })} min={1990} max={2030} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label style={S.label}>التخصص</label><select style={S.input} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value as ThesisSpecialty })}>{THESIS_SPECS.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
-              <div><label style={S.label}>الجامعة</label><input style={S.input} value={form.university} onChange={(e) => setForm({ ...form, university: e.target.value })} /></div>
+              <div><label style={S.label} htmlFor="admindashboard-62-fed79a">التخصص</label><select id="admindashboard-62-fed79a" style={S.input} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value as ThesisSpecialty })}>{THESIS_SPECS.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
+              <div><label style={S.label} htmlFor="admindashboard-63-ad1301">الجامعة</label><input id="admindashboard-63-ad1301" style={S.input} value={form.university} onChange={(e) => setForm({ ...form, university: e.target.value })} /></div>
             </div>
-            <div><label style={S.label}>المشرف</label><input style={S.input} value={form.supervisor} onChange={(e) => setForm({ ...form, supervisor: e.target.value })} /></div>
-            <div><label style={S.label}>ملخص المذكرة</label><textarea style={{ ...S.input, minHeight: "100px", resize: "vertical" }} value={form.abstract} onChange={(e) => setForm({ ...form, abstract: e.target.value })} /></div>
-            <div><label style={S.label}>الكلمات المفتاحية (مفصولة بفاصلة)</label><input style={S.input} value={keywordsInput} onChange={(e) => setKeywordsInput(e.target.value)} placeholder="إعلام، صحافة، جزائر" /></div>
-            <div><label style={S.label}>رابط PDF</label><input style={S.input} value={form.pdfUrl} onChange={(e) => setForm({ ...form, pdfUrl: e.target.value })} placeholder="https://..." /></div>
+            <div><label style={S.label} htmlFor="admindashboard-64-723869">المشرف</label><input id="admindashboard-64-723869" style={S.input} value={form.supervisor} onChange={(e) => setForm({ ...form, supervisor: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-65-c6717c">ملخص المذكرة</label><textarea id="admindashboard-65-c6717c" style={{ ...S.input, minHeight: "100px", resize: "vertical" }} value={form.abstract} onChange={(e) => setForm({ ...form, abstract: e.target.value })} /></div>
+            <div><label style={S.label} htmlFor="admindashboard-66-6e205f">الكلمات المفتاحية (مفصولة بفاصلة)</label><input id="admindashboard-66-6e205f" style={S.input} value={keywordsInput} onChange={(e) => setKeywordsInput(e.target.value)} placeholder="إعلام، صحافة، جزائر" /></div>
+            <div><label style={S.label} htmlFor="admindashboard-67-7c7bf0">رابط PDF</label><input id="admindashboard-67-7c7bf0" style={S.input} value={form.pdfUrl} onChange={(e) => setForm({ ...form, pdfUrl: e.target.value })} placeholder="https://..." /></div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
               <button onClick={handleSave} disabled={saving || !form.title.trim() || !form.author.trim()} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50"><span>{saving ? "جاري الحفظ..." : "حفظ"}</span></button>

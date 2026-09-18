@@ -516,7 +516,7 @@ export default function UserDashboard() {
             <div className="space-y-4 w-full">
               {editError && <div className="p-2 rounded text-sm" style={{ background: "rgba(198,40,40,0.1)", color: "#f87171" }}>{editError}</div>}
               <div>
-                <label style={S.label}>صورة شخصية</label>
+                <span style={S.label}>صورة شخصية</span>
                 <div className="flex items-center gap-3">
                   {photoUrl ? <img loading="lazy" decoding="async" src={photoUrl} alt="preview" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--p-40)", flexShrink: 0 }} /> : <div className="flex items-center justify-center flex-shrink-0" style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--p-15)", border: "1px solid var(--p-30)" }}><ImageIcon size={22} style={{ color: "var(--theme-text-muted)" }} /></div>}
                   <div>
@@ -526,11 +526,11 @@ export default function UserDashboard() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><label style={S.label}>الاسم الكامل *</label><input style={S.input} value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} /></div>
-                <div><label style={S.label}>{profile.type === "store" ? "نوع المعدات" : "التخصص"}</label><input style={S.input} value={editForm.specialty} onChange={(e) => setEditForm((p) => ({ ...p, specialty: e.target.value }))} /></div>
-                <div><label style={S.label}>الولاية</label><select style={S.input} value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}><option value="">اختر الولاية</option>{wilayas.map((w) => <option key={w} value={w}>{w}</option>)}</select></div>
-                <div><label style={S.label}>رقم الهاتف</label><input style={S.input} value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} dir="ltr" /></div>
-                {profile.type !== "store" && <div><label style={S.label}>سنوات الخبرة</label><input style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} /></div>}
+                <div><label style={S.label} htmlFor="userdashboard-1-fc7876">الاسم الكامل *</label><input id="userdashboard-1-fc7876" style={S.input} value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} /></div>
+                <div><label style={S.label} htmlFor="userdashboard-2-d44727">{profile.type === "store" ? "نوع المعدات" : "التخصص"}</label><input id="userdashboard-2-d44727" style={S.input} value={editForm.specialty} onChange={(e) => setEditForm((p) => ({ ...p, specialty: e.target.value }))} /></div>
+                <div><label style={S.label} htmlFor="userdashboard-3-0731d5">الولاية</label><select id="userdashboard-3-0731d5" style={S.input} value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}><option value="">اختر الولاية</option>{wilayas.map((w) => <option key={w} value={w}>{w}</option>)}</select></div>
+                <div><label style={S.label} htmlFor="userdashboard-4-39f626">رقم الهاتف</label><input id="userdashboard-4-39f626" style={S.input} value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} dir="ltr" /></div>
+                {profile.type !== "store" && <div><label style={S.label} htmlFor="userdashboard-5-c09987">سنوات الخبرة</label><input id="userdashboard-5-c09987" style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} /></div>}
                 {profile.type === "store" && (
                   <div className="md:col-span-2">
                     <label style={S.label} htmlFor="store-username">اسم المتجر في الرابط</label>
@@ -557,16 +557,16 @@ export default function UserDashboard() {
                     </p>
                   </div>
                 )}
-                <div className="md:col-span-2"><label style={S.label}>{profile.type === "store" ? "وصف المتجر" : "نبذة / CV"}</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={editForm.bio} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} /></div>
+                <div className="md:col-span-2"><label style={S.label} htmlFor="userdashboard-6-2f35ff">{profile.type === "store" ? "وصف المتجر" : "نبذة / CV"}</label><textarea id="userdashboard-6-2f35ff" style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={editForm.bio} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} /></div>
               </div>
               {profile.type !== "store" && (
                 <div className="space-y-3" style={{ background: "#121812", border: "1px solid var(--p-20)", borderRadius: "0.6rem", padding: "0.85rem" }}>
                   <div><p style={{ color: "var(--theme-text)", fontSize: "0.86rem", fontWeight: 600 }}>معلومات الظهور الاحترافي</p><p style={{ color: "var(--theme-text-muted)", fontSize: "0.73rem", marginTop: "0.2rem" }}>افصل بين العناصر بفاصلة، وستظهر كوسوم في صفحتك العامة.</p></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div><label style={S.label}>اللغات واللهجات</label><input style={S.input} value={editForm.languages} onChange={(e) => setEditForm((p) => ({ ...p, languages: e.target.value }))} placeholder="العربية، الجزائرية، الفرنسية" /></div>
-                    <div><label style={S.label}>الأساليب الصوتية</label><input style={S.input} value={editForm.voiceStyles} onChange={(e) => setEditForm((p) => ({ ...p, voiceStyles: e.target.value }))} placeholder="وثائقي، إعلاني، دوبلاج" /></div>
-                    <div><label style={S.label}>الخدمات</label><input style={S.input} value={editForm.services} onChange={(e) => setEditForm((p) => ({ ...p, services: e.target.value }))} placeholder="تعليق صوتي، تسجيل إعلانات" /></div>
-                    <div><label style={S.label}>حالة التوفر</label><select style={S.input} value={editForm.availability} onChange={(e) => setEditForm((p) => ({ ...p, availability: e.target.value as "available" | "busy" | "" }))}><option value="">لم أحدد</option><option value="available">متاح للعمل</option><option value="busy">مشغول حالياً</option></select></div>
+                    <div><label style={S.label} htmlFor="userdashboard-7-2ef687">اللغات واللهجات</label><input id="userdashboard-7-2ef687" style={S.input} value={editForm.languages} onChange={(e) => setEditForm((p) => ({ ...p, languages: e.target.value }))} placeholder="العربية، الجزائرية، الفرنسية" /></div>
+                    <div><label style={S.label} htmlFor="userdashboard-8-2b4494">الأساليب الصوتية</label><input id="userdashboard-8-2b4494" style={S.input} value={editForm.voiceStyles} onChange={(e) => setEditForm((p) => ({ ...p, voiceStyles: e.target.value }))} placeholder="وثائقي، إعلاني، دوبلاج" /></div>
+                    <div><label style={S.label} htmlFor="userdashboard-9-16fd6a">الخدمات</label><input id="userdashboard-9-16fd6a" style={S.input} value={editForm.services} onChange={(e) => setEditForm((p) => ({ ...p, services: e.target.value }))} placeholder="تعليق صوتي، تسجيل إعلانات" /></div>
+                    <div><label style={S.label} htmlFor="userdashboard-10-9edae0">حالة التوفر</label><select id="userdashboard-10-9edae0" style={S.input} value={editForm.availability} onChange={(e) => setEditForm((p) => ({ ...p, availability: e.target.value as "available" | "busy" | "" }))}><option value="">لم أحدد</option><option value="available">متاح للعمل</option><option value="busy">مشغول حالياً</option></select></div>
                   </div>
                 </div>
               )}

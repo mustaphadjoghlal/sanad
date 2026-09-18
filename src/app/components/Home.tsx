@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Briefcase, Package, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
@@ -102,15 +102,18 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
   const touchStartX = useRef<number | null>(null);
   const n = children.length;
 
-  const goTo = (i: number) => { idxRef.current = i; setIdx(i); };
-  const prev = () => goTo((idxRef.current - 1 + n) % n);
-  const next = () => goTo((idxRef.current + 1) % n);
+  // idxRef mirrors idx so the interval below always advances from the current
+  // slide rather than the one captured when it was created. Memoising next
+  // makes that explicit instead of leaving it to an omitted dependency.
+  const goTo = useCallback((i: number) => { idxRef.current = i; setIdx(i); }, []);
+  const prev = useCallback(() => goTo((idxRef.current - 1 + n) % n), [goTo, n]);
+  const next = useCallback(() => goTo((idxRef.current + 1) % n), [goTo, n]);
 
   useEffect(() => {
     if (n <= 1) return;
     const t = setInterval(() => { if (!pausedRef.current) next(); }, 3800);
     return () => clearInterval(t);
-  }, [n]);
+  }, [n, next]);
 
   return (
     <div
@@ -120,7 +123,7 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
       onTouchEnd={(e) => {
         if (touchStartX.current === null) return;
         const dx = touchStartX.current - e.changedTouches[0].clientX;
-        if (Math.abs(dx) > 40) dx > 0 ? next() : prev();
+        if (Math.abs(dx) > 40) { if (dx > 0) next(); else prev(); }
         touchStartX.current = null;
       }}
     >
@@ -146,7 +149,7 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
       {/* Controls */}
       {n > 1 && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginTop: "1.1rem" }}>
-          <button onClick={prev} style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+          <button onClick={prev} type="button" aria-label="السابق" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
             <ChevronRight size={14} />
           </button>
           <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
@@ -154,7 +157,7 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
               <button key={i} onClick={() => goTo(i)} style={{ width: i === idx ? "18px" : "6px", height: "6px", borderRadius: "3px", background: i === idx ? "var(--theme-accent)" : "var(--p-20)", border: "none", cursor: "pointer", padding: 0, transition: "all 0.3s" }} />
             ))}
           </div>
-          <button onClick={next} style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+          <button onClick={next} type="button" aria-label="التالي" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
             <ChevronLeft size={14} />
           </button>
         </div>
@@ -172,28 +175,32 @@ export default function Home() {
   const [upcomingComps,     setUpcomingComps]     = useState<Competition[]>([]);
   const [latestNews,        setLatestNews]        = useState<NewsItem[]>([]);
   const [content, setContent] = useState<SiteContent | null>(() => {
-    try { const cached = localStorage.getItem("sanad_site_content"); if (cached) return JSON.parse(cached) as SiteContent; } catch {}
+    try { const cached = localStorage.getItem("sanad_site_content"); if (cached) return JSON.parse(cached) as SiteContent; } catch { /* private mode / blocked storage */ }
     return null;
   });
 
+  // The landing page degrades section by section: a feed that fails to load
+  // is simply left empty rather than taking the whole page down.
+  const noop = () => {};
+
   useEffect(() => {
     const unsubs = [
-      subscribeToFeatured<Course>("courses",       setFeaturedCourses),
+      subscribeToFeatured<Course>("courses",       setFeaturedCourses, noop),
       subscribeToCollection<Job>("jobs", (d) => {
         const approved = d.filter((j) => j.status === "approved" || !j.status);
         setFeaturedJobs([...approved].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8));
-      }),
-      subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3))),
+      }, noop),
+      subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3)), noop),
       subscribeToCollection<Competition>("competitions", (comps) => {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
         setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 8));
-      }),
+      }, noop),
       subscribeToSiteContent((data) => {
         setContent(data);
-        try { localStorage.setItem("sanad_site_content", JSON.stringify(data)); } catch {}
-      }),
+        try { localStorage.setItem("sanad_site_content", JSON.stringify(data)); } catch { /* private mode */ }
+      }, noop),
     ];
-    getLatestNews(3).then(setLatestNews);
+    getLatestNews(3).then(setLatestNews).catch(() => setLatestNews([]));
     return () => unsubs.forEach((u) => u());
   }, []);
 

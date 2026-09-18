@@ -382,6 +382,8 @@ export default function Layout() {
                   </Link>
                   <button
                     onClick={handleLogout}
+                    type="button"
+                    aria-label="تسجيل الخروج"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
                     style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}
                   >
