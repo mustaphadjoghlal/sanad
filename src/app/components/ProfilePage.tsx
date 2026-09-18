@@ -8,6 +8,7 @@ import {
 import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 import WorksSection from "./WorksSection";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const typeLabel: Record<string, string> = {
   editor_news: "محرر أخبار", web_digital: "ويب ديجيتال", presenter_programs: "مقدم برامج",
@@ -86,6 +87,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  usePageTitle(profile?.name ?? "", profile ? `${profile.name}${profile.specialty ? ` — ${profile.specialty}` : ""}${profile.location ? ` · ${profile.location}` : ""}. ملف احترافي على منصة سند الإعلامية.` : undefined, { image: profile?.photo, type: "article" });
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -137,7 +140,7 @@ export default function ProfilePage() {
           <div className="px-5 pb-6 md:px-8">
             <div className="flex flex-col md:flex-row md:items-end gap-5 -mt-14 relative">
               <div className="h-28 w-28 md:h-32 md:w-32 shrink-0 rounded-3xl overflow-hidden" style={{ border: "5px solid #151b17", background: "#1a241c", boxShadow: "0 12px 28px rgba(0,0,0,.35)" }}>
-                {profile.photo ? <img src={profile.photo} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><User size={45} style={{ color: "var(--p-40)" }} /></div>}
+                {profile.photo ? <img loading="lazy" decoding="async" src={profile.photo} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><User size={45} style={{ color: "var(--p-40)" }} /></div>}
               </div>
               <div className="flex-1 min-w-0 pb-1">
                 <div className="flex flex-wrap items-center gap-2 mb-2">

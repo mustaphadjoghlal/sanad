@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import { subscribeToApprovedStores } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { matchesQuery } from "../../lib/text";
 
 type StoreProfile = UserProfile & { whatsapp?: string };
 
@@ -17,15 +18,7 @@ export default function Stores() {
     return subscribeToApprovedStores(setStores);
   }, []);
 
-  const filtered = stores.filter((s) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      s.name.toLowerCase().includes(q) ||
-      (s.specialty?.toLowerCase().includes(q) ?? false) ||
-      (s.location?.toLowerCase().includes(q) ?? false)
-    );
-  });
+  const filtered = stores.filter((s) => matchesQuery(search, s.name, s.specialty, s.location));
 
   return (
     <div dir="rtl" style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -65,7 +58,7 @@ export default function Stores() {
                 >
                   <div className="flex items-center gap-3">
                     {s.photo ? (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={s.photo}
                         alt={s.name}
                         className="rounded-xl object-cover flex-shrink-0"

@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { getTrainer, subscribeToApprovedTrainerCourses, submitCourseRegistration, sendNotification } from "../../lib/firestore";
 import type { UserProfile, TrainerCourse } from "../../lib/types";
+import { usePageTitle } from "../../lib/usePageTitle";
+import { normalizePhone, isValidAlgerianPhone } from "../../lib/text";
 
 const wilayas = [
   "الجزائر","وهران","قسنطينة","عنابة","سطيف","تيزي وزو","البليدة","بجاية",
@@ -28,6 +30,8 @@ export default function TrainerDetail() {
   const [submitted, setSubmitted] = useState(false);
   const [regError, setRegError] = useState("");
 
+  usePageTitle(trainer?.name ?? "", trainer ? `${trainer.name}${trainer.specialty ? ` — ${trainer.specialty}` : ""}. مدرب إعلامي ودوراته على منصة سند.` : undefined, { image: trainer?.photo, type: "article" });
+
   useEffect(() => {
     if (!id) return;
     getTrainer(id).then((t) => { setTrainer(t); setLoading(false); });
@@ -38,6 +42,7 @@ export default function TrainerDetail() {
     e.preventDefault();
     if (!selectedCourse || !trainer) return;
     if (!form.name.trim() || !form.phone.trim()) { setRegError("الاسم والهاتف مطلوبان"); return; }
+    if (!isValidAlgerianPhone(form.phone)) { setRegError("رقم هاتف غير صالح — مثال: 0551234567"); return; }
     setSubmitting(true);
     setRegError("");
     try {
@@ -46,7 +51,7 @@ export default function TrainerDetail() {
         courseTitle: selectedCourse.title,
         trainerId: trainer.id,
         name: form.name.trim(),
-        phone: form.phone.trim(),
+        phone: normalizePhone(form.phone),
         email: form.email.trim() || undefined,
         wilaya: form.wilaya || undefined,
         note: form.note.trim() || undefined,
@@ -97,7 +102,7 @@ export default function TrainerDetail() {
           <div style={{ height: "200px", background: "linear-gradient(135deg, var(--theme-primary), var(--theme-accent))", position: "relative" }}>
             <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.3)" }} />
             {trainer.photo && (
-              <img src={trainer.photo} alt={trainer.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.4 }} />
+              <img loading="lazy" decoding="async" src={trainer.photo} alt={trainer.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.4 }} />
             )}
           </div>
 
@@ -105,7 +110,7 @@ export default function TrainerDetail() {
             {/* Avatar */}
             <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 border-4" style={{ borderColor: "#141414", background: "var(--p-20)" }}>
               {trainer.photo
-                ? <img src={trainer.photo} alt={trainer.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ? <img loading="lazy" decoding="async" src={trainer.photo} alt={trainer.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : <div className="w-full h-full flex items-center justify-center"><Building2 size={32} style={{ color: "var(--p-40)" }} /></div>
               }
             </div>
@@ -153,7 +158,7 @@ export default function TrainerDetail() {
               <div key={course.id} className="rounded-2xl overflow-hidden" style={{ background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-20)" }}>
                 {course.image && (
                   <div style={{ height: "200px", overflow: "hidden" }}>
-                    <img src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img loading="lazy" decoding="async" src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 )}
                 <div className="p-5">
@@ -200,7 +205,7 @@ export default function TrainerDetail() {
                     <div className="grid grid-cols-3 gap-2 mb-4">
                       {course.contentImages.map((img, i) => (
                         <div key={i} style={{ height: "80px", borderRadius: "0.5rem", overflow: "hidden" }}>
-                          <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <img loading="lazy" decoding="async" src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         </div>
                       ))}
                     </div>

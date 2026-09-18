@@ -4,6 +4,7 @@ import { GraduationCap, Search, ArrowLeft } from "lucide-react";
 import { subscribeToTheses } from "../../lib/firestore";
 import type { Thesis, ThesisSpecialty } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { matchesQuery } from "../../lib/text";
 
 const SPECIALTIES: ThesisSpecialty[] = ["إعلام واتصال", "صحافة", "سمعي بصري", "إعلام آلي"];
 
@@ -38,8 +39,8 @@ export default function ThesesPage() {
   const filtered = items.filter((t) => {
     const matchSpec = spec === "all" || t.specialty === spec;
     const matchYear = year === "all" || String(t.year) === year;
-    const q = search.toLowerCase();
-    const matchSearch = !q || t.title.toLowerCase().includes(q) || t.author.toLowerCase().includes(q) || (t.keywords ?? []).some((k) => k.toLowerCase().includes(q));
+    const q = search;
+    const matchSearch = matchesQuery(q, t.title, t.author, t.university, t.supervisor, ...(t.keywords ?? []));
     return matchSpec && matchYear && matchSearch;
   });
 

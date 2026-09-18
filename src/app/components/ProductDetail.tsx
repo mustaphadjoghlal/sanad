@@ -5,6 +5,7 @@ import { getProduct, addOrder } from "../../lib/firestore";
 import type { Product } from "../../lib/types";
 import { WILAYAS } from "../../lib/algeria";
 import { normalizePhone, isValidAlgerianPhone } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const S = {
   input: {
@@ -53,6 +54,8 @@ export default function ProductDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+
+  usePageTitle(product?.name ?? "", product ? `${product.name} — ${product.price} دج. ${product.description?.slice(0, 120) ?? ""}` : undefined, { image: product?.image, type: "article" });
 
   useEffect(() => {
     if (!id) return;
@@ -144,7 +147,7 @@ export default function ProductDetail() {
         {/* Main image */}
         {mainImage && (
           <div style={{ borderRadius: "1rem", overflow: "hidden", marginBottom: "1rem", border: "1px solid var(--p-20)" }}>
-            <img
+            <img loading="lazy" decoding="async"
               src={mainImage}
               alt={product.name}
               style={{ width: "100%", maxHeight: 400, objectFit: "cover", display: "block" }}
@@ -170,7 +173,7 @@ export default function ProductDetail() {
                   background: "none",
                 }}
               >
-                <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img loading="lazy" decoding="async" src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </button>
             ))}
           </div>

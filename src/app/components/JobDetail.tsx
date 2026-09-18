@@ -4,12 +4,16 @@ import { Briefcase, MapPin, Calendar, Building2, Phone, ArrowRight, Globe, Mail,
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Job } from "../../lib/types";
+import { usePageTitle } from "../../lib/usePageTitle";
+import { sanitizeHtml } from "../../lib/sanitize";
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  usePageTitle(job?.title ?? "", job ? `${job.title} في ${job.company} — ${job.location}. فرصة عمل في الإعلام الجزائري عبر منصة سند.` : undefined, { image: job?.image, type: "article" });
 
   useEffect(() => {
     if (!id) return;
@@ -59,7 +63,7 @@ export default function JobDetail() {
 
       {/* Cover image */}
       {j.image ? (
-        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}><img src={j.image} alt={j.title} className="w-full object-cover" style={{ maxHeight: "420px", objectPosition: "center" }} /></div>
+        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}><img loading="lazy" decoding="async" src={j.image} alt={j.title} className="w-full object-cover" style={{ maxHeight: "420px", objectPosition: "center" }} /></div>
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"
@@ -106,7 +110,7 @@ export default function JobDetail() {
           <div
             className="text-base mb-6 leading-relaxed job-description"
             style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}
-            dangerouslySetInnerHTML={{ __html: j.description }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(j.description) }}
           />
         )}
 
@@ -190,7 +194,7 @@ export default function JobDetail() {
               style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}
             >
               {j.contentImages.map((img, idx) => (
-                <img
+                <img loading="lazy" decoding="async"
                   key={idx}
                   src={img}
                   alt={`صورة ${idx + 1}`}
@@ -214,7 +218,7 @@ export default function JobDetail() {
             <div
               className="text-sm leading-relaxed job-description"
               style={{ color: "var(--theme-text-secondary, #6aad6a)" }}
-              dangerouslySetInnerHTML={{ __html: j.companyDescription }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(j.companyDescription) }}
             />
           </div>
         )}

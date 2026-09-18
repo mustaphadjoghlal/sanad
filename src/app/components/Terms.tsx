@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const sections = [
   {
@@ -32,6 +33,7 @@ const sections = [
 ];
 
 export default function Terms() {
+  usePageTitle("شروط الاستخدام", "شروط استخدام منصة سند الإعلامية والتزامات المستخدمين.");
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }} dir="rtl">
       <div className="relative py-12 px-4" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>

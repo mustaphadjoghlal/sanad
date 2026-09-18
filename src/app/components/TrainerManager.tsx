@@ -259,7 +259,7 @@ export default function TrainerManager({ trainerId }: Props) {
                     <ImageIcon size={16} /> اختر صورة
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                   </label>
-                  {imagePreview && <img src={imagePreview} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "0.5rem" }} />}
+                  {imagePreview && <img loading="lazy" decoding="async" src={imagePreview} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "0.5rem" }} />}
                 </div>
               </div>
 

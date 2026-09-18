@@ -3,10 +3,13 @@ import { Link } from "react-router-dom";
 import { MapPin, Phone, Search, BookOpen, Building2, UserPlus } from "lucide-react";
 import { subscribeToApprovedTrainers } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const PAGE_SIZE = 9;
 
 export default function Trainers() {
+  usePageTitle("مراكز ومدربو الإعلام", "دليل المدربين ومراكز التكوين في مجال الإعلام والصحافة بالجزائر ودوراتهم المتاحة.");
   const [trainers, setTrainers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -14,15 +17,7 @@ export default function Trainers() {
 
   useEffect(() => subscribeToApprovedTrainers((data) => { setTrainers(data); setLoading(false); }), []);
 
-  const filtered = trainers.filter((t) => {
-    const q = search.toLowerCase();
-    return (
-      t.name?.toLowerCase().includes(q) ||
-      t.specialty?.toLowerCase().includes(q) ||
-      t.location?.toLowerCase().includes(q) ||
-      (t.organization ?? "").toLowerCase().includes(q)
-    );
-  });
+  const filtered = trainers.filter((t) => matchesQuery(search, t.name, t.specialty, t.location, t.organization));
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -106,7 +101,7 @@ export default function Trainers() {
                 {/* Photo */}
                 <div style={{ height: "160px", background: "var(--p-10)", position: "relative", overflow: "hidden" }}>
                   {trainer.photo ? (
-                    <img src={trainer.photo} alt={trainer.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }}
+                    <img loading="lazy" decoding="async" src={trainer.photo} alt={trainer.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }}
                       onMouseEnter={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.05)"}
                       onMouseLeave={(e) => (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"} />
                   ) : (

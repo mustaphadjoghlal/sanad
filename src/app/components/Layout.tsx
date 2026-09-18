@@ -223,6 +223,9 @@ export default function Layout() {
             >
               <img
                 src="/logo.png"
+                width={120}
+                height={40}
+                fetchPriority="high"
                 alt="سند — المنصة الجزائرية الإعلامية الشاملة"
                 className="h-10 w-auto transition-all duration-300 group-hover:scale-105"
               />
@@ -635,7 +638,7 @@ export default function Layout() {
         />
         <div className="container mx-auto px-4 pb-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <img src="/logo.png" alt="سند" className="h-9 w-auto" />
+            <img src="/logo.png" alt="سند" width={110} height={36} loading="lazy" decoding="async" className="h-9 w-auto" />
           </div>
           <p style={{ color: "var(--theme-text-secondary, #b0bec5)" }} className="mb-4 text-sm">
             المنصة الجزائرية الشاملة لمجال الإعلام

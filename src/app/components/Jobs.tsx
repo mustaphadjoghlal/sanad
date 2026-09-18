@@ -3,6 +3,8 @@ import { Search, Briefcase, MapPin, Calendar, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
 import type { Job } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const employmentMap: Record<string, { label: string; bg: string; color: string }> = {
   fulltime:        { label: "دوام كلي",          bg: "rgba(0,80,40,0.35)",   color: "#66bb6a" },
@@ -12,6 +14,7 @@ const employmentMap: Record<string, { label: string; bg: string; color: string }
 };
 
 export default function Jobs() {
+  usePageTitle("فرص العمل في الإعلام", "أحدث عروض التوظيف والتربصات في القنوات والمؤسسات الإعلامية الجزائرية.");
   const [items, setItems] = useState<Job[]>([]);
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
@@ -25,8 +28,7 @@ export default function Jobs() {
 
   const filtered = items.filter((j) => {
     const isVisible = j.status === "approved" || !j.status;
-    const q = search.toLowerCase();
-    const matchSearch = j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
+    const matchSearch = matchesQuery(search, j.title, j.company, j.location, j.description);
     const matchLoc = locationFilter ? j.location === locationFilter : true;
     const matchType = typeFilter ? j.jobType === typeFilter : true;
     return isVisible && matchSearch && matchLoc && matchType;
@@ -111,7 +113,7 @@ export default function Jobs() {
                 {/* Cover */}
                 {j.image ? (
                   <div className="relative overflow-hidden" style={{ height: "160px" }}>
-                    <img src={j.image} alt={j.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <img loading="lazy" decoding="async" src={j.image} alt={j.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     {j.employmentType && (() => {
                       const s = employmentMap[j.employmentType];
                       return s ? (

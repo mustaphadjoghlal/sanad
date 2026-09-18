@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Radio, Mail, Facebook, Users, Briefcase, BookOpen, Trophy } from "lucide-react";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 export default function About() {
+  usePageTitle("من نحن", "تعرّف على منصة سند الإعلامية، رسالتها وخدماتها للمشتغلين بالإعلام في الجزائر.");
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }} dir="rtl">
       {/* Hero */}

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static routes only. Detail pages (/jobs/:id, /news/:id, …) are generated
+  from Firestore and change constantly, so they are discovered by crawling the
+  listing pages rather than listed here.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://sanadz.media/</loc>
@@ -6,19 +11,19 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://sanadz.media/courses</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
     <loc>https://sanadz.media/jobs</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://sanadz.media/equipment</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://sanadz.media/courses</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://sanadz.media/news</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://sanadz.media/competitions</loc>
@@ -26,9 +31,9 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sanadz.media/voice-requests</loc>
+    <loc>https://sanadz.media/equipment</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://sanadz.media/channels</loc>
@@ -36,9 +41,29 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://sanadz.media/stores</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://sanadz.media/professionals</loc>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sanadz.media/trainers</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sanadz.media/theses</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://sanadz.media/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://sanadz.media/register</loc>
@@ -46,8 +71,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://sanadz.media/login</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <loc>https://sanadz.media/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://sanadz.media/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

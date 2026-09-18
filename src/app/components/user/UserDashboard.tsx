@@ -447,7 +447,7 @@ export default function UserDashboard() {
             <div className="px-6 pb-6">
               <div className="flex flex-col md:flex-row md:items-end gap-5 -mt-10 relative">
                 <div className="h-24 w-24 shrink-0 rounded-2xl overflow-hidden shadow-xl" style={{ border: "4px solid #151b17", background: "#1a241c" }}>
-                  {profile.photo ? <img src={profile.photo} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><User size={40} style={{ color: "var(--p-40)" }} /></div>}
+                  {profile.photo ? <img loading="lazy" decoding="async" src={profile.photo} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><User size={40} style={{ color: "var(--p-40)" }} /></div>}
                 </div>
                 <div className="flex-1 min-w-0 pb-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -516,7 +516,7 @@ export default function UserDashboard() {
               <div>
                 <label style={S.label}>صورة شخصية</label>
                 <div className="flex items-center gap-3">
-                  {photoUrl ? <img src={photoUrl} alt="preview" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--p-40)", flexShrink: 0 }} /> : <div className="flex items-center justify-center flex-shrink-0" style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--p-15)", border: "1px solid var(--p-30)" }}><ImageIcon size={22} style={{ color: "var(--theme-text-muted)" }} /></div>}
+                  {photoUrl ? <img loading="lazy" decoding="async" src={photoUrl} alt="preview" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--p-40)", flexShrink: 0 }} /> : <div className="flex items-center justify-center flex-shrink-0" style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--p-15)", border: "1px solid var(--p-30)" }}><ImageIcon size={22} style={{ color: "var(--theme-text-muted)" }} /></div>}
                   <div>
                     <label htmlFor="photo-upload" style={{ cursor: uploadingPhoto ? "not-allowed" : "pointer", background: "var(--p-12)", border: "1px solid var(--p-30)", color: uploadingPhoto ? "var(--theme-text-muted)" : "var(--theme-badge-text)", padding: "0.35rem 0.85rem", borderRadius: "0.5rem", fontSize: "0.8rem", display: "inline-block" }}>{uploadingPhoto ? "جاري الرفع..." : "اختر صورة"}</label>
                     <input id="photo-upload" type="file" accept="image/*" style={{ display: "none" }} disabled={uploadingPhoto} onChange={handlePhotoChange} />

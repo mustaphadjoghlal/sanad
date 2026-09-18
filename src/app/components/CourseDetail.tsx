@@ -4,12 +4,15 @@ import { BookOpen, Clock, User, ExternalLink, ArrowRight } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import type { Course } from "../../lib/types";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  usePageTitle(course?.title ?? "", course ? `${course.title} — ${course.instructor}. ${course.type === "paid" ? "دورة مدفوعة" : "دورة مجانية"} على منصة سند الإعلامية.` : undefined, { image: course?.image, type: "article" });
 
   useEffect(() => {
     if (!id) return;
@@ -59,7 +62,7 @@ export default function CourseDetail() {
 
       {/* Cover image */}
       {c.image ? (
-        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}><img src={c.image} alt={c.title} className="w-full object-cover" style={{ maxHeight: "420px", objectPosition: "center" }} /></div>
+        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}><img loading="lazy" decoding="async" src={c.image} alt={c.title} className="w-full object-cover" style={{ maxHeight: "420px", objectPosition: "center" }} /></div>
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"
@@ -122,7 +125,7 @@ export default function CourseDetail() {
               style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}
             >
               {c.contentImages.map((img, idx) => (
-                <img
+                <img loading="lazy" decoding="async"
                   key={idx}
                   src={img}
                   alt={`صورة ${idx + 1}`}

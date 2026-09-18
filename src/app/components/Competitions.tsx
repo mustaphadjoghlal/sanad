@@ -3,12 +3,15 @@ import { Search, Trophy, Calendar, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
 import type { Competition } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
 const typeBg: Record<string, string>    = { university: "rgba(30,100,180,0.45)", national: "rgba(0,100,50,0.45)", international: "rgba(160,80,0,0.45)" };
 const typeColor: Record<string, string> = { university: "#90caf9",               national: "#a5d6a7",            international: "#ffcc80" };
 
 export default function Competitions() {
+  usePageTitle("المسابقات الإعلامية", "مسابقات جامعية ووطنية ودولية في مجال الإعلام والاتصال — مواعيد وشروط المشاركة.");
   const [items, setItems] = useState<Competition[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -22,10 +25,10 @@ export default function Competitions() {
     return unsub;
   }, []);
 
-  const q = search.toLowerCase();
+  const q = search;
   const filtered = items.filter((c) => {
     const isVisible = c.status === "approved" || !c.status;
-    const matchSearch = !q || c.name.toLowerCase().includes(q) || c.organizer.toLowerCase().includes(q);
+    const matchSearch = matchesQuery(q, c.name, c.organizer, c.description);
     const matchType = typeFilter ? c.type === typeFilter : true;
     return isVisible && matchSearch && matchType;
   });
@@ -110,7 +113,7 @@ export default function Competitions() {
                 {/* Cover */}
                 {c.image ? (
                   <div className="relative overflow-hidden" style={{ height: "160px" }}>
-                    <img src={c.image} alt={c.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <img loading="lazy" decoding="async" src={c.image} alt={c.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     <span className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full" style={{ background: typeBg[c.type] || "var(--p-50)", color: typeColor[c.type] || "var(--theme-badge-text, #81c784)", backdropFilter: "blur(4px)" }}>
                       {typeLabel[c.type]}
                     </span>

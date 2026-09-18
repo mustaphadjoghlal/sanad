@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Tv, Radio, Search, Globe, Mail, Phone, MapPin, Facebook, Youtube, Instagram, Twitter, ExternalLink } from "lucide-react";
 import { subscribeToChannels } from "../../lib/firestore";
 import type { Channel } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const categoryColors: Record<string, string> = {
   "وطنية":   "var(--p-25)",
@@ -165,6 +167,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
 }
 
 export default function ChannelsPage() {
+  usePageTitle("دليل القنوات الجزائرية", "دليل شامل للقنوات التلفزيونية والإذاعية والمواقع الإخبارية والنوادي الإعلامية في الجزائر.");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"tv" | "electronic" | "radio" | "news" | "club">("tv");
@@ -185,10 +188,10 @@ export default function ChannelsPage() {
     tv: isTv, electronic: isElectronic, radio: isRadio, news: isNews, club: isClub,
   };
 
-  const q = search.toLowerCase();
+  const q = search;
   const filtered = channels.filter((ch) => {
     const matchTab = tabFn[tab](ch);
-    const matchSearch = !q || ch.name.toLowerCase().includes(q) || (ch.frequency || "").toLowerCase().includes(q);
+    const matchSearch = matchesQuery(q, ch.name, ch.frequency, ch.category);
     return matchTab && matchSearch;
   });
 

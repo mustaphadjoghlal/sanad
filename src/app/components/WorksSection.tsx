@@ -129,7 +129,7 @@ export default function WorksSection({ works, title = "أعمالي" }: { works:
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {items.map((w) => (
             <a key={w.id} href={w.url} target="_blank" rel="noopener noreferrer">
-              <img
+              <img loading="lazy" decoding="async"
                 src={w.url}
                 alt={w.title || "عمل"}
                 style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-25)" }}

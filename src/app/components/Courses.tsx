@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import { Search, Filter, BookOpen, ExternalLink } from "lucide-react";
 import { subscribeToCollection } from "../../lib/firestore";
 import type { Course } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 export default function Courses() {
+  usePageTitle("الدورات التدريبية", "دورات تدريبية مجانية ومدفوعة في الصحافة، التصوير، المونتاج والتقديم — منصة سند الإعلامية.");
   const [items, setItems] = useState<Course[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -19,8 +22,7 @@ export default function Courses() {
 
   const filtered = items.filter((c) => {
     const isVisible = c.status === "approved" || !c.status;
-    const q = search.toLowerCase();
-    const matchSearch = c.title.toLowerCase().includes(q) || c.instructor.toLowerCase().includes(q) || c.description.toLowerCase().includes(q);
+    const matchSearch = matchesQuery(search, c.title, c.instructor, c.description);
     const matchType = typeFilter ? c.type === typeFilter : true;
     return isVisible && matchSearch && matchType;
   });

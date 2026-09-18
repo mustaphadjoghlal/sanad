@@ -95,7 +95,7 @@ export default function StoreDetail() {
           <div className="p-6 flex items-start gap-5 flex-wrap">
             {/* Logo */}
             {store.photo ? (
-              <img
+              <img loading="lazy" decoding="async"
                 src={store.photo}
                 alt={store.name}
                 style={{ width: 80, height: 80, borderRadius: "1rem", objectFit: "cover", border: `2px solid ${L.border}`, flexShrink: 0 }}
@@ -206,7 +206,7 @@ export default function StoreDetail() {
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)"; (e.currentTarget as HTMLElement).style.transform = "none"; }}
                   >
                     {p.image ? (
-                      <img src={p.image} alt={p.name} style={{ width: "100%", height: 160, objectFit: "cover" }} />
+                      <img loading="lazy" decoding="async" src={p.image} alt={p.name} style={{ width: "100%", height: 160, objectFit: "cover" }} />
                     ) : (
                       <div style={{ width: "100%", height: 160, background: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>📷</div>
                     )}

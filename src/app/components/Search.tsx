@@ -1,8 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search as SearchIcon, Briefcase, BookOpen, Trophy, Package, Newspaper, Users } from "lucide-react";
+import { Search as SearchIcon, Briefcase, BookOpen, Trophy, Package, Newspaper, Users, GraduationCap, Store, FileText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
-import { subscribeToCollection } from "../../lib/firestore";
-import type { Job, Course, Competition, Equipment, NewsItem } from "../../lib/types";
+import {
+  subscribeToCollection,
+  subscribeToApprovedProfessionals,
+  subscribeToApprovedTrainers,
+  subscribeToApprovedStores,
+  subscribeToTheses,
+} from "../../lib/firestore";
+import type { Job, Course, Competition, Equipment, NewsItem, UserProfile, Thesis } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 interface Result {
   id: string;
@@ -15,11 +23,15 @@ interface Result {
 }
 
 const CATS = [
-  { key: "jobs",         label: "وظائف",     icon: Briefcase, color: "#7d3c98" },
-  { key: "courses",      label: "دورات",     icon: BookOpen,  color: "var(--theme-primary, #006233)" },
-  { key: "competitions", label: "مسابقات",   icon: Trophy,    color: "#784212" },
-  { key: "equipment",    label: "عتاد",      icon: Package,   color: "#1a5276" },
-  { key: "news",         label: "أخبار",     icon: Newspaper, color: "#1a6b47" },
+  { key: "jobs",          label: "وظائف",       icon: Briefcase,      color: "#7d3c98" },
+  { key: "courses",       label: "دورات",       icon: BookOpen,       color: "var(--theme-primary, #006233)" },
+  { key: "competitions",  label: "مسابقات",     icon: Trophy,         color: "#784212" },
+  { key: "equipment",     label: "عتاد",        icon: Package,        color: "#1a5276" },
+  { key: "news",          label: "أخبار",       icon: Newspaper,      color: "#1a6b47" },
+  { key: "professionals", label: "محترفون",     icon: Users,          color: "#0e6655" },
+  { key: "trainers",      label: "مدربون",      icon: GraduationCap,  color: "#6c3483" },
+  { key: "stores",        label: "متاجر",       icon: Store,          color: "#935116" },
+  { key: "theses",        label: "مذكرات",      icon: FileText,       color: "#1f618d" },
 ];
 
 export default function SearchPage() {
@@ -32,41 +44,84 @@ export default function SearchPage() {
   const [comps,  setComps]  = useState<Competition[]>([]);
   const [equip,  setEquip]  = useState<Equipment[]>([]);
   const [news,   setNews]   = useState<NewsItem[]>([]);
+  const [pros,   setPros]   = useState<UserProfile[]>([]);
+  const [trainers, setTrainers] = useState<UserProfile[]>([]);
+  const [stores, setStores] = useState<UserProfile[]>([]);
+  const [theses, setTheses] = useState<Thesis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  usePageTitle(
+    "البحث الشامل",
+    "ابحث في وظائف الإعلام، الدورات، المسابقات، العتاد، الأخبار، المحترفين، المدربين والمذكرات — كل محتوى منصة سند في مكان واحد."
+  );
 
   useEffect(() => {
-    let done = 0;
-    const check = () => { done++; if (done >= 5) setLoading(false); };
-    const u1 = subscribeToCollection<Job>("jobs", (d) => { setJobs(d.filter((j) => j.status === "approved" || !j.status)); check(); });
-    const u2 = subscribeToCollection<Course>("courses", (d) => { setCourses(d.filter((c) => c.status === "approved" || !c.status)); check(); });
-    const u3 = subscribeToCollection<Competition>("competitions", (d) => { setComps(d.filter((c) => c.status === "approved" || !c.status)); check(); });
-    const u4 = subscribeToCollection<Equipment>("equipment", (d) => { setEquip(d.filter((e) => e.status === "approved" || !e.status)); check(); });
-    const u5 = subscribeToCollection<NewsItem>("news", (d) => { setNews(d); check(); });
-    return () => { u1(); u2(); u3(); u4(); u5(); };
+    // Each source resolves once; the page stops waiting when the last one has
+    // reported, whether it succeeded or failed.
+    const SOURCES = 9;
+    const settled = new Set<string>();
+    const done = (key: string) => {
+      settled.add(key);
+      if (settled.size >= SOURCES) setLoading(false);
+    };
+    const fail = (key: string) => { setLoadError(true); done(key); };
+
+    const approved = <T extends { status?: string }>(items: T[]) =>
+      items.filter((i) => i.status === "approved" || !i.status);
+
+    const unsubs = [
+      subscribeToCollection<Job>("jobs", (d) => { setJobs(approved(d)); done("jobs"); }, () => fail("jobs")),
+      subscribeToCollection<Course>("courses", (d) => { setCourses(approved(d)); done("courses"); }, () => fail("courses")),
+      subscribeToCollection<Competition>("competitions", (d) => { setComps(approved(d)); done("competitions"); }, () => fail("competitions")),
+      subscribeToCollection<Equipment>("equipment", (d) => { setEquip(approved(d)); done("equipment"); }, () => fail("equipment")),
+      subscribeToCollection<NewsItem>("news", (d) => { setNews(d); done("news"); }, () => fail("news")),
+      subscribeToApprovedProfessionals((d) => { setPros(d); done("pros"); }, () => fail("pros")),
+      subscribeToApprovedTrainers((d) => { setTrainers(d); done("trainers"); }, () => fail("trainers")),
+      subscribeToApprovedStores((d) => { setStores(d); done("stores"); }, () => fail("stores")),
+      subscribeToTheses((d) => { setTheses(d); done("theses"); }, () => fail("theses")),
+    ];
+    return () => unsubs.forEach((u) => u());
   }, []);
 
   const handleSearch = useCallback((q: string) => {
     setQuery(q);
-    setParams(q ? { q } : {});
+    // `replace` — otherwise every keystroke pushed a history entry and the
+    // back button had to be pressed once per typed character.
+    setParams(q ? { q } : {}, { replace: true });
   }, [setParams]);
 
-  const q = query.toLowerCase().trim();
+  const q = query.trim();
 
+  // matchesQuery folds Arabic spelling variants, so "اعلام" finds "إعلام"
+  // and "قناه" finds "قناة" — a plain includes() found neither.
   const results: Result[] = q.length < 2 ? [] : [
-    ...jobs.filter((j) => j.title?.toLowerCase().includes(q) || j.company?.toLowerCase().includes(q) || j.location?.toLowerCase().includes(q)).map((j) => ({
+    ...jobs.filter((j) => matchesQuery(q, j.title, j.company, j.location, j.jobType)).map((j) => ({
       id: j.id, title: j.title, subtitle: j.company, link: `/jobs/${j.id}`, category: "وظائف", icon: Briefcase, color: "#7d3c98",
     })),
-    ...courses.filter((c) => c.title?.toLowerCase().includes(q) || c.instructor?.toLowerCase().includes(q)).map((c) => ({
+    ...courses.filter((c) => matchesQuery(q, c.title, c.instructor, c.description)).map((c) => ({
       id: c.id, title: c.title, subtitle: c.instructor, link: `/courses/${c.id}`, category: "دورات", icon: BookOpen, color: "var(--theme-primary)",
     })),
-    ...comps.filter((c) => c.name?.toLowerCase().includes(q) || c.organizer?.toLowerCase().includes(q)).map((c) => ({
+    ...comps.filter((c) => matchesQuery(q, c.name, c.organizer, c.description)).map((c) => ({
       id: c.id, title: c.name, subtitle: c.organizer, link: `/competitions/${c.id}`, category: "مسابقات", icon: Trophy, color: "#784212",
     })),
-    ...equip.filter((e) => e.name?.toLowerCase().includes(q) || e.category?.toLowerCase().includes(q)).map((e) => ({
+    ...equip.filter((e) => matchesQuery(q, e.name, e.category, e.description)).map((e) => ({
       id: e.id, title: e.name, subtitle: e.category, link: `/equipment/${e.id}`, category: "عتاد", icon: Package, color: "#1a5276",
     })),
-    ...news.filter((n) => n.title?.toLowerCase().includes(q)).map((n) => ({
-      id: n.id, title: n.title, subtitle: undefined, link: `/news/${n.id}`, category: "أخبار", icon: Newspaper, color: "#1a6b47",
+    ...news.filter((n) => matchesQuery(q, n.title, n.body)).map((n) => ({
+      id: n.id, title: n.title, subtitle: n.category, link: `/news/${n.id}`, category: "أخبار", icon: Newspaper, color: "#1a6b47",
+    })),
+    ...pros.filter((p) => matchesQuery(q, p.name, p.specialty, p.location, p.bio)).map((p) => ({
+      id: p.id, title: p.name, subtitle: p.specialty || p.location, link: `/profile/${p.id}`, category: "محترفون", icon: Users, color: "#0e6655",
+    })),
+    ...trainers.filter((t) => matchesQuery(q, t.name, t.specialty, t.location, t.organization)).map((t) => ({
+      id: t.id, title: t.name, subtitle: t.specialty || t.location, link: `/trainers/${t.id}`, category: "مدربون", icon: GraduationCap, color: "#6c3483",
+    })),
+    ...stores.filter((st) => matchesQuery(q, st.name, st.specialty, st.location)).map((st) => ({
+      id: st.id, title: st.name, subtitle: st.location, link: `/stores/${st.username || st.id}`, category: "متاجر", icon: Store, color: "#935116",
+    })),
+    ...theses.filter((t) => matchesQuery(q, t.title, t.author, t.university, t.specialty)).map((t) => ({
+      id: t.id, title: t.title, subtitle: t.author, link: `/theses/${t.id}`, category: "مذكرات", icon: FileText, color: "#1f618d",
     })),
   ];
 
@@ -101,6 +156,10 @@ export default function SearchPage() {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {loading ? (
           <div className="text-center py-16" style={{ color: "var(--theme-text-dim)" }}>جاري تحميل قاعدة البيانات...</div>
+        ) : loadError && results.length === 0 ? (
+          <div className="text-center py-16">
+            <p style={{ color: "#f87171" }}>تعذّر تحميل بعض النتائج. تحقق من اتصالك ثم أعد المحاولة.</p>
+          </div>
         ) : q.length < 2 ? (
           <div className="text-center py-16">
             <Users size={40} style={{ color: "var(--p-25)", margin: "0 auto 1rem" }} />
@@ -130,7 +189,7 @@ export default function SearchPage() {
                 <div className="space-y-2">
                   {group.items.slice(0, 5).map((r) => (
                     <Link
-                      key={r.id}
+                      key={`${r.category}-${r.id}`}
                       to={r.link}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"
                       style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-15)", textDecoration: "none" }}

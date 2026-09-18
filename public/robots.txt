@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
 
+# Private areas — nothing for a search engine here.
+Disallow: /sanad-admin
+Disallow: /user/dashboard
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /search
+
 Sitemap: https://sanadz.media/sitemap.xml

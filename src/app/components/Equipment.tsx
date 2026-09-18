@@ -3,8 +3,11 @@ import { Search, Store, ShoppingCart, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToCollection } from "../../lib/firestore";
 import type { Equipment } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 export default function EquipmentPage() {
+  usePageTitle("سوق العتاد الإعلامي", "بيع وشراء الكاميرات، الميكروفونات، الإضاءة ومعدات الإنتاج المستعملة والجديدة في الجزائر.");
   const [items, setItems] = useState<Equipment[]>([]);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("");
@@ -17,8 +20,7 @@ export default function EquipmentPage() {
 
   const filtered = items.filter((eq) => {
     const isVisible = eq.status === "approved" || !eq.status;
-    const q = search.toLowerCase();
-    const matchSearch = eq.name.toLowerCase().includes(q) || eq.description.toLowerCase().includes(q);
+    const matchSearch = matchesQuery(search, eq.name, eq.description, eq.category);
     const matchCat = catFilter ? eq.category === catFilter : true;
     return isVisible && matchSearch && matchCat;
   });

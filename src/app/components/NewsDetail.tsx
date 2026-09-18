@@ -53,7 +53,7 @@ export default function NewsDetail() {
       {item.image && (
         <div style={{ height: "320px", overflow: "hidden", position: "relative" }}>
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, #0e0e0e 100%)", zIndex: 1 }} />
-          <img src={item.image} alt={item.imageAlt || item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img loading="lazy" decoding="async" src={item.image} alt={item.imageAlt || item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       )}
 
@@ -94,7 +94,7 @@ export default function NewsDetail() {
           <div className="mt-8 space-y-4">
             {item.contentImages.map((img, i) => (
               <figure key={i} style={{ margin: 0 }}>
-                <img
+                <img loading="lazy" decoding="async"
                   src={img.url}
                   alt={img.alt}
                   className="w-full rounded-xl"

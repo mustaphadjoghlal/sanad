@@ -1,17 +1,65 @@
+/**
+ * Seeds content into Firestore.
+ *
+ * Run with the admin credentials in the environment:
+ *   SANAD_ADMIN_EMAIL=... SANAD_ADMIN_PASSWORD=... node scripts/add-content.mjs
+ *
+ * The script used to run unauthenticated, which meant every write was rejected
+ * by firestore.rules (jobs and news are admin-only) — it could not have worked.
+ * Config now comes from the environment too, rather than being hardcoded.
+ */
 import { initializeApp } from "firebase/app";
 import { getFirestore, addDoc, collection } from "firebase/firestore";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { readFileSync } from "node:fs";
+
+// Load .env / .env.local without adding a dependency.
+for (const file of [".env", ".env.local"]) {
+  try {
+    for (const line of readFileSync(new URL(`../${file}`, import.meta.url), "utf8").split("\n")) {
+      const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+      if (match && !process.env[match[1]]) {
+        process.env[match[1]] = match[2].replace(/^["']|["']$/g, "");
+      }
+    }
+  } catch {
+    // Optional file.
+  }
+}
+
+const required = [
+  "VITE_FIREBASE_API_KEY",
+  "VITE_FIREBASE_AUTH_DOMAIN",
+  "VITE_FIREBASE_PROJECT_ID",
+  "VITE_FIREBASE_APP_ID",
+  "SANAD_ADMIN_EMAIL",
+  "SANAD_ADMIN_PASSWORD",
+];
+const missing = required.filter((key) => !process.env[key]);
+if (missing.length > 0) {
+  console.error(`Missing environment variables: ${missing.join(", ")}`);
+  console.error("See .env.example.");
+  process.exit(1);
+}
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDagcs68MqIBVuUt_EzrbSpswWGgTAuQRM",
-  authDomain: "sanad-dz-f14df.firebaseapp.com",
-  projectId: "sanad-dz-f14df",
-  storageBucket: "sanad-dz-f14df.firebasestorage.app",
-  messagingSenderId: "856869700906",
-  appId: "1:856869700906:web:3c7fa812c02f1af2484a53",
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// Writes to these collections require the admin account.
+await signInWithEmailAndPassword(
+  getAuth(app),
+  process.env.SANAD_ADMIN_EMAIL,
+  process.env.SANAD_ADMIN_PASSWORD
+);
 
 async function addJob(data) {
   const ref = await addDoc(collection(db, "jobs"), {

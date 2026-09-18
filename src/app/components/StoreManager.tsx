@@ -267,7 +267,7 @@ function ProductModal({
               onChange={(e) => { if (e.target.files?.[0]) setImageFile(e.target.files[0]); }}
             />
             {initial?.image && !imageFile && (
-              <img src={initial.image} alt="" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: "0.4rem", marginTop: "0.4rem", border: "1px solid var(--p-20)" }} />
+              <img loading="lazy" decoding="async" src={initial.image} alt="" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: "0.4rem", marginTop: "0.4rem", border: "1px solid var(--p-20)" }} />
             )}
           </div>
 
@@ -448,7 +448,7 @@ export default function StoreManager({ uid }: { uid: string; profile: UserProfil
                     <tr key={p.id} style={{ transition: "background 0.15s" }}>
                       <td style={S.td}>
                         {p.image ? (
-                          <img src={p.image} alt={p.name} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: "0.35rem", border: "1px solid var(--p-20)" }} />
+                          <img loading="lazy" decoding="async" src={p.image} alt={p.name} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: "0.35rem", border: "1px solid var(--p-20)" }} />
                         ) : (
                           <div style={{ width: 40, height: 40, background: "var(--p-20)", borderRadius: "0.35rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <Package size={18} style={{ color: "var(--theme-text-dim, #3a5e3a)" }} />

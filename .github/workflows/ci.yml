@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      # Typecheck runs first: the build gate exists so a type error cannot
+      # reach production the way the broken import path in UserDashboard did.
+      - run: npm run typecheck
+
+      - run: npm run build
+
+      # Report known advisories without failing the build on a transitive
+      # low-severity one that has no upstream fix yet.
+      - run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true

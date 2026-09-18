@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
@@ -104,6 +104,71 @@ function statusLabel(s?: string) {
   if (s === "pending") return "قيد الانتظار";
   if (s === "rejected") return "مرفوض";
   return "مُعتمد";
+}
+
+
+// ── Toast ───────────────────────────────────────────────────────────────
+// Replaces window.alert(), which blocked the whole tab, could not be styled
+// or translated, and rendered LTR in an RTL dashboard.
+type ToastKind = "error" | "success";
+type ToastListener = (t: { id: number; message: string; kind: ToastKind } | null) => void;
+
+let toastListener: ToastListener | null = null;
+let toastId = 0;
+
+function showToast(message: string, kind: ToastKind = "error") {
+  toastListener?.({ id: ++toastId, message, kind });
+}
+
+/** Turns an unknown throw into a message worth showing a human. */
+function errorMessage(e: unknown, fallback: string) {
+  if (e instanceof Error && e.message && !/^[A-Za-z_/]+\(/.test(e.message)) return e.message;
+  return fallback;
+}
+
+function ToastHost() {
+  const [toast, setToast] = useState<{ id: number; message: string; kind: ToastKind } | null>(null);
+
+  useEffect(() => {
+    toastListener = setToast;
+    return () => { toastListener = null; };
+  }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  if (!toast) return null;
+
+  const isError = toast.kind === "error";
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed top-4 left-1/2 z-[200] flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm animate-fade-in-up"
+      style={{
+        transform: "translateX(-50%)",
+        maxWidth: "min(90vw, 28rem)",
+        background: isError ? "rgba(40,10,10,0.97)" : "rgba(6,28,16,0.97)",
+        border: `1px solid ${isError ? "rgba(198,40,40,0.45)" : "rgba(0,163,85,0.45)"}`,
+        color: isError ? "#fca5a5" : "#6ee7a8",
+        boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+      }}
+    >
+      {isError ? <AlertTriangle size={16} style={{ flexShrink: 0 }} /> : <Check size={16} style={{ flexShrink: 0 }} />}
+      <span>{toast.message}</span>
+      <button
+        type="button"
+        onClick={() => setToast(null)}
+        aria-label="إغلاق التنبيه"
+        style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0, marginInlineStart: "0.25rem" }}
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
 }
 
 // ── Modal wrapper ───────────────────────────────────────────────
@@ -371,6 +436,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen flex" dir="rtl" style={{ background: "#0e0e0e", position: "relative", overflow: "hidden" }}>
+      <ToastHost />
 
       {isMobile && sidebarOpen && (
         <div
@@ -596,7 +662,7 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
               return (
                 <div key={u.id} className="flex items-center gap-3 px-5 py-3 transition-colors" style={{ borderBottom: "1px solid var(--p-08)" }}>
                   {u.photo ? (
-                    <img src={u.photo} alt={u.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                    <img loading="lazy" decoding="async" src={u.photo} alt={u.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   ) : (
                     <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--p-20)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--theme-accent, #00a355)", fontWeight: 700 }}>
                       {u.name.charAt(0)}
@@ -654,7 +720,7 @@ function CoursesSection() {
       const url = await uploadImage("courses", file, setImgProgress);
       setForm((f) => ({ ...f, image: url }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setImgUploading(false); }
   };
 
@@ -664,7 +730,7 @@ function CoursesSection() {
       const url = await uploadImage("courses/content", file);
       setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setContentImgUploading(false); }
   };
 
@@ -771,7 +837,7 @@ function CoursesSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
+                {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -784,7 +850,7 @@ function CoursesSection() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
                     <div key={idx} style={{ position: "relative" }}>
-                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <img loading="lazy" decoding="async" src={img} alt={`صورة المحتوى ${idx + 1}`} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
                       <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
                         style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                     </div>
@@ -846,7 +912,7 @@ function JobsSection() {
       const url = await uploadImage("jobs", file, setImgProgress);
       setForm((f) => ({ ...f, image: url }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setImgUploading(false); }
   };
 
@@ -856,7 +922,7 @@ function JobsSection() {
       const url = await uploadImage("jobs/content", file);
       setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setContentImgUploading(false); }
   };
 
@@ -1029,7 +1095,7 @@ function JobsSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
+                {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -1042,7 +1108,7 @@ function JobsSection() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
                     <div key={idx} style={{ position: "relative" }}>
-                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <img loading="lazy" decoding="async" src={img} alt={`صورة المحتوى ${idx + 1}`} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
                       <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
                         style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                     </div>
@@ -1129,7 +1195,7 @@ function EquipmentSection() {
       const url = await uploadImage("equipment", file, setImgProgress);
       setForm((f) => ({ ...f, image: url }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setImgUploading(false); }
   };
 
@@ -1139,7 +1205,7 @@ function EquipmentSection() {
       const url = await uploadImage("equipment/content", file);
       setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setContentImgUploading(false); }
   };
 
@@ -1242,7 +1308,7 @@ function EquipmentSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
+                {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -1255,7 +1321,7 @@ function EquipmentSection() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
                     <div key={idx} style={{ position: "relative" }}>
-                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <img loading="lazy" decoding="async" src={img} alt={`صورة المحتوى ${idx + 1}`} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
                       <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
                         style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                     </div>
@@ -1317,7 +1383,7 @@ function CompetitionsSection() {
       const url = await uploadImage("competitions", file, setImgProgress);
       setForm((f) => ({ ...f, image: url }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setImgUploading(false); }
   };
 
@@ -1327,7 +1393,7 @@ function CompetitionsSection() {
       const url = await uploadImage("competitions/content", file);
       setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), url] }));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "فشل رفع الصورة");
+      showToast(errorMessage(e, "فشل رفع الصورة"));
     } finally { setContentImgUploading(false); }
   };
 
@@ -1424,7 +1490,7 @@ function CompetitionsSection() {
             <div>
               <label style={S.label}>صورة الغلاف</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {form.image && <img src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
+                {form.image && <img loading="lazy" decoding="async" src={form.image} alt="غلاف" style={{ width: "100%", maxHeight: "160px", objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-30)" }} />}
                 <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                   <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} disabled={imgUploading} />
                   {imgUploading ? `جاري الرفع... ${imgProgress}%` : form.image ? "تغيير الصورة" : "اختر صورة"}
@@ -1437,7 +1503,7 @@ function CompetitionsSection() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
                   {form.contentImages.map((img, idx) => (
                     <div key={idx} style={{ position: "relative" }}>
-                      <img src={img} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <img loading="lazy" decoding="async" src={img} alt={`صورة المحتوى ${idx + 1}`} style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
                       <button type="button" onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
                         style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                     </div>
@@ -2045,7 +2111,7 @@ function SiteContentSection() {
             <div key={key}>
               <label style={S.label}>{label}</label>
               <div className="flex gap-3 items-center flex-wrap">
-                {contentForm[key] && <img src={contentForm[key] as string} alt={label} style={{ height: 64, width: 100, objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-25)" }} />}
+                {contentForm[key] && <img loading="lazy" decoding="async" src={contentForm[key] as string} alt={label} style={{ height: 64, width: 100, objectFit: "cover", borderRadius: "0.5rem", border: "1px solid var(--p-25)" }} />}
                 <label className="cursor-pointer px-4 py-2 rounded-lg text-sm" style={{ background: "var(--p-15)", color: "var(--theme-text)", border: "1px solid var(--p-25)" }}>
                   {uploading === key ? "جاري الرفع..." : "رفع صورة"}
                   <input type="file" accept="image/*" className="hidden" disabled={uploading !== null} onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePlaceholderUpload(key, f); }} />
@@ -2078,21 +2144,22 @@ function NotificationsSection() {
 
   const handleSend = async () => {
     if (!form.title.trim() || !form.body.trim()) return;
+    const link = form.link.trim();
+    if (link && !link.startsWith("/")) {
+      showToast("الرابط يجب أن يكون داخلياً ويبدأ بـ / — مثال: /jobs");
+      return;
+    }
     setSending(true);
     try {
-      try {
-      await sendNotification({ title: form.title.trim(), body: form.body.trim(), link: form.link.trim() || undefined, createdAt: Date.now() }, "all");
+      await sendNotification(
+        { title: form.title.trim(), body: form.body.trim(), link: link || undefined, createdAt: Date.now() },
+        "all"
+      );
       setForm({ title: "", body: "", link: "" });
-      setSent(true); setTimeout(() => setSent(false), 2500);
-    } catch (err: any) {
-      alert("خطأ في الإرسال: " + (err.message || "حدث خطأ غير معروف"));
-    } finally {
-      setSending(false);
-    }
-      setForm({ title: "", body: "", link: "" });
-      setSent(true); setTimeout(() => setSent(false), 2500);
-    } catch (err: any) {
-      alert("خطأ في الإرسال: " + (err.message || "حدث خطأ غير معروف"));
+      setSent(true);
+      setTimeout(() => setSent(false), 2500);
+    } catch (err: unknown) {
+      showToast(errorMessage(err, "تعذّر إرسال الإشعار. حاول مجدداً."));
     } finally {
       setSending(false);
     }
@@ -2264,12 +2331,12 @@ function NewsSection() {
 
   const handleCoverUpload = async (file: File) => {
     setImgUploading(true);
-    try { const url = await uploadImage("news", file); setForm((f) => ({ ...f, image: url })); } catch (e: unknown) { alert(e instanceof Error ? e.message : "فشل رفع الصورة"); } finally { setImgUploading(false); }
+    try { const url = await uploadImage("news", file); setForm((f) => ({ ...f, image: url })); } catch (e: unknown) { showToast(errorMessage(e, "فشل رفع الصورة")); } finally { setImgUploading(false); }
   };
 
   const handleContentImgUpload = async (file: File) => {
     setContentImgUploading(true);
-    try { const url = await uploadImage("news/content", file); setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), { url, alt: pendingAlt }] })); setPendingAlt(""); } catch (e: unknown) { alert(e instanceof Error ? e.message : "فشل رفع الصورة"); } finally { setContentImgUploading(false); }
+    try { const url = await uploadImage("news/content", file); setForm((f) => ({ ...f, contentImages: [...(f.contentImages || []), { url, alt: pendingAlt }] })); setPendingAlt(""); } catch (e: unknown) { showToast(errorMessage(e, "فشل رفع الصورة")); } finally { setContentImgUploading(false); }
   };
 
   const handleSave = async () => {
@@ -2334,7 +2401,7 @@ function NewsSection() {
             <div><label style={S.label}>رابط المصدر</label><input style={S.input} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." /></div>
             <div>
               <label style={S.label}>صورة الغلاف</label>
-              {form.image && <img src={form.image} alt="" style={{ width: "100%", maxHeight: "150px", objectFit: "cover", borderRadius: "0.5rem", marginBottom: "0.5rem", border: "1px solid var(--p-30)" }} />}
+              {form.image && <img loading="lazy" decoding="async" src={form.image} alt="" style={{ width: "100%", maxHeight: "150px", objectFit: "cover", borderRadius: "0.5rem", marginBottom: "0.5rem", border: "1px solid var(--p-30)" }} />}
               <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: imgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }} disabled={imgUploading} />
                 {imgUploading ? "جاري الرفع..." : form.image ? "تغيير الصورة" : "اختر صورة"}

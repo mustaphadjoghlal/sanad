@@ -3,6 +3,8 @@ import { Search, Users, MapPin, ArrowLeft, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToApprovedProfessionals } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
+import { matchesQuery } from "../../lib/text";
+import { usePageTitle } from "../../lib/usePageTitle";
 
 const typeLabel: Record<string, string> = {
   editor_news:        "محرر أخبار",
@@ -28,6 +30,7 @@ const EXCLUDED_TYPES = new Set(["store", "vendor", "trainer"]);
 const PAGE_SIZE = 12;
 
 export default function Professionals() {
+  usePageTitle("دليل المحترفين", "دليل الصحفيين والمصورين والمونتاج والمعلقين الصوتيين والمقدمين في الجزائر.");
   const [all, setAll] = useState<UserProfile[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -43,9 +46,9 @@ export default function Professionals() {
     return unsub;
   }, []);
 
-  const q = search.toLowerCase();
+  const q = search;
   const filtered = all.filter((p) => {
-    const matchSearch = !q || p.name?.toLowerCase().includes(q) || p.specialty?.toLowerCase().includes(q) || (typeLabel[p.type] ?? "").includes(q);
+    const matchSearch = matchesQuery(q, p.name, p.specialty, p.location, typeLabel[p.type]);
     const matchType = !typeFilter || p.type === typeFilter;
     const matchLoc = !locationFilter || p.location === locationFilter;
     return matchSearch && matchType && matchLoc;
@@ -142,7 +145,7 @@ export default function Professionals() {
                   {/* Photo */}
                   <div className="relative overflow-hidden" style={{ height: "140px", background: "#1a1a1a" }}>
                     {p.photo ? (
-                      <img src={p.photo} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <img loading="lazy" decoding="async" src={p.photo} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <User size={40} style={{ color: "var(--p-30)" }} />

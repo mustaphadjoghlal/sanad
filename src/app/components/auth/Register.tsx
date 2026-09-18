@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Radio, ArrowRight, ArrowLeft, Check, Plus, Trash2, User, Store, GraduationCap } from "lucide-react";
-import { createUserWithEmailAndPassword, deleteUser, fetchSignInMethodsForEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, sendEmailVerification, signOut } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { saveUserProfile, sendNotification } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
@@ -75,6 +75,7 @@ export default function Register() {
   const [newLink, setNewLink] = useState<NewLink>({ label: "", url: "" });
   const [interests, setInterests] = useState<string[]>([]);
   const [emailStatus, setEmailStatus] = useState<"idle" | "checking" | "taken" | "ok">("idle");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -100,15 +101,9 @@ export default function Register() {
     setForm((p) => ({ ...p, [key]: val }));
 
   useEffect(() => {
-    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) { setEmailStatus("idle"); return; }
-    setEmailStatus("checking");
-    const timer = setTimeout(async () => {
-      try {
-        const methods = await fetchSignInMethodsForEmail(auth, form.email);
-        setEmailStatus(methods.length > 0 ? "taken" : "ok");
-      } catch { setEmailStatus("idle"); }
-    }, 700);
-    return () => clearTimeout(timer);
+    // Format only. Whether the address is already registered is answered
+    // authoritatively by createUserWithEmailAndPassword at submit time.
+    setEmailStatus(/^\S+@\S+\.\S+$/.test(form.email) ? "ok" : "idle");
   }, [form.email]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,7 +135,7 @@ export default function Register() {
 
   const canProceedStep1 = mainType === "individual" ? !!individualSubType : mainType === "store" ? !!form.storePlan : !!mainType;
 
-  const hasLength = form.password.length >= 8 && form.password.length <= 20;
+  const hasLength = form.password.length >= 8;
   const hasLettersAndNumbers = /[a-zA-Zأ-ي]/.test(form.password) && /[0-9]/.test(form.password);
   const passwordsMatch = form.password.length > 0 && form.password === form.confirmPassword;
   const passwordValid = hasLength && hasLettersAndNumbers && passwordsMatch;
@@ -174,6 +169,10 @@ export default function Register() {
     }
     if (mainType === "trainer" && !form.name.trim()) {
       setError("يرجى إدخال اسمك أو اسم مركز التدريب");
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("يرجى الموافقة على شروط الاستخدام وسياسة الخصوصية");
       return;
     }
 
@@ -239,19 +238,36 @@ export default function Register() {
         createdAt: Date.now(),
       }, undefined, "admin").catch(() => {});
 
+      // Anyone could previously register with someone else's address, because
+      // nothing ever proved the address belonged to them.
+      await sendEmailVerification(createdUser).catch(() => {});
+
+      // createUserWithEmailAndPassword signs the new account in. Sending them
+      // to /login while still authenticated left the header showing them as
+      // logged in on a login page.
+      await signOut(auth).catch(() => {});
+
       setSuccess(true);
-      setTimeout(() => navigate("/login"), 3000);
+      setTimeout(() => navigate("/login"), 4000);
     } catch (err: unknown) {
       const e = err as { code?: string; message?: string };
       if (e.code === "auth/email-already-in-use") {
-        setError("البريد الإلكتروني مستخدم بالفعل");
+        setError("البريد الإلكتروني مستخدم بالفعل، جرّب تسجيل الدخول أو استعادة كلمة المرور");
       } else if (e.code === "auth/invalid-email") {
         setError("البريد الإلكتروني غير صالح");
+      } else if (e.code === "auth/weak-password") {
+        setError("كلمة المرور ضعيفة جداً، اختر كلمة أقوى");
+      } else if (e.code === "auth/network-request-failed") {
+        setError("تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.");
+      } else if (e.code === "auth/too-many-requests") {
+        setError("محاولات كثيرة جداً. انتظر قليلاً ثم حاول مرة أخرى.");
       } else {
         if (createdUser) {
           await deleteUser(createdUser).catch(() => {});
         }
-        setError(e.message ?? "حدث خطأ. يرجى المحاولة مجدداً.");
+        // Never surface the raw Firebase message — it is English and internal.
+        console.error("Registration failed:", e);
+        setError("حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مجدداً.");
       }
     } finally {
       setSaving(false);
@@ -280,7 +296,10 @@ export default function Register() {
           </div>
           <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--theme-text, #e8f5e9)" }}>تم التسجيل بنجاح!</h2>
           <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7 }}>
-            ملفك قيد المراجعة. سيتم إشعارك عند الموافقة.
+            أرسلنا رابط تأكيد إلى بريدك الإلكتروني — افتحه لتفعيل حسابك.
+          </p>
+          <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7, marginTop: "0.5rem" }}>
+            ملفك قيد المراجعة أيضاً، وسيتم إشعارك عند الموافقة.
           </p>
           <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.85rem", marginTop: "1rem" }}>
             سيتم تحويلك لصفحة تسجيل الدخول خلال ثوانٍ...
@@ -586,9 +605,9 @@ export default function Register() {
                       dir="ltr"
                       style={{ borderColor: emailStatus === "taken" ? "#ef4444" : emailStatus === "ok" ? "#4ade80" : undefined }}
                     />
-                    {emailStatus === "checking" && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginTop: "0.25rem" }}>جاري التحقق...</p>}
-                    {emailStatus === "taken" && <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>✗ البريد مستخدم بالفعل</p>}
-                    {emailStatus === "ok" && <p style={{ color: "#4ade80", fontSize: "0.75rem", marginTop: "0.25rem" }}>✓ البريد متاح</p>}
+                    {form.email.length > 0 && emailStatus === "idle" && (
+                      <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>صيغة البريد الإلكتروني غير صحيحة</p>
+                    )}
                   </div>
                   <div>
                     <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>كلمة المرور *</label>
@@ -618,7 +637,7 @@ export default function Register() {
                     <p className="text-sm font-semibold mb-3" style={{ color: "var(--theme-text-secondary, #a5d6a7)" }}>يجب أن تحتوي كلمة المرور على:</p>
                     <div className="space-y-2">
                       {([
-                        [hasLength, "من 8 إلى 20 حرفاً"],
+                        [hasLength, "8 أحرف على الأقل"],
                         [hasLettersAndNumbers, "أحرف وأرقام معاً"],
                         [passwordsMatch, "كلمتا المرور متطابقتان"],
                       ] as const).map(([valid, label], i) => (
@@ -673,7 +692,7 @@ export default function Register() {
                       <label className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>صورة شخصية</label>
                       <div className="flex items-center gap-4">
                         {photoPreview ? (
-                          <img
+                          <img loading="lazy" decoding="async"
                             src={photoPreview}
                             alt="preview"
                             className="w-16 h-16 rounded-full object-cover"
@@ -1015,6 +1034,28 @@ export default function Register() {
                   </div>
                 )}
 
+                {/* Consent. An approved profile's phone and email become
+                    publicly visible in the directory — the old flow never said
+                    so, and never asked for agreement to the terms at all. */}
+                <label
+                  className="flex items-start gap-3 mt-6 p-3 rounded-xl cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${acceptedTerms ? "var(--p-35)" : "var(--p-20)"}` }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    style={{ marginTop: "0.2rem", width: 16, height: 16, accentColor: "var(--theme-accent, #00a355)", flexShrink: 0 }}
+                  />
+                  <span style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.82rem", lineHeight: 1.8 }}>
+                    أوافق على{" "}
+                    <Link to="/terms" target="_blank" style={{ color: "var(--theme-accent, #00a355)" }}>شروط الاستخدام</Link>
+                    {" "}و{" "}
+                    <Link to="/privacy" target="_blank" style={{ color: "var(--theme-accent, #00a355)" }}>سياسة الخصوصية</Link>،
+                    وأعلم أنه بعد اعتماد ملفي ستظهر بياناتي — بما فيها البريد الإلكتروني ورقم الهاتف — للعموم في دليل المنصة.
+                  </span>
+                </label>
+
                 <div className="flex justify-between items-center mt-6">
                   <button
                     onClick={() => { setStep(2); setError(""); }}
@@ -1041,7 +1082,7 @@ export default function Register() {
                     )}
                     <button
                       onClick={handleRegister}
-                      disabled={saving}
+                      disabled={saving || !acceptedTerms}
                       className="btn-dz px-8 py-2.5 rounded-xl text-sm disabled:opacity-50"
                     >
                       <span>{saving ? (photoFile && uploadProgress > 0 && uploadProgress < 100 ? `${uploadProgress}%` : "جاري التسجيل...") : "إنشاء الحساب"}</span>
