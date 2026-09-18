@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Radio, Facebook, Users, Briefcase, BookOpen, Trophy } from "lucide-react";
+import { Facebook, Users, Briefcase, BookOpen, Trophy } from "lucide-react";
 import { usePageTitle } from "../../lib/usePageTitle";
 
 export default function About() {
@@ -11,13 +11,15 @@ export default function About() {
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% -20%, var(--p-15) 0%, transparent 60%)" }} />
         <div className="container mx-auto relative z-10 max-w-3xl text-center">
           <div className="flex justify-center mb-6">
-            <div className="p-4 rounded-2xl" style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))", boxShadow: "0 0 40px rgba(0,163,85,0.2)" }}>
-              <Radio size={36} color="#fff" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="منصة سند الإعلامية"
+              width={260}
+              height={72}
+              className="h-16 md:h-20 w-auto"
+            />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black mb-4" style={{ color: "var(--theme-text)" }}>
-            منصة <span style={{ color: "var(--theme-accent)" }}>سند</span>
-          </h1>
+          <h1 className="sr-only">منصة سند الإعلامية</h1>
           <p className="text-lg" style={{ color: "var(--theme-text-secondary)", lineHeight: 1.7, maxWidth: "560px", margin: "0 auto" }}>
             المنصة الجزائرية الشاملة لمجال الإعلام والصحافة — تجمع المحترفين، الفرص، والموارد في مكان واحد.
           </p>

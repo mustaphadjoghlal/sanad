@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
-import { Lock, Mail, Radio, AlertCircle } from "lucide-react";
+import { Lock, Mail, AlertCircle } from "lucide-react";
 import { usePageTitle } from "../../../lib/usePageTitle";
 
 export default function AdminLogin() {
@@ -82,17 +82,15 @@ export default function AdminLogin() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 animate-float"
-            style={{
-              background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))",
-              boxShadow: "0 0 32px var(--p-40)",
-            }}
-          >
-            <Radio size={30} color="#ffffff" />
-          </div>
-          <h1 className="text-3xl font-bold" style={{ color: "var(--theme-text, #e8f5e9)" }}>
-            سند <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "1rem" }}>Admin</span>
+          <img
+            src="/logo.png"
+            alt="سند"
+            width={150}
+            height={41}
+            className="h-10 w-auto mx-auto mb-4"
+          />
+          <h1 className="text-xl font-bold" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
+            Admin
           </h1>
           <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
             لوحة التحكم الإدارية

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Radio, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
@@ -61,23 +61,13 @@ export default function UserLogin() {
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
           <Link to="/" className="inline-flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <div
-              className="p-2.5 rounded-xl"
-              style={{ background: "linear-gradient(135deg, var(--theme-primary, #006233), color-mix(in srgb, var(--theme-primary, #006233) 70%, #ffffff))", boxShadow: "0 0 16px var(--p-40)" }}
-            >
-              <Radio size={22} color="#fff" />
-            </div>
-            <span
-              className="text-3xl font-bold"
-              style={{
-                background: "linear-gradient(90deg, var(--theme-accent, #00a355), color-mix(in srgb, var(--theme-accent, #00a355) 70%, #ffffff))",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              سند
-            </span>
+            <img
+              src="/logo.png"
+              alt="سند — المنصة الجزائرية الإعلامية الشاملة"
+              width={160}
+              height={44}
+              className="h-11 w-auto"
+            />
           </Link>
           <p className="mt-2" style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.875rem" }}>تسجيل الدخول إلى حسابك</p>
         </div>
