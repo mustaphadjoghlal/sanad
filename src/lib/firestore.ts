@@ -223,6 +223,18 @@ export function subscribeToUserProfile(
   );
 }
 
+/**
+ * Deletes the account's data. The privacy policy promises this, and the
+ * button that offered it was wired to nothing.
+ *
+ * The auth user itself is removed by the caller, which needs the live
+ * credential; here we clear what the account owns in Firestore.
+ */
+export async function deleteAccountData(uid: string): Promise<void> {
+  await deleteDoc(doc(db, "fcmTokens", uid)).catch(() => {});
+  await deleteDoc(doc(db, "users", uid));
+}
+
 export async function resubmitProfile(uid: string): Promise<void> {
   return updateDoc(doc(db, "users", uid), { status: "pending", rejectionNote: "" });
 }

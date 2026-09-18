@@ -4,10 +4,10 @@ import {
   LogOut, Pencil, User, MapPin,  AlertTriangle, 
   CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check
 } from "lucide-react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "firebase/auth";
 import { auth, storage } from "../../../lib/firebase";
 import { 
-  subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification
+  subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification, deleteAccountData
 } from "../../../lib/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialLinks } from "../../../lib/types";
@@ -223,6 +223,47 @@ export default function UserDashboard() {
     navigate("/");
   };
 
+  // Both of these were rendered as buttons with no onClick, while the privacy
+  // policy told users they could change their password and delete their data.
+  const [accountBusy, setAccountBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const handlePasswordReset = async () => {
+    const email = auth.currentUser?.email;
+    if (!email) return;
+    setAccountBusy(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showUploadToast("✓ أرسلنا رابط تغيير كلمة المرور إلى بريدك");
+    } catch {
+      setEditError("تعذّر إرسال الرابط. حاول مجدداً.");
+    } finally {
+      setAccountBusy(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const user = auth.currentUser;
+    if (!user || !uid) return;
+    setAccountBusy(true);
+    try {
+      await deleteAccountData(uid);
+      await deleteUser(user);
+      navigate("/");
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code;
+      if (code === "auth/requires-recent-login") {
+        // Firebase refuses to delete an account on a stale session.
+        setEditError("لأسباب أمنية، سجّل خروجاً ثم دخولاً وأعد المحاولة.");
+      } else {
+        setEditError("تعذّر حذف الحساب. حاول مجدداً.");
+      }
+      setConfirmDelete(false);
+    } finally {
+      setAccountBusy(false);
+    }
+  };
+
   const startEdit = () => {
     if (!profile) return;
     setEditForm({
@@ -433,6 +474,38 @@ export default function UserDashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* A document with no name or type was never created by registration.
+            Older builds wrote the FCM token with setDoc(..., {merge:true}),
+            which creates the document when it is missing — so an account that
+            allowed notifications without finishing signup ended up with a
+            profile holding nothing but a push token, rendered here as a blank
+            card with no explanation. */}
+        {!profile.name || !profile.type ? (
+          <div
+            className="p-6 rounded-2xl mb-8"
+            style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.3)" }}
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={20} className="shrink-0 mt-0.5" style={{ color: "#fbbf24" }} />
+              <div>
+                <h2 className="font-bold mb-2" style={{ color: "#fbbf24" }}>ملفك الشخصي غير مكتمل</h2>
+                <p className="text-sm mb-4" style={{ color: "var(--theme-text-muted)", lineHeight: 1.9 }}>
+                  هذا الحساب لا يحمل بيانات ملف شخصي — لم تُستكمل خطوات التسجيل.
+                  احذف الحساب من «إعدادات الحساب» في الأسفل ثم سجّل من جديد،
+                  فتختار نوع حسابك وتملأ بياناتك كاملة.
+                </p>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+                  style={{ background: "var(--theme-accent)", color: "#07130b", textDecoration: "none" }}
+                >
+                  الذهاب إلى التسجيل
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {/* Profile Showcase Card (VoxDub Style) */}
         {!editing ? (
           <div
@@ -747,9 +820,54 @@ export default function UserDashboard() {
             <h3 className="text-lg font-bold" style={{ color: "var(--theme-text)" }}>إعدادات الحساب</h3>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button className="px-5 py-2 rounded-xl text-sm" style={{ border: "1px solid var(--p-25)", color: "var(--theme-text)" }}>تغيير كلمة المرور</button>
-            <button className="px-5 py-2 rounded-xl text-sm" style={{ border: "1px solid rgba(198,40,40,0.2)", color: "#f87171" }}>حذف الحساب</button>
+            <button
+              type="button"
+              onClick={handlePasswordReset}
+              disabled={accountBusy}
+              className="px-5 py-2 rounded-xl text-sm disabled:opacity-50"
+              style={{ border: "1px solid var(--p-25)", color: "var(--theme-text)", cursor: "pointer" }}
+            >
+              تغيير كلمة المرور
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              disabled={accountBusy}
+              className="px-5 py-2 rounded-xl text-sm disabled:opacity-50"
+              style={{ border: "1px solid rgba(198,40,40,0.2)", color: "#f87171", cursor: "pointer" }}
+            >
+              حذف الحساب
+            </button>
           </div>
+
+          {confirmDelete && (
+            <div className="mt-4 p-4 rounded-xl" style={{ background: "rgba(198,40,40,0.08)", border: "1px solid rgba(198,40,40,0.25)" }}>
+              <p className="text-sm font-bold mb-1" style={{ color: "#f87171" }}>حذف الحساب نهائياً؟</p>
+              <p className="text-xs mb-4" style={{ color: "#fca5a5", lineHeight: 1.8 }}>
+                سيُحذف ملفك الشخصي وأعمالك وعيناتك الصوتية وبياناتك كلها، ولا يمكن التراجع.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={accountBusy}
+                  className="px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50"
+                  style={{ background: "#b91c1c", color: "#fff", border: "none", cursor: "pointer" }}
+                >
+                  {accountBusy ? "جاري الحذف..." : "نعم، احذف حسابي"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={accountBusy}
+                  className="px-4 py-2 rounded-lg text-sm"
+                  style={{ background: "var(--p-15)", color: "var(--theme-text)", border: "1px solid var(--p-30)", cursor: "pointer" }}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
