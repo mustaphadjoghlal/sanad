@@ -14,6 +14,46 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
+    // Fields a profile owner must never set on themselves: moderation state
+    // (status/rejectionNote), homepage promotion (featured) and identity
+    // (id/type/createdAt). Only the admin may touch these.
+    function noPrivilegedProfileFields() {
+      return !request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(['status', 'featured', 'rejectionNote', 'id', 'type', 'createdAt']);
+    }
+
+    // A rejected profile may be resubmitted by its owner — that is the only
+    // status transition a non-admin is allowed to perform.
+    function isResubmission() {
+      return resource.data.status == 'rejected'
+             && request.resource.data.status == 'pending'
+             && request.resource.data.featured == resource.data.featured
+             && request.resource.data.type == resource.data.type;
+    }
+
+    function isShortString(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    // Algerian mobile (0X XX XX XX XX) or landline (0XX XX XX XX), digits only
+    // — the client normalises '+213…' and spacing before it gets here.
+    function isPhone(value) {
+      return value is string && value.matches('0[1-9][0-9]{7,8}');
+    }
+
+    // Legacy profiles still carry an `fcmToken` field from before push tokens
+    // moved to /fcmTokens. It may stay or be removed, but never be set anew —
+    // a public document must not hold a push token.
+    function noNewFcmToken() {
+      return !('fcmToken' in request.resource.data.keys())
+             || request.resource.data.fcmToken == resource.data.get('fcmToken', null);
+    }
+
+    // Internal links only — never an absolute URL pointing off-platform.
+    function isInternalLink(value) {
+      return value == null || (value is string && value.size() <= 300 && value.matches('^/[^/].*|^/$'));
+    }
+
     // ── Public content (read-only for visitors, write for admin) ─────────
     match /courses/{id}      { allow read: if true; allow write: if isAdmin(); }
     match /jobs/{id}         { allow read: if true; allow write: if isAdmin(); }
@@ -24,13 +64,34 @@ service cloud.firestore {
     match /theses/{id}       { allow read: if true; allow write: if isAdmin(); }
     match /settings/{id}     { allow read: if true; allow write: if isAdmin(); }
 
-    // ── Users: approved profiles are public; pending/rejected visible only
-    //    to their owner and the admin. Owner may delete own account. ──────
+    // ── Users: approved profiles are public (this is a professionals
+    //    directory — name, specialty and contact details are the point);
+    //    pending/rejected profiles are visible only to their owner and the
+    //    admin. Push tokens live in /fcmTokens, never on the public doc. ──
     match /users/{userId} {
       allow read: if resource.data.status == 'approved' || isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
+
+      // A new account always starts as pending and unfeatured — self-approval
+      // and self-promotion are not possible.
+      allow create: if isOwner(userId)
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.featured == false
+                    && request.resource.data.id == userId
+                    && !request.resource.data.keys().hasAny(['fcmToken']);
+
+      allow update: if isAdmin()
+                    || (isOwner(userId)
+                        && noNewFcmToken()
+                        && (noPrivilegedProfileFields() || isResubmission()));
+
       allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // ── Push tokens: written by their owner, never publicly readable.
+    //    /api/push reads them server-side with a service account. ─────────
+    match /fcmTokens/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) || isAdmin();
     }
 
     // ── Equipment: public read; users submit pending items, admin manages ─
@@ -39,59 +100,149 @@ service cloud.firestore {
       allow create: if isAdmin()
                     || (isAuth()
                         && request.resource.data.submittedBy == request.auth.uid
-                        && request.resource.data.status == 'pending');
+                        && request.resource.data.status == 'pending'
+                        && request.resource.data.featured == false);
       allow update, delete: if isAdmin();
     }
 
-    // ── Products: public read, store owner manages their own ─────────────
+    // ── Products: public read; only an approved store may publish, and only
+    //    under its own id ──────────────────────────────────────────────────
     match /products/{id} {
       allow read: if true;
-      allow create: if isAuth() && request.resource.data.storeId == request.auth.uid;
-      allow update, delete: if isAuth() && resource.data.storeId == request.auth.uid;
+      allow create: if isAuth()
+                    && request.resource.data.storeId == request.auth.uid
+                    && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved'
+                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'store';
+      allow update: if isAdmin()
+                    || (isAuth()
+                        && resource.data.storeId == request.auth.uid
+                        && request.resource.data.storeId == resource.data.storeId);
+      allow delete: if isAdmin() || (isAuth() && resource.data.storeId == request.auth.uid);
     }
 
-    // ── Orders: guest checkout (order form requires no account),
-    //    store owner and admin manage ────────────────────────────────────
+    // ── Orders: guest checkout (the order form requires no account), so the
+    //    payload is shape-checked instead of auth-checked. The store owner
+    //    and the admin manage them afterwards. ─────────────────────────────
     match /orders/{id} {
-      allow create: if request.resource.data.status == 'pending';
-      allow read, update: if isAuth() && resource.data.storeId == request.auth.uid || isAdmin();
+      allow create: if request.resource.data.status == 'pending'
+                    && request.resource.data.keys().hasOnly([
+                         'productId', 'productName', 'storeId', 'buyerFirstName',
+                         'buyerLastName', 'buyerPhone', 'wilaya', 'city',
+                         'quantity', 'note', 'status', 'createdAt'
+                       ])
+                    && request.resource.data.keys().hasAll([
+                         'productId', 'productName', 'storeId', 'buyerFirstName',
+                         'buyerLastName', 'buyerPhone', 'wilaya', 'city',
+                         'quantity', 'status', 'createdAt'
+                       ])
+                    && isShortString(request.resource.data.productId, 128)
+                    && isShortString(request.resource.data.productName, 200)
+                    && isShortString(request.resource.data.storeId, 128)
+                    && isShortString(request.resource.data.buyerFirstName, 60)
+                    && isShortString(request.resource.data.buyerLastName, 60)
+                    && isPhone(request.resource.data.buyerPhone)
+                    && isShortString(request.resource.data.wilaya, 60)
+                    && isShortString(request.resource.data.city, 80)
+                    && request.resource.data.quantity is int
+                    && request.resource.data.quantity > 0
+                    && request.resource.data.quantity <= 1000
+                    && (!('note' in request.resource.data.keys())
+                        || (request.resource.data.note is string
+                            && request.resource.data.note.size() <= 500))
+                    && request.resource.data.createdAt is number;
+      allow read: if isAdmin() || (isAuth() && resource.data.storeId == request.auth.uid);
+      // The seller moves the order through its lifecycle; ownership and the
+      // buyer's own data stay frozen.
+      allow update: if isAdmin()
+                    || (isAuth()
+                        && resource.data.storeId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status', 'sellerNote']));
       allow delete: if isAdmin();
     }
 
-    // ── Trainer courses: public read, trainer manages own ────────────────
+    // ── Trainer courses: public read; a trainer submits their own courses
+    //    for review and can never approve or feature them ──────────────────
     match /trainerCourses/{id} {
       allow read: if true;
-      allow create: if isAuth() && request.resource.data.trainerId == request.auth.uid;
-      allow update, delete: if isAuth() && resource.data.trainerId == request.auth.uid || isAdmin();
+      allow create: if isAdmin()
+                    || (isAuth()
+                        && request.resource.data.trainerId == request.auth.uid
+                        && request.resource.data.status == 'pending'
+                        && request.resource.data.featured == false);
+      allow update: if isAdmin()
+                    || (isAuth()
+                        && resource.data.trainerId == request.auth.uid
+                        && request.resource.data.trainerId == resource.data.trainerId
+                        && !request.resource.data.diff(resource.data).affectedKeys()
+                             .hasAny(['status', 'featured', 'rejectionNote']));
+      allow delete: if isAdmin() || (isAuth() && resource.data.trainerId == request.auth.uid);
     }
 
-    // ── Course registrations: anyone can create, trainer reads own ───────
+    // ── Course registrations: a visitor signs up without an account, so the
+    //    payload is shape-checked; only the trainer and the admin read them ─
     match /courseRegistrations/{id} {
-      allow create: if true;
-      allow read: if isAuth() && resource.data.trainerId == request.auth.uid || isAdmin();
-      allow delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly([
+                         'courseId', 'courseTitle', 'trainerId', 'name',
+                         'phone', 'email', 'wilaya', 'note', 'createdAt'
+                       ])
+                    && isShortString(request.resource.data.courseId, 128)
+                    && isShortString(request.resource.data.courseTitle, 200)
+                    && isShortString(request.resource.data.trainerId, 128)
+                    && isShortString(request.resource.data.name, 80)
+                    && isPhone(request.resource.data.phone)
+                    && (!('email' in request.resource.data.keys())
+                        || (request.resource.data.email is string
+                            && request.resource.data.email.size() <= 120))
+                    && (!('wilaya' in request.resource.data.keys())
+                        || (request.resource.data.wilaya is string
+                            && request.resource.data.wilaya.size() <= 60))
+                    && (!('note' in request.resource.data.keys())
+                        || (request.resource.data.note is string
+                            && request.resource.data.note.size() <= 500))
+                    && request.resource.data.createdAt is number;
+      allow read: if isAdmin() || (isAuth() && resource.data.trainerId == request.auth.uid);
+      allow delete: if isAdmin() || (isAuth() && resource.data.trainerId == request.auth.uid);
     }
 
-    // ── Notifications: user actions create them (registration, equipment
-    //    submissions, guest course sign-ups), so create is open but shape-
-    //    checked; non-admins may only mark-as-read ─────────────────────────
+    // ── Notifications ────────────────────────────────────────────────────
+    //    audience 'all'   → broadcast to every user; ONLY the admin may
+    //                       create one, otherwise anyone could push a
+    //                       phishing link into every user's bell menu.
+    //    audience 'admin' → moderation alerts raised by ordinary user
+    //                       actions (registration, resubmission, a guest
+    //                       signing up for a course), so creation is open
+    //                       but shape- and size-checked, and only the admin
+    //                       can read them back.
     match /notifications/{id} {
-      allow read: if isAuth();
+      allow read: if isAdmin() || (isAuth() && resource.data.audience == 'all');
+
       allow create: if request.resource.data.keys().hasOnly(['title', 'body', 'link', 'createdAt', 'readBy', 'audience'])
-                    && request.resource.data.title is string
+                    && isShortString(request.resource.data.title, 150)
+                    && request.resource.data.body is string
+                    && request.resource.data.body.size() <= 500
                     && request.resource.data.createdAt is number
                     && request.resource.data.readBy is list
-                    && request.resource.data.readBy.size() == 0;
+                    && request.resource.data.readBy.size() == 0
+                    && isInternalLink(request.resource.data.get('link', null))
+                    && (request.resource.data.audience == 'admin' || isAdmin())
+                    && request.resource.data.audience in ['all', 'admin'];
+
+      // A reader may only append their own uid to readBy — nothing else.
       allow update: if isAdmin()
-                    || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']));
+                    || (isAuth()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy'])
+                        && request.resource.data.readBy.hasAll(resource.data.readBy)
+                        && request.resource.data.readBy.hasOnly(resource.data.readBy.concat([request.auth.uid])));
+
       allow delete: if isAdmin();
     }
 
-    // ── Config (admin FCM token): /api/push reads it server-side without
-    //    auth (token is unusable without the FCM server key); admin writes ─
+    // ── Config: admin-only. /api/push reads it with a service account,
+    //    which bypasses these rules, so nothing here is public. ───────────
     match /config/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
   }
 }

@@ -4,6 +4,7 @@ import { ArrowRight, ShoppingBag, Tag, Package } from "lucide-react";
 import { getProduct, addOrder } from "../../lib/firestore";
 import type { Product } from "../../lib/types";
 import { WILAYAS } from "../../lib/algeria";
+import { normalizePhone, isValidAlgerianPhone } from "../../lib/text";
 
 const S = {
   input: {
@@ -26,15 +27,17 @@ const S = {
 type OrderForm = {
   buyerFirstName: string;
   buyerLastName: string;
+  buyerPhone: string;
   wilaya: string;
   city: string;
   quantity: number;
   note: string;
 };
 
-const emptyForm = (maxQty: number): OrderForm => ({
+const emptyForm = (): OrderForm => ({
   buyerFirstName: "",
   buyerLastName: "",
+  buyerPhone: "",
   wilaya: "",
   city: "",
   quantity: 1,
@@ -46,7 +49,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [mainImage, setMainImage] = useState<string | undefined>(undefined);
-  const [form, setForm] = useState<OrderForm>(emptyForm(1));
+  const [form, setForm] = useState<OrderForm>(emptyForm());
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -56,7 +59,7 @@ export default function ProductDetail() {
     getProduct(id).then((p) => {
       setProduct(p);
       if (p?.image) setMainImage(p.image);
-      if (p) setForm(emptyForm(p.quantity));
+      setForm(emptyForm());
       setLoading(false);
     });
   }, [id]);
@@ -72,6 +75,15 @@ export default function ProductDetail() {
       setError("يرجى ملء جميع الحقول المطلوبة");
       return;
     }
+    if (!isValidAlgerianPhone(form.buyerPhone)) {
+      setError("رقم هاتف غير صالح — مثال: 0551234567");
+      return;
+    }
+    if (product.quantity < 1) {
+      setError("هذا المنتج غير متوفر حالياً");
+      return;
+    }
+    const quantity = Math.max(1, Math.min(product.quantity, Math.floor(form.quantity) || 1));
     setSubmitting(true);
     setError("");
     try {
@@ -81,14 +93,15 @@ export default function ProductDetail() {
         storeId: product.storeId,
         buyerFirstName: form.buyerFirstName.trim(),
         buyerLastName: form.buyerLastName.trim(),
+        buyerPhone: normalizePhone(form.buyerPhone),
         wilaya: form.wilaya,
         city: form.city.trim(),
-        quantity: form.quantity,
+        quantity,
         note: form.note.trim() || undefined,
         status: "pending",
       });
       setSuccess(true);
-      setForm(emptyForm(product.quantity));
+      setForm(emptyForm());
     } catch (err) {
       setError("حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.");
     } finally {
@@ -290,6 +303,25 @@ export default function ProductDetail() {
                     required
                   />
                 </div>
+              </div>
+
+              <div style={{ marginBottom: "1rem" }}>
+                <label style={S.label} htmlFor="order-phone">رقم الهاتف *</label>
+                <input
+                  id="order-phone"
+                  type="tel"
+                  inputMode="tel"
+                  dir="ltr"
+                  autoComplete="tel"
+                  style={{ ...S.input, textAlign: "right" }}
+                  value={form.buyerPhone}
+                  onChange={(e) => sf("buyerPhone", e.target.value)}
+                  placeholder="0551234567"
+                  required
+                />
+                <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.72rem", marginTop: "0.3rem" }}>
+                  يستعمله المتجر للتواصل معك بخصوص التوصيل.
+                </p>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>

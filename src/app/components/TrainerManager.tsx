@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, X, Trash2, Check, Clock, MapPin, Calendar, Users, DollarSign, ImageIcon, BookOpen, Inbox } from "lucide-react";
+import { Plus, X, Trash2, Clock, MapPin, Calendar, DollarSign, ImageIcon, BookOpen, Inbox } from "lucide-react";
 import { subscribeToTrainerCourses, addTrainerCourse, updateTrainerCourse, deleteTrainerCourse, subscribeToTrainerRegistrations } from "../../lib/firestore";
 import { uploadImage } from "../../lib/storage";
 import type { TrainerCourse, CourseRegistration } from "../../lib/types";

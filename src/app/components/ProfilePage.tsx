@@ -18,10 +18,6 @@ const typeLabel: Record<string, string> = {
   store: "متجر عتاد", trainer: "مدرب", other: "إعلامي",
 };
 
-const workLabels: Record<string, string> = {
-  article: "مقالات", video: "فيديوهات", audio: "أعمال صوتية", image: "صور",
-};
-
 function safeTags(values?: string[]) {
   return (values ?? []).map((v) => v.trim()).filter(Boolean);
 }

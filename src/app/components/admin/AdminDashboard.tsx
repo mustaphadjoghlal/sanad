@@ -4,7 +4,7 @@ import "react-quill/dist/quill.snow.css";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Globe, Newspaper, GraduationCap,
+  X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -20,7 +20,6 @@ import {
   approveItem, rejectItem, toggleFeatured,
   saveThemeSettings, subscribeToTheme,
   saveSiteContent, subscribeToSiteContent,
-  getUserProfile,
   addChannel, updateChannel, deleteChannel, subscribeToChannels,
   sendNotification, subscribeToNotifications,
   addNews, updateNews, deleteNews, subscribeToNews,
@@ -63,6 +62,8 @@ if (typeof document !== "undefined" && !document.getElementById("quill-dark-styl
 
 type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "news" | "theses" | "appearance" | "content" | "notifications" | "settings";
 type StatusFilter = "all" | "pending" | "approved";
+/** Channel manager tabs — these are UI groupings, not Channel["type"] values. */
+type ChannelTab = "tv" | "electronic" | "radio" | "news" | "club";
 
 // ── Shared styles ───────────────────────────────────────────────
 const S = {
@@ -1789,7 +1790,7 @@ function ChannelsSection() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [tabFilter, setTabFilter] = useState<"tv" | "electronic" | "radio" | "news" | "club">("tv");
+  const [tabFilter, setTabFilter] = useState<ChannelTab>("tv");
 
   useEffect(() => {
     return subscribeToChannels((data) => {
@@ -1825,14 +1826,14 @@ function ChannelsSection() {
     setEditId(ch.id); setShowForm(true);
   };
 
-  const chTabFn: Record<string, (c: Channel) => boolean> = {
+  const chTabFn: Record<ChannelTab, (c: Channel) => boolean> = {
     tv:         (c) => c.type === "tv",
     electronic: (c) => c.category === "قنوات الكترونية",
     radio:      (c) => c.type === "radio",
     news:       (c) => (c.type === "website" || (c.type !== "tv" && c.type !== "radio")) && c.category !== "قنوات الكترونية" && c.category !== "نوادي إعلامية",
     club:       (c) => c.category === "نوادي إعلامية",
   };
-  const chTabs: { key: string; label: string; icon: string }[] = [
+  const chTabs: { key: ChannelTab; label: string; icon: string }[] = [
     { key: "tv",         label: "قنوات تلفزيونية", icon: "📺" },
     { key: "electronic", label: "قنوات الكترونية",  icon: "📡" },
     { key: "radio",      label: "محطات إذاعية",    icon: "📻" },
@@ -2339,6 +2340,32 @@ function NewsSection() {
                 {imgUploading ? "جاري الرفع..." : form.image ? "تغيير الصورة" : "اختر صورة"}
               </label>
               {form.image && <input style={{ ...S.input, marginTop: "0.4rem" }} value={form.imageAlt || ""} onChange={(e) => setForm({ ...form, imageAlt: e.target.value })} placeholder="alt text (للـ SEO)" />}
+            </div>
+            {/* Inline article images. NewsItem.contentImages and the upload
+                handler both existed, but the form had no control for them, so
+                no article could ever carry one. */}
+            <div>
+              <label style={S.label}>صور المحتوى</label>
+              {form.contentImages && form.contentImages.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {form.contentImages.map((img, idx) => (
+                    <div key={idx} style={{ position: "relative" }}>
+                      <img src={img.url} alt={img.alt || ""} loading="lazy" style={{ width: "100%", height: "80px", objectFit: "cover", borderRadius: "0.375rem" }} />
+                      <button
+                        type="button"
+                        aria-label="حذف الصورة"
+                        onClick={() => setForm((f) => ({ ...f, contentImages: f.contentImages?.filter((_, i) => i !== idx) }))}
+                        style={{ position: "absolute", top: 2, left: 2, background: "rgba(0,0,0,0.7)", color: "#ff6b6b", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center" }}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input style={{ ...S.input, marginBottom: "0.4rem" }} value={pendingAlt} onChange={(e) => setPendingAlt(e.target.value)} placeholder="وصف الصورة التالية (alt text)" />
+              <label style={{ ...S.input, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: contentImgUploading ? "var(--theme-text-secondary, #6aad6a)" : "var(--theme-badge-text, #81c784)" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleContentImgUpload(f); e.target.value = ""; }} disabled={contentImgUploading} />
+                {contentImgUploading ? "جاري الرفع..." : "+ إضافة صورة للمحتوى"}
+              </label>
             </div>
             <div className="flex gap-3 justify-end pt-2">
               <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>

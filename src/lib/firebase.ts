@@ -23,6 +23,28 @@ export const storage = getStorage(app);
 export const ADMIN_EMAIL = "admin@sanadz.media";
 export const FCM_VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined;
 
+/**
+ * The messaging worker lives on its own scope. The PWA worker owns "/", and
+ * two workers registered on the same scope evict each other on every load —
+ * which is what used to break offline caching and push registration in turn.
+ */
+export const FCM_SW_SCOPE = "/firebase-cloud-messaging-push-scope";
+
+/**
+ * Config travels in the worker's registration URL rather than a postMessage,
+ * because the browser starts the worker with no page attached when a push
+ * arrives while the site is closed. Only the four values FCM actually needs
+ * are passed; all of them are public client identifiers, not secrets.
+ */
+export const FCM_SW_URL =
+  "/firebase-messaging-sw.js?" +
+  new URLSearchParams({
+    apiKey: firebaseConfig.apiKey ?? "",
+    projectId: firebaseConfig.projectId ?? "",
+    messagingSenderId: firebaseConfig.messagingSenderId ?? "",
+    appId: firebaseConfig.appId ?? "",
+  }).toString();
+
 export async function getMessagingInstance() {
   if (typeof window === "undefined") return null;
   const supported = await isSupported();

@@ -4,6 +4,7 @@ import { createBrowserRouter } from "react-router-dom";
 import Layout from "./components/Layout";
 import Home from "./components/Home";
 import NotFound from "./components/NotFound";
+import { RouteErrorBoundary } from "./components/ErrorBoundary";
 
 const Courses = lazy(() => import("./components/Courses"));
 const Equipment = lazy(() => import("./components/Equipment"));
@@ -58,6 +59,9 @@ export const router = createBrowserRouter([
   {
     path: "/",
     Component: Layout,
+    // Without this a thrown error anywhere below renders React Router's own
+    // English crash screen instead of the site.
+    errorElement: <RouteErrorBoundary />,
     children: [
       { index: true, Component: Home },
       { path: "courses", element: page(Courses) },
@@ -90,26 +94,32 @@ export const router = createBrowserRouter([
   },
   {
     path: "/sanad-admin",
+    errorElement: <RouteErrorBoundary />,
     element: page(AdminLogin),
   },
   {
     path: "/sanad-admin/dashboard",
+    errorElement: <RouteErrorBoundary />,
     element: page(AdminDashboard),
   },
   {
     path: "/register",
+    errorElement: <RouteErrorBoundary />,
     element: page(Register),
   },
   {
     path: "/login",
+    errorElement: <RouteErrorBoundary />,
     element: page(UserLogin),
   },
   {
     path: "/forgot-password",
+    errorElement: <RouteErrorBoundary />,
     element: page(ForgotPassword),
   },
   {
     path: "/user/dashboard",
+    errorElement: <RouteErrorBoundary />,
     element: page(UserDashboard),
   },
 ]);

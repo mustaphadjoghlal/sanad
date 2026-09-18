@@ -398,3 +398,89 @@ body {
 .group-hover\:text-theme-accent:is(:where(.group):hover *) {
   color: var(--theme-accent, #00a355) !important;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Accessibility
+   ───────────────────────────────────────────────────────────────────────── */
+
+/*
+ * Keyboard focus. There was no visible focus indicator anywhere outside the
+ * inputs, which made the site impossible to navigate without a mouse.
+ * :focus-visible keeps the ring off mouse clicks.
+ */
+:focus-visible {
+  outline: 2px solid var(--theme-accent, #00a355);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--theme-accent, #00a355);
+  outline-offset: 3px;
+}
+
+.input-dz:focus-visible,
+.select-dz:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--theme-accent, #00a355);
+  outline-offset: 1px;
+}
+
+/* Jump straight to the content, past the whole navigation. */
+.skip-link {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 100;
+  transform: translateY(-120%);
+  padding: 0.75rem 1.25rem;
+  background: var(--theme-accent, #00a355);
+  color: #07130b;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0.5rem;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Screen-reader-only text, for icon buttons that carry no visible label. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/*
+ * Respect a reduced-motion preference. The hero has an infinite 18s zoom and
+ * there are eleven keyframe animations besides — all of them are decoration,
+ * and for a vestibular-sensitive visitor they are a reason to leave.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-float {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

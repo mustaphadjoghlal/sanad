@@ -3,6 +3,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -14,7 +15,8 @@ import {
   limit,
   arrayUnion,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import type { FirestoreError } from "firebase/firestore";
+import { db, auth } from "./firebase";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
@@ -27,32 +29,60 @@ function docRef(colName: string, id: string) {
   return doc(db, colName, id);
 }
 
+/**
+ * A listener that fails silently leaves the UI spinning forever, so every
+ * subscription routes its error here: it is logged for debugging and handed
+ * to the caller, which is expected to stop its loading state and say so.
+ */
+export function reportError(
+  source: string,
+  error: FirestoreError | Error,
+  onError?: (error: Error) => void
+) {
+  console.error(`[firestore:${source}]`, error);
+  onError?.(error as Error);
+}
+
+/**
+ * Upper bound on every unbounded list subscription. Without it each visitor
+ * downloads — and the project pays for — the entire collection on every page
+ * view, and that cost grows with the archive forever.
+ */
+export const LIST_LIMIT = 200;
+
 // Subscribe to a collection (real-time)
 export function subscribeToCollection<T extends { id: string }>(
   colName: string,
-  callback: (items: T[]) => void
+  callback: (items: T[]) => void,
+  onError?: (error: Error) => void,
+  max: number = LIST_LIMIT
 ) {
-  const q = query(col(colName), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    const items = snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
-    callback(items);
-  });
+  const q = query(col(colName), orderBy("createdAt", "desc"), limit(max));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as T))),
+    (error) => reportError(colName, error, onError)
+  );
 }
 
 // Subscribe to featured items (featured === true AND status === 'approved' or no status)
 export function subscribeToFeatured<T extends { id: string; createdAt?: number }>(
   colName: string,
-  callback: (items: T[]) => void
+  callback: (items: T[]) => void,
+  onError?: (error: Error) => void
 ): () => void {
-  const q = query(col(colName), where("featured", "==", true));
-  return onSnapshot(q, (snap) => {
-    const items = snap.docs
-      .map((d) => ({ id: d.id, ...d.data() } as T & { status?: string })
-      )
-      .filter((item) => item.status === "approved" || !item.status)
-      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-    callback(items as T[]);
-  });
+  const q = query(col(colName), where("featured", "==", true), limit(50));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const items = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as T & { status?: string }))
+        .filter((item) => item.status === "approved" || !item.status)
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      callback(items as T[]);
+    },
+    (error) => reportError(`${colName}:featured`, error, onError)
+  );
 }
 
 // --- COURSES ---
@@ -126,7 +156,7 @@ export async function toggleFeatured(colName: string, id: string, current: boole
 }
 
 // --- USER PROFILES ---
-function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
+function stripUndefined<T extends object>(obj: T): { [key: string]: any } {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 }
 
@@ -134,7 +164,7 @@ export async function saveUserProfile(
   uid: string,
   data: Omit<UserProfile, "id" | "createdAt" | "status" | "featured">
 ) {
-  const clean = stripUndefined(data as Record<string, unknown>);
+  const clean = stripUndefined(data);
   const ref = docRef("users", uid);
   const existing = await getDoc(ref);
   if (existing.exists()) {
@@ -180,15 +210,14 @@ export async function isUsernameAvailable(username: string, currentUid: string):
 
 export function subscribeToUserProfile(
   uid: string,
-  callback: (profile: UserProfile | null) => void
+  callback: (profile: UserProfile | null) => void,
+  onError?: (error: Error) => void
 ): () => void {
-  return onSnapshot(docRef("users", uid), (snap) => {
-    if (!snap.exists()) {
-      callback(null);
-    } else {
-      callback({ id: snap.id, ...snap.data() } as UserProfile);
-    }
-  });
+  return onSnapshot(
+    docRef("users", uid),
+    (snap) => callback(snap.exists() ? ({ id: snap.id, ...snap.data() } as UserProfile) : null),
+    (error) => reportError("users:self", error, onError)
+  );
 }
 
 export async function resubmitProfile(uid: string): Promise<void> {
@@ -205,50 +234,67 @@ export async function updateChannel(id: string, data: Partial<Omit<Channel, "id"
 export async function deleteChannel(id: string) {
   return deleteDoc(docRef("channels", id));
 }
-export function subscribeToChannels(callback: (items: Channel[]) => void): () => void {
-  const q = query(col("channels"), orderBy("name", "asc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Channel)));
-  });
+export function subscribeToChannels(
+  callback: (items: Channel[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("channels"), orderBy("name", "asc"), limit(500));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Channel))),
+    (error) => reportError("channels", error, onError)
+  );
 }
 
 export function subscribeToAllProfiles(
-  callback: (profiles: UserProfile[]) => void
+  callback: (profiles: UserProfile[]) => void,
+  onError?: (error: Error) => void
 ): () => void {
-  const q = query(col("users"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    const profiles = snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile));
-    callback(profiles);
-  });
+  const q = query(col("users"), orderBy("createdAt", "desc"), limit(1000));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as UserProfile))),
+    (error) => reportError("users:all", error, onError)
+  );
 }
 
 export function subscribeToApprovedProfessionals(
-  callback: (profiles: UserProfile[]) => void
+  callback: (profiles: UserProfile[]) => void,
+  onError?: (error: Error) => void
 ): () => void {
   // No orderBy to avoid composite index requirement — sort client-side
-  const q = query(col("users"), where("status", "==", "approved"));
-  return onSnapshot(q, (snap) => {
-    const profiles = snap.docs
-      .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
-      .filter((p) => p.type !== "store")
-      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-    callback(profiles);
-  });
+  const q = query(col("users"), where("status", "==", "approved"), limit(500));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const profiles = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
+        .filter((p) => p.type !== "store")
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      callback(profiles);
+    },
+    (error) => reportError("users:professionals", error, onError)
+  );
 }
 
 export function subscribeToApprovedStores(
-  callback: (profiles: (UserProfile & { whatsapp?: string })[]) => void
+  callback: (profiles: (UserProfile & { whatsapp?: string })[]) => void,
+  onError?: (error: Error) => void
 ): () => void {
   // status filter must be in the query (not client-side): rules deny list
   // queries that could return non-approved profiles. Sort client-side to
   // avoid a composite index.
-  const q = query(col("users"), where("type", "==", "store"), where("status", "==", "approved"));
-  return onSnapshot(q, (snap) => {
-    const profiles = snap.docs
-      .map((d) => ({ id: d.id, ...d.data() } as UserProfile & { whatsapp?: string }))
-      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-    callback(profiles);
-  });
+  const q = query(col("users"), where("type", "==", "store"), where("status", "==", "approved"), limit(300));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const profiles = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as UserProfile & { whatsapp?: string }))
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      callback(profiles);
+    },
+    (error) => reportError("users:stores", error, onError)
+  );
 }
 
 export async function getLatestProducts(n = 4): Promise<Product[]> {
@@ -270,14 +316,19 @@ export async function getThemeSettings(): Promise<ThemeSettings> {
   return { ...DEFAULT_THEME, ...(snap.data() as Partial<ThemeSettings>) };
 }
 
-export function subscribeToTheme(callback: (theme: ThemeSettings) => void): () => void {
-  return onSnapshot(THEME_DOC(), (snap) => {
-    if (!snap.exists()) {
+export function subscribeToTheme(
+  callback: (theme: ThemeSettings) => void,
+  onError?: (error: Error) => void
+): () => void {
+  return onSnapshot(
+    THEME_DOC(),
+    (snap) => callback(snap.exists() ? { ...DEFAULT_THEME, ...(snap.data() as Partial<ThemeSettings>) } : DEFAULT_THEME),
+    (error) => {
+      // Fall back to the built-in theme so the site still renders.
       callback(DEFAULT_THEME);
-    } else {
-      callback({ ...DEFAULT_THEME, ...(snap.data() as Partial<ThemeSettings>) });
+      reportError("settings:theme", error, onError);
     }
-  });
+  );
 }
 
 // --- SITE CONTENT ---
@@ -287,55 +338,107 @@ export async function saveSiteContent(content: SiteContent): Promise<void> {
   await setDoc(CONTENT_DOC(), content);
 }
 
-export function subscribeToSiteContent(callback: (content: SiteContent) => void): () => void {
-  return onSnapshot(CONTENT_DOC(), (snap) => {
-    if (!snap.exists()) {
+export function subscribeToSiteContent(
+  callback: (content: SiteContent) => void,
+  onError?: (error: Error) => void
+): () => void {
+  return onSnapshot(
+    CONTENT_DOC(),
+    (snap) => callback(snap.exists() ? { ...DEFAULT_SITE_CONTENT, ...(snap.data() as Partial<SiteContent>) } : DEFAULT_SITE_CONTENT),
+    (error) => {
       callback(DEFAULT_SITE_CONTENT);
-    } else {
-      callback({ ...DEFAULT_SITE_CONTENT, ...(snap.data() as Partial<SiteContent>) });
+      reportError("settings:content", error, onError);
     }
-  });
+  );
 }
 
 // --- FCM TOKENS ---
-// Admin token lives in config/adminFCM (admin-only write per rules).
+// Admin token lives in config/adminFCM (admin-only read/write per rules).
 export async function saveAdminFCMToken(token: string): Promise<void> {
   await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() }, { merge: true });
 }
 
-// Regular users store their token on their own profile doc only — they must
-// never touch config/adminFCM, otherwise admin pushes go to the wrong device.
+// A push token is not public data, so it lives in /fcmTokens/{uid} — readable
+// only by its owner, the admin, and /api/push via its service account. The
+// user profile doc is world-readable once approved and must never hold one.
 export async function saveUserFCMToken(uid: string, token: string): Promise<void> {
-  await setDoc(doc(db, "users", uid), { fcmToken: token }, { merge: true });
+  await setDoc(doc(db, "fcmTokens", uid), { token, updatedAt: Date.now() }, { merge: true });
+  // Self-healing migration: strip the token older builds wrote onto the
+  // public profile. Ignore failures — the token above is what matters.
+  await updateDoc(doc(db, "users", uid), { fcmToken: deleteField() }).catch(() => {});
 }
 
 // --- APP NOTIFICATIONS ---
+export interface NotificationResult {
+  /** The in-app notification document was written. */
+  stored: boolean;
+  /** A device push was actually delivered through /api/push. */
+  pushed: boolean;
+  reason?: string;
+}
+
+/**
+ * Writes the in-app notification, then asks /api/push to deliver it to
+ * devices. The push endpoint requires a signed-in caller and only lets the
+ * admin target an audience, so an anonymous visitor's action (a course
+ * sign-up) still records the notification for the admin without a push.
+ *
+ * Throws only for admin broadcasts (`targetType` set), where the admin needs
+ * to know delivery failed.
+ */
 export async function sendNotification(
   notif: Omit<AppNotification, "id" | "readBy" | "audience">,
   targetType?: string,
   audience: "all" | "admin" = "all"
-): Promise<void> {
+): Promise<NotificationResult> {
   await addDoc(col("notifications"), { ...notif, audience, readBy: [] });
-  const res = await fetch("/api/push", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: notif.title, body: notif.body, targetType }),
-  });
-  const result = await res.json();
-  if (!result.ok) {
-    throw new Error(result.reason || "FCM delivery failed");
+
+  const user = auth.currentUser;
+  if (!user) {
+    const reason = "Push skipped: no signed-in user";
+    if (targetType) throw new Error(reason);
+    return { stored: true, pushed: false, reason };
+  }
+
+  try {
+    const idToken = await user.getIdToken();
+    const res = await fetch("/api/push", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ title: notif.title, body: notif.body, targetType }),
+    });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok || !result.ok) {
+      throw new Error(result.reason || result.error || `FCM delivery failed (${res.status})`);
+    }
+    return { stored: true, pushed: true };
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : "FCM delivery failed";
+    if (targetType) throw new Error(reason);
+    return { stored: true, pushed: false, reason };
   }
 }
 
-export function subscribeToNotifications(isAdmin: boolean, callback: (notifs: AppNotification[]) => void): () => void {
-  const q = query(col("notifications"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppNotification));
-    // Admin-only notifications (new registrations, resubmissions, etc.) must
-    // never reach regular users — older docs without `audience` are treated as public.
-    const visible = isAdmin ? all : all.filter((n) => n.audience !== "admin");
-    callback(visible);
-  });
+export function subscribeToNotifications(
+  isAdmin: boolean,
+  callback: (notifs: AppNotification[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  // Admin-only notifications (new registrations, resubmissions, ...) carry
+  // real names and must never reach regular users. The filter has to live in
+  // the query, not in the callback: security rules reject a list query that
+  // could return documents the caller may not read.
+  const q = isAdmin
+    ? query(col("notifications"), orderBy("createdAt", "desc"), limit(100))
+    : query(col("notifications"), where("audience", "==", "all"), orderBy("createdAt", "desc"), limit(100));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppNotification))),
+    (error) => reportError("notifications", error, onError)
+  );
 }
 
 export async function markNotificationRead(notifId: string, uid: string): Promise<void> {
@@ -358,11 +461,16 @@ export async function updateNews(id: string, data: Partial<Omit<NewsItem, "id">>
 export async function deleteNews(id: string) {
   return deleteDoc(docRef("news", id));
 }
-export function subscribeToNews(callback: (items: NewsItem[]) => void): () => void {
-  const q = query(col("news"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as NewsItem)));
-  });
+export function subscribeToNews(
+  callback: (items: NewsItem[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("news"), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as NewsItem))),
+    (error) => reportError("news", error, onError)
+  );
 }
 export async function getLatestNews(n = 3): Promise<NewsItem[]> {
   const q = query(col("news"), orderBy("createdAt", "desc"), limit(n));
@@ -380,11 +488,16 @@ export async function updateThesis(id: string, data: Partial<Omit<Thesis, "id">>
 export async function deleteThesis(id: string) {
   return deleteDoc(docRef("theses", id));
 }
-export function subscribeToTheses(callback: (items: Thesis[]) => void): () => void {
-  const q = query(col("theses"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Thesis)));
-  });
+export function subscribeToTheses(
+  callback: (items: Thesis[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("theses"), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Thesis))),
+    (error) => reportError("theses", error, onError)
+  );
 }
 export async function getThesis(id: string): Promise<Thesis | null> {
   const snap = await getDoc(docRef("theses", id));
@@ -412,17 +525,29 @@ export async function updateProduct(id: string, data: Partial<Omit<Product, "id"
 export async function deleteProduct(id: string) {
   return deleteDoc(docRef("products", id));
 }
-export function subscribeToStoreProducts(storeId: string, callback: (products: Product[]) => void): () => void {
-  const q = query(col("products"), where("storeId", "==", storeId), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product)));
-  });
+export function subscribeToStoreProducts(
+  storeId: string,
+  callback: (products: Product[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("products"), where("storeId", "==", storeId), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product))),
+    (error) => reportError("products:store", error, onError)
+  );
 }
-export function subscribeToActiveStoreProducts(storeId: string, callback: (products: Product[]) => void): () => void {
-  const q = query(col("products"), where("storeId", "==", storeId), where("status", "==", "active"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product)));
-  });
+export function subscribeToActiveStoreProducts(
+  storeId: string,
+  callback: (products: Product[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("products"), where("storeId", "==", storeId), where("status", "==", "active"), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Product))),
+    (error) => reportError("products:active", error, onError)
+  );
 }
 export async function getProduct(id: string): Promise<Product | null> {
   const snap = await getDoc(docRef("products", id));
@@ -437,15 +562,26 @@ export async function addOrder(data: Omit<Order, "id" | "createdAt">) {
 export async function updateOrder(id: string, data: Partial<Omit<Order, "id">>) {
   return updateDoc(docRef("orders", id), data);
 }
-export function subscribeToStoreOrders(storeId: string, callback: (orders: Order[]) => void): () => void {
-  const q = query(col("orders"), where("storeId", "==", storeId), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order)));
-  });
+export function subscribeToStoreOrders(
+  storeId: string,
+  callback: (orders: Order[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("orders"), where("storeId", "==", storeId), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order))),
+    (error) => reportError("orders", error, onError)
+  );
 }
 
 // --- TRAINER COURSES ---
-export async function addTrainerCourse(data: Omit<TrainerCourse, "id" | "createdAt">) {
+// `status` and `featured` are set here, never by the caller: a trainer must
+// not be able to publish or feature their own course. The security rules
+// enforce the same thing server-side.
+export async function addTrainerCourse(
+  data: Omit<TrainerCourse, "id" | "createdAt" | "status" | "featured">
+) {
   return addDoc(col("trainerCourses"), { ...data, createdAt: Date.now(), status: "pending", featured: false });
 }
 export async function updateTrainerCourse(id: string, data: Partial<Omit<TrainerCourse, "id">>) {
@@ -454,33 +590,57 @@ export async function updateTrainerCourse(id: string, data: Partial<Omit<Trainer
 export async function deleteTrainerCourse(id: string) {
   return deleteDoc(docRef("trainerCourses", id));
 }
-export function subscribeToTrainerCourses(trainerId: string, callback: (courses: TrainerCourse[]) => void): () => void {
-  const q = query(col("trainerCourses"), where("trainerId", "==", trainerId), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse)));
-  });
+export function subscribeToTrainerCourses(
+  trainerId: string,
+  callback: (courses: TrainerCourse[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("trainerCourses"), where("trainerId", "==", trainerId), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse))),
+    (error) => reportError("trainerCourses:own", error, onError)
+  );
 }
-export function subscribeToApprovedTrainerCourses(trainerId: string, callback: (courses: TrainerCourse[]) => void): () => void {
-  const q = query(col("trainerCourses"), where("trainerId", "==", trainerId), where("status", "==", "approved"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse)));
-  });
+export function subscribeToApprovedTrainerCourses(
+  trainerId: string,
+  callback: (courses: TrainerCourse[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("trainerCourses"), where("trainerId", "==", trainerId), where("status", "==", "approved"), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse))),
+    (error) => reportError("trainerCourses:approved", error, onError)
+  );
 }
-export function subscribeToAllTrainerCourses(callback: (courses: TrainerCourse[]) => void): () => void {
-  const q = query(col("trainerCourses"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse)));
-  });
+export function subscribeToAllTrainerCourses(
+  callback: (courses: TrainerCourse[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("trainerCourses"), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as TrainerCourse))),
+    (error) => reportError("trainerCourses:all", error, onError)
+  );
 }
-export function subscribeToApprovedTrainers(callback: (trainers: UserProfile[]) => void): () => void {
+export function subscribeToApprovedTrainers(
+  callback: (trainers: UserProfile[]) => void,
+  onError?: (error: Error) => void
+): () => void {
   // status filter must be in the query — see subscribeToApprovedStores
-  const q = query(col("users"), where("type", "==", "trainer"), where("status", "==", "approved"));
-  return onSnapshot(q, (snap) => {
-    const trainers = snap.docs
-      .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
-      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-    callback(trainers);
-  });
+  const q = query(col("users"), where("type", "==", "trainer"), where("status", "==", "approved"), limit(300));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const trainers = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as UserProfile))
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      callback(trainers);
+    },
+    (error) => reportError("users:trainers", error, onError)
+  );
 }
 export async function getTrainer(id: string): Promise<UserProfile | null> {
   const snap = await getDoc(docRef("users", id));
@@ -494,9 +654,15 @@ export async function getTrainer(id: string): Promise<UserProfile | null> {
 export async function submitCourseRegistration(data: Omit<CourseRegistration, "id" | "createdAt">) {
   return addDoc(col("courseRegistrations"), { ...data, createdAt: Date.now() });
 }
-export function subscribeToTrainerRegistrations(trainerId: string, callback: (regs: CourseRegistration[]) => void): () => void {
-  const q = query(col("courseRegistrations"), where("trainerId", "==", trainerId), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as CourseRegistration)));
-  });
+export function subscribeToTrainerRegistrations(
+  trainerId: string,
+  callback: (regs: CourseRegistration[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const q = query(col("courseRegistrations"), where("trainerId", "==", trainerId), orderBy("createdAt", "desc"), limit(LIST_LIMIT));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as CourseRegistration))),
+    (error) => reportError("courseRegistrations", error, onError)
+  );
 }

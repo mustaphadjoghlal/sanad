@@ -529,7 +529,7 @@ export default function StoreManager({ uid }: { uid: string; profile: UserProfil
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    {["المنتج", "المشتري", "الولاية", "الكمية", "الحالة", "ملاحظة المشتري", "إجراءات"].map((h) => (
+                    {["المنتج", "المشتري", "الهاتف", "الولاية", "الكمية", "الحالة", "ملاحظة المشتري", "إجراءات"].map((h) => (
                       <th key={h} style={S.th}>{h}</th>
                     ))}
                   </tr>
@@ -537,7 +537,7 @@ export default function StoreManager({ uid }: { uid: string; profile: UserProfil
                 <tbody>
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={7} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
+                      <td colSpan={8} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
                         لا توجد طلبيات.
                       </td>
                     </tr>
@@ -547,6 +547,16 @@ export default function StoreManager({ uid }: { uid: string; profile: UserProfil
                         <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.productName}</span>
                       </td>
                       <td style={S.td}>{o.buyerFirstName} {o.buyerLastName}</td>
+                      <td style={S.td}>
+                        {o.buyerPhone ? (
+                          <a href={`tel:${o.buyerPhone}`} dir="ltr" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none", whiteSpace: "nowrap" }}>
+                            {o.buyerPhone}
+                          </a>
+                        ) : (
+                          // Orders placed before the phone field existed.
+                          <span style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>—</span>
+                        )}
+                      </td>
                       <td style={S.td}>{o.wilaya}</td>
                       <td style={S.td}>{o.quantity}</td>
                       <td style={S.td}>

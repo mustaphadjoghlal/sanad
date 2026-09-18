@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
-  MapPin, Phone, MessageCircle, Globe, Building2, Calendar, Clock,
-  Users, DollarSign, ArrowRight, CheckCircle, X, BookOpen,
+  MapPin, Phone, MessageCircle, Building2, Calendar, Clock,
+  Users, ArrowRight, CheckCircle, X, BookOpen,
 } from "lucide-react";
 import { getTrainer, subscribeToApprovedTrainerCourses, submitCourseRegistration, sendNotification } from "../../lib/firestore";
 import type { UserProfile, TrainerCourse } from "../../lib/types";

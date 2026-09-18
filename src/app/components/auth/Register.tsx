@@ -540,11 +540,7 @@ export default function Register() {
                   </Link>
                   <button
                     onClick={goToStep2}
-                    disabled={
-                      !mainType ||
-                      (mainType === "individual" && !individualSubType) ||
-                      (mainType === "store" && !form.storePlan)
-                    }
+                    disabled={!canProceedStep1}
                     className="btn-dz px-6 py-2.5 rounded-xl text-sm disabled:opacity-40 flex items-center gap-2"
                   >
                     <span>التالي</span>

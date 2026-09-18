@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { 
-  LogOut, Pencil, User, MapPin, Briefcase, Award, AlertTriangle, 
-  CheckCircle, ExternalLink, ImageIcon, Upload, Trash2, Plus, Play, Pause, Mic, Check
+  LogOut, Pencil, User, MapPin,  AlertTriangle, 
+  CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check
 } from "lucide-react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, storage } from "../../../lib/firebase";
@@ -10,7 +10,8 @@ import {
   subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification
 } from "../../../lib/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import type { UserProfile, PortfolioWork, WorkType, VoiceSampleCategory, Gender, AudioSample, SocialLinks } from "../../lib/types";
+import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialLinks } from "../../../lib/types";
+import { WORK_TYPES } from "../../../lib/types";
 import WorksSection from "../WorksSection";
 
 const typeLabel: Record<string, string> = {
@@ -46,15 +47,6 @@ const statusStyle: Record<string, React.CSSProperties> = {
   approved: { background: "rgba(0, 163, 85, 0.15)", color: "#00a355", border: "1px solid rgba(0, 163, 85, 0.3)" },
   rejected: { background: "rgba(198, 40, 40, 0.15)", color: "#f87171", border: "1px solid rgba(198, 40, 40, 0.3)" },
 };
-
-const typeIcon: Record<string, React.ElementType> = {
-  voice: Mic,
-  journalist: Briefcase,
-  photographer: ImageIcon,
-  store: Briefcase,
-};
-
-const VOICE_SAMPLE_CATEGORIES: VoiceSampleCategory[] = ["وثائقي", "إعلاني", "دوبلاج", "كتب صوتية", "رد آلي", "أخرى"];
 
 const workTypeLabel: Record<WorkType, string> = {
   article: "مقال",
@@ -200,13 +192,6 @@ export default function UserDashboard() {
   const [newWorkUrl, setNewWorkUrl] = useState("");
   const [uploadingWork, setUploadingWork] = useState(false);
   const [workUploadProgress, setWorkUploadProgress] = useState(0);
-  const [showAddAudio, setShowAddAudio] = useState(false);
-  const [newAudioTitle, setNewAudioTitle] = useState("");
-  const [newAudioCategory, setNewAudioCategory] = useState<VoiceSampleCategory>("وثائقي");
-  const [uploadingAudio, setUploadingAudio] = useState(false);
-  const [audioUploadProgress, setAudioUploadProgress] = useState(0);
-  const [audioPlayingIdx, setAudioPlayingIdx] = useState<number | null>(null);
-  const audioPreviewRef = useState<HTMLAudioElement | null>(null);
 
   const csvToTags = (value: string) => value.split(",").map((v) => v.trim()).filter(Boolean).slice(0, 20);
 
@@ -263,9 +248,6 @@ export default function UserDashboard() {
     setNewWorkType("article");
     setNewWorkTitle("");
     setNewWorkUrl("");
-    setShowAddAudio(false);
-    setNewAudioTitle("");
-    setNewAudioCategory("وثائقي");
     setEditing(true);
     setEditError("");
   };
@@ -414,8 +396,6 @@ export default function UserDashboard() {
     );
   }
 
-  const TypeIcon = typeIcon[profile.type] || User;
-
   return (
     <div className="min-h-screen" dir="rtl" style={{ background: "#0e0e0e" }}>
       {uploadToast && (
@@ -549,6 +529,32 @@ export default function UserDashboard() {
                 <div><label style={S.label}>الولاية</label><select style={S.input} value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}><option value="">اختر الولاية</option>{wilayas.map((w) => <option key={w} value={w}>{w}</option>)}</select></div>
                 <div><label style={S.label}>رقم الهاتف</label><input style={S.input} value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} dir="ltr" /></div>
                 {profile.type !== "store" && <div><label style={S.label}>سنوات الخبرة</label><input style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} /></div>}
+                {profile.type === "store" && (
+                  <div className="md:col-span-2">
+                    <label style={S.label} htmlFor="store-username">اسم المتجر في الرابط</label>
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: "var(--theme-text-muted)", fontSize: "0.78rem", flexShrink: 0 }} dir="ltr">sanadz.media/stores/</span>
+                      <input
+                        id="store-username"
+                        style={{ ...S.input, flex: 1 }}
+                        dir="ltr"
+                        value={editForm.username}
+                        onChange={(e) => handleUsernameChange(e.target.value)}
+                        placeholder="my-store"
+                      />
+                    </div>
+                    <p style={{ fontSize: "0.73rem", marginTop: "0.3rem", color:
+                      usernameStatus === "taken" || usernameStatus === "invalid" ? "#f87171"
+                      : usernameStatus === "available" ? "#4ade80"
+                      : "var(--theme-text-muted)" }}>
+                      {usernameStatus === "checking" ? "جاري التحقق…"
+                        : usernameStatus === "taken" ? "هذا الاسم مستخدم، اختر اسماً آخر"
+                        : usernameStatus === "invalid" ? "الاسم يجب أن يكون 3 أحرف على الأقل"
+                        : usernameStatus === "available" ? "✓ الاسم متاح"
+                        : "أحرف لاتينية وأرقام و _ فقط. اتركه فارغاً لاستعمال الرابط الافتراضي."}
+                    </p>
+                  </div>
+                )}
                 <div className="md:col-span-2"><label style={S.label}>{profile.type === "store" ? "وصف المتجر" : "نبذة / CV"}</label><textarea style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={editForm.bio} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} /></div>
               </div>
               {profile.type !== "store" && (
@@ -562,6 +568,139 @@ export default function UserDashboard() {
                   </div>
                 </div>
               )}
+              {/* Portfolio works — the state, upload handlers, storage rules and
+                  the public WorksSection that renders these all existed, but
+                  nothing in the dashboard ever let a user add one, so every
+                  profile was stuck at zero works and zero voice samples. */}
+              {profile.type !== "store" && (
+                <div className="space-y-3" style={{ background: "#121812", border: "1px solid var(--p-20)", borderRadius: "0.6rem", padding: "0.85rem" }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p style={{ color: "var(--theme-text)", fontSize: "0.86rem", fontWeight: 600 }}>أعمالي ({editForm.works.length})</p>
+                      <p style={{ color: "var(--theme-text-muted)", fontSize: "0.73rem", marginTop: "0.2rem" }}>مقالات، فيديوهات يوتيوب، عينات صوتية وصور — تظهر في صفحتك العامة.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddWork((v) => !v); setEditError(""); }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs flex-shrink-0"
+                      style={{ background: showAddWork ? "var(--p-20)" : "var(--theme-accent)", color: showAddWork ? "var(--theme-text)" : "#07130b", border: "none", cursor: "pointer" }}
+                    >
+                      <Plus size={14} />
+                      {showAddWork ? "إلغاء" : "إضافة عمل"}
+                    </button>
+                  </div>
+
+                  {editForm.works.length > 0 && (
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      {editForm.works.map((w) => {
+                        const Icon = workTypeIcon[w.type];
+                        return (
+                          <li key={w.id} className="flex items-center gap-2" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)", borderRadius: "0.5rem", padding: "0.5rem 0.65rem" }}>
+                            <Icon size={14} style={{ color: "var(--theme-accent)", flexShrink: 0 }} />
+                            <span style={{ flex: 1, minWidth: 0, color: "var(--theme-text)", fontSize: "0.8rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {w.title}
+                            </span>
+                            <span style={{ color: "var(--theme-text-muted)", fontSize: "0.7rem", flexShrink: 0 }}>{workTypeLabel[w.type]}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveWork(w.id)}
+                              aria-label={`حذف ${w.title}`}
+                              style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", padding: "0.15rem", flexShrink: 0 }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+
+                  {showAddWork && (
+                    <div className="space-y-2" style={{ borderTop: "1px solid var(--p-15)", paddingTop: "0.7rem" }}>
+                      <div className="flex flex-wrap gap-1.5">
+                        {WORK_TYPES.map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setNewWorkType(t)}
+                            className="px-3 py-1.5 rounded-lg text-xs"
+                            style={{
+                              background: newWorkType === t ? "var(--p-25)" : "var(--p-08)",
+                              color: newWorkType === t ? "var(--theme-accent)" : "var(--theme-text-muted)",
+                              border: `1px solid ${newWorkType === t ? "var(--p-40)" : "var(--p-15)"}`,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {workTypeLabel[t]}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div>
+                        <label style={S.label} htmlFor="work-title">عنوان العمل *</label>
+                        <input
+                          id="work-title"
+                          style={S.input}
+                          value={newWorkTitle}
+                          onChange={(e) => setNewWorkTitle(e.target.value)}
+                          placeholder={newWorkType === "audio" ? "تعليق صوتي — وثائقي" : "عنوان العمل"}
+                        />
+                      </div>
+
+                      {newWorkType === "article" || newWorkType === "video" ? (
+                        <div>
+                          <label style={S.label} htmlFor="work-url">
+                            {newWorkType === "video" ? "رابط يوتيوب *" : "رابط المقال *"}
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              id="work-url"
+                              style={{ ...S.input, flex: 1 }}
+                              dir="ltr"
+                              value={newWorkUrl}
+                              onChange={(e) => setNewWorkUrl(e.target.value)}
+                              placeholder="https://"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleAddLinkWork}
+                              disabled={!newWorkTitle.trim() || !newWorkUrl.trim()}
+                              className="px-4 rounded-lg text-sm font-semibold flex-shrink-0 disabled:opacity-50"
+                              style={{ background: "var(--theme-accent)", color: "#07130b", border: "none", cursor: "pointer" }}
+                            >
+                              إضافة
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <label style={S.label} htmlFor="work-file">
+                            {newWorkType === "audio" ? "ملف صوتي (أو فيديو يُستخرج صوته)" : "ملف الصورة"}
+                          </label>
+                          <input
+                            id="work-file"
+                            type="file"
+                            accept={newWorkType === "audio" ? "audio/*,video/*" : "image/*"}
+                            disabled={uploadingWork}
+                            style={{ ...S.input, padding: "0.45rem" }}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleWorkFileUpload(file);
+                              e.target.value = "";
+                            }}
+                          />
+                          {uploadingWork && (
+                            <p style={{ color: "var(--theme-accent)", fontSize: "0.73rem", marginTop: "0.35rem" }}>
+                              جاري الرفع… {workUploadProgress}%
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4">
                 <button onClick={handleSaveEdit} disabled={saving} className="flex-1 py-2.5 rounded-xl font-bold" style={{ background: "var(--theme-accent)", color: "#07130b" }}>{saving ? "جاري الحفظ..." : "حفظ التغييرات"}</button>
                 <button onClick={() => setEditing(false)} className="px-6 py-2.5 rounded-xl font-bold" style={{ background: "var(--p-15)", color: "var(--theme-text)", border: "1px solid var(--p-30)" }}>إلغاء</button>

@@ -286,7 +286,7 @@ export interface PortfolioWork {
   url: string; // article: external link | video: youtube link | audio/image: uploaded file URL
 }
 
-export const VOICE_SAMPLE_CATEGORIES = ['وثائقي', 'دوبلاج', 'إعلاني', 'تعليمي', 'قصصي', 'إخباري', 'بودكاست', 'أخرى'] as const;
+export const VOICE_SAMPLE_CATEGORIES = ['وثائقي', 'دوبلاج', 'إعلاني', 'تعليمي', 'قصصي', 'إخباري', 'بودكاست', 'كتب صوتية', 'رد آلي', 'أخرى'] as const;
 export type VoiceSampleCategory = typeof VOICE_SAMPLE_CATEGORIES[number];
 
 export interface AudioSample {
@@ -319,6 +319,8 @@ export interface UserProfile {
   rejectionNote?: string;
   createdAt: number;
   username?: string;
+  /** Store / trainer contact number used for the WhatsApp deep link. */
+  whatsapp?: string;
   interests?: string[];
   tagline?: string;
   gender?: Gender;
@@ -357,6 +359,8 @@ export interface Order {
   storeId: string;
   buyerFirstName: string;
   buyerLastName: string;
+  /** Required: the seller has no other way to reach the buyer about delivery. */
+  buyerPhone: string;
   wilaya: string;
   city: string;
   quantity: number;

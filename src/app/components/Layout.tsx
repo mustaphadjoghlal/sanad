@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, LayoutDashboard, Bell, ChevronDown, Mail, Facebook, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, firebaseConfig, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL } from "../../lib/firebase";
+import { auth, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL, FCM_SW_URL, FCM_SW_SCOPE } from "../../lib/firebase";
 import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead, saveAdminFCMToken, saveUserFCMToken } from "../../lib/firestore";
 import type { UserProfile, AppNotification } from "../../lib/types";
 
@@ -17,6 +17,9 @@ export default function Layout() {
   const notifRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
   const prevNotifCountRef = useRef(0);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    typeof Notification !== "undefined" ? Notification.permission : "denied"
+  );
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -66,9 +69,11 @@ export default function Layout() {
       setUserProfile("admin");
       return;
     }
-    const unsub = subscribeToUserProfile(currentUser.uid, (profile) => {
-      setUserProfile(profile ?? null);
-    });
+    const unsub = subscribeToUserProfile(
+      currentUser.uid,
+      (profile) => setUserProfile(profile ?? null),
+      () => setUserProfile(null)
+    );
     return unsub;
   }, [currentUser]);
 
@@ -76,89 +81,89 @@ export default function Layout() {
   useEffect(() => {
     if (!currentUser) { setNotifications([]); prevNotifCountRef.current = 0; return; }
     const isAdminUser = currentUser.email === ADMIN_EMAIL;
-    const unsub = subscribeToNotifications(isAdminUser, (notifs) => {
-      const prevCount = prevNotifCountRef.current;
-      if (prevCount > 0 && notifs.length > prevCount) {
-        const newest = notifs[0];
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification(newest.title, { body: newest.body, icon: "/icon-192.png", dir: "rtl", lang: "ar" });
-        }
-      }
-      prevNotifCountRef.current = notifs.length;
-      setNotifications(notifs);
-    });
+    // No OS notification is raised here: FCM already delivers one for the same
+    // event, and firing a second from this listener showed every foreground
+    // user the same notification twice.
+    const unsub = subscribeToNotifications(
+      isAdminUser,
+      (notifs) => {
+        prevNotifCountRef.current = notifs.length;
+        setNotifications(notifs);
+      },
+      () => setNotifications([])
+    );
     return unsub;
   }, [currentUser]);
 
-  // Request notification permission + register FCM token — only after userProfile is known
+  // Register the FCM token once the visitor has granted permission. Permission
+  // itself is never requested here: an unprompted popup on page load is what
+  // browsers penalise, so it is asked for behind the bell's explicit button.
   useEffect(() => {
     if (!currentUser || userProfile === null) return;
-    if (!("Notification" in window)) return;
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+    if (Notification.permission !== "granted") return;
+
+    let cancelled = false;
 
     const init = async () => {
-      let permission = Notification.permission;
-      if (permission === "default") {
-        permission = await Notification.requestPermission();
-      }
-      if (permission !== "granted") return;
-
       try {
-        const sw = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-        // Wait for the specific service worker to be active
-        let retry = 0;
-        while (!sw.active && retry < 10) {
-          await new Promise(r => setTimeout(r, 500));
-          retry++;
-        }
-        
-        if (sw.active) {
-          sw.active.postMessage({ type: "FIREBASE_CONFIG", config: firebaseConfig });
-        }
-
         if (!FCM_VAPID_KEY) {
-          console.warn("FCM_VAPID_KEY is missing");
+          console.warn("FCM_VAPID_KEY is missing — push notifications disabled");
           return;
         }
+
+        // The messaging worker gets its own scope. Registering it at "/" would
+        // fight the PWA worker for that scope, and each would silently evict
+        // the other on every page load.
+        const sw = await navigator.serviceWorker.register(
+          `${FCM_SW_URL}&v=1`,
+          { scope: FCM_SW_SCOPE }
+        );
+        await navigator.serviceWorker.ready;
+        if (cancelled) return;
+
         const messaging = await getMessagingInstance();
-        if (!messaging) return;
+        if (!messaging || cancelled) return;
 
         const { getToken, onMessage } = await import("firebase/messaging");
         const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: sw });
-        
+        if (cancelled) return;
+
         if (token) {
           if (userProfile === "admin") {
             await saveAdminFCMToken(token);
           } else {
             await saveUserFCMToken(currentUser.uid, token);
           }
-          console.log("FCM Token registered successfully");
         }
 
         onMessage(messaging, (payload) => {
           const title = payload.notification?.title ?? "سند";
           const body = payload.notification?.body ?? "";
-          
-          // Use service worker to show notification for better mobile support
-          if (sw.active) {
-            sw.showNotification(title, {
-              body,
-              icon: "/icon-192.png",
-              dir: "rtl",
-              lang: "ar",
-              tag: "sanad-notif-" + Date.now(),
-              data: payload.data
-            });
-          } else {
-            new Notification(title, { body, icon: "/icon-192.png", dir: "rtl", lang: "ar" });
-          }
+          // Going through the worker keeps foreground and background
+          // notifications identical, and works where the Notification
+          // constructor is unavailable (Android Chrome).
+          sw.showNotification(title, {
+            body,
+            icon: "/icon-192.png",
+            dir: "rtl",
+            lang: "ar",
+            tag: "sanad-notif-" + Date.now(),
+            data: payload.data,
+          }).catch(() => {
+            if (Notification.permission === "granted") {
+              new Notification(title, { body, icon: "/icon-192.png", dir: "rtl", lang: "ar" });
+            }
+          });
         });
       } catch (err) {
-        console.error("FCM Registration Error:", err);
+        console.error("FCM registration error:", err);
       }
     };
 
     init();
-  }, [currentUser, userProfile]);
+    return () => { cancelled = true; };
+  }, [currentUser, userProfile, notifPermission]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -177,6 +182,14 @@ export default function Layout() {
     navigate("/");
   };
 
+  // Asked for only on an explicit click — the registration effect above picks
+  // it up through `notifPermission`, so no page reload is needed.
+  const requestNotifPermission = async () => {
+    if (!("Notification" in window)) return;
+    const permission = await Notification.requestPermission();
+    setNotifPermission(permission);
+  };
+
   const isRegularUser = userProfile && userProfile !== "admin";
   const isAdmin = userProfile === "admin" && currentUser;
   const isLoggedOut = !currentUser;
@@ -184,24 +197,10 @@ export default function Layout() {
     ? notifications.filter((n) => !n.readBy?.includes(currentUser.uid)).length
     : 0;
 
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
-  useEffect(() => {
-    if ("Notification" in window) {
-      setNotifPermission(Notification.permission);
-    }
-  }, []);
-
-  const requestNotifPermission = async () => {
-    if (!("Notification" in window)) return;
-    const permission = await Notification.requestPermission();
-    setNotifPermission(permission);
-    if (permission === "granted") {
-      window.location.reload(); // Reload to trigger the FCM registration effect
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0e0e0e" }}>
+      <a href="#main-content" className="skip-link">تخطَّ إلى المحتوى</a>
+
       {/* Header */}
       <header
         className="sticky top-0 z-50 transition-all duration-300"
@@ -270,6 +269,10 @@ export default function Layout() {
               {/* More dropdown */}
               <div className="relative" ref={moreRef}>
                 <button
+                  type="button"
+                  aria-expanded={moreOpen}
+                  aria-haspopup="true"
+                  aria-label="روابط إضافية"
                   onClick={() => setMoreOpen((o) => !o)}
                   className="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200"
                   style={{
@@ -319,7 +322,7 @@ export default function Layout() {
             </nav>
 
             {/* Search icon */}
-            <Link to="/search" className="hidden md:flex p-2 rounded-lg transition-all duration-200" style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--p-20)", textDecoration: "none" }}
+            <Link to="/search" aria-label="البحث في الموقع" className="hidden md:flex p-2 rounded-lg transition-all duration-200" style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--p-20)", textDecoration: "none" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-10)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
               <Search size={16} />
@@ -330,6 +333,7 @@ export default function Layout() {
               {/* Notification Permission Prompt */}
               {currentUser && notifPermission === "default" && (
                 <button
+                  type="button"
                   onClick={requestNotifPermission}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs animate-pulse"
                   style={{ color: "#fff", background: "var(--theme-accent, #00a355)", border: "none" }}
@@ -411,6 +415,10 @@ export default function Layout() {
             {currentUser && (
               <div className="relative" ref={notifRef}>
                 <button
+                  type="button"
+                  aria-expanded={notifOpen}
+                  aria-haspopup="true"
+                  aria-label={unreadCount > 0 ? `الإشعارات (${unreadCount} غير مقروء)` : "الإشعارات"}
                   onClick={() => {
                     setNotifOpen((o) => !o);
                     if (!notifOpen && unreadCount > 0 && currentUser) {
@@ -428,7 +436,7 @@ export default function Layout() {
                       className="absolute -top-1 -left-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-xs font-bold"
                       style={{ background: "var(--theme-accent)", color: "#fff", fontSize: "0.65rem", padding: "0 4px" }}
                     >
-                      {unreadCount > 9 ? "9+" : unreadCount}
+                      <span aria-hidden="true">{unreadCount > 9 ? "9+" : unreadCount}</span>
                     </span>
                   )}
                 </button>
@@ -491,6 +499,10 @@ export default function Layout() {
 
             {/* Mobile menu button */}
             <button
+              type="button"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav"
+              aria-label={mobileMenuOpen ? "إغلاق القائمة" : "فتح القائمة"}
               className="md:hidden p-2 rounded-lg transition-all duration-200"
               style={{
                 color: "var(--theme-text-secondary, #a5d6a7)",
@@ -506,6 +518,7 @@ export default function Layout() {
           {/* Mobile Nav */}
           {mobileMenuOpen && (
             <nav
+              id="mobile-nav"
               className="md:hidden pb-4 flex flex-col gap-1 animate-fade-in-down"
               style={{ borderTop: "1px solid var(--p-20)", paddingTop: "0.75rem" }}
             >
@@ -603,7 +616,7 @@ export default function Layout() {
         />
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1" tabIndex={-1}>
         <Outlet />
       </main>
 
@@ -678,7 +691,7 @@ export default function Layout() {
             </Link>
           </div>
           <p style={{ color: "var(--theme-text-dim, #455a64)" }} className="text-xs">
-            جميع الحقوق محفوظة © 2026
+            جميع الحقوق محفوظة © {new Date().getFullYear()}
           </p>
         </div>
       </footer>
