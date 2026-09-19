@@ -468,17 +468,97 @@ async function callAdminEndpoint(
   return result;
 }
 
+/** What a member deletion actually managed to remove. */
+export interface MemberDeletionReport {
+  profileDeleted: boolean;
+  authAccountDeleted: boolean;
+  removed: { products: number; courses: number; registrations: number; orders: number };
+  /** Arabic descriptions of anything that did not go through. */
+  problems: string[];
+}
+
+/** Deletes every document a query returns, and says how many that was. */
+async function deleteWhere(
+  collectionName: string,
+  field: string,
+  value: string
+): Promise<number> {
+  const snapshot = await getDocs(query(col(collectionName), where(field, "==", value)));
+  await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
+  return snapshot.size;
+}
+
 /**
- * Removes a member completely: the profile document and push token from
- * Firestore, then the sign-in account itself.
+ * Removes a member and everything that belonged to them.
  *
- * The order matters. Firestore goes first because the admin can do it
- * directly under the security rules; if the account deletion then fails, the
- * caller is told, rather than being left believing a half-delete succeeded.
+ * Deleting only the profile document is not enough, and leaves the site in a
+ * worse state than before: a deleted store's products stay on the shelves
+ * linking to a profile that no longer exists, a deleted trainer's courses
+ * stay open for registration, and the orders and course registrations hold
+ * other people's names and phone numbers with nobody left to act on them.
+ *
+ * Editorial content the admin approved into the main catalogue — jobs, news,
+ * courses, equipment listings — is deliberately left alone: it was curated,
+ * it stands on its own, and it is not tied to a profile page.
+ *
+ * Nothing here throws. Each step is attempted, and the report says exactly
+ * what happened, because a delete that half-succeeds in silence is the worst
+ * outcome of all.
  */
-export async function adminDeleteMember(uid: string): Promise<void> {
-  await deleteAccountData(uid);
-  await callAdminEndpoint("/api/admin-delete-account", uid);
+export async function adminDeleteMember(uid: string): Promise<MemberDeletionReport> {
+  const report: MemberDeletionReport = {
+    profileDeleted: false,
+    authAccountDeleted: false,
+    removed: { products: 0, courses: 0, registrations: 0, orders: 0 },
+    problems: [],
+  };
+
+  const sweep = async (
+    key: keyof MemberDeletionReport["removed"],
+    collectionName: string,
+    field: string,
+    label: string
+  ) => {
+    try {
+      report.removed[key] = await deleteWhere(collectionName, field, uid);
+    } catch {
+      report.problems.push(`تعذّر حذف ${label}`);
+    }
+  };
+
+  await sweep("products", "products", "storeId", "منتجات المتجر");
+  await sweep("orders", "orders", "storeId", "طلبات المتجر");
+  await sweep("courses", "trainerCourses", "trainerId", "دورات المدرب");
+  await sweep("registrations", "courseRegistrations", "trainerId", "تسجيلات الدورات");
+
+  await deleteDoc(doc(db, "fcmTokens", uid)).catch(() => {});
+
+  try {
+    await deleteDoc(doc(db, "users", uid));
+    // Read it back: a delete that reports success but leaves the document in
+    // place is exactly the failure this whole function exists to rule out.
+    const stillThere = await getDoc(doc(db, "users", uid));
+    report.profileDeleted = !stillThere.exists();
+    if (!report.profileDeleted) report.problems.push("الملف الشخصي ما زال موجوداً في قاعدة البيانات");
+  } catch (e) {
+    report.problems.push(
+      e instanceof Error && e.message.includes("permission")
+        ? "قاعدة البيانات رفضت حذف الملف الشخصي — تأكد أنك داخل بحساب الأدمن"
+        : "تعذّر حذف الملف الشخصي من قاعدة البيانات"
+    );
+  }
+
+  try {
+    await callAdminEndpoint("/api/admin-delete-account", uid);
+    report.authAccountDeleted = true;
+  } catch (e) {
+    report.problems.push(
+      (e instanceof Error ? e.message : "تعذّر حذف حساب الدخول") +
+        " (حساب الدخول فقط — لم يتأثر ما حُذف أعلاه)"
+    );
+  }
+
+  return report;
 }
 
 /**

@@ -133,13 +133,24 @@ describe("users — the admin's note", () => {
 });
 
 describe("users — deletion", () => {
+  // A store with something to leave behind: its own products, the orders
+  // placed against them, and a push token.
   beforeEach(() => seed(async (db) => {
-    await setDoc(doc(db, "users/user1"), profile());
+    await setDoc(doc(db, "users/user1"), profile({ type: "store", status: "approved" }));
     await setDoc(doc(db, "fcmTokens/user1"), { token: "t", updatedAt: Date.now() });
+    await setDoc(doc(db, "products/prod1"), { storeId: "user1", name: "ميكروفون", price: 100 });
+    await setDoc(doc(db, "products/prod2"), { storeId: "user1", name: "سماعة", price: 50 });
+    await setDoc(doc(db, "products/other"), { storeId: "user2", name: "كاميرا", price: 900 });
+    await setDoc(doc(db, "orders/order1"), order({ storeId: "user1" }));
+    await setDoc(doc(db, "orders/other"), order({ storeId: "user2" }));
+    await setDoc(doc(db, "trainerCourses/c1"), { trainerId: "user1", title: "دورة", status: "approved", featured: false });
+    await setDoc(doc(db, "courseRegistrations/r1"), { trainerId: "user1", courseId: "c1", name: "طالب", phone: "0551234567", createdAt: Date.now() });
   }));
 
-  it("ALLOWS the admin to delete a member's profile", async () => {
+  it("ALLOWS the admin to delete a member's profile, and it is really gone", async () => {
     await assertSucceeds(deleteDoc(doc(admin(), "users/user1")));
+    const after = await getDoc(doc(admin(), "users/user1"));
+    expect(after.exists()).toBe(false);
   });
 
   it("ALLOWS the admin to delete their push token too", async () => {
@@ -148,6 +159,28 @@ describe("users — deletion", () => {
 
   it("BLOCKS one member deleting another", async () => {
     await assertFails(deleteDoc(doc(user("user2"), "users/user1")));
+  });
+
+  it("ALLOWS the admin to sweep the member's products, orders, courses and registrations", async () => {
+    for (const path of ["products/prod1", "products/prod2", "orders/order1", "trainerCourses/c1", "courseRegistrations/r1"]) {
+      await assertSucceeds(deleteDoc(doc(admin(), path)));
+    }
+  });
+
+  it("ALLOWS the admin to find exactly that member's content, and nobody else's", async () => {
+    const db = admin();
+    const products = await getDocs(query(collection(db, "products"), where("storeId", "==", "user1")));
+    const orders = await getDocs(query(collection(db, "orders"), where("storeId", "==", "user1")));
+    expect(products.size).toBe(2);
+    expect(orders.size).toBe(1); // the other store's order is left alone
+  });
+
+  it("leaves another store's products untouched after the sweep", async () => {
+    const db = admin();
+    const mine = await getDocs(query(collection(db, "products"), where("storeId", "==", "user1")));
+    await Promise.all(mine.docs.map((d) => deleteDoc(d.ref)));
+    const survivor = await getDoc(doc(db, "products/other"));
+    expect(survivor.exists()).toBe(true);
   });
 });
 

@@ -27,6 +27,7 @@ import {
   addThesis, updateThesis, deleteThesis, subscribeToTheses,
   adminResetPassword, adminDeleteMember, setAdminNote,
 } from "../../../lib/firestore";
+import type { MemberDeletionReport } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
@@ -1944,23 +1945,19 @@ function ProfessionalsSection() {
   const [resetTarget, setResetTarget] = useState<UserProfile | null>(null);
   const [noteTarget, setNoteTarget] = useState<UserProfile | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null);
-  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [report, setReport] = useState<MemberDeletionReport | null>(null);
 
-  // Deleting reaches two places — the profile document and the sign-in
-  // account — and the second one can fail on its own, so the result is shown
-  // rather than assumed.
+  // A delete touches the member's content, their profile document and their
+  // sign-in account, and any one of those can fail on its own. The report
+  // says what actually happened instead of guessing.
   const removeMember = async (profile: UserProfile) => {
-    setDeleteError("");
-    try {
-      await adminDeleteMember(profile.id);
-      setDeleteTarget(null);
-    } catch (e) {
-      setDeleteError(
-        (e instanceof Error ? e.message : "تعذّر الحذف") +
-          " — حُذف الملف الشخصي، لكن حساب الدخول قد يكون ما زال قائماً."
-      );
-    }
+    setDeleting(true);
+    setReport(await adminDeleteMember(profile.id));
+    setDeleting(false);
   };
+
+  const closeDelete = () => { setDeleteTarget(null); setReport(null); };
 
   /** The name and details open the member's public page. */
   const InfoLink = ({ profile, children }: { profile: UserProfile; children: React.ReactNode }) => (
@@ -1994,7 +1991,7 @@ function ProfessionalsSection() {
       <button onClick={() => setResetTarget(p)} title="كلمة مرور جديدة" aria-label={`كلمة مرور جديدة لـ ${p.name}`} className={`${pad} rounded`} style={{ color: "#fbbf24", background: "rgba(180,120,0,0.12)" }}>
         <KeyRound size={14} />
       </button>
-      <button onClick={() => { setDeleteError(""); setDeleteTarget(p); }} title="حذف الحساب" aria-label={`حذف حساب ${p.name}`} className={`${pad} rounded`} style={{ color: "#ef9a9a", background: "rgba(198,40,40,0.18)" }}>
+      <button onClick={() => { setReport(null); setDeleteTarget(p); }} title="حذف الحساب" aria-label={`حذف حساب ${p.name}`} className={`${pad} rounded`} style={{ color: "#ef9a9a", background: "rgba(198,40,40,0.18)" }}>
         <Trash2 size={14} />
       </button>
     </div>
@@ -2100,28 +2097,74 @@ function ProfessionalsSection() {
       )}
 
       {deleteTarget && (
-        <Modal title="حذف الحساب" onClose={() => setDeleteTarget(null)}>
-          <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "0.75rem", lineHeight: 1.8 }}>
-            حذف حساب <strong style={{ color: "#ef9a9a" }}>{deleteTarget.name}</strong> نهائياً؟
-          </p>
-          <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.82rem", marginBottom: "1.25rem", lineHeight: 1.8 }}>
-            يُحذف ملفه الشخصي وحساب الدخول معاً، فلا يعود بإمكانه تسجيل الدخول، ويصبح بريده متاحاً للتسجيل من جديد. لا يمكن التراجع.
-          </p>
+        <Modal title="حذف الحساب" onClose={closeDelete}>
+          {report ? (
+            <div>
+              <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "1rem", lineHeight: 1.8 }}>
+                نتيجة حذف <strong style={{ color: "#ef9a9a" }}>{deleteTarget.name}</strong>:
+              </p>
 
-          {deleteError && (
-            <div className="mb-4 p-3 rounded-lg text-sm" role="alert" style={{ background: "rgba(198,40,40,0.1)", border: "1px solid rgba(198,40,40,0.3)", color: "#f87171" }}>
-              {deleteError}
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.5rem" }}>
+                {[
+                  ["الملف الشخصي (Firestore)", report.profileDeleted],
+                  ["حساب الدخول (Authentication)", report.authAccountDeleted],
+                ].map(([label, ok]) => (
+                  <li key={label as string} className="flex items-center gap-2 text-sm" style={{ color: ok ? "#4ade80" : "#f87171" }}>
+                    {ok ? <Check size={15} /> : <AlertTriangle size={15} />}
+                    <span>{label as string}</span>
+                    <span style={{ color: "var(--theme-text-muted)" }}>{ok ? "— حُذف" : "— لم يُحذف"}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {(report.removed.products > 0 || report.removed.orders > 0 ||
+                report.removed.courses > 0 || report.removed.registrations > 0) && (
+                <div className="mt-4 p-3 rounded-lg text-sm" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-secondary)" }}>
+                  <p className="mb-1.5" style={{ color: "var(--theme-text-muted)", fontSize: "0.78rem" }}>وحُذف معه:</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {report.removed.products > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.products} منتج</span>}
+                    {report.removed.orders > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.orders} طلب</span>}
+                    {report.removed.courses > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.courses} دورة</span>}
+                    {report.removed.registrations > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.registrations} تسجيل</span>}
+                  </div>
+                </div>
+              )}
+
+              {report.problems.length > 0 && (
+                <div className="mt-4 p-3 rounded-lg text-sm" role="alert" style={{ background: "rgba(198,40,40,0.1)", border: "1px solid rgba(198,40,40,0.3)", color: "#f87171" }}>
+                  {report.problems.map((problem) => (
+                    <p key={problem} className="leading-relaxed">• {problem}</p>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-end mt-5">
+                <button onClick={closeDelete} className="btn-dz px-5 py-2 rounded-lg text-sm">إغلاق</button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "0.75rem", lineHeight: 1.8 }}>
+                حذف حساب <strong style={{ color: "#ef9a9a" }}>{deleteTarget.name}</strong> نهائياً؟
+              </p>
+              <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.82rem", marginBottom: "1.25rem", lineHeight: 1.8 }}>
+                يُحذف من Firestore ملفه الشخصي وكل ما يملكه — منتجاته وطلباتها، أو دوراته وتسجيلاتها — ثم يُحذف حساب الدخول، فلا يعود بإمكانه الدخول ويصبح بريده متاحاً للتسجيل من جديد.
+                <br />
+                المحتوى الذي اعتمدتَه في الأقسام العامة (وظائف، أخبار، دورات) يبقى كما هو.
+                <br />
+                <strong style={{ color: "#ef9a9a" }}>لا يمكن التراجع.</strong>
+              </p>
+
+              <div className="flex gap-3 justify-end">
+                <button onClick={closeDelete} disabled={deleting} className="px-4 py-2 rounded-lg text-sm disabled:opacity-50" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
+                  إلغاء
+                </button>
+                <button onClick={() => removeMember(deleteTarget)} disabled={deleting} className="px-4 py-2 rounded-lg text-sm disabled:opacity-50" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
+                  {deleting ? "جاري الحذف..." : "حذف نهائياً"}
+                </button>
+              </div>
             </div>
           )}
-
-          <div className="flex gap-3 justify-end">
-            <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
-              إلغاء
-            </button>
-            <button onClick={() => removeMember(deleteTarget)} className="px-4 py-2 rounded-lg text-sm" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
-              حذف نهائياً
-            </button>
-          </div>
         </Modal>
       )}
     </div>
