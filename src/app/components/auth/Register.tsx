@@ -253,7 +253,7 @@ export default function Register() {
       await signOut(auth).catch(() => {});
 
       setSuccess(true);
-      setTimeout(() => navigate("/login"), 4000);
+      setTimeout(() => navigate("/login", { replace: true }), 4000);
     } catch (err: unknown) {
       const e = err as { code?: string; message?: string };
       if (e.code === "auth/email-already-in-use") {

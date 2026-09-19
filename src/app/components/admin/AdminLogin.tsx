@@ -53,7 +53,7 @@ export default function AdminLogin() {
         setLoading(false);
         return;
       }
-      navigate("/sanad-admin/dashboard");
+      navigate("/sanad-admin/dashboard", { replace: true });
     } catch {
       setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
     } finally {

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LogIn } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import { getUserProfile } from "../../../lib/firestore";
 import { usePageTitle } from "../../../lib/usePageTitle";
@@ -14,6 +14,35 @@ export default function UserLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Firebase restores the session asynchronously, so on first paint we do not
+  // yet know whether anyone is signed in. Rendering the form during that gap
+  // is what showed a signed-in visitor the login page when they pressed back.
+  const [checking, setChecking] = useState(true);
+
+  // A sign-in happening right now is handled by handleLogin, which still has
+  // to check the profile exists before letting the visitor through. The guard
+  // below must not race ahead of that check.
+  const signingIn = useRef(false);
+
+  /**
+   * Someone who is already signed in has no business on the login page —
+   * whether they typed the URL, opened a bookmark, or walked back into it
+   * through history. Send them where they were going instead.
+   */
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (signingIn.current) return;
+      if (user) {
+        navigate(user.email === ADMIN_EMAIL ? "/sanad-admin/dashboard" : "/user/dashboard", {
+          replace: true,
+        });
+      } else {
+        setChecking(false);
+      }
+    });
+    return unsub;
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -22,15 +51,18 @@ export default function UserLogin() {
       return;
     }
     setLoading(true);
+    signingIn.current = true;
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
+      // replace, not push: otherwise the login page stays one step back from
+      // the dashboard and the browser's back button returns to it.
       if (cred.user.email === ADMIN_EMAIL) {
-        navigate("/sanad-admin/dashboard");
+        navigate("/sanad-admin/dashboard", { replace: true });
         return;
       }
       const profile = await getUserProfile(cred.user.uid);
       if (profile) {
-        navigate("/user/dashboard");
+        navigate("/user/dashboard", { replace: true });
       } else {
         setError("لم يكتمل تسجيل حسابك. يرجى التسجيل مجدداً بنفس البريد الإلكتروني.");
         await auth.signOut();
@@ -46,8 +78,25 @@ export default function UserLogin() {
       }
     } finally {
       setLoading(false);
+      signingIn.current = false;
     }
   };
+
+  if (checking) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "#0e0e0e" }}
+        role="status"
+        aria-label="جاري التحقق"
+      >
+        <div
+          className="w-10 h-10 rounded-full animate-spin"
+          style={{ border: "3px solid var(--p-20)", borderTopColor: "var(--theme-accent, #00a355)" }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4" dir="rtl" style={{ background: "#0e0e0e" }}>

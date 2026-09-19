@@ -4,7 +4,7 @@ import {
   LogOut, Pencil, User, MapPin,  AlertTriangle, 
   CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check
 } from "lucide-react";
-import { onAuthStateChanged, sendPasswordResetEmail, deleteUser } from "firebase/auth";
+import { onAuthStateChanged, sendPasswordResetEmail, deleteUser, signOut } from "firebase/auth";
 import { auth, storage } from "../../../lib/firebase";
 import { 
   subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification, deleteAccountData
@@ -204,7 +204,7 @@ export default function UserDashboard() {
         setUid(user.uid);
         setAuthLoading(false);
       } else {
-        setTimeout(() => { if (!auth.currentUser) navigate("/login"); }, 800);
+        setTimeout(() => { if (!auth.currentUser) navigate("/login", { replace: true }); }, 800);
       }
     });
     return unsub;
@@ -213,7 +213,14 @@ export default function UserDashboard() {
   useEffect(() => {
     if (!uid) return;
     const unsub = subscribeToUserProfile(uid, (p) => {
-      if (p === null && !authLoading) navigate("/login");
+      // A signed-in account with no profile document is a half-finished
+      // registration. It has to be signed out before being sent to /login,
+      // because the login page now redirects signed-in visitors back here —
+      // leaving the session in place would bounce them between the two.
+      if (p === null && !authLoading) {
+        signOut(auth).finally(() => navigate("/login", { replace: true }));
+        return;
+      }
       setProfile(p);
     });
     return unsub;
