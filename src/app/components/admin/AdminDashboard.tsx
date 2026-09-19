@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import {
@@ -7,7 +7,7 @@ import {
   X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
   KeyRound, Copy, MessageCircle, MessageSquare,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import {
@@ -66,7 +66,21 @@ if (typeof document !== "undefined" && !document.getElementById("quill-dark-styl
   document.head.appendChild(tag);
 }
 
-type Section = "overview" | "courses" | "equipment" | "jobs" | "competitions" | "voice" | "professionals" | "channels" | "news" | "theses" | "appearance" | "content" | "notifications" | "settings";
+/**
+ * The dashboard's sections. Listed as a value, not just a type, so the
+ * section named in the URL can be checked against it at runtime.
+ */
+const SECTIONS = [
+  "overview", "courses", "equipment", "jobs", "competitions", "voice",
+  "professionals", "channels", "news", "theses", "appearance", "content",
+  "notifications", "settings",
+] as const;
+
+type Section = (typeof SECTIONS)[number];
+
+function isSection(value: string | null): value is Section {
+  return value != null && (SECTIONS as readonly string[]).includes(value);
+}
 type StatusFilter = "all" | "pending" | "approved";
 /** Channel manager tabs — these are UI groupings, not Channel["type"] values. */
 type ChannelTab = "tv" | "electronic" | "radio" | "news" | "club";
@@ -640,7 +654,32 @@ function ItemActions({
 // ── Main Dashboard ──────────────────────────────────────────────
 export default function AdminDashboard() {
   usePageTitle("لوحة التحكم الإدارية", undefined, { noindex: true });
-  const [activeSection, setActiveSection] = useState<Section>("overview");
+
+  // The open section lives in the URL rather than in component state, which
+  // reset to "نظرة عامة" on every refresh — so reloading while reading the
+  // professionals list threw you back to the overview. It also makes a
+  // section linkable, and keeps the browser's own reload honest.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const fromUrl = searchParams.get("section");
+  const activeSection: Section = isSection(fromUrl) ? fromUrl : "overview";
+
+  const setActiveSection = useCallback(
+    (id: Section) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          // The overview is the default, so it needs no parameter.
+          if (id === "overview") next.delete("section");
+          else next.set("section", id);
+          return next;
+        },
+        // replace, not push: otherwise every sidebar tap becomes a history
+        // entry and the back button walks the sections instead of leaving.
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const navigate = useNavigate();
