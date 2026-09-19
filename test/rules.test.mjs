@@ -92,6 +92,65 @@ describe("users — self-approval", () => {
   });
 });
 
+describe("users — the admin's note", () => {
+  beforeEach(() => seed((db) => setDoc(doc(db, "users/user1"), profile({ adminNote: "حسّن صورتك" }))));
+
+  it("ALLOWS the admin to leave a note", async () => {
+    await assertSucceeds(
+      updateDoc(doc(admin(), "users/user1"), { adminNote: "رقم هاتفك لا يعمل", adminNoteAt: Date.now() })
+    );
+  });
+
+  it("ALLOWS the admin to clear it", async () => {
+    await assertSucceeds(
+      updateDoc(doc(admin(), "users/user1"), { adminNote: deleteField(), adminNoteAt: deleteField() })
+    );
+  });
+
+  it("BLOCKS the member writing their own note", async () => {
+    await assertFails(updateDoc(doc(user(), "users/user1"), { adminNote: "كل شيء ممتاز" }));
+  });
+
+  it("BLOCKS the member deleting the note", async () => {
+    await assertFails(updateDoc(doc(user(), "users/user1"), { adminNote: deleteField() }));
+  });
+
+  it("BLOCKS erasing the note while resubmitting", async () => {
+    await seed((db) => setDoc(doc(db, "users/user1"), profile({ status: "rejected", adminNote: "حسّن صورتك" })));
+    await assertFails(
+      updateDoc(doc(user(), "users/user1"), { status: "pending", rejectionNote: "", adminNote: "" })
+    );
+  });
+
+  it("ALLOWS a resubmission that leaves the note alone", async () => {
+    await seed((db) => setDoc(doc(db, "users/user1"), profile({ status: "rejected", adminNote: "حسّن صورتك" })));
+    await assertSucceeds(updateDoc(doc(user(), "users/user1"), { status: "pending", rejectionNote: "" }));
+  });
+
+  it("ALLOWS the member to keep editing their profile while a note stands", async () => {
+    await assertSucceeds(updateDoc(doc(user(), "users/user1"), { bio: "نبذة محدّثة" }));
+  });
+});
+
+describe("users — deletion", () => {
+  beforeEach(() => seed(async (db) => {
+    await setDoc(doc(db, "users/user1"), profile());
+    await setDoc(doc(db, "fcmTokens/user1"), { token: "t", updatedAt: Date.now() });
+  }));
+
+  it("ALLOWS the admin to delete a member's profile", async () => {
+    await assertSucceeds(deleteDoc(doc(admin(), "users/user1")));
+  });
+
+  it("ALLOWS the admin to delete their push token too", async () => {
+    await assertSucceeds(deleteDoc(doc(admin(), "fcmTokens/user1")));
+  });
+
+  it("BLOCKS one member deleting another", async () => {
+    await assertFails(deleteDoc(doc(user("user2"), "users/user1")));
+  });
+});
+
 describe("push tokens", () => {
   it("BLOCKS reading another user's push token", async () => {
     await seed((db) => setDoc(doc(db, "fcmTokens/user1"), { token: "secret" }));

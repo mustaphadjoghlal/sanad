@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { 
   LogOut, Pencil, User, MapPin,  AlertTriangle, 
-  CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check
+  CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check, MessageSquare
 } from "lucide-react";
 import { onAuthStateChanged, sendPasswordResetEmail, deleteUser, signOut } from "firebase/auth";
 import { auth, storage } from "../../../lib/firebase";
@@ -575,6 +575,17 @@ export default function UserDashboard() {
                   <div>
                     <p className="text-xs font-black mb-1" style={{ color: "#f87171" }}>يحتاج ملفك لتعديلات:</p>
                     <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>{profile.rejectionNote}</p>
+                  </div>
+                </div>
+              )}
+              {/* A remark from the platform that does not reject the profile,
+                  so it shows whatever the status is. */}
+              {profile.adminNote && (
+                <div className="mt-5 p-4 rounded-xl flex items-start gap-3" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                  <MessageSquare size={18} className="shrink-0" style={{ color: "#60a5fa" }} />
+                  <div>
+                    <p className="text-xs font-black mb-1" style={{ color: "#60a5fa" }}>ملاحظة من إدارة المنصة:</p>
+                    <p className="text-xs leading-relaxed" style={{ color: "#bfdbfe" }}>{profile.adminNote}</p>
                   </div>
                 </div>
               )}

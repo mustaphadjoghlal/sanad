@@ -15,20 +15,27 @@ service cloud.firestore {
     }
 
     // Fields a profile owner must never set on themselves: moderation state
-    // (status/rejectionNote), homepage promotion (featured) and identity
-    // (id/type/createdAt). Only the admin may touch these.
+    // (status/rejectionNote/adminNote), homepage promotion (featured) and
+    // identity (id/type/createdAt). Only the admin may touch these.
+    //
+    // The dashboard saves with updateDoc, which leaves untouched fields out
+    // of the diff entirely, so a member editing their bio does not trip this.
     function noPrivilegedProfileFields() {
       return !request.resource.data.diff(resource.data).affectedKeys()
-               .hasAny(['status', 'featured', 'rejectionNote', 'id', 'type', 'createdAt']);
+               .hasAny(['status', 'featured', 'rejectionNote', 'adminNote', 'adminNoteAt',
+                        'id', 'type', 'createdAt']);
     }
 
     // A rejected profile may be resubmitted by its owner — that is the only
     // status transition a non-admin is allowed to perform.
+    // Resubmitting is the one status change an owner may make; it must not
+    // become a way to erase the admin's note along the way.
     function isResubmission() {
       return resource.data.status == 'rejected'
              && request.resource.data.status == 'pending'
              && request.resource.data.featured == resource.data.featured
-             && request.resource.data.type == resource.data.type;
+             && request.resource.data.type == resource.data.type
+             && request.resource.data.get('adminNote', '') == resource.data.get('adminNote', '');
     }
 
     function isShortString(value, maxLen) {

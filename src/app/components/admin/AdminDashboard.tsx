@@ -5,7 +5,7 @@ import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
   X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
-  KeyRound, Copy, MessageCircle,
+  KeyRound, Copy, MessageCircle, MessageSquare,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -25,7 +25,7 @@ import {
   sendNotification, subscribeToNotifications,
   addNews, updateNews, deleteNews, subscribeToNews,
   addThesis, updateThesis, deleteThesis, subscribeToTheses,
-  adminResetPassword,
+  adminResetPassword, adminDeleteMember, setAdminNote,
 } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
@@ -420,6 +420,91 @@ function PasswordResetModal({ profile, onClose }: { profile: UserProfile; onClos
       )}
     </Modal>
   );
+}
+
+// ── Admin note ──────────────────────────────────────────────────
+/**
+ * Leaves a remark on a member's profile without rejecting it.
+ *
+ * Rejecting was previously the only way to tell a member anything, which
+ * meant taking their profile off the directory to ask for a better photo.
+ * This says the same thing while they stay visible.
+ */
+function AdminNoteModal({ profile, onClose }: { profile: UserProfile; onClose: () => void }) {
+  const [note, setNote] = useState(profile.adminNote ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const existing = (profile.adminNote ?? "").trim();
+
+  const save = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      await setAdminNote(profile.id, note);
+      onClose();
+    } catch {
+      setError("تعذّر حفظ الملاحظة. حاول مجدداً.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal title="ملاحظة للعضو" onClose={onClose}>
+      <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "0.5rem", lineHeight: 1.8 }}>
+        ملاحظة تظهر لـ <strong style={{ color: "var(--theme-accent)" }}>{profile.name}</strong> في لوحته الشخصية.
+      </p>
+      <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.82rem", marginBottom: "1rem", lineHeight: 1.8 }}>
+        لا تُخفي ملفه ولا تغيّر حالته — استخدمها لطلب تعديل أو توضيح دون رفض الملف.
+      </p>
+
+      <label htmlFor="admin-note" className="block mb-1.5 text-sm" style={{ color: "var(--theme-badge-text, #81c784)" }}>
+        نص الملاحظة
+      </label>
+      <textarea
+        id="admin-note"
+        style={{ ...S.input, minHeight: "110px", resize: "vertical" }}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        maxLength={500}
+        placeholder="مثال: صورتك الشخصية غير واضحة، يرجى رفع صورة أفضل."
+      />
+      <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem", marginTop: "0.35rem" }}>
+        {note.trim().length}/500
+      </p>
+
+      {error && (
+        <div className="mt-3 p-3 rounded-lg text-sm" role="alert" style={{ background: "rgba(198,40,40,0.1)", border: "1px solid rgba(198,40,40,0.3)", color: "#f87171" }}>
+          {error}
+        </div>
+      )}
+
+      <div className="flex gap-2 justify-end mt-4 flex-wrap">
+        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
+          إلغاء
+        </button>
+        {existing && (
+          <button
+            onClick={() => { setNote(""); }}
+            disabled={saving || !note.trim()}
+            className="px-4 py-2 rounded-lg text-sm disabled:opacity-40"
+            style={{ border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a", background: "rgba(198,40,40,0.12)" }}
+          >
+            مسح النص
+          </button>
+        )}
+        <button onClick={save} disabled={saving} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
+          {saving ? "جاري الحفظ..." : existing && !note.trim() ? "حذف الملاحظة" : "حفظ الملاحظة"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+/** Where a member's public page lives, which differs by account type. */
+function profilePath(p: UserProfile): string {
+  if (p.type === "store") return `/stores/${p.username || p.id}`;
+  if (p.type === "trainer") return `/trainers/${p.id}`;
+  return `/profile/${p.id}`;
 }
 
 // ── Status filter tabs ──────────────────────────────────────────
@@ -1857,6 +1942,63 @@ function ProfessionalsSection() {
   const pendingCount = profiles.filter((p) => p.status === "pending").length;
   const [rejectTarget, setRejectTarget] = useState<UserProfile | null>(null);
   const [resetTarget, setResetTarget] = useState<UserProfile | null>(null);
+  const [noteTarget, setNoteTarget] = useState<UserProfile | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+
+  // Deleting reaches two places — the profile document and the sign-in
+  // account — and the second one can fail on its own, so the result is shown
+  // rather than assumed.
+  const removeMember = async (profile: UserProfile) => {
+    setDeleteError("");
+    try {
+      await adminDeleteMember(profile.id);
+      setDeleteTarget(null);
+    } catch (e) {
+      setDeleteError(
+        (e instanceof Error ? e.message : "تعذّر الحذف") +
+          " — حُذف الملف الشخصي، لكن حساب الدخول قد يكون ما زال قائماً."
+      );
+    }
+  };
+
+  /** The name and details open the member's public page. */
+  const InfoLink = ({ profile, children }: { profile: UserProfile; children: React.ReactNode }) => (
+    <Link
+      to={profilePath(profile)}
+      title={`فتح ملف ${profile.name}`}
+      style={{ textDecoration: "none", color: "inherit", display: "block", minWidth: 0 }}
+    >
+      {children}
+    </Link>
+  );
+
+  const actions = (p: UserProfile, pad: string) => (
+    <div className="flex gap-1.5 flex-wrap items-center">
+      <button onClick={() => toggleFeatured("users", p.id, p.featured)} title={p.featured ? "إلغاء التمييز" : "تمييز"} className={`${pad} rounded transition-colors`} style={{ color: p.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}>
+        <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
+      </button>
+      {p.status !== "approved" && (
+        <button onClick={() => approveItem("users", p.id)} title="موافقة" className={`${pad} rounded`} style={{ color: "#4ade80", background: "var(--p-15)" }}>
+          <Check size={14} />
+        </button>
+      )}
+      {p.status !== "rejected" && (
+        <button onClick={() => setRejectTarget(p)} title="رفض" className={`${pad} rounded`} style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}>
+          <AlertTriangle size={14} />
+        </button>
+      )}
+      <button onClick={() => setNoteTarget(p)} title={p.adminNote ? "تعديل الملاحظة" : "تقديم ملاحظة"} aria-label={`ملاحظة لـ ${p.name}`} className={`${pad} rounded`} style={{ color: p.adminNote ? "#60a5fa" : "var(--theme-text-muted, #4a7a4a)", background: p.adminNote ? "rgba(59,130,246,0.14)" : "var(--p-10)" }}>
+        <MessageSquare size={14} />
+      </button>
+      <button onClick={() => setResetTarget(p)} title="كلمة مرور جديدة" aria-label={`كلمة مرور جديدة لـ ${p.name}`} className={`${pad} rounded`} style={{ color: "#fbbf24", background: "rgba(180,120,0,0.12)" }}>
+        <KeyRound size={14} />
+      </button>
+      <button onClick={() => { setDeleteError(""); setDeleteTarget(p); }} title="حذف الحساب" aria-label={`حذف حساب ${p.name}`} className={`${pad} rounded`} style={{ color: "#ef9a9a", background: "rgba(198,40,40,0.18)" }}>
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
 
   return (
     <div>
@@ -1877,37 +2019,26 @@ function ProfessionalsSection() {
               background: p.status === "pending" ? "rgba(180,120,0,0.07)" : "var(--p-08)",
               border: p.status === "pending" ? "1px solid rgba(180,120,0,0.35)" : "1px solid var(--p-15)",
             }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>{p.name}</div>
-                  <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
-                  <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", alignItems: "center" }}>
-                    <span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span>
-                    {p.specialty && <span style={S.badge("var(--p-15)")}>{p.specialty}</span>}
-                    {p.location && <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem" }}>{p.location}</span>}
-                    <span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span>
-                  </div>
+              <InfoLink profile={p}>
+                <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>{p.name}</div>
+                <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
+                <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", alignItems: "center" }}>
+                  <span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span>
+                  {p.specialty && <span style={S.badge("var(--p-15)")}>{p.specialty}</span>}
+                  {p.location && <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem" }}>{p.location}</span>}
+                  <span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span>
                 </div>
-                <div style={{ flexShrink: 0 }}>
-                  <div className="flex flex-col gap-1.5 justify-end items-end">
-                    <button onClick={() => toggleFeatured("users", p.id, p.featured)} title={p.featured ? "إلغاء التمييز" : "تمييز"} className="p-2 rounded transition-colors" style={{ color: p.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}>
-                      <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
-                    </button>
-                    {p.status !== "approved" && (
-                      <button onClick={() => approveItem("users", p.id)} title="موافقة" className="p-2 rounded" style={{ color: "#4ade80", background: "var(--p-15)" }}>
-                        <Check size={14} />
-                      </button>
-                    )}
-                    {p.status !== "rejected" && (
-                      <button onClick={() => setRejectTarget(p)} title="رفض" className="p-2 rounded" style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}>
-                        <AlertTriangle size={14} />
-                      </button>
-                    )}
-                    <button onClick={() => setResetTarget(p)} title="كلمة مرور جديدة" aria-label={`كلمة مرور جديدة لـ ${p.name}`} className="p-2 rounded" style={{ color: "#fbbf24", background: "rgba(180,120,0,0.12)" }}>
-                      <KeyRound size={14} />
-                    </button>
-                  </div>
+              </InfoLink>
+
+              {p.adminNote && (
+                <div className="mt-2.5 p-2.5 rounded-lg flex items-start gap-2" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                  <MessageSquare size={13} className="shrink-0 mt-0.5" style={{ color: "#60a5fa" }} />
+                  <p className="text-xs leading-relaxed" style={{ color: "#93c5fd" }}>{p.adminNote}</p>
                 </div>
+              )}
+
+              <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--p-12)" }}>
+                {actions(p, "p-2")}
               </div>
             </div>
           ))}
@@ -1925,33 +2056,24 @@ function ProfessionalsSection() {
                 ) : filtered.map((p) => (
                   <tr key={p.id} className="hover:bg-green-950/20 transition-colors" style={p.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                     <td style={S.td}>
-                      <div>{p.name}</div>
-                      <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{p.email}</div>
+                      <InfoLink profile={p}>
+                        <div style={{ color: "var(--theme-accent, #00a355)" }}>{p.name}</div>
+                        <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>{p.email}</div>
+                      </InfoLink>
+                      {p.adminNote && (
+                        <div className="mt-1 text-xs flex items-center gap-1" style={{ color: "#60a5fa" }}>
+                          <MessageSquare size={11} />
+                          <span className="truncate" style={{ maxWidth: "16rem" }}>{p.adminNote}</span>
+                        </div>
+                      )}
                     </td>
                     <td style={S.td}><span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span></td>
                     <td style={S.td}>{p.specialty || "—"}</td>
                     <td style={S.td}>{p.location || "—"}</td>
                     <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
                     <td style={S.td}>{p.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
-                    <td style={{ ...S.td, width: "160px" }}>
-                      <div className="flex flex-col gap-1.5 justify-end items-end">
-                        <button onClick={() => toggleFeatured("users", p.id, p.featured)} title={p.featured ? "إلغاء التمييز" : "تمييز"} className="p-1.5 rounded transition-colors" style={{ color: p.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: p.featured ? "rgba(180,120,0,0.15)" : "transparent" }}>
-                          <Star size={14} fill={p.featured ? "#fbbf24" : "none"} />
-                        </button>
-                        {p.status !== "approved" && (
-                          <button onClick={() => approveItem("users", p.id)} title="موافقة" className="p-1.5 rounded" style={{ color: "#4ade80", background: "var(--p-15)" }}>
-                            <Check size={14} />
-                          </button>
-                        )}
-                        {p.status !== "rejected" && (
-                          <button onClick={() => setRejectTarget(p)} title="رفض" className="p-1.5 rounded" style={{ color: "#f87171", background: "rgba(198,40,40,0.1)" }}>
-                            <AlertTriangle size={14} />
-                          </button>
-                        )}
-                        <button onClick={() => setResetTarget(p)} title="كلمة مرور جديدة" aria-label={`كلمة مرور جديدة لـ ${p.name}`} className="p-1.5 rounded" style={{ color: "#fbbf24", background: "rgba(180,120,0,0.12)" }}>
-                          <KeyRound size={14} />
-                        </button>
-                      </div>
+                    <td style={{ ...S.td, width: "200px" }}>
+                      {actions(p, "p-1.5")}
                     </td>
                   </tr>
                 ))}
@@ -1971,6 +2093,36 @@ function ProfessionalsSection() {
 
       {resetTarget && (
         <PasswordResetModal profile={resetTarget} onClose={() => setResetTarget(null)} />
+      )}
+
+      {noteTarget && (
+        <AdminNoteModal profile={noteTarget} onClose={() => setNoteTarget(null)} />
+      )}
+
+      {deleteTarget && (
+        <Modal title="حذف الحساب" onClose={() => setDeleteTarget(null)}>
+          <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "0.75rem", lineHeight: 1.8 }}>
+            حذف حساب <strong style={{ color: "#ef9a9a" }}>{deleteTarget.name}</strong> نهائياً؟
+          </p>
+          <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.82rem", marginBottom: "1.25rem", lineHeight: 1.8 }}>
+            يُحذف ملفه الشخصي وحساب الدخول معاً، فلا يعود بإمكانه تسجيل الدخول، ويصبح بريده متاحاً للتسجيل من جديد. لا يمكن التراجع.
+          </p>
+
+          {deleteError && (
+            <div className="mb-4 p-3 rounded-lg text-sm" role="alert" style={{ background: "rgba(198,40,40,0.1)", border: "1px solid rgba(198,40,40,0.3)", color: "#f87171" }}>
+              {deleteError}
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-end">
+            <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 rounded-lg text-sm" style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}>
+              إلغاء
+            </button>
+            <button onClick={() => removeMember(deleteTarget)} className="px-4 py-2 rounded-lg text-sm" style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}>
+              حذف نهائياً
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );

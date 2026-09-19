@@ -316,6 +316,13 @@ export interface UserProfile {
   status: 'pending' | 'approved' | 'rejected';
   featured: boolean;
   rejectionNote?: string;
+  /**
+   * A remark the admin leaves for the member — a missing photo, a phone
+   * number that does not work. Unlike `rejectionNote` it does not reject the
+   * profile, so it can be used on an approved one without taking it offline.
+   */
+  adminNote?: string;
+  adminNoteAt?: number;
   createdAt: number;
   username?: string;
   /** Store / trainer contact number used for the WhatsApp deep link. */

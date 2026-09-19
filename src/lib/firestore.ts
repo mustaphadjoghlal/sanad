@@ -437,6 +437,67 @@ export async function sendNotification(
   }
 }
 
+/** Shared shape of a call to one of the admin-only endpoints. */
+async function callAdminEndpoint(
+  path: string,
+  uid: string
+): Promise<Record<string, unknown>> {
+  const user = auth.currentUser;
+  if (!user) throw new Error("يجب تسجيل الدخول كمسؤول");
+
+  const idToken = await user.getIdToken();
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+    body: JSON.stringify({ uid }),
+  });
+  const result = await res.json().catch(() => ({}));
+  if (!res.ok || !result.ok) {
+    throw new Error(
+      result.code === "missing-permission"
+        ? "حساب الخدمة لا يملك صلاحية إدارة الحسابات. أضف دور Firebase Authentication Admin إليه في Google Cloud."
+        : res.status === 404
+        ? "لا يوجد حساب بهذا المعرّف"
+        : res.status === 403
+        ? "هذه العملية للمسؤول فقط"
+        : res.status === 503
+        ? "الخدمة غير مهيّأة على الخادم"
+        : "تعذّرت العملية. حاول مجدداً."
+    );
+  }
+  return result;
+}
+
+/**
+ * Removes a member completely: the profile document and push token from
+ * Firestore, then the sign-in account itself.
+ *
+ * The order matters. Firestore goes first because the admin can do it
+ * directly under the security rules; if the account deletion then fails, the
+ * caller is told, rather than being left believing a half-delete succeeded.
+ */
+export async function adminDeleteMember(uid: string): Promise<void> {
+  await deleteAccountData(uid);
+  await callAdminEndpoint("/api/admin-delete-account", uid);
+}
+
+/**
+ * Leaves a remark on a member's profile, shown to them on their dashboard.
+ *
+ * Unlike a rejection this does not take the profile offline, so it can be
+ * used to ask an approved member for a better photo without hiding them from
+ * the directory meanwhile. An empty note clears it.
+ */
+export async function setAdminNote(uid: string, note: string): Promise<void> {
+  const trimmed = note.trim();
+  await updateDoc(
+    doc(db, "users", uid),
+    trimmed
+      ? { adminNote: trimmed, adminNoteAt: Date.now() }
+      : { adminNote: deleteField(), adminNoteAt: deleteField() }
+  );
+}
+
 /**
  * Asks /api/admin-reset-password for a fresh password for a member's account.
  *
@@ -449,33 +510,9 @@ export async function sendNotification(
 export async function adminResetPassword(
   uid: string
 ): Promise<{ password: string; email: string | null }> {
-  const user = auth.currentUser;
-  if (!user) throw new Error("يجب تسجيل الدخول كمسؤول");
-
-  const idToken = await user.getIdToken();
-  const res = await fetch("/api/admin-reset-password", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({ uid }),
-  });
-  const result = await res.json().catch(() => ({}));
-  if (!res.ok || !result.ok || !result.password) {
-    throw new Error(
-      result.code === "missing-permission"
-        ? "حساب الخدمة لا يملك صلاحية إدارة الحسابات. أضف دور Firebase Authentication Admin إليه في Google Cloud."
-        : res.status === 404
-        ? "لا يوجد حساب بهذا المعرّف"
-        : res.status === 403
-        ? "هذه العملية للمسؤول فقط"
-        : res.status === 503
-        ? "الخدمة غير مهيّأة على الخادم"
-        : "تعذّر إنشاء كلمة مرور جديدة. حاول مجدداً."
-    );
-  }
-  return { password: result.password as string, email: result.email ?? null };
+  const result = await callAdminEndpoint("/api/admin-reset-password", uid);
+  if (!result.password) throw new Error("تعذّر إنشاء كلمة مرور جديدة. حاول مجدداً.");
+  return { password: result.password as string, email: (result.email as string) ?? null };
 }
 
 export function subscribeToNotifications(
