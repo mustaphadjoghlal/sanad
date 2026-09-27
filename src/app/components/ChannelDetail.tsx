@@ -45,7 +45,9 @@ export default function ChannelDetail() {
       ? `${channel.frequency ? "تردد " : ""}${channel.name} — ${kindWord} ${channel.category}`
       : "",
     channel
-      ? [
+      ? channel.bio?.trim()
+        ? channel.bio.trim().replace(/\s+/g, " ").slice(0, 300)
+        : [
           `${channel.name} — ${kindWord} ${channel.category}`,
           channel.frequency ? `التردد: ${channel.frequency}` : "",
           channel.address ? `العنوان: ${channel.address}` : "",
@@ -138,6 +140,26 @@ export default function ChannelDetail() {
         <div className="space-y-5">
 
           {/* Frequency */}
+          {channel.bio && (
+            <div
+              className="p-6 rounded-2xl"
+              style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}
+            >
+              <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--theme-badge-text, #81c784)" }}>
+                نبذة
+              </h2>
+              {channel.bio.split(/\n+/).map((line, i) => (
+                <p
+                  key={i}
+                  className="text-sm mb-2 last:mb-0"
+                  style={{ color: "var(--theme-text-secondary, #a5d6a7)", lineHeight: 1.9 }}
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+          )}
+
           {channel.frequency && (
             <div
               className="rounded-xl p-5"

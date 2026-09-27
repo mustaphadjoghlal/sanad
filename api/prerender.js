@@ -100,6 +100,8 @@ const ROUTES = {
     // fields — "قناة الشروق TV — قناة تلفزيونية خاصة، التردد 12360" rather
     // than the bare word "خاصة", which is what it used to be.
     describe: (fields, name) => {
+      const bio = readField(fields, "bio");
+      if (bio && String(bio).trim()) return String(bio);
       const kind = CHANNEL_KIND[readField(fields, "type")] ?? "";
       const category = readField(fields, "category") ?? "";
       const frequency = readField(fields, "frequency");

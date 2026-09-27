@@ -2212,7 +2212,7 @@ function ProfessionalsSection() {
 
 // ── CHANNELS SECTION ────────────────────────────────────────────
 type ChForm = Omit<Channel, "id" | "createdAt">;
-const emptyChannel: ChForm = { name: "", type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
+const emptyChannel: ChForm = { name: "", bio: "", type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
 
 const SEED_CHANNELS: Omit<Channel, "id" | "createdAt">[] = [
   { name: "التلفزيون الجزائري - القناة الأولى", type: "tv", category: "وطنية", website: "https://www.entv.dz", youtube: "https://www.youtube.com/@EntVDZ" },
@@ -2417,6 +2417,20 @@ function ChannelsSection() {
                   </select>
                 </div>
               )}
+              <div className="col-span-2">
+                <label style={S.label} htmlFor="channel-bio">نبذة عن القناة</label>
+                <textarea
+                  id="channel-bio"
+                  style={{ ...S.input, minHeight: "120px", resize: "vertical", lineHeight: 1.8 }}
+                  value={form.bio ?? ""}
+                  onChange={(e) => cf("bio", e.target.value)}
+                  maxLength={2000}
+                  placeholder="متى انطلقت، ماذا تبث، لمن تتوجّه، ما يميّزها. اكتب ما تعرفه فقط — سطران صحيحان خير من فقرة مخمّنة."
+                />
+                <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem", marginTop: "0.35rem" }}>
+                  {(form.bio ?? "").trim().length}/2000 — اختياري، ويظهر في صفحة القناة ولمحركات البحث.
+                </p>
+              </div>
               <div className="col-span-2"><label style={S.label} htmlFor="admindashboard-42-0d930f">التردد</label><input id="admindashboard-42-0d930f" style={S.input} value={form.frequency} onChange={(e) => cf("frequency", e.target.value)} dir="ltr" /></div>
               <div><label style={S.label} htmlFor="admindashboard-43-69ca09">البريد الإلكتروني</label><input id="admindashboard-43-69ca09" style={S.input} value={form.email} onChange={(e) => cf("email", e.target.value)} dir="ltr" /></div>
               <div><label style={S.label} htmlFor="admindashboard-44-4927e7">الهاتف</label><input id="admindashboard-44-4927e7" style={S.input} value={form.phone} onChange={(e) => cf("phone", e.target.value)} dir="ltr" /></div>

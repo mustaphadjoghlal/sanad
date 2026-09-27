@@ -199,6 +199,12 @@ export interface AppNotification {
 export interface Channel {
   id: string;
   name: string;
+  /**
+   * A short profile of the channel, written by the admin. Optional: a channel
+   * with only a frequency and an address is still a useful page, so this adds
+   * to that rather than being required before the entry is worth anything.
+   */
+  bio?: string;
   type: 'tv' | 'radio' | 'website';
   category: 'وطنية' | 'خاصة' | 'محلية' | 'دينية' | 'متخصصة' | 'إخبارية' | 'رياضية' | 'ثقافية' | 'قنوات الكترونية' | 'نوادي إعلامية';
   frequency?: string;
