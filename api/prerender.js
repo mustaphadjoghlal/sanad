@@ -33,18 +33,96 @@ const PUBLISHER = {
   logo: { "@type": "ImageObject", url: `${SITE_ORIGIN}/icon-512.png` },
 };
 
-// route prefix -> how to read a document of that kind
+const CHANNEL_KIND = { tv: "قناة تلفزيونية", radio: "إذاعة", website: "موقع إلكتروني" };
+
+/**
+ * route prefix -> how to read a document of that kind.
+ *
+ * `facts` is the labelled detail beside the body. It is what makes a channel
+ * page worth having: the whole value of that entry is its frequency, address
+ * and contact details, and those are what people search for ("تردد قناة…").
+ */
 const ROUTES = {
-  jobs: { collection: "jobs", title: "title", description: "description", subtitle: "company", schema: "JobPosting" },
-  courses: { collection: "courses", title: "title", description: "description", subtitle: "instructor", schema: "Course" },
-  competitions: { collection: "competitions", title: "name", description: "description", subtitle: "organizer", schema: "Event" },
-  equipment: { collection: "equipment", title: "name", description: "description", subtitle: "seller", schema: "Product" },
-  news: { collection: "news", title: "title", description: "body", subtitle: "category", schema: "NewsArticle" },
-  theses: { collection: "theses", title: "title", description: "abstract", subtitle: "author", schema: "ScholarlyArticle" },
-  products: { collection: "products", title: "name", description: "description", schema: "Product" },
-  trainers: { collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo", schema: "Person" },
-  profile: { collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo", schema: "Person" },
-  channels: { collection: "channels", title: "name", description: "category" },
+  jobs: {
+    collection: "jobs", title: "title", description: "description", subtitle: "company",
+    schema: "JobPosting",
+    facts: [["الجهة", "company"], ["الولاية", "location"], ["نوع الوظيفة", "jobType"], ["آخر أجل", "deadline"]],
+  },
+  courses: {
+    collection: "courses", title: "title", description: "description", subtitle: "instructor",
+    schema: "Course",
+    facts: [["المدرّب", "instructor"], ["المدة", "duration"]],
+  },
+  competitions: {
+    collection: "competitions", title: "name", description: "description", subtitle: "organizer",
+    schema: "Event",
+    facts: [["الجهة المنظّمة", "organizer"], ["تاريخ البداية", "startDate"], ["تاريخ النهاية", "endDate"]],
+  },
+  equipment: {
+    collection: "equipment", title: "name", description: "description", subtitle: "seller",
+    schema: "Product",
+    facts: [["البائع", "seller"], ["الصنف", "category"], ["السعر", "price"], ["الحالة", "condition"]],
+  },
+  news: {
+    collection: "news", title: "title", description: "body", subtitle: "category",
+    schema: "NewsArticle",
+    facts: [["القسم", "category"], ["التاريخ", "date"]],
+  },
+  theses: {
+    collection: "theses", title: "title", description: "abstract", subtitle: "author",
+    schema: "ScholarlyArticle",
+    facts: [["الباحث", "author"], ["الجامعة", "university"], ["السنة", "year"], ["التخصص", "specialty"], ["المشرف", "supervisor"]],
+  },
+  products: {
+    collection: "products", title: "name", description: "description",
+    schema: "Product",
+    facts: [["الصنف", "category"], ["السعر", "price"]],
+  },
+  trainers: {
+    collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo",
+    schema: "Person",
+    facts: [["التخصص", "specialty"], ["الولاية", "location"], ["المؤسسة", "organization"]],
+  },
+  profile: {
+    collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo",
+    schema: "Person",
+    facts: [["التخصص", "specialty"], ["الولاية", "location"], ["الخبرة", "experience"]],
+  },
+  channels: {
+    collection: "channels", title: "name", description: "category",
+    schema: "BroadcastService",
+    facts: [
+      ["النوع", "type"], ["التصنيف", "category"], ["التردد", "frequency"],
+      ["الموقع الإلكتروني", "website"], ["العنوان", "address"],
+      ["الهاتف", "phone"], ["البريد الإلكتروني", "email"],
+    ],
+    // A channel has no prose, so its description is composed from its own
+    // fields — "قناة الشروق TV — قناة تلفزيونية خاصة، التردد 12360" rather
+    // than the bare word "خاصة", which is what it used to be.
+    describe: (fields, name) => {
+      const kind = CHANNEL_KIND[readField(fields, "type")] ?? "";
+      const category = readField(fields, "category") ?? "";
+      const frequency = readField(fields, "frequency");
+      const website = readField(fields, "website");
+      const address = readField(fields, "address");
+      return [
+        `${name} — ${[kind, category].filter(Boolean).join(" ")}`.trim(),
+        frequency ? `التردد: ${frequency}` : "",
+        address ? `العنوان: ${address}` : "",
+        website ? `الموقع: ${website}` : "",
+        "ضمن دليل القنوات التلفزيونية والإذاعية والمواقع الإخبارية الجزائرية على منصة سند.",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    },
+  },
+};
+
+/** Field values that are codes rather than words a reader wants to see. */
+const FACT_LABELS = {
+  type: CHANNEL_KIND,
+  condition: { new: "جديد", used: "مستعمل" },
+  jobType: {},
 };
 
 // Listing pages, and the collection each one lists.
@@ -280,15 +358,43 @@ function buildSchema(kind, { title, description, url, image, subtitle, fields })
         ? { "@type": "PostalAddress", addressLocality: readField(fields, "location"), addressCountry: "DZ" }
         : undefined,
     },
+    // A channel is an organisation that broadcasts, and the frequency and
+    // address are the whole point of its entry — so they belong in the
+    // markup, not only in the prose.
+    BroadcastService: {
+      "@type":
+        readField(fields, "type") === "radio"
+          ? "RadioStation"
+          : readField(fields, "type") === "tv"
+          ? "TelevisionStation"
+          : "Organization",
+      name: title,
+      description,
+      broadcastFrequency: readField(fields, "frequency"),
+      areaServed: { "@type": "Country", name: "الجزائر" },
+      address: readField(fields, "address")
+        ? { "@type": "PostalAddress", streetAddress: readField(fields, "address"), addressCountry: "DZ" }
+        : undefined,
+      telephone: readField(fields, "phone"),
+      email: readField(fields, "email"),
+      sameAs: ["website", "facebook", "youtube", "instagram", "twitter"]
+        .map((k) => readField(fields, k))
+        .filter((v) => v && String(v).startsWith("http")),
+      inLanguage: "ar",
+    },
   };
 
   const shape = shapes[kind];
   if (!shape) return null;
+  // A shape may choose a narrower @type than the key it was looked up by.
+  if (shape["@type"]) base["@type"] = shape["@type"];
   if (image && image !== DEFAULT_IMAGE) shape.image = image;
 
   // Google warns about properties that are present but empty.
   const cleaned = Object.fromEntries(
-    Object.entries({ ...base, ...shape }).filter(([, v]) => v != null && v !== "")
+    Object.entries({ ...base, ...shape }).filter(
+      ([, v]) => v != null && v !== "" && !(Array.isArray(v) && v.length === 0)
+    )
   );
   return cleaned;
 }
@@ -394,21 +500,27 @@ export default async function handler(req, res) {
         const raw = readField(fields, route.description);
         const docImage = readField(fields, route.image ?? "image");
         const heading = toPlainText(title, 160);
-        const paragraphs = toParagraphs(raw);
+        // A channel carries no prose of its own, so its text is composed from
+        // its fields; everything else has a real body to show.
+        const composed = route.describe ? route.describe(fields, heading) : null;
+        const paragraphs = toParagraphs(composed ?? raw);
 
         meta = {
           title: `${toPlainText(title, 90)}${subtitle ? ` — ${toPlainText(subtitle, 50)}` : ""} | ${SITE_NAME}`,
-          description: toPlainText(raw) || DEFAULT_DESCRIPTION,
+          description: toPlainText(composed ?? raw, 300) || DEFAULT_DESCRIPTION,
         };
         type = "article";
         if (docImage && String(docImage).startsWith("http")) image = String(docImage);
 
-        const facts = [
-          ["الجهة", subtitle],
-          ["الولاية", readField(fields, "location")],
-          ["آخر أجل", readField(fields, "deadline")],
-          ["المدة", readField(fields, "duration")],
-        ].filter(([, v]) => v);
+        const facts = (route.facts ?? [])
+          .map(([label, field]) => {
+            const raw = readField(fields, field);
+            if (raw == null || raw === "") return null;
+            // Some fields hold a code ("tv", "used"); show the word instead.
+            const mapped = FACT_LABELS[field]?.[raw] ?? raw;
+            return [label, String(mapped)];
+          })
+          .filter(Boolean);
 
         bodyHtml =
           `<article>` +
