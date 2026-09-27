@@ -688,6 +688,27 @@ export async function getChannel(id: string): Promise<import("./types").Channel 
   return { id: snap.id, ...snap.data() } as import("./types").Channel;
 }
 
+/**
+ * Other channels sharing a category, for the "related" block.
+ *
+ * Every page on the site used to be a dead end: nothing linked to anything
+ * else of the same kind, so a reader who finished one channel had nowhere to
+ * go but the back button, and a crawler had no path onward either.
+ */
+export async function getRelatedChannels(
+  category: string,
+  excludeId: string,
+  max = 6
+): Promise<Channel[]> {
+  const snap = await getDocs(
+    query(col("channels"), where("category", "==", category), limit(max + 1))
+  );
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as Channel)
+    .filter((c) => c.id !== excludeId)
+    .slice(0, max);
+}
+
 // --- PRODUCTS ---
 export async function addProduct(data: Omit<Product, "id" | "createdAt">) {
   return addDoc(col("products"), { ...data, createdAt: Date.now() });

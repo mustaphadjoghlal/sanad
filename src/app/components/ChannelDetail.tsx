@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowRight, Tv, Radio, Globe, Mail, Phone, MapPin, Facebook, Youtube, Instagram, Twitter, ExternalLink } from "lucide-react";
-import { getChannel } from "../../lib/firestore";
+import { getChannel, getRelatedChannels } from "../../lib/firestore";
 import type { Channel } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 
@@ -33,16 +33,40 @@ const categoryText: Record<string, string> = {
 export default function ChannelDetail() {
   const { id } = useParams<{ id: string }>();
   const [channel, setChannel] = useState<Channel | null>(null);
+  const [related, setRelated] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // The same title the crawler is served, so the two never disagree: people
+  // search "تردد <القناة>", not "<القناة>".
+  const kindWord =
+    channel?.type === "tv" ? "قناة تلفزيونية" : channel?.type === "radio" ? "إذاعة" : "موقع إلكتروني";
   usePageTitle(
-    channel?.name ?? "",
-    channel ? `${channel.name} - ${channel.category} - تردد وبيانات القناة الجزائرية` : undefined
+    channel
+      ? `${channel.frequency ? "تردد " : ""}${channel.name} — ${kindWord} ${channel.category}`
+      : "",
+    channel
+      ? [
+          `${channel.name} — ${kindWord} ${channel.category}`,
+          channel.frequency ? `التردد: ${channel.frequency}` : "",
+          channel.address ? `العنوان: ${channel.address}` : "",
+          "ضمن دليل القنوات التلفزيونية والإذاعية والمواقع الإخبارية الجزائرية على منصة سند.",
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : undefined
   );
 
   useEffect(() => {
     if (!id) return;
-    getChannel(id).then((data) => { setChannel(data); setLoading(false); });
+    setRelated([]);
+    getChannel(id).then((data) => {
+      setChannel(data);
+      setLoading(false);
+      // The page used to end here, with nowhere to go next.
+      if (data?.category) {
+        getRelatedChannels(data.category, data.id).then(setRelated).catch(() => {});
+      }
+    });
   }, [id]);
 
   if (loading) {
@@ -232,6 +256,45 @@ export default function ChannelDetail() {
                   </a>
                 )}
               </div>
+            </div>
+          )}
+
+          {related.length > 0 && (
+            <div
+              className="p-6 rounded-2xl"
+              style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}
+            >
+              <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--theme-badge-text, #81c784)" }}>
+                قنوات أخرى في نفس التصنيف
+              </h2>
+              <div className="flex flex-col gap-1">
+                {related.map((other) => {
+                  const OtherIcon = other.type === "tv" ? Tv : other.type === "radio" ? Radio : Globe;
+                  return (
+                    <Link
+                      key={other.id}
+                      to={`/channels/${other.id}`}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-green-950/30"
+                      style={{ color: "var(--theme-text, #e8f5e9)", textDecoration: "none" }}
+                    >
+                      <OtherIcon size={15} style={{ color: "var(--theme-text-muted, #4a7a4a)", flexShrink: 0 }} />
+                      <span className="text-sm flex-1 truncate">{other.name}</span>
+                      {other.frequency && (
+                        <span className="text-xs shrink-0" dir="ltr" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
+                          {other.frequency}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+              <Link
+                to="/channels"
+                className="inline-block mt-4 text-sm"
+                style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
+              >
+                عرض دليل القنوات كاملاً ←
+              </Link>
             </div>
           )}
 

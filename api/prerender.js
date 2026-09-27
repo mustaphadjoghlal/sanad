@@ -118,6 +118,51 @@ const ROUTES = {
   },
 };
 
+/**
+ * Page titles that match how people search.
+ *
+ * "إذاعة الثالثة | منصة سند" describes the entry. "تردد إذاعة الثالثة" is
+ * what someone types into Google. Where the document holds the fact behind
+ * the query, the title says so.
+ */
+const TITLES = {
+  channels: (fields, name) => {
+    const kind = CHANNEL_KIND[readField(fields, "type")] ?? "";
+    const category = readField(fields, "category") ?? "";
+    return readField(fields, "frequency")
+      ? `تردد ${name} — ${[kind, category].filter(Boolean).join(" ")}`
+      : `${name} — ${[kind, category].filter(Boolean).join(" ")}`;
+  },
+  theses: (fields, name) => {
+    const university = readField(fields, "university");
+    const year = readField(fields, "year");
+    return `${name} — مذكرة تخرج${university ? ` · ${university}` : ""}${year ? ` ${year}` : ""}`;
+  },
+  jobs: (fields, name) => {
+    const company = readField(fields, "company");
+    return `${name}${company ? ` — ${company}` : ""}`;
+  },
+};
+
+/**
+ * How a detail page finds its neighbours.
+ *
+ * Until now every page on the site was an island: nothing linked to anything
+ * else of the same kind, so a crawler that reached one channel had no way to
+ * reach the next, and a reader had nowhere to go but back. `field` is what
+ * two entries must share to count as related; null means "anything recent
+ * from the same collection".
+ */
+const RELATED = {
+  channels: { field: "category", label: "قنوات أخرى في نفس التصنيف", path: "channels" },
+  theses: { field: "specialty", label: "مذكرات أخرى في نفس التخصص", path: "theses" },
+  jobs: { field: null, label: "فرص عمل أخرى", path: "jobs" },
+  courses: { field: null, label: "دورات أخرى", path: "courses" },
+  news: { field: "category", label: "أخبار أخرى في نفس القسم", path: "news" },
+  competitions: { field: null, label: "مسابقات أخرى", path: "competitions" },
+  equipment: { field: "category", label: "عتاد آخر من نفس الصنف", path: "equipment" },
+};
+
 /** Field values that are codes rather than words a reader wants to see. */
 const FACT_LABELS = {
   type: CHANNEL_KIND,
@@ -458,6 +503,58 @@ ${bodyHtml}
 </html>`;
 }
 
+/**
+ * Other entries of the same kind, as links.
+ *
+ * This is what turns a pile of isolated pages into a site: a reader gets
+ * somewhere to go next, and a crawler that reaches any one page can walk to
+ * the rest without going back to a listing.
+ */
+async function relatedHtml(projectId, apiKey, section, fields, selfId) {
+  const spec = RELATED[section];
+  if (!spec) return "";
+
+  const docs = await fetchCollection(projectId, apiKey, ROUTES[section].collection, 80);
+  const mine = spec.field ? readField(fields, spec.field) : null;
+
+  const items = docs
+    .filter((d) => docId(d) !== selfId)
+    .filter((d) => (mine ? readField(d.fields, spec.field) === mine : true))
+    .slice(0, 8)
+    .map((d) => {
+      const name = readField(d.fields, ROUTES[section].title);
+      if (!name) return null;
+      return `<li><a href="${escapeHtml(`${SITE_ORIGIN}/${spec.path}/${docId(d)}`)}">${escapeHtml(
+        toPlainText(name, 120)
+      )}</a></li>`;
+    })
+    .filter(Boolean);
+
+  if (items.length === 0) return "";
+  return `<section><h2>${escapeHtml(spec.label)}</h2><ul>${items.join("")}</ul></section>`;
+}
+
+/** The entry's own links, shown rather than only declared in sameAs. */
+function outboundHtml(fields) {
+  const links = [
+    ["الموقع الإلكتروني", "website"],
+    ["فيسبوك", "facebook"],
+    ["يوتيوب", "youtube"],
+    ["إنستغرام", "instagram"],
+    ["إكس (تويتر)", "twitter"],
+  ]
+    .map(([label, field]) => [label, readField(fields, field)])
+    .filter(([, href]) => href && String(href).startsWith("http"));
+
+  if (links.length === 0) return "";
+  return `<section><h2>روابط</h2><ul>${links
+    .map(
+      ([label, href]) =>
+        `<li><a href="${escapeHtml(href)}" rel="nofollow noopener">${escapeHtml(label)}</a></li>`
+    )
+    .join("")}</ul></section>`;
+}
+
 /** A listing page's items, as real links a crawler can follow. */
 function listHtml(items) {
   if (items.length === 0) return "";
@@ -505,8 +602,11 @@ export default async function handler(req, res) {
         const composed = route.describe ? route.describe(fields, heading) : null;
         const paragraphs = toParagraphs(composed ?? raw);
 
+        const headline = TITLES[segments[0]]
+          ? TITLES[segments[0]](fields, heading)
+          : `${toPlainText(title, 90)}${subtitle ? ` — ${toPlainText(subtitle, 50)}` : ""}`;
         meta = {
-          title: `${toPlainText(title, 90)}${subtitle ? ` — ${toPlainText(subtitle, 50)}` : ""} | ${SITE_NAME}`,
+          title: `${toPlainText(headline, 110)} | ${SITE_NAME}`,
           description: toPlainText(composed ?? raw, 300) || DEFAULT_DESCRIPTION,
         };
         type = "article";
@@ -533,7 +633,9 @@ export default async function handler(req, res) {
           (paragraphs.length
             ? paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join("")
             : `<p>${escapeHtml(meta.description)}</p>`) +
-          `</article>`;
+          `</article>` +
+          outboundHtml(fields) +
+          (await relatedHtml(projectId, apiKey, segments[0], fields, segments[1]).catch(() => ""));
 
         if (route.schema) {
           schemas.push(
