@@ -31,6 +31,7 @@ import type { MemberDeletionReport } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
+import { CHANNEL_PROFILES } from "./channelProfiles";
 import { normalizePhone, isValidAlgerianPhone } from "../../../lib/text";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
@@ -2262,9 +2263,53 @@ async function seedWebsites(setCb: (v: boolean) => void) {
   setCb(false);
 }
 
+/**
+ * Applies the written profiles to the channels that match them by name.
+ *
+ * Only fills what is empty: a channel whose profile or keywords the admin has
+ * already edited is left exactly as they left it, so running this twice can
+ * never overwrite their own words.
+ */
+async function applyChannelProfiles(
+  channels: Channel[],
+  onProgress: (done: number, total: number) => void
+): Promise<{ filled: number; skipped: number; unmatched: string[] }> {
+  const byName = new Map(channels.map((c) => [c.name.trim(), c]));
+  const entries = Object.entries(CHANNEL_PROFILES);
+  let filled = 0;
+  let skipped = 0;
+  const unmatched: string[] = [];
+
+  for (const [index, [name, profile]] of entries.entries()) {
+    onProgress(index, entries.length);
+    const channel = byName.get(name.trim());
+    if (!channel) { unmatched.push(name); continue; }
+
+    const patch: Partial<Channel> = {};
+    if (!channel.bio?.trim()) patch.bio = profile.bio;
+    if (!channel.keywords?.length) patch.keywords = profile.keywords;
+
+    if (Object.keys(patch).length === 0) { skipped++; continue; }
+    try {
+      await updateChannel(channel.id, patch);
+      filled++;
+    } catch {
+      unmatched.push(name);
+    }
+    await new Promise((r) => setTimeout(r, 120));
+  }
+
+  onProgress(entries.length, entries.length);
+  return { filled, skipped, unmatched };
+}
+
 function ChannelsSection() {
   const isMobile = useIsMobile();
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [profilesBusy, setProfilesBusy] = useState(false);
+  const [profilesProgress, setProfilesProgress] = useState({ done: 0, total: 0 });
+  const [profilesResult, setProfilesResult] =
+    useState<{ filled: number; skipped: number; unmatched: string[] } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<ChForm>(emptyChannel);
@@ -2343,6 +2388,61 @@ function ChannelsSection() {
         <button onClick={() => { setShowForm(true); setEditId(null); setForm(emptyChannel); }} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm flex-shrink-0">
           <Plus size={15} /><span>إضافة</span>
         </button>
+      </div>
+
+      {/* Writes the prepared profiles into the channels that have none. */}
+      <div
+        className="mt-3 p-4 rounded-xl"
+        style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}
+      >
+        <div className="flex items-start gap-3 flex-wrap">
+          <FileText size={16} className="shrink-0 mt-0.5" style={{ color: "var(--theme-accent)" }} />
+          <div className="flex-1" style={{ minWidth: "12rem" }}>
+            <p className="text-sm mb-1" style={{ color: "var(--theme-text, #e8f5e9)" }}>
+              نبذات جاهزة لأبرز القنوات
+            </p>
+            <p className="text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.8 }}>
+              يملأ النبذة والكلمات المفتاحية للقنوات الكبرى التي لا تحمل واحدة بعد.
+              لا يُعدّل ما كتبتَه بنفسك، ويمكن تشغيله أكثر من مرة بأمان.
+              <strong style={{ color: "var(--theme-text-secondary)" }}> راجع النصوص بعدها قناةً قناة.</strong>
+            </p>
+          </div>
+          <button
+            onClick={async () => {
+              setProfilesBusy(true);
+              setProfilesResult(null);
+              const result = await applyChannelProfiles(channels, (done, total) =>
+                setProfilesProgress({ done, total })
+              );
+              setProfilesResult(result);
+              setProfilesBusy(false);
+            }}
+            disabled={profilesBusy || channels.length === 0}
+            className="btn-dz px-4 py-2 rounded-lg text-sm shrink-0 disabled:opacity-50"
+          >
+            {profilesBusy
+              ? `جارٍ... ${profilesProgress.done}/${profilesProgress.total}`
+              : "تطبيق النبذات"}
+          </button>
+        </div>
+
+        {profilesResult && (
+          <div className="mt-3 pt-3 text-xs" style={{ borderTop: "1px solid var(--p-15)", lineHeight: 1.9 }}>
+            <p style={{ color: "#4ade80" }}>
+              ✓ كُتبت نبذة لـ {profilesResult.filled} قناة
+            </p>
+            {profilesResult.skipped > 0 && (
+              <p style={{ color: "var(--theme-text-muted)" }}>
+                تُركت {profilesResult.skipped} قناة كما هي (تحمل نبذة بالفعل)
+              </p>
+            )}
+            {profilesResult.unmatched.length > 0 && (
+              <p style={{ color: "#fbbf24" }}>
+                لم تُطابَق بالاسم: {profilesResult.unmatched.join("، ")}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {isMobile ? (
