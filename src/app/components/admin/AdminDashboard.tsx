@@ -32,6 +32,7 @@ import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
 import { CHANNEL_PROFILES } from "./channelProfiles";
+import type { ChannelProfile } from "./channelProfiles";
 import { normalizePhone, isValidAlgerianPhone } from "../../../lib/text";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
@@ -2264,52 +2265,47 @@ async function seedWebsites(setCb: (v: boolean) => void) {
 }
 
 /**
- * Applies the written profiles to the channels that match them by name.
+ * Writes the chosen profiles onto the channels the admin paired them with.
  *
- * Only fills what is empty: a channel whose profile or keywords the admin has
- * already edited is left exactly as they left it, so running this twice can
- * never overwrite their own words.
+ * The pairing is explicit rather than guessed. Matching on the stored name
+ * failed for sixteen of twenty-two — only the news websites were seeded from
+ * a fixed list, so the directory holds "سميرة تيفي" where the profile says
+ * "قناة Samira TV" — and scoring the names instead proposed "راديو الشروق"
+ * for "الشروق أون لاين" with full confidence. A wrong pairing writes the
+ * wrong station's description onto a real organisation's page, so the admin
+ * picks and nothing is guessed.
  */
-async function applyChannelProfiles(
-  channels: Channel[],
+async function writeChannelProfiles(
+  pairs: { channel: Channel; profile: ChannelProfile }[],
   onProgress: (done: number, total: number) => void
-): Promise<{ filled: number; skipped: number; unmatched: string[] }> {
-  const byName = new Map(channels.map((c) => [c.name.trim(), c]));
-  const entries = Object.entries(CHANNEL_PROFILES);
+): Promise<{ filled: number; failed: string[] }> {
   let filled = 0;
-  let skipped = 0;
-  const unmatched: string[] = [];
+  const failed: string[] = [];
 
-  for (const [index, [name, profile]] of entries.entries()) {
-    onProgress(index, entries.length);
-    const channel = byName.get(name.trim());
-    if (!channel) { unmatched.push(name); continue; }
-
-    const patch: Partial<Channel> = {};
-    if (!channel.bio?.trim()) patch.bio = profile.bio;
-    if (!channel.keywords?.length) patch.keywords = profile.keywords;
-
-    if (Object.keys(patch).length === 0) { skipped++; continue; }
+  for (const [index, { channel, profile }] of pairs.entries()) {
+    onProgress(index, pairs.length);
     try {
-      await updateChannel(channel.id, patch);
+      await updateChannel(channel.id, { bio: profile.bio, keywords: profile.keywords });
       filled++;
     } catch {
-      unmatched.push(name);
+      failed.push(channel.name);
     }
     await new Promise((r) => setTimeout(r, 120));
   }
 
-  onProgress(entries.length, entries.length);
-  return { filled, skipped, unmatched };
+  onProgress(pairs.length, pairs.length);
+  return { filled, failed };
 }
 
 function ChannelsSection() {
   const isMobile = useIsMobile();
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [profilesOpen, setProfilesOpen] = useState(false);
   const [profilesBusy, setProfilesBusy] = useState(false);
   const [profilesProgress, setProfilesProgress] = useState({ done: 0, total: 0 });
-  const [profilesResult, setProfilesResult] =
-    useState<{ filled: number; skipped: number; unmatched: string[] } | null>(null);
+  const [profilesResult, setProfilesResult] = useState<{ filled: number; failed: string[] } | null>(null);
+  /** profile name -> the channel id the admin paired it with. */
+  const [pairing, setPairing] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<ChForm>(emptyChannel);
@@ -2390,11 +2386,8 @@ function ChannelsSection() {
         </button>
       </div>
 
-      {/* Writes the prepared profiles into the channels that have none. */}
-      <div
-        className="mt-3 p-4 rounded-xl"
-        style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}
-      >
+      {/* Pairs the written profiles with channels, chosen by the admin. */}
+      <div className="mt-3 p-4 rounded-xl" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}>
         <div className="flex items-start gap-3 flex-wrap">
           <FileText size={16} className="shrink-0 mt-0.5" style={{ color: "var(--theme-accent)" }} />
           <div className="flex-1" style={{ minWidth: "12rem" }}>
@@ -2402,48 +2395,105 @@ function ChannelsSection() {
               نبذات جاهزة لأبرز القنوات
             </p>
             <p className="text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.8 }}>
-              يملأ النبذة والكلمات المفتاحية للقنوات الكبرى التي لا تحمل واحدة بعد.
-              لا يُعدّل ما كتبتَه بنفسك، ويمكن تشغيله أكثر من مرة بأمان.
+              {Object.keys(CHANNEL_PROFILES).length} نبذة مكتوبة. اختر لكل واحدة القناة التي تخصّها —
+              الأسماء تختلف بين النص وقاعدتك، والاختيار الخاطئ يكتب وصف قناة على أخرى.
               <strong style={{ color: "var(--theme-text-secondary)" }}> راجع النصوص بعدها قناةً قناة.</strong>
             </p>
           </div>
           <button
-            onClick={async () => {
-              setProfilesBusy(true);
-              setProfilesResult(null);
-              const result = await applyChannelProfiles(channels, (done, total) =>
-                setProfilesProgress({ done, total })
-              );
-              setProfilesResult(result);
-              setProfilesBusy(false);
-            }}
-            disabled={profilesBusy || channels.length === 0}
+            onClick={() => { setProfilesResult(null); setProfilesOpen(true); }}
+            disabled={channels.length === 0}
             className="btn-dz px-4 py-2 rounded-lg text-sm shrink-0 disabled:opacity-50"
           >
-            {profilesBusy
-              ? `جارٍ... ${profilesProgress.done}/${profilesProgress.total}`
-              : "تطبيق النبذات"}
+            ربط النبذات
           </button>
         </div>
 
         {profilesResult && (
           <div className="mt-3 pt-3 text-xs" style={{ borderTop: "1px solid var(--p-15)", lineHeight: 1.9 }}>
-            <p style={{ color: "#4ade80" }}>
-              ✓ كُتبت نبذة لـ {profilesResult.filled} قناة
-            </p>
-            {profilesResult.skipped > 0 && (
-              <p style={{ color: "var(--theme-text-muted)" }}>
-                تُركت {profilesResult.skipped} قناة كما هي (تحمل نبذة بالفعل)
-              </p>
-            )}
-            {profilesResult.unmatched.length > 0 && (
-              <p style={{ color: "#fbbf24" }}>
-                لم تُطابَق بالاسم: {profilesResult.unmatched.join("، ")}
-              </p>
+            <p style={{ color: "#4ade80" }}>✓ كُتبت نبذة لـ {profilesResult.filled} قناة</p>
+            {profilesResult.failed.length > 0 && (
+              <p style={{ color: "#f87171" }}>تعذّرت الكتابة على: {profilesResult.failed.join("، ")}</p>
             )}
           </div>
         )}
       </div>
+
+      {profilesOpen && (
+        <Modal title="ربط النبذات بالقنوات" onClose={() => setProfilesOpen(false)}>
+          <p className="text-sm mb-4" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.8 }}>
+            لكل نبذة، اختر القناة المقابلة من قاعدتك. اترك «— لا شيء —» لما لا تريده.
+            الكتابة تستبدل النبذة والكلمات المفتاحية للقناة المختارة.
+          </p>
+
+          <div className="flex flex-col gap-3 mb-5">
+            {Object.entries(CHANNEL_PROFILES).map(([name]) => (
+              <div key={name}>
+                <label
+                  htmlFor={`pair-${name}`}
+                  className="block text-xs mb-1"
+                  style={{ color: "var(--theme-badge-text, #81c784)" }}
+                >
+                  {name}
+                </label>
+                <select
+                  id={`pair-${name}`}
+                  style={S.input}
+                  value={pairing[name] ?? ""}
+                  onChange={(e) => setPairing((prev) => ({ ...prev, [name]: e.target.value }))}
+                >
+                  <option value="">— لا شيء —</option>
+                  {[...channels]
+                    .sort((a, b) => a.name.localeCompare(b.name, "ar"))
+                    .map((ch) => (
+                      <option key={ch.id} value={ch.id}>
+                        {ch.name}
+                        {ch.bio?.trim() ? " (لها نبذة)" : ""}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-3 justify-end items-center flex-wrap">
+            <span className="text-xs" style={{ color: "var(--theme-text-muted)" }}>
+              {Object.values(pairing).filter(Boolean).length} مختارة
+            </span>
+            <button
+              onClick={() => setProfilesOpen(false)}
+              disabled={profilesBusy}
+              className="px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+              style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}
+            >
+              إلغاء
+            </button>
+            <button
+              onClick={async () => {
+                const pairs = Object.entries(pairing)
+                  .filter(([, id]) => id)
+                  .map(([name, id]) => ({
+                    channel: channels.find((c) => c.id === id)!,
+                    profile: CHANNEL_PROFILES[name],
+                  }))
+                  .filter((pair) => pair.channel && pair.profile);
+                if (pairs.length === 0) return;
+                setProfilesBusy(true);
+                const result = await writeChannelProfiles(pairs, (done, total) =>
+                  setProfilesProgress({ done, total })
+                );
+                setProfilesResult(result);
+                setProfilesBusy(false);
+                setProfilesOpen(false);
+              }}
+              disabled={profilesBusy || Object.values(pairing).filter(Boolean).length === 0}
+              className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50"
+            >
+              {profilesBusy ? `جارٍ... ${profilesProgress.done}/${profilesProgress.total}` : "كتابة المختارة"}
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {isMobile ? (
         <div>
