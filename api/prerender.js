@@ -1,11 +1,22 @@
 /**
- * Serves social crawlers a real HTML document with per-page Open Graph tags.
+ * Serves crawlers a real HTML document for any URL on the site.
  *
- * The site is a client-rendered SPA, so Facebook, WhatsApp, Twitter, LinkedIn
- * and Telegram — none of which run JavaScript — used to read index.html for
- * every URL and show the same generic card for a job, an article and a
- * profile alike. `vercel.json` routes crawler user-agents here; real browsers
- * never touch this function and still get the SPA.
+ * The site is a client-rendered SPA: without JavaScript every URL returns the
+ * same shell with an empty <div id="root">. Social crawlers do not run
+ * JavaScript at all, and while Google can, it defers rendering to a second
+ * pass that a new domain waits a long way back in — and until that pass runs
+ * it sees a page with no heading, no text, and, crucially, not one crawlable
+ * <a href> to follow. Nothing links to anything.
+ *
+ * So this function renders the same content the SPA would, from the same
+ * Firestore documents: the real heading and body on a detail page, the real
+ * list of items on a listing page, and a nav on every page so any entry point
+ * leads to the rest of the site. Search engines and social crawlers are both
+ * routed here by user-agent in `vercel.json`; a browser never touches it.
+ *
+ * What is served here must stay what a visitor sees. It comes from the same
+ * documents and applies the same `status == approved` filter, so the two do
+ * not drift.
  */
 
 const SITE_ORIGIN = "https://sanadz.media";
@@ -15,21 +26,45 @@ const DEFAULT_TITLE = "منصة سند الإعلامية | المنصة الإ�
 const DEFAULT_DESCRIPTION =
   "منصة سند الإعلامية — المنصة الجزائرية الإعلامية الشاملة. دورات تدريبية، فرص عمل، معدات إعلامية، مسابقات، منشطون، ودليل القنوات الجزائرية في مكان واحد.";
 
-// route prefix -> { collection, title field, description field, image field }
+const PUBLISHER = {
+  "@type": "Organization",
+  name: SITE_NAME,
+  url: SITE_ORIGIN,
+  logo: { "@type": "ImageObject", url: `${SITE_ORIGIN}/icon-512.png` },
+};
+
+// route prefix -> how to read a document of that kind
 const ROUTES = {
-  jobs: { collection: "jobs", title: "title", description: "description", subtitle: "company" },
-  courses: { collection: "courses", title: "title", description: "description", subtitle: "instructor" },
-  competitions: { collection: "competitions", title: "name", description: "description", subtitle: "organizer" },
-  equipment: { collection: "equipment", title: "name", description: "description", subtitle: "seller" },
-  news: { collection: "news", title: "title", description: "body", subtitle: "category" },
-  theses: { collection: "theses", title: "title", description: "abstract", subtitle: "author" },
-  products: { collection: "products", title: "name", description: "description" },
-  trainers: { collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo" },
-  profile: { collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo" },
+  jobs: { collection: "jobs", title: "title", description: "description", subtitle: "company", schema: "JobPosting" },
+  courses: { collection: "courses", title: "title", description: "description", subtitle: "instructor", schema: "Course" },
+  competitions: { collection: "competitions", title: "name", description: "description", subtitle: "organizer", schema: "Event" },
+  equipment: { collection: "equipment", title: "name", description: "description", subtitle: "seller", schema: "Product" },
+  news: { collection: "news", title: "title", description: "body", subtitle: "category", schema: "NewsArticle" },
+  theses: { collection: "theses", title: "title", description: "abstract", subtitle: "author", schema: "ScholarlyArticle" },
+  products: { collection: "products", title: "name", description: "description", schema: "Product" },
+  trainers: { collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo", schema: "Person" },
+  profile: { collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo", schema: "Person" },
   channels: { collection: "channels", title: "name", description: "category" },
 };
 
-// Static pages that at least deserve their own title.
+// Listing pages, and the collection each one lists.
+const LISTINGS = {
+  "/jobs": { collection: "jobs", path: "jobs", title: "title", subtitle: "company", description: "description" },
+  "/courses": { collection: "courses", path: "courses", title: "title", subtitle: "instructor", description: "description" },
+  "/news": { collection: "news", path: "news", title: "title", subtitle: "category", description: "body" },
+  "/competitions": { collection: "competitions", path: "competitions", title: "name", subtitle: "organizer", description: "description" },
+  "/equipment": { collection: "equipment", path: "equipment", title: "name", subtitle: "seller", description: "description" },
+  "/theses": { collection: "theses", path: "theses", title: "title", subtitle: "author", description: "abstract" },
+  "/channels": { collection: "channels", path: "channels", title: "name", subtitle: "category", description: "category" },
+};
+
+// Listing pages backed by /users, which needs a filtered query.
+const USER_LISTINGS = {
+  "/professionals": { exclude: ["store", "trainer"], path: "profile" },
+  "/trainers": { only: ["trainer"], path: "trainers" },
+  "/stores": { only: ["store"], path: "stores" },
+};
+
 const STATIC_PAGES = {
   "/": { title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION },
   "/jobs": { title: "فرص العمل في الإعلام الجزائري", description: "أحدث عروض التوظيف والتربصات في القنوات والمؤسسات الإعلامية الجزائرية." },
@@ -47,6 +82,23 @@ const STATIC_PAGES = {
   "/terms": { title: "شروط الاستخدام", description: "شروط استخدام منصة سند الإعلامية." },
 };
 
+// The same links the site's own header carries, so a crawler landing on any
+// page can reach every section from it.
+const NAV = [
+  ["/", "الرئيسية"],
+  ["/jobs", "فرص العمل"],
+  ["/courses", "الدورات"],
+  ["/news", "الأخبار"],
+  ["/competitions", "المسابقات"],
+  ["/equipment", "العتاد"],
+  ["/channels", "القنوات"],
+  ["/professionals", "المحترفون"],
+  ["/trainers", "المدربون"],
+  ["/stores", "المتاجر"],
+  ["/theses", "المذكرات"],
+  ["/about", "من نحن"],
+];
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -56,7 +108,7 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-/** Content fields may hold rich text from the editor; cards want plain text. */
+/** Content fields hold rich text from the editor; strip it back to prose. */
 function toPlainText(value, maxLen = 200) {
   const text = String(value ?? "")
     .replace(/<[^>]*>/g, " ")
@@ -66,25 +118,207 @@ function toPlainText(value, maxLen = 200) {
   return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
 }
 
+/**
+ * The body of a detail page, kept as paragraphs.
+ *
+ * The old version truncated everything to 200 characters, which is right for
+ * a social card and useless as a page: a job ad reduced to its first sentence
+ * is exactly the thin content that should not be served to a search engine.
+ */
+function toParagraphs(value, maxLen = 8000) {
+  const blocks = String(value ?? "")
+    .replace(/<\/(p|div|h[1-6]|li)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .split("\n")
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const out = [];
+  let used = 0;
+  for (const block of blocks) {
+    if (used + block.length > maxLen) break;
+    out.push(block);
+    used += block.length;
+  }
+  return out;
+}
+
 function readField(fields, name) {
   const field = fields?.[name];
   if (!field) return undefined;
   return field.stringValue ?? field.integerValue ?? field.doubleValue ?? undefined;
 }
 
-async function fetchDoc(projectId, apiKey, collection, id) {
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${encodeURIComponent(id)}?key=${apiKey}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.fields ?? null;
+function firestoreBase(projectId) {
+  return `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 }
 
-function render({ title, description, image, url, type }) {
+async function fetchDoc(projectId, apiKey, collection, id) {
+  const url = `${firestoreBase(projectId)}/${collection}/${encodeURIComponent(id)}?key=${apiKey}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+  if (!res.ok) return null;
+  return (await res.json()).fields ?? null;
+}
+
+async function fetchCollection(projectId, apiKey, collection, pageSize = 60) {
+  const url = `${firestoreBase(projectId)}/${collection}?pageSize=${pageSize}&key=${apiKey}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  if (!res.ok) return [];
+  const docs = (await res.json()).documents ?? [];
+  // Pending and rejected submissions are not on the site, so they are not here.
+  return docs.filter((d) => {
+    const status = d.fields?.status?.stringValue;
+    return !status || status === "approved";
+  });
+}
+
+/**
+ * The rules reject an unfiltered list of /users, because it could return a
+ * pending profile. A query filtered to approved ones is provably safe.
+ */
+async function fetchApprovedUsers(projectId, apiKey) {
+  const res = await fetch(`${firestoreBase(projectId)}:runQuery?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId: "users" }],
+        where: {
+          fieldFilter: { field: { fieldPath: "status" }, op: "EQUAL", value: { stringValue: "approved" } },
+        },
+        limit: 200,
+      },
+    }),
+    signal: AbortSignal.timeout(6000),
+  });
+  if (!res.ok) return [];
+  const rows = await res.json();
+  return (Array.isArray(rows) ? rows : []).map((r) => r.document).filter(Boolean);
+}
+
+function docId(doc) {
+  return doc.name.split("/").pop();
+}
+
+/** Structured data for a detail page, mirroring what the SPA emits. */
+function buildSchema(kind, { title, description, url, image, subtitle, fields }) {
+  const base = { "@context": "https://schema.org", "@type": kind, url };
+  const iso = (value) => {
+    if (!value) return undefined;
+    const d = new Date(Number(value) || value);
+    return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+  };
+  const created = iso(readField(fields, "createdAt"));
+
+  const shapes = {
+    JobPosting: {
+      title,
+      description,
+      datePosted: created,
+      hiringOrganization: subtitle ? { "@type": "Organization", name: subtitle } : PUBLISHER,
+      jobLocation: {
+        "@type": "Place",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: readField(fields, "location") || undefined,
+          addressCountry: "DZ",
+        },
+      },
+      identifier: { "@type": "PropertyValue", name: "sanad", value: url.split("/").pop() },
+    },
+    NewsArticle: {
+      headline: toPlainText(title, 110),
+      description,
+      datePublished: iso(readField(fields, "date")) ?? created,
+      articleSection: subtitle,
+      author: PUBLISHER,
+      publisher: PUBLISHER,
+      inLanguage: "ar",
+    },
+    Course: {
+      name: title,
+      description,
+      provider: subtitle ? { "@type": "Organization", name: subtitle } : PUBLISHER,
+      inLanguage: "ar",
+    },
+    Event: {
+      name: title,
+      description,
+      startDate: iso(readField(fields, "startDate")),
+      endDate: iso(readField(fields, "endDate")),
+      eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      location: { "@type": "VirtualLocation", url },
+      organizer: subtitle ? { "@type": "Organization", name: subtitle } : PUBLISHER,
+    },
+    ScholarlyArticle: {
+      headline: toPlainText(title, 110),
+      name: title,
+      abstract: description,
+      author: subtitle ? { "@type": "Person", name: subtitle } : undefined,
+      publisher: PUBLISHER,
+      inLanguage: "ar",
+    },
+    Product: {
+      name: title,
+      description,
+      offers: {
+        "@type": "Offer",
+        price: readField(fields, "price"),
+        priceCurrency: "DZD",
+        availability: "https://schema.org/InStock",
+        url,
+      },
+    },
+    Person: {
+      name: title,
+      description,
+      jobTitle: subtitle,
+      address: readField(fields, "location")
+        ? { "@type": "PostalAddress", addressLocality: readField(fields, "location"), addressCountry: "DZ" }
+        : undefined,
+    },
+  };
+
+  const shape = shapes[kind];
+  if (!shape) return null;
+  if (image && image !== DEFAULT_IMAGE) shape.image = image;
+
+  // Google warns about properties that are present but empty.
+  const cleaned = Object.fromEntries(
+    Object.entries({ ...base, ...shape }).filter(([, v]) => v != null && v !== "")
+  );
+  return cleaned;
+}
+
+function breadcrumbs(trail) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [{ name: "الرئيسية", path: "/" }, ...trail].map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.name,
+      item: SITE_ORIGIN + c.path,
+    })),
+  };
+}
+
+function navHtml() {
+  return `<nav><ul>${NAV.map(
+    ([path, label]) => `<li><a href="${escapeHtml(SITE_ORIGIN + path)}">${escapeHtml(label)}</a></li>`
+  ).join("")}</ul></nav>`;
+}
+
+function render({ title, description, image, url, type, bodyHtml, schemas }) {
   const safeTitle = escapeHtml(title);
   const safeDesc = escapeHtml(description);
-  const safeImage = escapeHtml(image);
-  const safeUrl = escapeHtml(url);
+  const ld = (schemas || [])
+    .filter(Boolean)
+    .map((s) => `<script type="application/ld+json">${JSON.stringify(s).replace(/</g, "\\u003c")}</script>`)
+    .join("\n");
 
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -93,25 +327,43 @@ function render({ title, description, image, url, type }) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>${safeTitle}</title>
 <meta name="description" content="${safeDesc}" />
-<link rel="canonical" href="${safeUrl}" />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="${escapeHtml(url)}" />
 <meta property="og:type" content="${escapeHtml(type)}" />
 <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
 <meta property="og:title" content="${safeTitle}" />
 <meta property="og:description" content="${safeDesc}" />
-<meta property="og:image" content="${safeImage}" />
-<meta property="og:url" content="${safeUrl}" />
+<meta property="og:image" content="${escapeHtml(image)}" />
+<meta property="og:url" content="${escapeHtml(url)}" />
 <meta property="og:locale" content="ar_DZ" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${safeTitle}" />
 <meta name="twitter:description" content="${safeDesc}" />
-<meta name="twitter:image" content="${safeImage}" />
+<meta name="twitter:image" content="${escapeHtml(image)}" />
+${ld}
 </head>
 <body>
-<h1>${safeTitle}</h1>
-<p>${safeDesc}</p>
-<p><a href="${safeUrl}">${escapeHtml(SITE_NAME)}</a></p>
+<header><a href="${SITE_ORIGIN}/">${escapeHtml(SITE_NAME)}</a></header>
+${navHtml()}
+<main>
+${bodyHtml}
+</main>
 </body>
 </html>`;
+}
+
+/** A listing page's items, as real links a crawler can follow. */
+function listHtml(items) {
+  if (items.length === 0) return "";
+  return `<ul>${items
+    .map(
+      (item) =>
+        `<li><a href="${escapeHtml(SITE_ORIGIN + item.path)}"><h2>${escapeHtml(item.title)}</h2></a>` +
+        (item.subtitle ? `<p>${escapeHtml(item.subtitle)}</p>` : "") +
+        (item.description ? `<p>${escapeHtml(item.description)}</p>` : "") +
+        `</li>`
+    )
+    .join("")}</ul>`;
 }
 
 export default async function handler(req, res) {
@@ -119,40 +371,145 @@ export default async function handler(req, res) {
   const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
   const url = SITE_ORIGIN + path;
 
-  let meta = STATIC_PAGES[path] ?? { title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION };
-  let image = DEFAULT_IMAGE;
-  let type = "website";
-
-  const segments = path.split("/").filter(Boolean);
-  const route = segments.length === 2 ? ROUTES[segments[0]] : null;
   const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
   const apiKey = process.env.VITE_FIREBASE_API_KEY;
 
-  if (route && projectId && apiKey) {
-    try {
-      const fields = await fetchDoc(projectId, apiKey, route.collection, segments[1]);
-      if (fields) {
-        const title = readField(fields, route.title);
-        const subtitle = route.subtitle ? readField(fields, route.subtitle) : undefined;
-        const description = readField(fields, route.description);
-        const docImage = readField(fields, route.image ?? "image");
+  let meta = STATIC_PAGES[path] ?? { title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION };
+  let image = DEFAULT_IMAGE;
+  let type = "website";
+  let bodyHtml = "";
+  const schemas = [];
 
-        if (title) {
-          meta = {
-            title: `${toPlainText(title, 90)}${subtitle ? ` — ${toPlainText(subtitle, 50)}` : ""} | ${SITE_NAME}`,
-            description: toPlainText(description) || DEFAULT_DESCRIPTION,
-          };
-          type = "article";
-          if (docImage && String(docImage).startsWith("http")) image = String(docImage);
+  const segments = path.split("/").filter(Boolean);
+  const route = segments.length === 2 ? ROUTES[segments[0]] : null;
+
+  try {
+    if (route && projectId && apiKey) {
+      // ── A single item ──────────────────────────────────────────
+      const fields = await fetchDoc(projectId, apiKey, route.collection, segments[1]);
+      const title = fields ? readField(fields, route.title) : undefined;
+
+      if (title) {
+        const subtitle = route.subtitle ? readField(fields, route.subtitle) : undefined;
+        const raw = readField(fields, route.description);
+        const docImage = readField(fields, route.image ?? "image");
+        const heading = toPlainText(title, 160);
+        const paragraphs = toParagraphs(raw);
+
+        meta = {
+          title: `${toPlainText(title, 90)}${subtitle ? ` — ${toPlainText(subtitle, 50)}` : ""} | ${SITE_NAME}`,
+          description: toPlainText(raw) || DEFAULT_DESCRIPTION,
+        };
+        type = "article";
+        if (docImage && String(docImage).startsWith("http")) image = String(docImage);
+
+        const facts = [
+          ["الجهة", subtitle],
+          ["الولاية", readField(fields, "location")],
+          ["آخر أجل", readField(fields, "deadline")],
+          ["المدة", readField(fields, "duration")],
+        ].filter(([, v]) => v);
+
+        bodyHtml =
+          `<article>` +
+          `<h1>${escapeHtml(heading)}</h1>` +
+          (facts.length
+            ? `<dl>${facts
+                .map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(toPlainText(v, 120))}</dd>`)
+                .join("")}</dl>`
+            : "") +
+          (paragraphs.length
+            ? paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join("")
+            : `<p>${escapeHtml(meta.description)}</p>`) +
+          `</article>`;
+
+        if (route.schema) {
+          schemas.push(
+            buildSchema(route.schema, {
+              title: heading,
+              description: meta.description,
+              url,
+              image,
+              subtitle: subtitle ? toPlainText(subtitle, 120) : undefined,
+              fields,
+            })
+          );
+        }
+        const section = STATIC_PAGES[`/${segments[0]}`];
+        if (section) {
+          schemas.push(
+            breadcrumbs([
+              { name: section.title, path: `/${segments[0]}` },
+              { name: heading, path },
+            ])
+          );
         }
       }
-    } catch {
-      // A slow or failing lookup must never break the crawler's request —
-      // fall through to the site-wide card.
+    } else if (LISTINGS[path] && projectId && apiKey) {
+      // ── A listing of content ───────────────────────────────────
+      const spec = LISTINGS[path];
+      const docs = await fetchCollection(projectId, apiKey, spec.collection);
+      const items = docs
+        .map((d) => {
+          const title = readField(d.fields, spec.title);
+          if (!title) return null;
+          return {
+            path: `/${spec.path}/${docId(d)}`,
+            title: toPlainText(title, 160),
+            subtitle: spec.subtitle ? toPlainText(readField(d.fields, spec.subtitle), 80) : "",
+            description: toPlainText(readField(d.fields, spec.description), 180),
+          };
+        })
+        .filter(Boolean);
+
+      bodyHtml = `<h1>${escapeHtml(meta.title)}</h1><p>${escapeHtml(meta.description)}</p>${listHtml(items)}`;
+      schemas.push(breadcrumbs([{ name: meta.title, path }]));
+    } else if (USER_LISTINGS[path] && projectId && apiKey) {
+      // ── A listing of people ────────────────────────────────────
+      const spec = USER_LISTINGS[path];
+      const docs = await fetchApprovedUsers(projectId, apiKey);
+      const items = docs
+        .map((d) => {
+          const userType = readField(d.fields, "type");
+          if (spec.only && !spec.only.includes(userType)) return null;
+          if (spec.exclude && spec.exclude.includes(userType)) return null;
+          const name = readField(d.fields, "name");
+          if (!name) return null;
+          const username = readField(d.fields, "username");
+          const id = spec.path === "stores" ? username || docId(d) : docId(d);
+          return {
+            path: `/${spec.path}/${id}`,
+            title: toPlainText(name, 120),
+            subtitle: toPlainText(readField(d.fields, "specialty"), 80),
+            description: toPlainText(readField(d.fields, "bio"), 180),
+          };
+        })
+        .filter(Boolean);
+
+      bodyHtml = `<h1>${escapeHtml(meta.title)}</h1><p>${escapeHtml(meta.description)}</p>${listHtml(items)}`;
+      schemas.push(breadcrumbs([{ name: meta.title, path }]));
+    }
+  } catch {
+    // A slow or failing lookup must never break the crawler's request — the
+    // page below still carries its title, description and the site nav.
+  }
+
+  if (!bodyHtml) {
+    bodyHtml = `<h1>${escapeHtml(meta.title)}</h1><p>${escapeHtml(meta.description)}</p>`;
+    if (path === "/") {
+      schemas.push({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: SITE_ORIGIN,
+        description: DEFAULT_DESCRIPTION,
+        inLanguage: "ar",
+        publisher: PUBLISHER,
+      });
     }
   }
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=86400");
-  return res.status(200).send(render({ ...meta, image, url, type }));
+  return res.status(200).send(render({ ...meta, image, url, type, bodyHtml, schemas }));
 }

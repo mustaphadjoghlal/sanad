@@ -11,7 +11,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|Facebot|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|SkypeUriPreview|vkShare|redditbot|Google-InspectionTool|Applebot).*"
+          "value": ".*(Googlebot|Storebot-Google|Google-InspectionTool|GoogleOther|bingbot|Slurp|DuckDuckBot|YandexBot|Baiduspider|Applebot|facebookexternalhit|Facebot|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|Discordbot|Pinterest|SkypeUriPreview|vkShare|redditbot).*"
         }
       ],
       "destination": "/api/prerender?path=/$1"
