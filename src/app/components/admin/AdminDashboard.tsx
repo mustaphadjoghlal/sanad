@@ -2216,45 +2216,6 @@ function csvToTags(value: string): string[] {
 type ChForm = Omit<Channel, "id" | "createdAt">;
 const emptyChannel: ChForm = { name: "", bio: "", keywords: [], type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
 
-const SEED_CHANNELS: Omit<Channel, "id" | "createdAt">[] = [
-  { name: "التلفزيون الجزائري - القناة الأولى", type: "tv", category: "وطنية", website: "https://www.entv.dz", youtube: "https://www.youtube.com/@EntVDZ" },
-  { name: "Canal Algérie", type: "tv", category: "وطنية", website: "https://www.entv.dz/canal-algerie" },
-  { name: "قناة A3 الجزائرية", type: "tv", category: "وطنية", website: "https://www.entv.dz/a3" },
-  { name: "قناة الأمازيغية (TV4)", type: "tv", category: "وطنية", website: "https://www.entv.dz/tamazight" },
-  { name: "القناة الثقافية (TV5)", type: "tv", category: "وطنية", website: "https://www.entv.dz" },
-  { name: "قناة القرآن الكريم التلفزيونية", type: "tv", category: "دينية", website: "https://www.entv.dz/coran" },
-  { name: "قناة الشروق TV", type: "tv", category: "خاصة", website: "https://www.echoroukonline.com", facebook: "https://www.facebook.com/echoroukTV", youtube: "https://www.youtube.com/@EchoroukonlineTv" },
-  { name: "قناة النهار TV", type: "tv", category: "خاصة", website: "https://www.ennaharonline.com", facebook: "https://www.facebook.com/ennahar.tv", youtube: "https://www.youtube.com/@ENNAHARTV1" },
-  { name: "قناة الجزائرية", type: "tv", category: "خاصة", website: "https://www.aljazairia.tv" },
-  { name: "قناة Dzair TV", type: "tv", category: "خاصة", website: "https://www.dzairtv.com", facebook: "https://www.facebook.com/DzairTV", youtube: "https://www.youtube.com/@DzairTV" },
-  { name: "قناة Numidia News", type: "tv", category: "خاصة", website: "https://www.numidianews.com", youtube: "https://www.youtube.com/@NumidiaNews" },
-  { name: "قناة الأطلس", type: "tv", category: "خاصة", website: "https://www.atlas-tv.net" },
-  { name: "قناة Beur TV", type: "tv", category: "خاصة", website: "https://www.beurtv.com", facebook: "https://www.facebook.com/beurtvdotcom" },
-  { name: "قناة الفجر", type: "tv", category: "خاصة", website: "https://www.alfadjtv.com", facebook: "https://www.facebook.com/AlFajrTV" },
-  { name: "قناة El Djazairia One", type: "tv", category: "خاصة", website: "https://www.eldjazairiaone.com", youtube: "https://www.youtube.com/@ElDjazairiaOne" },
-  { name: "قناة Samira TV", type: "tv", category: "متخصصة", website: "https://www.samiratv.com", facebook: "https://www.facebook.com/SamiraTV", youtube: "https://www.youtube.com/@SamiraTV" },
-  { name: "الإذاعة الجزائرية - الإذاعة الوطنية", type: "radio", category: "وطنية", frequency: "89.7 FM", website: "https://www.radioalgerie.dz" },
-  { name: "الإذاعة الجزائرية - القناة الثانية (أمازيغية)", type: "radio", category: "وطنية", frequency: "100.4 FM", website: "https://www.radioalgerie.dz" },
-  { name: "الإذاعة الجزائرية - القناة الثالثة (فرنسية)", type: "radio", category: "وطنية", frequency: "98.1 FM", website: "https://www.radioalgerie.dz" },
-  { name: "إذاعة القرآن الكريم", type: "radio", category: "دينية", frequency: "100.5 FM", website: "https://www.radioalgerie.dz/coran" },
-  { name: "الشروق أون لاين", type: "website", category: "إخبارية", website: "https://www.echoroukonline.com", facebook: "https://www.facebook.com/echorouk.online" },
-  { name: "النهار أون لاين", type: "website", category: "إخبارية", website: "https://www.ennaharonline.com", facebook: "https://www.facebook.com/EnnaharOnlineDZ" },
-  { name: "الخبر أون لاين", type: "website", category: "إخبارية", website: "https://www.elkhabar.com", facebook: "https://www.facebook.com/elkhabar.algeria" },
-  { name: "وكالة الأنباء الجزائرية (APS)", type: "website", category: "إخبارية", website: "https://www.aps.dz", facebook: "https://www.facebook.com/APSalgerie" },
-  { name: "TSA Algérie", type: "website", category: "إخبارية", website: "https://www.tsa-algerie.com", facebook: "https://www.facebook.com/TSAAlgerie" },
-];
-
-const SEED_WEBSITES = SEED_CHANNELS.filter((c) => c.type === "website");
-
-async function seedWebsites(setCb: (v: boolean) => void) {
-  setCb(true);
-  for (const ch of SEED_WEBSITES) {
-    try { await addChannel(ch); } catch { /* skip */ }
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  setCb(false);
-}
-
 /**
  * Clears the profile and keywords from every channel carrying one.
  *
@@ -2301,21 +2262,14 @@ function ChannelsSection() {
   const [tabFilter, setTabFilter] = useState<ChannelTab>("tv");
 
   useEffect(() => {
-    return subscribeToChannels((data) => {
-      setChannels(data);
-      const seen = new Map<string, boolean>();
-      const toDelete: string[] = [];
-      for (const ch of data) {
-        const key = `${ch.name.trim().toLowerCase()}__${ch.type}`;
-        if (seen.has(key)) { toDelete.push(ch.id); } else { seen.set(key, true); }
-      }
-      if (toDelete.length > 0) toDelete.forEach((id) => deleteChannel(id));
-      const hasWebsites = data.some((c) => c.type !== "tv" && c.type !== "radio");
-      if (!hasWebsites && !localStorage.getItem("sanad-websites-seeded")) {
-        localStorage.setItem("sanad-websites-seeded", "1");
-        seedWebsites(() => {});
-      }
-    });
+    // Opening this page used to do two things to the data on its own: delete
+    // any channel whose name and type matched another, and re-add twenty-five
+    // seeded news sites if none were found. The seeding is what created the
+    // duplicates the deletion existed to clean up, and both ran silently — so
+    // a channel the admin had just added under a name already in the list
+    // disappeared without a word. The directory is populated now, so both are
+    // gone and this only reads.
+    return subscribeToChannels(setChannels);
   }, []);
 
   // keywords is a list; every other field on this form is a string.
