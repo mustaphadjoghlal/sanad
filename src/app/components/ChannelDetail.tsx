@@ -320,6 +320,24 @@ export default function ChannelDetail() {
             </div>
           )}
 
+          {channel.keywords && channel.keywords.length > 0 && (
+            <div className="flex gap-2 flex-wrap justify-center">
+              {channel.keywords.map((word) => (
+                <span
+                  key={word}
+                  className="px-3 py-1.5 rounded-full text-xs"
+                  style={{
+                    background: "var(--p-10)",
+                    border: "1px solid var(--p-20)",
+                    color: "var(--theme-text-muted, #4a7a4a)",
+                  }}
+                >
+                  {word}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* SEO note */}
           <p className="text-xs text-center" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
             بيانات {channel.name} — دليل القنوات الجزائرية على منصة سند

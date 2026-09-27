@@ -270,6 +270,13 @@ function toParagraphs(value, maxLen = 8000) {
   return out;
 }
 
+/** Firestore returns an array field as { arrayValue: { values: [...] } }. */
+function readList(fields, name) {
+  const values = fields?.[name]?.arrayValue?.values;
+  if (!Array.isArray(values)) return [];
+  return values.map((v) => v.stringValue).filter(Boolean);
+}
+
 function readField(fields, name) {
   const field = fields?.[name];
   if (!field) return undefined;
@@ -424,6 +431,7 @@ function buildSchema(kind, { title, description, url, image, subtitle, fields })
         : undefined,
       telephone: readField(fields, "phone"),
       email: readField(fields, "email"),
+      keywords: readList(fields, "keywords").join(", "),
       sameAs: ["website", "facebook", "youtube", "instagram", "twitter"]
         .map((k) => readField(fields, k))
         .filter((v) => v && String(v).startsWith("http")),
@@ -536,6 +544,19 @@ async function relatedHtml(projectId, apiKey, section, fields, selfId) {
   return `<section><h2>${escapeHtml(spec.label)}</h2><ul>${items.join("")}</ul></section>`;
 }
 
+/**
+ * The entry's search terms, rendered where a reader can see them.
+ *
+ * A keyword list shown only to crawlers is hidden text, which Google
+ * penalises, and <meta name="keywords"> has been ignored since 2009. Visible
+ * tags are the version that is both honest and read.
+ */
+function keywordsHtml(fields) {
+  const words = readList(fields, "keywords");
+  if (words.length === 0) return "";
+  return `<section><h2>كلمات مفتاحية</h2><p>${words.map(escapeHtml).join("، ")}</p></section>`;
+}
+
 /** The entry's own links, shown rather than only declared in sameAs. */
 function outboundHtml(fields) {
   const links = [
@@ -636,6 +657,7 @@ export default async function handler(req, res) {
             ? paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join("")
             : `<p>${escapeHtml(meta.description)}</p>`) +
           `</article>` +
+          keywordsHtml(fields) +
           outboundHtml(fields) +
           (await relatedHtml(projectId, apiKey, segments[0], fields, segments[1]).catch(() => ""));
 

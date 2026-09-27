@@ -2211,8 +2211,17 @@ function ProfessionalsSection() {
 }
 
 // ── CHANNELS SECTION ────────────────────────────────────────────
+/** "تردد الشروق، بث مباشر" -> ["تردد الشروق", "بث مباشر"] */
+function csvToTags(value: string): string[] {
+  return value
+    .split(/[،,]/)
+    .map((v) => v.trim())
+    .filter(Boolean)
+    .slice(0, 15);
+}
+
 type ChForm = Omit<Channel, "id" | "createdAt">;
-const emptyChannel: ChForm = { name: "", bio: "", type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
+const emptyChannel: ChForm = { name: "", bio: "", keywords: [], type: "tv", category: "وطنية", frequency: "", email: "", address: "", website: "", phone: "", facebook: "", youtube: "", instagram: "", twitter: "" };
 
 const SEED_CHANNELS: Omit<Channel, "id" | "createdAt">[] = [
   { name: "التلفزيون الجزائري - القناة الأولى", type: "tv", category: "وطنية", website: "https://www.entv.dz", youtube: "https://www.youtube.com/@EntVDZ" },
@@ -2282,7 +2291,8 @@ function ChannelsSection() {
     });
   }, []);
 
-  const cf = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
+  // keywords is a list; every other field on this form is a string.
+  const cf = (key: string, val: string | string[]) => setForm((p) => ({ ...p, [key]: val }));
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
@@ -2429,6 +2439,19 @@ function ChannelsSection() {
                 />
                 <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem", marginTop: "0.35rem" }}>
                   {(form.bio ?? "").trim().length}/2000 — اختياري، ويظهر في صفحة القناة ولمحركات البحث.
+                </p>
+              </div>
+              <div className="col-span-2">
+                <label style={S.label} htmlFor="channel-keywords">الكلمات المفتاحية</label>
+                <input
+                  id="channel-keywords"
+                  style={S.input}
+                  value={(form.keywords ?? []).join("، ")}
+                  onChange={(e) => cf("keywords", csvToTags(e.target.value))}
+                  placeholder="تردد الشروق، قنوات جزائرية خاصة، بث مباشر"
+                />
+                <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem", marginTop: "0.35rem" }}>
+                  افصل بينها بفاصلة. تظهر كوسوم أسفل صفحة القناة وتدخل في بياناتها المنظّمة.
                 </p>
               </div>
               <div className="col-span-2"><label style={S.label} htmlFor="admindashboard-42-0d930f">التردد</label><input id="admindashboard-42-0d930f" style={S.input} value={form.frequency} onChange={(e) => cf("frequency", e.target.value)} dir="ltr" /></div>

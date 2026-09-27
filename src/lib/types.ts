@@ -205,6 +205,14 @@ export interface Channel {
    * to that rather than being required before the entry is worth anything.
    */
   bio?: string;
+  /**
+   * Search terms for this channel, shown on the page as tags and carried in
+   * its structured data. Visible on purpose: a keyword list hidden from
+   * readers and shown only to crawlers is what Google calls hidden text, and
+   * it is penalised. `<meta name="keywords">` would be the other option and
+   * has been ignored by every major engine since 2009.
+   */
+  keywords?: string[];
   type: 'tv' | 'radio' | 'website';
   category: 'وطنية' | 'خاصة' | 'محلية' | 'دينية' | 'متخصصة' | 'إخبارية' | 'رياضية' | 'ثقافية' | 'قنوات الكترونية' | 'نوادي إعلامية';
   frequency?: string;
