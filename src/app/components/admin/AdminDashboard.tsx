@@ -31,11 +31,9 @@ import type { MemberDeletionReport } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
-import { CHANNEL_PROFILES } from "./channelProfiles";
-import type { ChannelProfile } from "./channelProfiles";
 import { normalizePhone, isValidAlgerianPhone } from "../../../lib/text";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
-import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "../../../lib/types";
+import { DEFAULT_THEME, DEFAULT_SITE_CONTENT, accountTypeLabel } from "../../../lib/types";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
 
@@ -965,7 +963,6 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
           </div>
           <div>
             {newUsers.map((u) => {
-              const typeLabels: Record<string, string> = { journalist: "صحفي", voice: "منشط صوتي", photographer: "مصور", editor: "مونتير", student: "طالب", other: "أخرى", store: "متجر" };
               const statusColors: Record<string, string> = { pending: "#fbbf24", approved: "#4ade80", rejected: "#f87171" };
               const statusLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "معتمد", rejected: "مرفوض" };
               return (
@@ -979,7 +976,7 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ color: "var(--theme-text, #c8e6c9)", fontSize: "0.875rem", fontWeight: 500 }}>{u.name}</div>
-                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem" }}>{typeLabels[u.type] ?? u.type}{u.location ? ` — ${u.location}` : ""}</div>
+                    <div style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem" }}>{accountTypeLabel(u.type)}{u.location ? ` — ${u.location}` : ""}</div>
                   </div>
                   <span style={{ color: statusColors[u.status] ?? "#6aad6a", fontSize: "0.72rem", background: "var(--p-10)", border: `1px solid ${statusColors[u.status] ?? "#4a7a4a"}44`, padding: "0.15rem 0.55rem", borderRadius: "9999px", flexShrink: 0 }}>
                     {statusLabels[u.status] ?? u.status}
@@ -1975,12 +1972,6 @@ function ProfessionalsSection() {
     return p.status === "approved";
   });
 
-  const typeLabel: Record<string, string> = {
-    journalist: "صحفي",
-    voice: "منشط صوتي",
-    vendor: "بائع عتاد",
-  };
-
   const pendingCount = profiles.filter((p) => p.status === "pending").length;
   const [rejectTarget, setRejectTarget] = useState<UserProfile | null>(null);
   const [resetTarget, setResetTarget] = useState<UserProfile | null>(null);
@@ -2061,7 +2052,7 @@ function ProfessionalsSection() {
                 <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>{p.name}</div>
                 <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
                 <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", alignItems: "center" }}>
-                  <span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span>
+                  <span style={S.badge("var(--p-20)")}>{accountTypeLabel(p.type)}</span>
                   {p.specialty && <span style={S.badge("var(--p-15)")}>{p.specialty}</span>}
                   {p.location && <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem" }}>{p.location}</span>}
                   <span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span>
@@ -2105,7 +2096,7 @@ function ProfessionalsSection() {
                         </div>
                       )}
                     </td>
-                    <td style={S.td}><span style={S.badge("var(--p-20)")}>{typeLabel[p.type] || p.type}</span></td>
+                    <td style={S.td}><span style={S.badge("var(--p-20)")}>{accountTypeLabel(p.type)}</span></td>
                     <td style={S.td}>{p.specialty || "—"}</td>
                     <td style={S.td}>{p.location || "—"}</td>
                     <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
@@ -2265,47 +2256,42 @@ async function seedWebsites(setCb: (v: boolean) => void) {
 }
 
 /**
- * Writes the chosen profiles onto the channels the admin paired them with.
+ * Clears the profile and keywords from every channel carrying one.
  *
- * The pairing is explicit rather than guessed. Matching on the stored name
- * failed for sixteen of twenty-two — only the news websites were seeded from
- * a fixed list, so the directory holds "سميرة تيفي" where the profile says
- * "قناة Samira TV" — and scoring the names instead proposed "راديو الشروق"
- * for "الشروق أون لاين" with full confidence. A wrong pairing writes the
- * wrong station's description onto a real organisation's page, so the admin
- * picks and nothing is guessed.
+ * The prepared drafts were removed at the admin's request — they will write
+ * their own — so this is here to take the drafted text back out of the
+ * directory. It leaves the channels themselves untouched.
  */
-async function writeChannelProfiles(
-  pairs: { channel: Channel; profile: ChannelProfile }[],
+async function clearChannelProfiles(
+  channels: Channel[],
   onProgress: (done: number, total: number) => void
-): Promise<{ filled: number; failed: string[] }> {
-  let filled = 0;
+): Promise<{ cleared: number; failed: string[] }> {
+  const targets = channels.filter((c) => c.bio?.trim() || c.keywords?.length);
+  let cleared = 0;
   const failed: string[] = [];
 
-  for (const [index, { channel, profile }] of pairs.entries()) {
-    onProgress(index, pairs.length);
+  for (const [index, channel] of targets.entries()) {
+    onProgress(index, targets.length);
     try {
-      await updateChannel(channel.id, { bio: profile.bio, keywords: profile.keywords });
-      filled++;
+      await updateChannel(channel.id, { bio: "", keywords: [] });
+      cleared++;
     } catch {
       failed.push(channel.name);
     }
     await new Promise((r) => setTimeout(r, 120));
   }
 
-  onProgress(pairs.length, pairs.length);
-  return { filled, failed };
+  onProgress(targets.length, targets.length);
+  return { cleared, failed };
 }
 
 function ChannelsSection() {
   const isMobile = useIsMobile();
   const [channels, setChannels] = useState<Channel[]>([]);
-  const [profilesOpen, setProfilesOpen] = useState(false);
-  const [profilesBusy, setProfilesBusy] = useState(false);
-  const [profilesProgress, setProfilesProgress] = useState({ done: 0, total: 0 });
-  const [profilesResult, setProfilesResult] = useState<{ filled: number; failed: string[] } | null>(null);
-  /** profile name -> the channel id the admin paired it with. */
-  const [pairing, setPairing] = useState<Record<string, string>>({});
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearBusy, setClearBusy] = useState(false);
+  const [clearProgress, setClearProgress] = useState({ done: 0, total: 0 });
+  const [clearResult, setClearResult] = useState<{ cleared: number; failed: string[] } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<ChForm>(emptyChannel);
@@ -2386,83 +2372,59 @@ function ChannelsSection() {
         </button>
       </div>
 
-      {/* Pairs the written profiles with channels, chosen by the admin. */}
-      <div className="mt-3 p-4 rounded-xl" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}>
-        <div className="flex items-start gap-3 flex-wrap">
-          <FileText size={16} className="shrink-0 mt-0.5" style={{ color: "var(--theme-accent)" }} />
-          <div className="flex-1" style={{ minWidth: "12rem" }}>
-            <p className="text-sm mb-1" style={{ color: "var(--theme-text, #e8f5e9)" }}>
-              نبذات جاهزة لأبرز القنوات
-            </p>
-            <p className="text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.8 }}>
-              {Object.keys(CHANNEL_PROFILES).length} نبذة مكتوبة. اختر لكل واحدة القناة التي تخصّها —
-              الأسماء تختلف بين النص وقاعدتك، والاختيار الخاطئ يكتب وصف قناة على أخرى.
-              <strong style={{ color: "var(--theme-text-secondary)" }}> راجع النصوص بعدها قناةً قناة.</strong>
-            </p>
+      {/* Takes the drafted profiles back out, leaving the channels alone. */}
+      {channels.some((c) => c.bio?.trim() || c.keywords?.length) && (
+        <div className="mt-3 p-4 rounded-xl" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}>
+          <div className="flex items-start gap-3 flex-wrap">
+            <FileText size={16} className="shrink-0 mt-0.5" style={{ color: "var(--theme-text-muted)" }} />
+            <div className="flex-1" style={{ minWidth: "12rem" }}>
+              <p className="text-sm mb-1" style={{ color: "var(--theme-text, #e8f5e9)" }}>
+                مسح النبذات
+              </p>
+              <p className="text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.8 }}>
+                يمسح النبذة والكلمات المفتاحية من{" "}
+                {channels.filter((c) => c.bio?.trim() || c.keywords?.length).length} قناة تحمل واحدة.
+                القنوات نفسها لا تُمسّ.
+              </p>
+            </div>
+            <button
+              onClick={() => { setClearResult(null); setClearOpen(true); }}
+              className="px-4 py-2 rounded-lg text-sm shrink-0"
+              style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}
+            >
+              مسح النبذات
+            </button>
           </div>
-          <button
-            onClick={() => { setProfilesResult(null); setProfilesOpen(true); }}
-            disabled={channels.length === 0}
-            className="btn-dz px-4 py-2 rounded-lg text-sm shrink-0 disabled:opacity-50"
-          >
-            ربط النبذات
-          </button>
+
+          {clearResult && (
+            <div className="mt-3 pt-3 text-xs" style={{ borderTop: "1px solid var(--p-15)", lineHeight: 1.9 }}>
+              <p style={{ color: "#4ade80" }}>✓ مُسحت نبذة {clearResult.cleared} قناة</p>
+              {clearResult.failed.length > 0 && (
+                <p style={{ color: "#f87171" }}>تعذّر المسح من: {clearResult.failed.join("، ")}</p>
+              )}
+            </div>
+          )}
         </div>
+      )}
 
-        {profilesResult && (
-          <div className="mt-3 pt-3 text-xs" style={{ borderTop: "1px solid var(--p-15)", lineHeight: 1.9 }}>
-            <p style={{ color: "#4ade80" }}>✓ كُتبت نبذة لـ {profilesResult.filled} قناة</p>
-            {profilesResult.failed.length > 0 && (
-              <p style={{ color: "#f87171" }}>تعذّرت الكتابة على: {profilesResult.failed.join("، ")}</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {profilesOpen && (
-        <Modal title="ربط النبذات بالقنوات" onClose={() => setProfilesOpen(false)}>
-          <p className="text-sm mb-4" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.8 }}>
-            لكل نبذة، اختر القناة المقابلة من قاعدتك. اترك «— لا شيء —» لما لا تريده.
-            الكتابة تستبدل النبذة والكلمات المفتاحية للقناة المختارة.
+      {clearOpen && (
+        <Modal title="مسح النبذات" onClose={() => setClearOpen(false)}>
+          <p style={{ color: "var(--theme-text-secondary, #a5d6a7)", marginBottom: "0.75rem", lineHeight: 1.8 }}>
+            مسح النبذة والكلمات المفتاحية من{" "}
+            <strong style={{ color: "#ef9a9a" }}>
+              {channels.filter((c) => c.bio?.trim() || c.keywords?.length).length} قناة
+            </strong>
+            ؟
+          </p>
+          <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.82rem", marginBottom: "1.25rem", lineHeight: 1.8 }}>
+            القنوات وبياناتها (التردد، العنوان، الروابط) تبقى كما هي — يُمسح النص فقط.
+            لا يمكن التراجع.
           </p>
 
-          <div className="flex flex-col gap-3 mb-5">
-            {Object.entries(CHANNEL_PROFILES).map(([name]) => (
-              <div key={name}>
-                <label
-                  htmlFor={`pair-${name}`}
-                  className="block text-xs mb-1"
-                  style={{ color: "var(--theme-badge-text, #81c784)" }}
-                >
-                  {name}
-                </label>
-                <select
-                  id={`pair-${name}`}
-                  style={S.input}
-                  value={pairing[name] ?? ""}
-                  onChange={(e) => setPairing((prev) => ({ ...prev, [name]: e.target.value }))}
-                >
-                  <option value="">— لا شيء —</option>
-                  {[...channels]
-                    .sort((a, b) => a.name.localeCompare(b.name, "ar"))
-                    .map((ch) => (
-                      <option key={ch.id} value={ch.id}>
-                        {ch.name}
-                        {ch.bio?.trim() ? " (لها نبذة)" : ""}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-3 justify-end items-center flex-wrap">
-            <span className="text-xs" style={{ color: "var(--theme-text-muted)" }}>
-              {Object.values(pairing).filter(Boolean).length} مختارة
-            </span>
+          <div className="flex gap-3 justify-end">
             <button
-              onClick={() => setProfilesOpen(false)}
-              disabled={profilesBusy}
+              onClick={() => setClearOpen(false)}
+              disabled={clearBusy}
               className="px-4 py-2 rounded-lg text-sm disabled:opacity-50"
               style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)" }}
             >
@@ -2470,26 +2432,19 @@ function ChannelsSection() {
             </button>
             <button
               onClick={async () => {
-                const pairs = Object.entries(pairing)
-                  .filter(([, id]) => id)
-                  .map(([name, id]) => ({
-                    channel: channels.find((c) => c.id === id)!,
-                    profile: CHANNEL_PROFILES[name],
-                  }))
-                  .filter((pair) => pair.channel && pair.profile);
-                if (pairs.length === 0) return;
-                setProfilesBusy(true);
-                const result = await writeChannelProfiles(pairs, (done, total) =>
-                  setProfilesProgress({ done, total })
+                setClearBusy(true);
+                const result = await clearChannelProfiles(channels, (done, total) =>
+                  setClearProgress({ done, total })
                 );
-                setProfilesResult(result);
-                setProfilesBusy(false);
-                setProfilesOpen(false);
+                setClearResult(result);
+                setClearBusy(false);
+                setClearOpen(false);
               }}
-              disabled={profilesBusy || Object.values(pairing).filter(Boolean).length === 0}
-              className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50"
+              disabled={clearBusy}
+              className="px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+              style={{ background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", color: "#ef9a9a" }}
             >
-              {profilesBusy ? `جارٍ... ${profilesProgress.done}/${profilesProgress.total}` : "كتابة المختارة"}
+              {clearBusy ? `جارٍ... ${clearProgress.done}/${clearProgress.total}` : "مسح"}
             </button>
           </div>
         </Modal>

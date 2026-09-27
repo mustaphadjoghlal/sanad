@@ -11,32 +11,11 @@ import {
 } from "../../../lib/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialLinks } from "../../../lib/types";
-import { WORK_TYPES } from "../../../lib/types";
+import { WORK_TYPES, accountTypeLabel } from "../../../lib/types";
 import WorksSection from "../WorksSection";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
 
-const typeLabel: Record<string, string> = {
-  editor_news: "محرر أخبار",
-  web_digital: "ويب ديجيتال",
-  presenter_programs: "مقدم برامج",
-  presenter_news: "مقدم أخبار",
-  monteur: "مونتير",
-  graphic_designer: "جرافيك ديزاينر",
-  cameraman: "كاميرا مان",
-  producer: "منتج",
-  director: "مخرج",
-  program_writer: "معد برامج",
-  voice: "معلق صوتي",
-  host_stage: "منشط على الركح",
-  student: "طالب إعلام",
-  journalist: "صحفي / مراسل",
-  photographer: "مصور",
-  editor: "مخرج / مونتير",
-  store: "متجر عتاد",
-  trainer: "مدرب",
-  other: "إعلامي",
-};
 
 const statusLabel: Record<string, string> = {
   pending: "قيد الانتظار",
@@ -539,7 +518,7 @@ export default function UserDashboard() {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs" style={{ color: "var(--theme-text-muted)" }}>
-                    <span style={{ color: "var(--theme-accent)" }}>{typeLabel[profile.type] ?? profile.type}</span>
+                    <span style={{ color: "var(--theme-accent)" }}>{accountTypeLabel(profile.type) ?? profile.type}</span>
                     {profile.specialty && <span>• {profile.specialty}</span>}
                     {profile.location && <span className="flex items-center gap-1"><MapPin size={10} /> {profile.location}</span>}
                   </div>

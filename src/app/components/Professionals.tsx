@@ -3,29 +3,11 @@ import { Search, Users, MapPin, ArrowLeft, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToApprovedProfessionals } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
+import { accountTypeLabel } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
 
-const typeLabel: Record<string, string> = {
-  editor_news:        "محرر أخبار",
-  web_digital:        "ويب ديجيتال",
-  presenter_programs: "مقدم برامج",
-  presenter_news:     "مقدم أخبار",
-  monteur:            "مونتير",
-  graphic_designer:   "جرافيك ديزاينر",
-  cameraman:          "كاميرا مان",
-  producer:           "منتج",
-  director:           "مخرج",
-  program_writer:     "معد برامج",
-  voice:              "معلق صوتي",
-  host_stage:         "منشط على الركح",
-  student:            "طالب إعلام",
-  journalist:         "صحفي / مراسل",
-  photographer:       "مصور",
-  editor:             "مخرج / مونتير",
-  other:              "إعلامي",
-};
 
 const EXCLUDED_TYPES = new Set(["store", "vendor", "trainer"]);
 const PAGE_SIZE = 12;
@@ -50,7 +32,7 @@ export default function Professionals() {
 
   const q = search;
   const filtered = all.filter((p) => {
-    const matchSearch = matchesQuery(q, p.name, p.specialty, p.location, typeLabel[p.type]);
+    const matchSearch = matchesQuery(q, p.name, p.specialty, p.location, accountTypeLabel(p.type));
     const matchType = !typeFilter || p.type === typeFilter;
     const matchLoc = !locationFilter || p.location === locationFilter;
     return matchSearch && matchType && matchLoc;
@@ -98,7 +80,7 @@ export default function Professionals() {
             </div>
             <select className="select-dz px-4 py-2.5 rounded-lg text-sm" value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); resetPage(); }}>
               <option value="">جميع التخصصات</option>
-              {types.map((t) => <option key={t} value={t}>{typeLabel[t] ?? t}</option>)}
+              {types.map((t) => <option key={t} value={t}>{accountTypeLabel(t) ?? t}</option>)}
             </select>
             <select className="select-dz px-4 py-2.5 rounded-lg text-sm" value={locationFilter} onChange={(e) => { setLocationFilter(e.target.value); resetPage(); }}>
               <option value="">كل الولايات</option>
@@ -156,7 +138,7 @@ export default function Professionals() {
                       </div>
                     )}
                     <span className="absolute top-2.5 right-2.5 text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.65)", color: "var(--theme-accent)", backdropFilter: "blur(4px)", border: "1px solid var(--p-20)" }}>
-                      {typeLabel[p.type] ?? p.type}
+                      {accountTypeLabel(p.type) ?? p.type}
                     </span>
                   </div>
 

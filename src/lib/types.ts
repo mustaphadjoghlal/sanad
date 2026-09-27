@@ -234,6 +234,42 @@ export type IndividualType =
   | 'journalist' | 'photographer' | 'editor';
 export type AccountType = IndividualType | 'store' | 'trainer';
 
+/**
+ * The Arabic name for every account type, in one place.
+ *
+ * This existed as four separate copies — three identical and one, in the
+ * admin dashboard, covering three types out of nineteen and calling a
+ * معلق صوتي a منشط صوتي. So the admin saw the wrong job title for voice
+ * artists and a raw "trainer" or "student" for everyone the stub missed,
+ * while the public pages showed the right thing all along.
+ */
+export const ACCOUNT_TYPE_LABEL: Record<string, string> = {
+  editor_news: "محرر أخبار",
+  web_digital: "ويب ديجيتال",
+  presenter_programs: "مقدم برامج",
+  presenter_news: "مقدم أخبار",
+  monteur: "مونتير",
+  graphic_designer: "جرافيك ديزاينر",
+  cameraman: "كاميرا مان",
+  producer: "منتج",
+  director: "مخرج",
+  program_writer: "معد برامج",
+  voice: "معلق صوتي",
+  host_stage: "منشط على الركح",
+  student: "طالب إعلام",
+  journalist: "صحفي / مراسل",
+  photographer: "مصور",
+  editor: "مخرج / مونتير",
+  store: "متجر عتاد",
+  trainer: "مدرب",
+  other: "إعلامي",
+};
+
+/** Falls back to the stored value, so a new type shows as itself, not blank. */
+export function accountTypeLabel(type: string | undefined): string {
+  return ACCOUNT_TYPE_LABEL[type ?? ""] ?? type ?? "";
+}
+
 export interface TrainerCourse {
   id: string;
   trainerId: string;

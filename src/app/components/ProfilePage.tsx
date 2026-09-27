@@ -7,18 +7,11 @@ import {
 } from "lucide-react";
 import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
+import { accountTypeLabel } from "../../lib/types";
 import WorksSection from "./WorksSection";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { personSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
-const typeLabel: Record<string, string> = {
-  editor_news: "محرر أخبار", web_digital: "ويب ديجيتال", presenter_programs: "مقدم برامج",
-  presenter_news: "مقدم أخبار", monteur: "مونتير", graphic_designer: "جرافيك ديزاينر",
-  cameraman: "كاميرا مان", producer: "منتج", director: "مخرج", program_writer: "معد برامج",
-  voice: "معلق صوتي", host_stage: "منشط على الركح", student: "طالب إعلام",
-  journalist: "صحفي / مراسل", photographer: "مصور", editor: "مخرج / مونتير",
-  store: "متجر عتاد", trainer: "مدرب", other: "إعلامي",
-};
 
 function safeTags(values?: string[]) {
   return (values ?? []).map((v) => v.trim()).filter(Boolean);
@@ -122,7 +115,7 @@ export default function ProfilePage() {
     </div>
   );
 
-  const displayType = typeLabel[profile.type] ?? profile.type;
+  const displayType = accountTypeLabel(profile.type) ?? profile.type;
   const portfolioLinks = [...(profile.portfolio ?? []), ...(profile.portfolioVideos ?? []).map((v) => ({ label: v.title, url: v.url }))];
   const hasProfessionalDetails = Boolean(profile.specialty || profile.experience || profile.achievements || profile.organization || profile.availability);
 
