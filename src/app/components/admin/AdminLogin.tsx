@@ -143,7 +143,6 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-dz w-full pr-10 pl-4 py-3 rounded-xl text-sm"
-                  placeholder="admin@sanad.dz"
                   required
                 />
               </div>
