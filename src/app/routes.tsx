@@ -27,6 +27,8 @@ const Trainers = lazy(() => import("./components/Trainers"));
 const TrainerDetail = lazy(() => import("./components/TrainerDetail"));
 const ProfilePage = lazy(() => import("./components/ProfilePage"));
 const Professionals = lazy(() => import("./components/Professionals"));
+const Works = lazy(() => import("./components/Works"));
+const WorkDetail = lazy(() => import("./components/WorkDetail"));
 const SearchPage = lazy(() => import("./components/Search"));
 const About = lazy(() => import("./components/About"));
 const Privacy = lazy(() => import("./components/Privacy"));
@@ -85,6 +87,8 @@ export const router = createBrowserRouter([
       { path: "trainers", element: page(Trainers) },
       { path: "trainers/:id", element: page(TrainerDetail) },
       { path: "profile/:id", element: page(ProfilePage) },
+      { path: "works", element: page(Works) },
+      { path: "works/:id", element: page(WorkDetail) },
       { path: "professionals", element: page(Professionals) },
       { path: "search", element: page(SearchPage) },
       { path: "about", element: page(About) },
