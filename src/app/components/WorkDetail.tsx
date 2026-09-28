@@ -10,6 +10,7 @@ import { usePageTitle } from "../../lib/usePageTitle";
 import { useStructuredData, breadcrumbs } from "../../lib/structuredData";
 import { WORK_LABEL, shortCount, youtubeId } from "../../lib/works";
 import WorkCard from "./WorkCard";
+import VideoEmbed from "./VideoEmbed";
 import { WORK_ICON } from "./workIcons";
 
 export default function WorkDetail() {
@@ -131,15 +132,7 @@ export default function WorkDetail() {
           {/* The work itself */}
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}>
             {videoId ? (
-              <div style={{ aspectRatio: "16 / 9" }}>
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${videoId}`}
-                  title={work.title}
-                  allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                  style={{ width: "100%", height: "100%", border: "none" }}
-                />
-              </div>
+              <VideoEmbed videoId={videoId} title={work.title} poster={work.cover} />
             ) : work.type === "image" ? (
               <img src={work.url} alt={work.title} className="w-full" style={{ display: "block" }} />
             ) : work.type === "audio" ? (
