@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Package, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store } from "lucide-react";
+import { BookOpen, Briefcase, Tv, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store } from "lucide-react";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
@@ -88,7 +88,7 @@ function EditorialCard({ to, children, delay = "0s" }: { to: string; children: R
 const services = [
   { icon: BookOpen,  title: "الدورات التدريبية", link: "/courses" },
   { icon: Briefcase, title: "عروض التوظيف",      link: "/jobs" },
-  { icon: Package,   title: "عتاد إعلامي",       link: "/equipment" },
+  { icon: Tv,        title: "دليل القنوات",      link: "/channels" },
   { icon: Trophy,    title: "المسابقات",          link: "/competitions" },
   { icon: Newspaper, title: "أخبار الإعلام",     link: "/news" },
   { icon: Store,     title: "سوق المعدات",       link: "/stores" },
