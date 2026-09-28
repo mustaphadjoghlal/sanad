@@ -3,7 +3,7 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
-  Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
+  Trophy, Settings, LogOut, Plus, Pencil, Trash2,
   X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
   KeyRound, Copy, MessageCircle, MessageSquare, Sparkles, Eye, Heart,
 } from "lucide-react";
@@ -17,7 +17,7 @@ import {
   addJob, updateJob, deleteJob,
   addEquipment, updateEquipment, deleteEquipment,
   addCompetition, updateCompetition, deleteCompetition,
-  addVoiceArtist, updateVoiceArtist, deleteVoiceArtist,
+  deleteVoiceArtist,
   approveItem, rejectItem, toggleFeatured,
   saveThemeSettings, subscribeToTheme,
   saveSiteContent, subscribeToSiteContent,
@@ -73,7 +73,7 @@ if (typeof document !== "undefined" && !document.getElementById("quill-dark-styl
  * section named in the URL can be checked against it at runtime.
  */
 const SECTIONS = [
-  "overview", "courses", "equipment", "jobs", "competitions", "voice",
+  "overview", "courses", "equipment", "jobs", "competitions",
   "professionals", "works", "channels", "news", "theses", "appearance", "content",
   "notifications", "settings",
 ] as const;
@@ -723,7 +723,6 @@ export default function AdminDashboard() {
     { id: "equipment"as Section, label: "العتاد",    icon: ShoppingCart },
     { id: "jobs"     as Section, label: "الوظائف",   icon: Briefcase },
     { id: "competitions" as Section, label: "المسابقات", icon: Trophy },
-    { id: "voice"    as Section, label: "المنشطون",  icon: Mic },
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
     { id: "works"        as Section, label: "معرض الأعمال", icon: Sparkles },
     { id: "channels"     as Section, label: "القنوات",   icon: Tv },
@@ -852,7 +851,6 @@ export default function AdminDashboard() {
           {activeSection === "equipment"      && <EquipmentSection />}
           {activeSection === "jobs"           && <JobsSection />}
           {activeSection === "competitions"   && <CompetitionsSection />}
-          {activeSection === "voice"          && <VoiceSection />}
           {activeSection === "professionals"  && <ProfessionalsSection />}
           {activeSection === "works"          && <WorksAdminSection />}
           {activeSection === "channels"       && <ChannelsSection />}
@@ -870,8 +868,8 @@ export default function AdminDashboard() {
 
 // ── Overview ────────────────────────────────────────────────────
 function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
-  const [counts, setCounts] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, voice: 0, profiles: 0 });
-  const [pending, setPending] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, voice: 0, profiles: 0 });
+  const [counts, setCounts] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, profiles: 0 });
+  const [pending, setPending] = useState({ courses: 0, jobs: 0, equipment: 0, competitions: 0, profiles: 0 });
   const [newUsers, setNewUsers] = useState<UserProfile[]>([]);
 
   useEffect(() => {
@@ -892,14 +890,9 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
         setCounts((c) => ({ ...c, competitions: d.length }));
         setPending((p) => ({ ...p, competitions: d.filter((x) => x.status === "pending").length }));
       }),
-      subscribeToCollection<VoiceArtist>("voice", (d) => {
-        setCounts((c) => ({ ...c, voice: d.length }));
-        setPending((p) => ({ ...p, voice: d.filter((x) => x.status === "pending").length }));
-      }),
       subscribeToAllProfiles((d) => {
-        const voiceUsers = d.filter((x) => x.type === "voice");
-        setCounts((c) => ({ ...c, profiles: d.length, voice: c.voice + voiceUsers.length }));
-        setPending((p) => ({ ...p, profiles: d.filter((x) => x.status === "pending").length, voice: p.voice + voiceUsers.filter((x) => x.status === "pending").length }));
+        setCounts((c) => ({ ...c, profiles: d.length }));
+        setPending((p) => ({ ...p, profiles: d.filter((x) => x.status === "pending").length }));
         const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
         setNewUsers(d.filter((x) => x.createdAt > week).slice(0, 10));
       }),
@@ -912,7 +905,6 @@ function OverviewSection({ onNavigate }: { onNavigate: (s: Section) => void }) {
     { label: "العتاد",      value: counts.equipment,    pendingCount: pending.equipment,    icon: ShoppingCart,  sec: "equipment" as Section,    color: "#1a5276" },
     { label: "الوظائف",     value: counts.jobs,         pendingCount: pending.jobs,         icon: Briefcase,     sec: "jobs" as Section,         color: "#7d3c98" },
     { label: "المسابقات",   value: counts.competitions, pendingCount: pending.competitions, icon: Trophy,        sec: "competitions" as Section, color: "#784212" },
-    { label: "المنشطون",    value: counts.voice,        pendingCount: pending.voice,        icon: Mic,           sec: "voice" as Section,        color: "#1a6b47" },
     { label: "المحترفون",   value: counts.profiles,     pendingCount: pending.profiles,     icon: Users,         sec: "professionals" as Section, color: "#4a235a" },
   ];
 
@@ -1827,150 +1819,25 @@ function CompetitionsSection() {
   );
 }
 
-// ── VOICE SECTION ───────────────────────────────────────────────
-type VoiceForm = Omit<VoiceArtist, "id" | "createdAt" | "status" | "featured" | "submittedBy" | "rejectionNote">;
-const emptyVoice: VoiceForm = { name: "", specialty: "", experience: "", description: "", contact: "" };
-
-function VoiceSection() {
-  const isMobile = useIsMobile();
-  const [items, setItems] = useState<VoiceArtist[]>([]);
-  const [voiceUsers, setVoiceUsers] = useState<UserProfile[]>([]);
-  const [modal, setModal] = useState<"add" | "edit" | null>(null);
-  const [form, setForm] = useState<VoiceForm>(emptyVoice);
-  const [editId, setEditId] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<VoiceArtist | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [filter, setFilter] = useState<StatusFilter>("all");
-
-  useEffect(() => subscribeToCollection<VoiceArtist>("voice", setItems), []);
-  useEffect(() => subscribeToAllProfiles((d) => setVoiceUsers(d.filter((x) => x.type === "voice"))), []);
-
-  // Merge both sources — registered users shown as voice entries
-  const allVoice: VoiceArtist[] = [
-    ...items,
-    ...voiceUsers.map((u) => ({
-      id: u.id, name: u.name, specialty: u.specialty ?? "", experience: u.experience ?? "",
-      description: u.bio, contact: u.phone ?? u.email, createdAt: u.createdAt,
-      status: u.status, featured: u.featured,
-    })),
-  ];
-
-  const filtered = allVoice.filter((v) => {
-    if (filter === "all") return true;
-    if (filter === "pending") return v.status === "pending";
-    return v.status === "approved" || !v.status;
-  });
-
-  const openAdd = () => { setForm(emptyVoice); setModal("add"); };
-  const openEdit = (v: VoiceArtist) => { setEditId(v.id); setForm({ name: v.name, specialty: v.specialty, experience: v.experience, description: v.description, contact: v.contact }); setModal("edit"); };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      if (modal === "add") await addVoiceArtist(form);
-      else await updateVoiceArtist(editId, form);
-      setModal(null);
-    } finally { setSaving(false); }
-  };
-
-  const pendingCount = items.filter((v) => v.status === "pending").length;
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>{items.length} منشط {pendingCount > 0 && <span style={{ color: "#fbbf24" }}>({pendingCount} انتظار)</span>}</span>
-        <button onClick={openAdd} className="btn-dz flex items-center gap-2 px-4 py-2 rounded-lg text-sm">
-          <span><Plus size={16} /></span><span>إضافة منشط</span>
-        </button>
-      </div>
-      <StatusTabs value={filter} onChange={setFilter} />
-
-      {isMobile ? (
-        <div>
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد منشطون</div>
-          ) : filtered.map((v) => (
-            <MobileCard
-              key={v.id}
-              title={v.name}
-              subtitle={`${v.specialty} · ${v.experience}`}
-              badges={<span style={S.statusBadge(v.status || "approved")}>{statusLabel(v.status)}</span>}
-              status={v.status} featured={v.featured}
-              colName="voice" id={v.id} label={v.name}
-              onEdit={() => openEdit(v)} onDelete={() => setDeleteTarget(v)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div style={S.card} className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr>{["الاسم", "التخصص", "الخبرة", "الحالة", ""].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={5} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد منشطون</td></tr>
-                ) : filtered.map((v) => (
-                  <tr key={v.id} className="hover:bg-green-950/20 transition-colors" style={v.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
-                    <td style={S.td}>{v.name}</td>
-                    <td style={S.td}><span style={S.badge("var(--p-25)")}>{v.specialty}</span></td>
-                    <td style={S.td}>{v.experience}</td>
-                    <td style={S.td}><span style={S.statusBadge(v.status || "approved")}>{statusLabel(v.status)}</span></td>
-                    <td style={{ ...S.td, width: "140px" }}>
-                      <ItemActions colName="voice" id={v.id} status={v.status} featured={v.featured} label={v.name} onEdit={() => openEdit(v)} onDelete={() => setDeleteTarget(v)} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {modal && (
-        <Modal title={modal === "add" ? "إضافة منشط" : "تعديل المنشط"} onClose={() => setModal(null)}>
-          <div className="space-y-4">
-            <div><label style={S.label} htmlFor="admindashboard-33-96e311">الاسم الكامل *</label><input id="admindashboard-33-96e311" style={S.input} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label style={S.label} htmlFor="admindashboard-34-4c579e">التخصص</label>
-                <select id="admindashboard-34-4c579e" style={S.input} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}>
-                  <option value="">اختر التخصص</option>
-                  <option value="إذاعي">إذاعي</option>
-                  <option value="تلفزيوني">تلفزيوني</option>
-                  <option value="بودكاست">بودكاست</option>
-                  <option value="تعليق صوتي">تعليق صوتي</option>
-                </select>
-              </div>
-              <div><label style={S.label} htmlFor="admindashboard-35-ef317d">سنوات الخبرة</label><input id="admindashboard-35-ef317d" style={S.input} value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} placeholder="مثال: 5 سنوات" /></div>
-            </div>
-            <div><label style={S.label} htmlFor="admindashboard-36-6e0261">معلومات التواصل</label><input id="admindashboard-36-6e0261" style={S.input} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></div>
-            <div><label style={S.label} htmlFor="admindashboard-37-69b730">نبذة</label><textarea id="admindashboard-37-69b730" style={{ ...S.input, minHeight: "70px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-            <div className="flex gap-3 justify-end pt-2">
-              <button onClick={() => setModal(null)} style={{ border: "1px solid var(--p-30)", color: "var(--theme-badge-text, #81c784)", padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.875rem" }}>إلغاء</button>
-              <button onClick={handleSave} disabled={saving || !form.name} className="btn-dz px-5 py-2 rounded-lg text-sm disabled:opacity-50">
-                <span>{saving ? "جاري الحفظ..." : "حفظ"}</span>
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {deleteTarget && <ConfirmDelete label={deleteTarget.name} onConfirm={async () => { await deleteVoiceArtist(deleteTarget.id); setDeleteTarget(null); }} onClose={() => setDeleteTarget(null)} />}
-    </div>
-  );
-}
-
 // ── PROFESSIONALS SECTION ───────────────────────────────────────
 function ProfessionalsSection() {
   const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  // A معلق صوتي is a محترف like any other, so this is where they are found
+  // now — by their job title, rather than in a section of their own that
+  // counted them a second time.
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [legacyVoice, setLegacyVoice] = useState<VoiceArtist[]>([]);
 
   useEffect(() => subscribeToAllProfiles(setProfiles), []);
+  useEffect(() => subscribeToCollection<VoiceArtist>("voice", setLegacyVoice), []);
+
+  // Only the job titles somebody actually holds, so the list stays short.
+  const presentTypes = [...new Set(profiles.map((p) => p.type).filter(Boolean))] as string[];
 
   const filtered = profiles.filter((p) => {
+    if (typeFilter !== "all" && p.type !== typeFilter) return false;
     if (filter === "all") return true;
     if (filter === "pending") return p.status === "pending";
     return p.status === "approved";
@@ -1981,6 +1848,7 @@ function ProfessionalsSection() {
   const [resetTarget, setResetTarget] = useState<UserProfile | null>(null);
   const [noteTarget, setNoteTarget] = useState<UserProfile | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null);
+  const [legacyTarget, setLegacyTarget] = useState<VoiceArtist | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [report, setReport] = useState<MemberDeletionReport | null>(null);
 
@@ -2035,12 +1903,61 @@ function ProfessionalsSection() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center gap-3 mb-4 flex-wrap">
         <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
-          {profiles.length} محترف مسجل{pendingCount > 0 && <span style={{ color: "#fbbf24" }}> ({pendingCount} انتظار)</span>}
+          {typeFilter === "all"
+            ? <>{profiles.length} محترف مسجل</>
+            : <>{filtered.length} من {profiles.length} — {accountTypeLabel(typeFilter)}</>}
+          {pendingCount > 0 && <span style={{ color: "#fbbf24" }}> ({pendingCount} انتظار)</span>}
         </span>
+        <select
+          aria-label="ترشيح حسب المهنة"
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          style={{ ...S.input, width: "auto", minWidth: "11rem" }}
+        >
+          <option value="all">كل المهن</option>
+          {presentTypes
+            .map((t) => [t, accountTypeLabel(t)] as const)
+            .sort((a, b) => a[1].localeCompare(b[1], "ar"))
+            .map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+        </select>
       </div>
       <StatusTabs value={filter} onChange={setFilter} />
+
+      {/* Entries the admin typed into the old منشطون section before members
+          could register. They were never shown to a visitor and cannot be
+          signed into, so the only thing left to do with one is remove it.
+          The panel disappears once the last one is gone. */}
+      {legacyVoice.length > 0 && (
+        <div className="mb-4 p-4 rounded-xl" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)" }}>
+          <p className="text-sm mb-1" style={{ color: "var(--theme-text, #e8f5e9)" }}>
+            مُدخَلات قديمة من قسم المنشطون ({legacyVoice.length})
+          </p>
+          <p className="text-xs mb-3" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.8 }}>
+            أُضيفت يدوياً قبل أن يصير التسجيل ممكناً، ولا تظهر للزوار ولا تملك حساباً.
+          </p>
+          <div className="flex flex-col gap-2">
+            {legacyVoice.map((v) => (
+              <div key={v.id} className="flex items-center justify-between gap-3">
+                <span className="text-sm" style={{ color: "var(--theme-text-secondary, #6aad6a)" }}>
+                  {v.name}{v.specialty ? ` — ${v.specialty}` : ""}
+                </span>
+                <button
+                  onClick={() => setLegacyTarget(v)}
+                  aria-label={`حذف ${v.name}`}
+                  className="p-1.5 rounded shrink-0"
+                  style={{ color: "#ef9a9a", background: "rgba(198,40,40,0.18)" }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isMobile ? (
         <div>
@@ -2202,6 +2119,14 @@ function ProfessionalsSection() {
             </div>
           )}
         </Modal>
+      )}
+
+      {legacyTarget && (
+        <ConfirmDelete
+          label={legacyTarget.name}
+          onConfirm={async () => { await deleteVoiceArtist(legacyTarget.id); setLegacyTarget(null); }}
+          onClose={() => setLegacyTarget(null)}
+        />
       )}
     </div>
   );

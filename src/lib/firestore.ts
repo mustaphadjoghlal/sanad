@@ -19,7 +19,7 @@ import {
 } from "firebase/firestore";
 import type { FirestoreError, UpdateData, DocumentData } from "firebase/firestore";
 import { db, auth } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration, Work } from "./types";
+import type { Course, Job, Equipment, Competition, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration, Work } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
 // Generic helpers
@@ -133,13 +133,11 @@ export async function deleteCompetition(id: string) {
   return deleteDoc(docRef("competitions", id));
 }
 
-// --- VOICE ARTISTS ---
-export async function addVoiceArtist(data: Omit<VoiceArtist, "id" | "createdAt">) {
-  return addDoc(col("voice"), { ...data, createdAt: Date.now(), status: "approved", featured: false });
-}
-export async function updateVoiceArtist(id: string, data: Partial<Omit<VoiceArtist, "id">>) {
-  return updateDoc(docRef("voice", id), data);
-}
+// --- VOICE ARTISTS (legacy) ---
+// Nothing writes to this collection any more. A معلق صوتي registers like any
+// other member and is managed in المحترفون; what is left here are entries the
+// admin typed in before registration existed, and removing one is all that is
+// left to do with it.
 export async function deleteVoiceArtist(id: string) {
   return deleteDoc(docRef("voice", id));
 }
