@@ -5,7 +5,7 @@ import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Mic, Settings, LogOut, Plus, Pencil, Trash2,
   X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
-  KeyRound, Copy, MessageCircle, MessageSquare,
+  KeyRound, Copy, MessageCircle, MessageSquare, Sparkles, Eye, Heart,
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -26,13 +26,15 @@ import {
   addNews, updateNews, deleteNews, subscribeToNews,
   addThesis, updateThesis, deleteThesis, subscribeToTheses,
   adminResetPassword, adminDeleteMember, setAdminNote,
+  subscribeToWorks, setWorkFeatured, deleteWork,
 } from "../../../lib/firestore";
 import type { MemberDeletionReport } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
 import { normalizePhone, isValidAlgerianPhone } from "../../../lib/text";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty } from "../../../lib/types";
+import { WORK_LABEL, shortCount } from "../../../lib/works";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty, Work } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT, accountTypeLabel } from "../../../lib/types";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
@@ -72,7 +74,7 @@ if (typeof document !== "undefined" && !document.getElementById("quill-dark-styl
  */
 const SECTIONS = [
   "overview", "courses", "equipment", "jobs", "competitions", "voice",
-  "professionals", "channels", "news", "theses", "appearance", "content",
+  "professionals", "works", "channels", "news", "theses", "appearance", "content",
   "notifications", "settings",
 ] as const;
 
@@ -723,6 +725,7 @@ export default function AdminDashboard() {
     { id: "competitions" as Section, label: "المسابقات", icon: Trophy },
     { id: "voice"    as Section, label: "المنشطون",  icon: Mic },
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
+    { id: "works"        as Section, label: "معرض الأعمال", icon: Sparkles },
     { id: "channels"     as Section, label: "القنوات",   icon: Tv },
     { id: "news"         as Section, label: "الأخبار",   icon: Newspaper },
     { id: "theses"       as Section, label: "المذكرات",  icon: GraduationCap },
@@ -851,6 +854,7 @@ export default function AdminDashboard() {
           {activeSection === "competitions"   && <CompetitionsSection />}
           {activeSection === "voice"          && <VoiceSection />}
           {activeSection === "professionals"  && <ProfessionalsSection />}
+          {activeSection === "works"          && <WorksAdminSection />}
           {activeSection === "channels"       && <ChannelsSection />}
           {activeSection === "news"           && <NewsSection />}
           {activeSection === "theses"         && <ThesesSection />}
@@ -2198,6 +2202,164 @@ function ProfessionalsSection() {
             </div>
           )}
         </Modal>
+      )}
+    </div>
+  );
+}
+
+// ── WORKS SECTION ───────────────────────────────────────────────
+/**
+ * The gallery, from the admin's side: what members have published, what it
+ * is doing, and the one thing only the admin can change — whether a work is
+ * promoted to the home page.
+ */
+function WorksAdminSection() {
+  const isMobile = useIsMobile();
+  const [works, setWorks] = useState<Work[]>([]);
+  const [filter, setFilter] = useState<"all" | "featured">("all");
+  const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Work | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  useEffect(() => subscribeToWorks("newest", setWorks, undefined, 300), []);
+
+  const toggle = async (work: Work) => {
+    setBusyId(work.id);
+    try { await setWorkFeatured(work.id, !work.featured); } catch { /* the list stays as it was */ }
+    setBusyId(null);
+  };
+
+  const shown = works.filter((w) => {
+    if (filter === "featured" && !w.featured) return false;
+    const q = search.trim().toLowerCase();
+    return !q || w.title.toLowerCase().includes(q) || w.ownerName.toLowerCase().includes(q);
+  });
+
+  const featuredCount = works.filter((w) => w.featured).length;
+
+  const actions = (w: Work, pad: string) => (
+    <div className="flex gap-1.5 flex-wrap items-center">
+      <button
+        onClick={() => toggle(w)}
+        disabled={busyId === w.id}
+        title={w.featured ? "إلغاء التمييز" : "تمييز — يظهر في الصفحة الرئيسية"}
+        aria-label={`${w.featured ? "إلغاء تمييز" : "تمييز"} ${w.title}`}
+        className={`${pad} rounded transition-colors disabled:opacity-50`}
+        style={{ color: w.featured ? "#fbbf24" : "var(--theme-text-muted, #4a7a4a)", background: w.featured ? "rgba(180,120,0,0.15)" : "transparent" }}
+      >
+        <Star size={14} fill={w.featured ? "#fbbf24" : "none"} />
+      </button>
+      <Link
+        to={`/works/${w.id}`}
+        title="فتح العمل"
+        className={`${pad} rounded inline-flex`}
+        style={{ color: "var(--theme-text-muted, #4a7a4a)", background: "var(--p-10)" }}
+      >
+        <ExternalLink size={14} />
+      </Link>
+      <button
+        onClick={() => setDeleteTarget(w)}
+        title="حذف العمل"
+        aria-label={`حذف ${w.title}`}
+        className={`${pad} rounded`}
+        style={{ color: "#ef9a9a", background: "rgba(198,40,40,0.18)" }}
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>
+          {works.length} عمل منشور
+          {featuredCount > 0 && <span style={{ color: "#fbbf24" }}> ({featuredCount} مميّز)</span>}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {([["all", "الكل"], ["featured", "المميّزة"]] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setFilter(key)}
+            className="px-4 py-2 rounded-lg text-sm font-medium"
+            style={{
+              background: filter === key ? "linear-gradient(135deg, var(--theme-primary, #006233), var(--theme-accent, #00a355))" : "var(--p-10)",
+              color: filter === key ? "#fff" : "var(--theme-text-secondary, #6aad6a)",
+              border: filter === key ? "none" : "1px solid var(--p-20)",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <input
+        type="text"
+        placeholder="بحث بالعنوان أو صاحب العمل..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{ ...S.input, marginBottom: "1rem" }}
+        aria-label="بحث في الأعمال"
+      />
+
+      {shown.length === 0 ? (
+        <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>
+          {works.length === 0 ? "لم يُنشر أي عمل بعد." : "لا توجد نتائج."}
+        </div>
+      ) : isMobile ? (
+        <div>
+          {shown.map((w) => (
+            <div key={w.id} style={{
+              padding: "0.875rem 1rem", borderRadius: "0.75rem", marginBottom: "0.5rem",
+              background: w.featured ? "rgba(180,120,0,0.07)" : "var(--p-08)",
+              border: w.featured ? "1px solid rgba(180,120,0,0.35)" : "1px solid var(--p-15)",
+            }}>
+              <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>{w.title}</div>
+              <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", marginBottom: "0.5rem" }}>
+                {w.ownerName} · {WORK_LABEL[w.type]}
+              </div>
+              <div className="flex items-center gap-3 text-xs mb-2" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
+                <span className="flex items-center gap-1"><Eye size={12} /> {shortCount(w.views)}</span>
+                <span className="flex items-center gap-1"><Heart size={12} /> {shortCount(w.likes)}</span>
+              </div>
+              <div className="pt-2" style={{ borderTop: "1px solid var(--p-12)" }}>{actions(w, "p-2")}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={S.card} className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>{["العمل", "صاحبه", "النوع", "مشاهدات", "إعجابات", "الإجراءات"].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {shown.map((w) => (
+                  <tr key={w.id} className="hover:bg-green-950/20 transition-colors" style={w.featured ? { borderRight: "3px solid #fbbf24" } : {}}>
+                    <td style={S.td}>
+                      <Link to={`/works/${w.id}`} style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>{w.title}</Link>
+                    </td>
+                    <td style={S.td}>{w.ownerName}</td>
+                    <td style={S.td}><span style={S.badge("var(--p-20)")}>{WORK_LABEL[w.type]}</span></td>
+                    <td style={S.td}>{shortCount(w.views)}</td>
+                    <td style={S.td}>{shortCount(w.likes)}</td>
+                    <td style={{ ...S.td, width: "150px" }}>{actions(w, "p-1.5")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDelete
+          label={deleteTarget.title}
+          onConfirm={async () => { await deleteWork(deleteTarget.id); setDeleteTarget(null); }}
+          onClose={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

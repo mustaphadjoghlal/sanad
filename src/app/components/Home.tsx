@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Briefcase, Tv, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store } from "lucide-react";
-import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews } from "../../lib/firestore";
-import type { Course, Job, Equipment, Competition, SiteContent, NewsItem } from "../../lib/types";
+import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, subscribeToWorks } from "../../lib/firestore";
+import type { Course, Job, Equipment, Competition, SiteContent, NewsItem, Work } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 import heroImage from "../assets/hero.webp";
 import { usePageTitle } from "../../lib/usePageTitle";
+import WorkCard from "./WorkCard";
 
 /* ── Animated counter ── */
 function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
@@ -182,6 +183,12 @@ export default function Home() {
   // The landing page degrades section by section: a feed that fails to load
   // is simply left empty rather than taking the whole page down.
   const noop = () => {};
+
+  const [works, setWorks] = useState<Work[]>([]);
+
+  // Featured first, so the front page shows what the platform has picked and
+  // falls back to the newest when nothing has been picked yet.
+  useEffect(() => subscribeToWorks("featured", setWorks, undefined, 12), []);
 
   useEffect(() => {
     const unsubs = [
@@ -560,6 +567,21 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* ══ WORKS GALLERY ═════════════════════════════════════════════ */}
+        {works.length > 0 && (
+          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
+            <div className="container mx-auto px-4 py-8 md:py-14">
+              <SectionHeader title="أعمال أعضاء المنصة" link="/works" linkLabel="كل الأعمال" />
+              <div
+                className="grid gap-4"
+                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 14rem), 1fr))" }}
+              >
+                {works.slice(0, 8).map((w) => <WorkCard key={w.id} work={w} />)}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
         {featuredCourses.length > 0 && (
