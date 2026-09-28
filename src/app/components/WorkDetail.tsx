@@ -17,7 +17,9 @@ export default function WorkDetail() {
   const { id } = useParams<{ id: string }>();
   const [work, setWork] = useState<Work | null>(null);
   const [loading, setLoading] = useState(true);
-  const [uid, setUid] = useState<string | null>(null);
+  // undefined while Firebase is still looking. Starting at null would tell a
+  // signed-in reader to sign in for the moment before the session comes back.
+  const [uid, setUid] = useState<string | null | undefined>(undefined);
   const [liking, setLiking] = useState(false);
   const [likeError, setLikeError] = useState("");
   const [more, setMore] = useState<Work[]>([]);
@@ -193,20 +195,20 @@ export default function WorkDetail() {
                 type="button"
                 onClick={like}
                 disabled={!uid || liking}
-                title={uid ? (liked ? "إلغاء الإعجاب" : "أعجبني") : "سجّل الدخول للإعجاب"}
+                title={uid ? (liked ? "إلغاء الإعجاب" : "أعجبني") : uid === null ? "سجّل الدخول للإعجاب" : ""}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-colors disabled:opacity-60"
                 style={{
                   background: liked ? "rgba(198,40,40,0.15)" : "var(--p-12)",
                   border: `1px solid ${liked ? "rgba(198,40,40,0.4)" : "var(--p-20)"}`,
                   color: liked ? "#f87171" : "var(--theme-text-secondary, #6aad6a)",
-                  cursor: uid ? "pointer" : "not-allowed",
+                  cursor: uid ? "pointer" : uid === null ? "not-allowed" : "default",
                 }}
               >
                 <Heart size={15} fill={liked ? "#f87171" : "none"} />
                 {shortCount(work.likes)}
               </button>
 
-              {!uid && (
+              {uid === null && (
                 <Link to="/login" className="text-xs" style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
                   سجّل الدخول للإعجاب
                 </Link>

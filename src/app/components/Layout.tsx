@@ -10,7 +10,17 @@ import { useLogoutFlow } from "./LogoutConfirm";
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ uid: string; email: string | null } | null>(null);
+  /**
+   * undefined until Firebase has looked, then the account or null.
+   *
+   * It used to start at null, which the header read as "signed out" — so a
+   * signed-in visitor was shown دخول and تسجيل for the moment before the
+   * session came back from storage. The same two-state assumption is what
+   * showed the login form to someone already signed in, so here it is spelled
+   * out: not knowing yet is its own state, and nothing decides anything from
+   * it.
+   */
+  const [currentUser, setCurrentUser] = useState<{ uid: string; email: string | null } | null | undefined>(undefined);
   const [userProfile, setUserProfile] = useState<UserProfile | null | "admin">(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -190,7 +200,8 @@ export default function Layout() {
 
   const isRegularUser = userProfile && userProfile !== "admin";
   const isAdmin = userProfile === "admin" && currentUser;
-  const isLoggedOut = !currentUser;
+  const authResolved = currentUser !== undefined;
+  const isLoggedOut = currentUser === null;
   const unreadCount = currentUser
     ? notifications.filter((n) => !n.readBy?.includes(currentUser.uid)).length
     : 0;
@@ -341,6 +352,14 @@ export default function Layout() {
                   <Bell size={14} />
                   <span>تفعيل التنبيهات</span>
                 </button>
+              )}
+              {/* Holds the row's width so the header does not jump when the
+                  answer arrives. */}
+              {!authResolved && (
+                <span
+                  aria-hidden="true"
+                  style={{ display: "inline-block", width: "8.5rem", height: "2rem" }}
+                />
               )}
               {isLoggedOut && (
                 <>
