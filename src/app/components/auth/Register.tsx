@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword, deleteUser, signOut } from "firebase/au
 import { auth } from "../../../lib/firebase";
 import { saveUserProfile, sendNotification } from "../../../lib/firestore";
 import { uploadProfilePhoto } from "../../../lib/storage";
+import ImageCropper from "../ImageCropper";
 import type { AccountType, PortfolioLink } from "../../../lib/types";
 import { INTERESTS } from "../../../lib/types";
 
@@ -72,6 +73,8 @@ export default function Register() {
   const [error, setError] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  // Held between choosing a file and choosing the part of it to keep.
+  const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
   const [portfolioLinks, setPortfolioLinks] = useState<PortfolioLink[]>([]);
   const [showAddLink, setShowAddLink] = useState(false);
   const [newLink, setNewLink] = useState<NewLink>({ label: "", url: "" });
@@ -111,10 +114,17 @@ export default function Register() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPhotoFile(file);
+    setPhotoToCrop(file);
+    // Let the same picture be picked again after a cancelled crop.
+    e.target.value = "";
+  };
+
+  const handleCropped = (cropped: File) => {
+    setPhotoToCrop(null);
+    setPhotoFile(cropped);
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(cropped);
   };
 
   const handleAddLink = () => {
@@ -1090,6 +1100,14 @@ export default function Register() {
           </div>
         </div>
       </div>
+
+      {photoToCrop && (
+        <ImageCropper
+          file={photoToCrop}
+          onCancel={() => setPhotoToCrop(null)}
+          onDone={handleCropped}
+        />
+      )}
     </div>
   );
 }

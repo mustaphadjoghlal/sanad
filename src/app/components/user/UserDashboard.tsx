@@ -16,6 +16,7 @@ import { WORK_TYPES, accountTypeLabel } from "../../../lib/types";
 import WorksSection from "../WorksSection";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
+import ImageCropper from "../ImageCropper";
 
 
 const statusLabel: Record<string, string> = {
@@ -149,6 +150,8 @@ export default function UserDashboard() {
 
   const [photoUrl, setPhotoUrl] = useState<string>("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  // Held between choosing a file and choosing the part of it to keep.
+  const [photoToCrop, setPhotoToCrop] = useState<File | null>(null);
   const [showAddWork, setShowAddWork] = useState(false);
   const [newWorkType, setNewWorkType] = useState<WorkType>("article");
   const [newWorkTitle, setNewWorkTitle] = useState("");
@@ -260,12 +263,20 @@ export default function UserDashboard() {
     setEditError("");
   };
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!uid || !e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
+    setEditError("");
+    setPhotoToCrop(e.target.files[0]);
+    // Let the same picture be picked again after a cancelled crop.
+    e.target.value = "";
+  };
+
+  const handleCropped = async (cropped: File) => {
+    if (!uid) return;
+    setPhotoToCrop(null);
     setUploadingPhoto(true);
     try {
-      const url = await uploadProfilePhoto(uid, file);
+      const url = await uploadProfilePhoto(uid, cropped);
       setPhotoUrl(url);
     } catch (err: unknown) {
       // The helper already names the failure; repeating the prefix here read
@@ -858,6 +869,14 @@ export default function UserDashboard() {
           )}
         </div>
       </div>
+
+      {photoToCrop && (
+        <ImageCropper
+          file={photoToCrop}
+          onCancel={() => setPhotoToCrop(null)}
+          onDone={handleCropped}
+        />
+      )}
 
       {logoutDialog}
     </div>
