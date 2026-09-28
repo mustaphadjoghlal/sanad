@@ -184,6 +184,144 @@ describe("users — deletion", () => {
   });
 });
 
+const work = (over = {}) => ({
+  ownerId: "user1", ownerName: "مستخدم", title: "تحقيق صحفي", type: "article",
+  url: "https://example.com/a", views: 0, likes: 0, likedBy: [], featured: false,
+  createdAt: Date.now(), ...over,
+});
+
+describe("works — publishing", () => {
+  beforeEach(() => seed(async (db) => {
+    await setDoc(doc(db, "users/user1"), profile({ status: "approved" }));
+    await setDoc(doc(db, "users/user2"), profile({ id: "user2", status: "pending" }));
+  }));
+
+  it("ALLOWS an approved member to publish their own work", async () => {
+    await assertSucceeds(setDoc(doc(user(), "works/w1"), work()));
+  });
+
+  it("BLOCKS publishing as someone else", async () => {
+    await assertFails(setDoc(doc(user("user3"), "works/w1"), work({ ownerId: "user1" })));
+  });
+
+  it("BLOCKS a pending member from publishing", async () => {
+    await assertFails(setDoc(doc(user("user2"), "works/w1"), work({ ownerId: "user2" })));
+  });
+
+  it("BLOCKS a visitor from publishing", async () => {
+    await assertFails(setDoc(doc(guest(), "works/w1"), work()));
+  });
+
+  it("BLOCKS arriving already featured", async () => {
+    await assertFails(setDoc(doc(user(), "works/w1"), work({ featured: true })));
+  });
+
+  it("BLOCKS arriving with likes already on it", async () => {
+    await assertFails(setDoc(doc(user(), "works/w1"), work({ likes: 99, likedBy: ["user9"] })));
+  });
+
+  it("BLOCKS arriving with a view count", async () => {
+    await assertFails(setDoc(doc(user(), "works/w1"), work({ views: 5000 })));
+  });
+
+  it("ALLOWS anyone to read the gallery", async () => {
+    await seed((db) => setDoc(doc(db, "works/w1"), work()));
+    await assertSucceeds(getDoc(doc(guest(), "works/w1")));
+  });
+});
+
+describe("works — views", () => {
+  beforeEach(() => seed((db) => setDoc(doc(db, "works/w1"), work({ views: 10 }))));
+
+  it("ALLOWS a visitor to add one view", async () => {
+    await assertSucceeds(updateDoc(doc(guest(), "works/w1"), { views: 11 }));
+  });
+
+  it("BLOCKS jumping the counter", async () => {
+    await assertFails(updateDoc(doc(guest(), "works/w1"), { views: 5000 }));
+  });
+
+  it("BLOCKS lowering it", async () => {
+    await assertFails(updateDoc(doc(guest(), "works/w1"), { views: 9 }));
+  });
+
+  it("BLOCKS smuggling another field alongside the view", async () => {
+    await assertFails(updateDoc(doc(guest(), "works/w1"), { views: 11, featured: true }));
+  });
+});
+
+describe("works — likes", () => {
+  beforeEach(() => seed((db) => setDoc(doc(db, "works/w1"), work({ likes: 1, likedBy: ["user2"] }))));
+
+  it("ALLOWS a member to like once", async () => {
+    await assertSucceeds(updateDoc(doc(user(), "works/w1"), { likes: 2, likedBy: ["user2", "user1"] }));
+  });
+
+  it("BLOCKS liking twice", async () => {
+    await assertFails(updateDoc(doc(user("user2"), "works/w1"), { likes: 2, likedBy: ["user2", "user2"] }));
+  });
+
+  it("ALLOWS removing your own like", async () => {
+    await assertSucceeds(updateDoc(doc(user("user2"), "works/w1"), { likes: 0, likedBy: [] }));
+  });
+
+  it("BLOCKS liking on someone else's behalf", async () => {
+    await assertFails(updateDoc(doc(user(), "works/w1"), { likes: 2, likedBy: ["user2", "user3"] }));
+  });
+
+  it("BLOCKS removing someone else's like", async () => {
+    await assertFails(updateDoc(doc(user(), "works/w1"), { likes: 0, likedBy: [] }));
+  });
+
+  it("BLOCKS a visitor from liking", async () => {
+    await assertFails(updateDoc(doc(guest(), "works/w1"), { likes: 2, likedBy: ["user2", "x"] }));
+  });
+
+  it("BLOCKS inflating the count past the list", async () => {
+    await assertFails(updateDoc(doc(user(), "works/w1"), { likes: 500, likedBy: ["user2", "user1"] }));
+  });
+});
+
+describe("works — editing and featuring", () => {
+  beforeEach(() => seed((db) => setDoc(doc(db, "works/w1"), work({ views: 7, likes: 2, likedBy: ["a", "b"] }))));
+
+  it("ALLOWS the owner to edit the work itself", async () => {
+    await assertSucceeds(updateDoc(doc(user(), "works/w1"), { title: "عنوان جديد", description: "شرح" }));
+  });
+
+  it("BLOCKS the owner featuring their own work", async () => {
+    await assertFails(updateDoc(doc(user(), "works/w1"), { featured: true }));
+  });
+
+  it("BLOCKS the owner inflating their own views", async () => {
+    await assertFails(updateDoc(doc(user(), "works/w1"), { views: 9000 }));
+  });
+
+  it("BLOCKS the owner handing the work to someone else", async () => {
+    await assertFails(updateDoc(doc(user(), "works/w1"), { ownerId: "user2" }));
+  });
+
+  it("BLOCKS a stranger editing it", async () => {
+    await assertFails(updateDoc(doc(user("user3"), "works/w1"), { title: "اختطاف" }));
+  });
+
+  it("ALLOWS the admin to feature it", async () => {
+    await assertSucceeds(updateDoc(doc(admin(), "works/w1"), { featured: true }));
+  });
+
+  it("ALLOWS the owner to delete their own work", async () => {
+    await assertSucceeds(deleteDoc(doc(user(), "works/w1")));
+  });
+
+  it("ALLOWS the admin to delete any work", async () => {
+    await assertSucceeds(deleteDoc(doc(admin(), "works/w1")));
+  });
+
+  it("BLOCKS a stranger deleting it", async () => {
+    await assertFails(deleteDoc(doc(user("user3"), "works/w1")));
+  });
+});
+
 describe("push tokens", () => {
   it("BLOCKS reading another user's push token", async () => {
     await seed((db) => setDoc(doc(db, "fcmTokens/user1"), { token: "secret" }));

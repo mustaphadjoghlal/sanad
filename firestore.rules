@@ -56,6 +56,42 @@ service cloud.firestore {
              || request.resource.data.fcmToken == resource.data.get('fcmToken', null);
     }
 
+    // ── Works helpers ────────────────────────────────────────────────────
+    // The owner may edit what they wrote, and nothing else: not the counters,
+    // not the likes, not the featured flag, not whose work it is.
+    function isOwnerEdit() {
+      return isAuth()
+             && resource.data.ownerId == request.auth.uid
+             && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['title', 'description', 'url', 'cover', 'type']);
+    }
+
+    // A view is a +1 on that one field, by anyone, signed in or not. It can
+    // be inflated by a determined visitor — every open view counter can — but
+    // it can never be set to an arbitrary number or used to touch anything
+    // else in the document.
+    function isViewBump() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+             && request.resource.data.views == resource.data.views + 1;
+    }
+
+    // A like is a signed-in member adding or removing their own uid, with the
+    // count moving by exactly one in the matching direction. Nobody can like
+    // on someone else's behalf, and nobody can like twice.
+    function isLikeToggle() {
+      return isAuth()
+             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy'])
+             && (
+                  (!(request.auth.uid in resource.data.likedBy)
+                   && request.resource.data.likedBy == resource.data.likedBy.concat([request.auth.uid])
+                   && request.resource.data.likes == resource.data.likes + 1)
+                  ||
+                  (request.auth.uid in resource.data.likedBy
+                   && request.resource.data.likedBy == resource.data.likedBy.removeAll([request.auth.uid])
+                   && request.resource.data.likes == resource.data.likes - 1)
+                );
+    }
+
     // Internal links only — never an absolute URL pointing off-platform.
     function isInternalLink(value) {
       return value == null || (value is string && value.size() <= 300 && value.matches('^/[^/].*|^/$'));
@@ -211,6 +247,38 @@ service cloud.firestore {
                     && request.resource.data.createdAt is number;
       allow read: if isAdmin() || (isAuth() && resource.data.trainerId == request.auth.uid);
       allow delete: if isAdmin() || (isAuth() && resource.data.trainerId == request.auth.uid);
+    }
+
+    // ── Works: the public gallery ────────────────────────────────────────
+    //    Three different people write to one document here, each allowed to
+    //    touch a different part of it: a visitor bumps the view count, a
+    //    signed-in member adds or removes their own like, and the owner edits
+    //    the work itself. Featuring is the admin's alone.
+    match /works/{id} {
+      allow read: if true;
+
+      // Only an approved member may publish, always as themselves, always
+      // starting at zero — a work cannot arrive pre-liked or pre-featured.
+      allow create: if isAuth()
+                    && request.resource.data.ownerId == request.auth.uid
+                    && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved'
+                    && isShortString(request.resource.data.title, 200)
+                    && request.resource.data.type in ['article', 'video', 'audio', 'image']
+                    && isShortString(request.resource.data.url, 1000)
+                    && (!('description' in request.resource.data.keys())
+                        || (request.resource.data.description is string
+                            && request.resource.data.description.size() <= 2000))
+                    && request.resource.data.views == 0
+                    && request.resource.data.likes == 0
+                    && request.resource.data.likedBy == []
+                    && request.resource.data.featured == false
+                    && request.resource.data.createdAt is number;
+
+      allow update: if isAdmin() || isOwnerEdit() || isViewBump() || isLikeToggle();
+
+      allow delete: if isAdmin()
+                    || (isAuth() && resource.data.ownerId == request.auth.uid);
     }
 
     // ── Notifications ────────────────────────────────────────────────────

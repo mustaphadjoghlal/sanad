@@ -328,6 +328,40 @@ export interface PortfolioVideo {
 export const WORK_TYPES = ['article', 'video', 'audio', 'image'] as const;
 export type WorkType = typeof WORK_TYPES[number];
 
+/**
+ * A published work in the public gallery.
+ *
+ * Distinct from PortfolioWork, which is an entry embedded in a profile: a
+ * gallery work is its own document because it carries counters that anyone
+ * can move (views), a list only its likers may change (likedBy), and a flag
+ * only the admin sets (featured) — none of which can be guarded by security
+ * rules while they sit inside an array on someone's profile.
+ *
+ * The owner's name, type and photo are copied onto the work so a gallery of
+ * sixty can render without sixty profile reads.
+ */
+export interface Work {
+  id: string;
+  ownerId: string;
+  ownerName: string;
+  ownerType?: AccountType;
+  ownerPhoto?: string;
+  title: string;
+  description?: string;
+  type: WorkType;
+  /** article: external link · video: YouTube · audio/image: uploaded file */
+  url: string;
+  /** Shown in the gallery grid; falls back to the work itself for an image. */
+  cover?: string;
+  views: number;
+  likes: number;
+  /** One entry per person who liked it, so a like cannot be repeated. */
+  likedBy: string[];
+  /** Set by the admin only; promotes the work to the home page. */
+  featured: boolean;
+  createdAt: number;
+}
+
 export interface PortfolioWork {
   id: string;
   type: WorkType;

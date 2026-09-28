@@ -14,10 +14,12 @@ import {
   where,
   limit,
   arrayUnion,
+  arrayRemove,
+  increment,
 } from "firebase/firestore";
 import type { FirestoreError, UpdateData, DocumentData } from "firebase/firestore";
 import { db, auth } from "./firebase";
-import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration } from "./types";
+import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration, Work } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 
 // Generic helpers
@@ -237,6 +239,124 @@ export async function deleteAccountData(uid: string): Promise<void> {
 
 export async function resubmitProfile(uid: string): Promise<void> {
   return updateDoc(doc(db, "users", uid), { status: "pending", rejectionNote: "" });
+}
+
+// --- WORKS (the public gallery) ---
+
+/**
+ * Publishes a work. The counters and the featured flag start at zero and
+ * false; the security rules reject anything else, so they are set here rather
+ * than taken from the caller.
+ */
+export async function addWork(
+  data: Omit<Work, "id" | "views" | "likes" | "likedBy" | "featured" | "createdAt">
+): Promise<string> {
+  const ref = await addDoc(col("works"), {
+    ...stripUndefined(data),
+    views: 0,
+    likes: 0,
+    likedBy: [],
+    featured: false,
+    createdAt: Date.now(),
+  });
+  return ref.id;
+}
+
+export async function updateWork(
+  id: string,
+  data: Partial<Pick<Work, "title" | "description" | "url" | "cover" | "type">>
+) {
+  return updateDoc(docRef("works", id), stripUndefined(data));
+}
+
+export async function deleteWork(id: string) {
+  return deleteDoc(docRef("works", id));
+}
+
+export type WorkSort = "featured" | "newest" | "popular";
+
+/**
+ * The gallery, ordered as asked. Featured first is the front page's view;
+ * popular ranks by likes, which is the one a visitor chooses for themselves.
+ */
+export function subscribeToWorks(
+  sort: WorkSort,
+  callback: (works: Work[]) => void,
+  onError?: (error: Error) => void,
+  max = LIST_LIMIT
+): () => void {
+  const order =
+    sort === "popular"
+      ? [orderBy("likes", "desc"), orderBy("createdAt", "desc")]
+      : sort === "featured"
+      ? [orderBy("featured", "desc"), orderBy("createdAt", "desc")]
+      : [orderBy("createdAt", "desc")];
+
+  return onSnapshot(
+    query(col("works"), ...order, limit(max)),
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Work)),
+    (error) => { reportError("works", error); onError?.(error); }
+  );
+}
+
+/** One member's works, for their profile page and their dashboard. */
+export function subscribeToUserWorks(
+  ownerId: string,
+  callback: (works: Work[]) => void,
+  onError?: (error: Error) => void
+): () => void {
+  return onSnapshot(
+    query(col("works"), where("ownerId", "==", ownerId), limit(100)),
+    (snap) => {
+      const works = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Work);
+      works.sort((a, b) => b.createdAt - a.createdAt);
+      callback(works);
+    },
+    (error) => { reportError("works", error); onError?.(error); }
+  );
+}
+
+export async function getWork(id: string): Promise<Work | null> {
+  const snap = await getDoc(docRef("works", id));
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Work) : null;
+}
+
+/**
+ * Counts one view.
+ *
+ * Once per work per browser session: the counter is open to anyone by
+ * necessity — a visitor is not signed in — so this at least keeps an honest
+ * reader from inflating it by reloading. The rules cap the damage a dishonest
+ * one can do to +1 per request, and stop them touching anything else.
+ */
+export async function countWorkView(id: string): Promise<void> {
+  const seenKey = `sanad-viewed-${id}`;
+  try {
+    if (sessionStorage.getItem(seenKey)) return;
+    sessionStorage.setItem(seenKey, "1");
+  } catch {
+    // Private mode with storage blocked: count the view rather than lose it.
+  }
+  await updateDoc(docRef("works", id), { views: increment(1) }).catch(() => {});
+}
+
+/**
+ * Adds or removes the signed-in member's like.
+ *
+ * Both fields move together because the rules require it: the count and the
+ * list must agree, or neither is written.
+ */
+export async function toggleWorkLike(work: Work, uid: string): Promise<void> {
+  const liked = work.likedBy?.includes(uid);
+  await updateDoc(docRef("works", work.id), {
+    likes: increment(liked ? -1 : 1),
+    likedBy: liked ? arrayRemove(uid) : arrayUnion(uid),
+  });
+}
+
+/** Admin only; the rules reject it from anyone else. */
+export async function setWorkFeatured(id: string, featured: boolean) {
+  return updateDoc(docRef("works", id), { featured });
 }
 
 // --- CHANNELS ---
