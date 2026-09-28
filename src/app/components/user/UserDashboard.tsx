@@ -6,11 +6,11 @@ import {
   CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check, MessageSquare
 } from "lucide-react";
 import { onAuthStateChanged, sendPasswordResetEmail, deleteUser, signOut } from "firebase/auth";
-import { auth, storage } from "../../../lib/firebase";
+import { auth } from "../../../lib/firebase";
 import { 
   subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification, deleteAccountData
 } from "../../../lib/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { uploadImage, uploadAudioSample, uploadProfilePhoto, compressImage } from "../../../lib/storage";
 import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialLinks } from "../../../lib/types";
 import { WORK_TYPES, accountTypeLabel } from "../../../lib/types";
 import WorksSection from "../WorksSection";
@@ -61,26 +61,6 @@ const S = {
     padding: "0.6rem 0.8rem", color: "#e8f5e9", fontSize: "0.85rem", outline: "none", transition: "border-color 0.2s"
   },
 };
-
-async function uploadImage(path: string, file: File, onProgress?: (p: number) => void): Promise<string> {
-  const storageRef = ref(storage, path);
-  const uploadTask = uploadBytesResumable(storageRef, file);
-  return new Promise((resolve, reject) => {
-    uploadTask.on("state_changed",
-      (snap) => { if (onProgress) onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)); },
-      (err) => reject(err),
-      async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
-    );
-  });
-}
-
-async function uploadAudioSample(uid: string, file: File, onProgress?: (p: number) => void): Promise<string> {
-  return uploadImage(`audio-samples/${uid}/${Date.now()}_${file.name}`, file, onProgress);
-}
-
-async function uploadProfilePhoto(uid: string, file: File): Promise<string> {
-  return uploadImage(`profile-photos/${uid}`, file);
-}
 
 const genWorkId = () => Math.random().toString(36).substring(2, 9);
 
@@ -288,7 +268,9 @@ export default function UserDashboard() {
       const url = await uploadProfilePhoto(uid, file);
       setPhotoUrl(url);
     } catch (err: unknown) {
-      setEditError(`فشل رفع الصورة: ${(err as Error)?.message ?? "خطأ غير معروف"}`);
+      // The helper already names the failure; repeating the prefix here read
+      // as "فشل رفع الصورة: فشل رفع الصورة: ...".
+      setEditError((err as Error)?.message ?? "فشل رفع الصورة");
     } finally {
       setUploadingPhoto(false);
     }
@@ -339,7 +321,8 @@ export default function UserDashboard() {
         const url = await uploadAudioSample(uid, audioFile, (p) => setWorkUploadProgress(p));
         setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "audio", title: newWorkTitle.trim(), url }] }));
       } else if (newWorkType === "image") {
-        const url = await uploadImage(`works/${uid}/${Date.now()}_${file.name}`, file, (p) => setWorkUploadProgress(p));
+        const image = await compressImage(file, 1600, 0.82);
+        const url = await uploadImage(`works/${uid}`, image, (p) => setWorkUploadProgress(p));
         setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "image", title: newWorkTitle.trim(), url }] }));
       }
       setNewWorkTitle("");
