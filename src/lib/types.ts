@@ -265,6 +265,31 @@ export const ACCOUNT_TYPE_LABEL: Record<string, string> = {
   other: "إعلامي",
 };
 
+/**
+ * What a member may add as a second trade.
+ *
+ * Not every account type belongs here: a متجر or a مدرب is a different kind
+ * of account, not a second job, and "إعلامي" says nothing as an addition.
+ */
+export const SECONDARY_TYPE_OPTIONS = [
+  "journalist", "photographer", "editor_news", "web_digital",
+  "presenter_programs", "presenter_news", "monteur", "graphic_designer",
+  "cameraman", "producer", "director", "program_writer", "voice", "host_stage",
+] as const;
+
+/** Three is a trade beside a trade; ten is a list of everything. */
+export const MAX_SECONDARY_TYPES = 3;
+
+/** The main trade first, then the added ones, with no repeats. */
+export function professionsOf(
+  profile: { type?: string; secondaryTypes?: string[] } | null | undefined
+): string[] {
+  if (!profile) return [];
+  return [...new Set([profile.type, ...(profile.secondaryTypes ?? [])])].filter(
+    (t): t is string => Boolean(t)
+  );
+}
+
 /** Falls back to the stored value, so a new type shows as itself, not blank. */
 export function accountTypeLabel(type: string | undefined): string {
   return ACCOUNT_TYPE_LABEL[type ?? ""] ?? type ?? "";
@@ -385,6 +410,15 @@ export interface UserProfile {
   email: string;
   name: string;
   type: AccountType;
+  /**
+   * Trades the member also practises. One person is often two things — a
+   * مونتير who is also a معلق صوتي — and a single `type` made them pick one
+   * and disappear from the other's listing.
+   *
+   * The main trade stays in `type`, which only the admin may change; these
+   * are the member's own to declare.
+   */
+  secondaryTypes?: string[];
   otherType?: string;
   bio: string;
   photo?: string;

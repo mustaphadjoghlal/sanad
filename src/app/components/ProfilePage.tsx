@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { getUserProfile } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
-import { accountTypeLabel } from "../../lib/types";
+import { accountTypeLabel, professionsOf } from "../../lib/types";
 import WorksSection from "./WorksSection";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { personSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
@@ -116,6 +116,8 @@ export default function ProfilePage() {
   );
 
   const displayType = accountTypeLabel(profile.type) ?? profile.type;
+  // The main trade, then anything else this person also does.
+  const alsoDoes = professionsOf(profile).slice(1);
   const portfolioLinks = [...(profile.portfolio ?? []), ...(profile.portfolioVideos ?? []).map((v) => ({ label: v.title, url: v.url }))];
   const hasProfessionalDetails = Boolean(profile.specialty || profile.experience || profile.achievements || profile.organization || profile.availability);
 
@@ -150,6 +152,11 @@ export default function ProfilePage() {
                 {profile.tagline && <p className="text-base mb-2" style={{ color: "var(--theme-accent)" }}>{profile.tagline}</p>}
                 <div className="flex flex-wrap gap-2 text-xs" style={{ color: "var(--theme-text-muted)" }}>
                   <span className="rounded-full px-3 py-1.5" style={{ background: "var(--p-12)", color: "var(--theme-badge-text)" }}>{displayType}</span>
+                  {alsoDoes.map((t) => (
+                    <span key={t} className="rounded-full px-3 py-1.5" style={{ background: "var(--p-08)", color: "var(--theme-text-secondary, #6aad6a)", border: "1px solid var(--p-20)" }}>
+                      {accountTypeLabel(t)}
+                    </span>
+                  ))}
                   {profile.location && <span className="inline-flex items-center gap-1"><MapPin size={13} /> {profile.location}</span>}
                   {profile.organization && <span>• {profile.organization}</span>}
                 </div>

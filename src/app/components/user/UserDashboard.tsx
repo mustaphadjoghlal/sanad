@@ -12,7 +12,7 @@ import {
 } from "../../../lib/firestore";
 import { uploadImage, uploadAudioSample, uploadProfilePhoto, compressImage } from "../../../lib/storage";
 import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialLinks } from "../../../lib/types";
-import { WORK_TYPES, accountTypeLabel } from "../../../lib/types";
+import { WORK_TYPES, accountTypeLabel, SECONDARY_TYPE_OPTIONS, MAX_SECONDARY_TYPES } from "../../../lib/types";
 import WorksSection from "../WorksSection";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
@@ -97,6 +97,7 @@ type EditFormState = {
   name: string;
   bio: string;
   specialty: string;
+  secondaryTypes: string[];
   location: string;
   phone: string;
   experience: string;
@@ -124,6 +125,7 @@ export default function UserDashboard() {
     name: "",
     bio: "",
     specialty: "",
+    secondaryTypes: [],
     location: "",
     phone: "",
     experience: "",
@@ -238,6 +240,7 @@ export default function UserDashboard() {
       name: profile.name || "",
       bio: profile.bio || "",
       specialty: profile.specialty || "",
+      secondaryTypes: profile.secondaryTypes ?? [],
       location: profile.location || "",
       phone: profile.phone || "",
       experience: profile.experience || "",
@@ -381,6 +384,7 @@ export default function UserDashboard() {
         gender: editForm.gender || undefined,
         audioSamples: editForm.audioSamples.length > 0 ? editForm.audioSamples : undefined,
         specialty: editForm.specialty || undefined,
+        secondaryTypes: editForm.secondaryTypes,
         location: editForm.location || undefined,
         phone: editForm.phone || undefined,
         experience: editForm.experience || undefined,
@@ -591,6 +595,47 @@ export default function UserDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div><label style={S.label} htmlFor="userdashboard-1-fc7876">الاسم الكامل *</label><input id="userdashboard-1-fc7876" style={S.input} value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} /></div>
                 <div><label style={S.label} htmlFor="userdashboard-2-d44727">{profile.type === "store" ? "نوع المعدات" : "التخصص"}</label><input id="userdashboard-2-d44727" style={S.input} value={editForm.specialty} onChange={(e) => setEditForm((p) => ({ ...p, specialty: e.target.value }))} /></div>
+                {profile.type !== "store" && profile.type !== "trainer" && (
+                  <div className="md:col-span-2">
+                    <span style={S.label}>مهن إضافية</span>
+                    <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem", margin: "0 0 0.5rem" }}>
+                      مهنتك الأساسية هي {accountTypeLabel(profile.type)}. أضف ما تمارسه أيضاً حتى تظهر في
+                      دليل المحترفين تحت كل واحدة منها — حتى {MAX_SECONDARY_TYPES}.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {SECONDARY_TYPE_OPTIONS.filter((t) => t !== profile.type).map((t) => {
+                        const chosen = editForm.secondaryTypes.includes(t);
+                        const full = !chosen && editForm.secondaryTypes.length >= MAX_SECONDARY_TYPES;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            disabled={full}
+                            aria-pressed={chosen}
+                            onClick={() => setEditForm((p) => ({
+                              ...p,
+                              secondaryTypes: chosen
+                                ? p.secondaryTypes.filter((x) => x !== t)
+                                : [...p.secondaryTypes, t],
+                            }))}
+                            style={{
+                              padding: "0.35rem 0.8rem",
+                              borderRadius: "999px",
+                              fontSize: "0.8rem",
+                              cursor: full ? "not-allowed" : "pointer",
+                              opacity: full ? 0.4 : 1,
+                              color: chosen ? "#07130b" : "var(--theme-badge-text, #81c784)",
+                              background: chosen ? "var(--theme-accent, #00a355)" : "var(--p-10)",
+                              border: `1px solid ${chosen ? "var(--theme-accent, #00a355)" : "var(--p-25)"}`,
+                            }}
+                          >
+                            {accountTypeLabel(t)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div><label style={S.label} htmlFor="userdashboard-3-0731d5">الولاية</label><select id="userdashboard-3-0731d5" style={S.input} value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}><option value="">اختر الولاية</option>{wilayas.map((w) => <option key={w} value={w}>{w}</option>)}</select></div>
                 <div><label style={S.label} htmlFor="userdashboard-4-39f626">رقم الهاتف</label><input id="userdashboard-4-39f626" style={S.input} value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} dir="ltr" /></div>
                 {profile.type !== "store" && <div><label style={S.label} htmlFor="userdashboard-5-c09987">سنوات الخبرة</label><input id="userdashboard-5-c09987" style={S.input} value={editForm.experience} onChange={(e) => setEditForm((p) => ({ ...p, experience: e.target.value }))} /></div>}

@@ -35,6 +35,18 @@ const PUBLISHER = {
 
 const CHANNEL_KIND = { tv: "قناة تلفزيونية", radio: "إذاعة", website: "موقع إلكتروني" };
 
+// The job titles as the site writes them. Kept in step with src/lib/types.ts;
+// a value with no entry shows as itself rather than vanishing.
+const ACCOUNT_TYPE_LABEL = {
+  editor_news: "محرر أخبار", web_digital: "ويب ديجيتال",
+  presenter_programs: "مقدم برامج", presenter_news: "مقدم أخبار",
+  monteur: "مونتير", graphic_designer: "جرافيك ديزاينر", cameraman: "كاميرا مان",
+  producer: "منتج", director: "مخرج", program_writer: "معد برامج",
+  voice: "معلق صوتي", host_stage: "منشط على الركح", student: "طالب إعلام",
+  journalist: "صحفي / مراسل", photographer: "مصور", editor: "مخرج / مونتير",
+  store: "متجر عتاد", trainer: "مدرب", other: "إعلامي",
+};
+
 /**
  * route prefix -> how to read a document of that kind.
  *
@@ -92,6 +104,9 @@ const ROUTES = {
     collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo",
     schema: "Person",
     facts: [["التخصص", "specialty"], ["الولاية", "location"], ["الخبرة", "experience"]],
+    // A member may practise more than one trade; someone searching for a
+    // معلق صوتي should find the مونتير who is also one.
+    lists: [["المهن", "secondaryTypes", ACCOUNT_TYPE_LABEL]],
   },
   channels: {
     collection: "channels", title: "name", description: "category",
@@ -437,6 +452,11 @@ function buildSchema(kind, { title, description, url, image, subtitle, fields })
       name: title,
       description,
       jobTitle: subtitle,
+      // Every trade this person practises, so the markup says what the page
+      // says rather than only the one they registered under.
+      knowsAbout: readList(fields, "secondaryTypes")
+        .concat(readField(fields, "type") ? [readField(fields, "type")] : [])
+        .map((t) => ACCOUNT_TYPE_LABEL[t] ?? t),
       address: readField(fields, "location")
         ? { "@type": "PostalAddress", addressLocality: readField(fields, "location"), addressCountry: "DZ" }
         : undefined,
@@ -702,6 +722,16 @@ export default async function handler(req, res) {
           `<article>` +
           `<h1>${escapeHtml(heading)}</h1>` +
           pictureHtml(route, fields, headline) +
+          (route.lists ?? [])
+            .map(([label, field, labels]) => {
+              const values = readList(fields, field)
+                .map((v) => labels?.[v] ?? v)
+                .filter(Boolean);
+              return values.length
+                ? `<p>${escapeHtml(label)}: ${escapeHtml(values.join("، "))}</p>`
+                : "";
+            })
+            .join("") +
           (facts.length
             ? `<dl>${facts
                 .map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(toPlainText(v, 120))}</dd>`)

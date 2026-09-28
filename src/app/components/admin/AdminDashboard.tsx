@@ -35,7 +35,7 @@ import { WILAYAS } from "../../../lib/algeria";
 import { normalizePhone, isValidAlgerianPhone } from "../../../lib/text";
 import { WORK_LABEL, shortCount } from "../../../lib/works";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty, Work } from "../../../lib/types";
-import { DEFAULT_THEME, DEFAULT_SITE_CONTENT, accountTypeLabel } from "../../../lib/types";
+import { DEFAULT_THEME, DEFAULT_SITE_CONTENT, accountTypeLabel, professionsOf } from "../../../lib/types";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
 
@@ -1833,11 +1833,12 @@ function ProfessionalsSection() {
   useEffect(() => subscribeToAllProfiles(setProfiles), []);
   useEffect(() => subscribeToCollection<VoiceArtist>("voice", setLegacyVoice), []);
 
-  // Only the job titles somebody actually holds, so the list stays short.
-  const presentTypes = [...new Set(profiles.map((p) => p.type).filter(Boolean))] as string[];
+  // Only the job titles somebody actually holds, so the list stays short —
+  // counting the trades a member added beside their main one.
+  const presentTypes = [...new Set(profiles.flatMap(professionsOf))];
 
   const filtered = profiles.filter((p) => {
-    if (typeFilter !== "all" && p.type !== typeFilter) return false;
+    if (typeFilter !== "all" && !professionsOf(p).includes(typeFilter)) return false;
     if (filter === "all") return true;
     if (filter === "pending") return p.status === "pending";
     return p.status === "approved";
@@ -1973,7 +1974,7 @@ function ProfessionalsSection() {
                 <div style={{ fontWeight: 600, color: "var(--theme-text, #e8f5e9)", fontSize: "0.95rem", marginBottom: "0.2rem" }}>{p.name}</div>
                 <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem", marginBottom: "0.35rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.email}</div>
                 <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", alignItems: "center" }}>
-                  <span style={S.badge("var(--p-20)")}>{accountTypeLabel(p.type)}</span>
+                  {professionsOf(p).map((t) => <span key={t} style={S.badge("var(--p-20)")}>{accountTypeLabel(t)}</span>)}
                   {p.specialty && <span style={S.badge("var(--p-15)")}>{p.specialty}</span>}
                   {p.location && <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem" }}>{p.location}</span>}
                   <span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span>
@@ -2017,7 +2018,7 @@ function ProfessionalsSection() {
                         </div>
                       )}
                     </td>
-                    <td style={S.td}><span style={S.badge("var(--p-20)")}>{accountTypeLabel(p.type)}</span></td>
+                    <td style={S.td}><div className="flex flex-wrap gap-1">{professionsOf(p).map((t) => <span key={t} style={S.badge("var(--p-20)")}>{accountTypeLabel(t)}</span>)}</div></td>
                     <td style={S.td}>{p.specialty || "—"}</td>
                     <td style={S.td}>{p.location || "—"}</td>
                     <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>

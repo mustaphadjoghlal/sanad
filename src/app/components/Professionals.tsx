@@ -3,7 +3,7 @@ import { Search, Users, MapPin, ArrowLeft, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { subscribeToApprovedProfessionals } from "../../lib/firestore";
 import type { UserProfile } from "../../lib/types";
-import { accountTypeLabel } from "../../lib/types";
+import { accountTypeLabel, professionsOf } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
@@ -32,14 +32,19 @@ export default function Professionals() {
 
   const q = search;
   const filtered = all.filter((p) => {
-    const matchSearch = matchesQuery(q, p.name, p.specialty, p.location, accountTypeLabel(p.type));
-    const matchType = !typeFilter || p.type === typeFilter;
+    // Someone who is a مونتير and a معلق صوتي belongs under both, so a trade
+    // matches whether it is the main one or one they added.
+    const trades = professionsOf(p);
+    const matchSearch = matchesQuery(
+      q, p.name, p.specialty, p.location, ...trades.map(accountTypeLabel)
+    );
+    const matchType = !typeFilter || trades.includes(typeFilter);
     const matchLoc = !locationFilter || p.location === locationFilter;
     return matchSearch && matchType && matchLoc;
   });
 
   const locations = [...new Set(all.map((p) => p.location).filter(Boolean))].sort();
-  const types = [...new Set(all.map((p) => p.type).filter((t) => !EXCLUDED_TYPES.has(t)))];
+  const types = [...new Set(all.flatMap(professionsOf).filter((t) => !EXCLUDED_TYPES.has(t)))];
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);

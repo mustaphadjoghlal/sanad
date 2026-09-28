@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { ACCOUNT_TYPE_LABEL } from "../types";
 // @ts-expect-error — the prerenderer is plain JS served by a Vercel function.
 import prerender from "../../../api/prerender.js";
 // @ts-expect-error — same.
@@ -48,6 +50,8 @@ const DOCS: Record<string, Record<string, unknown>> = {
     specialty: str("صحافة"),
     photo: str(PHOTO),
     status: str("approved"),
+    type: str("journalist"),
+    secondaryTypes: { arrayValue: { values: [{ stringValue: "voice" }, { stringValue: "monteur" }] } },
   },
 };
 
@@ -162,5 +166,36 @@ describe("the sitemap", () => {
     const xml = await serve(sitemap, "/sitemap.xml");
     const profile = xml.split("<url>").find((block) => block.includes("/profile/u1")) ?? "";
     expect(profile).not.toContain("image:loc");
+  });
+});
+
+describe("a member who practises more than one trade", () => {
+  it("has every trade on their page, in words", async () => {
+    const html = await serve(prerender, "/profile/u1");
+    expect(html).toContain("المهن: معلق صوتي، مونتير");
+  });
+
+  it("has every trade in the markup, the main one included", async () => {
+    const html = await serve(prerender, "/profile/u1");
+    const person = JSON.parse(
+      html.match(/<script type="application\/ld\+json">(\{"@context[^<]*"Person"[^<]*)<\/script>/)?.[1] ??
+      html.split('<script type="application/ld+json">').find((b) => b.includes('"Person"'))!.split("</script>")[0]
+    );
+    expect(person.knowsAbout).toEqual(
+      expect.arrayContaining(["معلق صوتي", "مونتير", "صحفي / مراسل"])
+    );
+  });
+
+  /**
+   * The prerenderer is a plain-JS serverless function and cannot import the
+   * app's TypeScript, so it keeps its own copy of the job titles. A copy that
+   * drifts shows a crawler one word and a visitor another.
+   */
+  it("uses the same job titles the site does", () => {
+    const source = readFileSync("api/prerender.js", "utf8");
+    const block = source.match(/const ACCOUNT_TYPE_LABEL = \{([\s\S]*?)\};/)?.[1] ?? "";
+    for (const [key, label] of Object.entries(ACCOUNT_TYPE_LABEL)) {
+      expect(block, `${key} is missing or differs`).toContain(`${key}: "${label}"`);
+    }
   });
 });
