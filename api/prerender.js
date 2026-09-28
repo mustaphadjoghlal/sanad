@@ -45,27 +45,27 @@ const CHANNEL_KIND = { tv: "قناة تلفزيونية", radio: "إذاعة", w
 const ROUTES = {
   jobs: {
     collection: "jobs", title: "title", description: "description", subtitle: "company",
-    schema: "JobPosting",
+    schema: "JobPosting", picture: "image",
     facts: [["الجهة", "company"], ["الولاية", "location"], ["نوع الوظيفة", "jobType"], ["آخر أجل", "deadline"]],
   },
   courses: {
     collection: "courses", title: "title", description: "description", subtitle: "instructor",
-    schema: "Course",
+    schema: "Course", picture: "image",
     facts: [["المدرّب", "instructor"], ["المدة", "duration"]],
   },
   competitions: {
     collection: "competitions", title: "name", description: "description", subtitle: "organizer",
-    schema: "Event",
+    schema: "Event", picture: "image",
     facts: [["الجهة المنظّمة", "organizer"], ["تاريخ البداية", "startDate"], ["تاريخ النهاية", "endDate"]],
   },
   equipment: {
     collection: "equipment", title: "name", description: "description", subtitle: "seller",
-    schema: "Product",
+    schema: "Product", picture: "image",
     facts: [["البائع", "seller"], ["الصنف", "category"], ["السعر", "price"], ["الحالة", "condition"]],
   },
   news: {
     collection: "news", title: "title", description: "body", subtitle: "category",
-    schema: "NewsArticle",
+    schema: "NewsArticle", picture: "image", pictureAlt: "imageAlt",
     facts: [["القسم", "category"], ["التاريخ", "date"]],
   },
   theses: {
@@ -75,8 +75,13 @@ const ROUTES = {
   },
   products: {
     collection: "products", title: "name", description: "description",
-    schema: "Product",
+    schema: "Product", picture: "image",
     facts: [["الصنف", "category"], ["السعر", "price"]],
+  },
+  works: {
+    collection: "works", title: "title", description: "description", subtitle: "ownerName",
+    schema: "CreativeWork", picture: "cover",
+    facts: [["صاحب العمل", "ownerName"], ["نوع العمل", "type"]],
   },
   trainers: {
     collection: "users", title: "name", description: "bio", subtitle: "specialty", image: "photo",
@@ -166,21 +171,26 @@ const RELATED = {
 };
 
 /** Field values that are codes rather than words a reader wants to see. */
+const WORK_KIND = { article: "مقال", video: "فيديو", audio: "تسجيل صوتي", image: "صورة" };
+
 const FACT_LABELS = {
-  type: CHANNEL_KIND,
+  // Both a channel and a gallery work keep their kind in a field called
+  // `type`; the values do not collide, so one table serves both.
+  type: { ...CHANNEL_KIND, ...WORK_KIND },
   condition: { new: "جديد", used: "مستعمل" },
   jobType: {},
 };
 
 // Listing pages, and the collection each one lists.
 const LISTINGS = {
-  "/jobs": { collection: "jobs", path: "jobs", title: "title", subtitle: "company", description: "description" },
-  "/courses": { collection: "courses", path: "courses", title: "title", subtitle: "instructor", description: "description" },
-  "/news": { collection: "news", path: "news", title: "title", subtitle: "category", description: "body" },
-  "/competitions": { collection: "competitions", path: "competitions", title: "name", subtitle: "organizer", description: "description" },
-  "/equipment": { collection: "equipment", path: "equipment", title: "name", subtitle: "seller", description: "description" },
+  "/jobs": { collection: "jobs", path: "jobs", title: "title", subtitle: "company", description: "description", picture: "image" },
+  "/courses": { collection: "courses", path: "courses", title: "title", subtitle: "instructor", description: "description", picture: "image" },
+  "/news": { collection: "news", path: "news", title: "title", subtitle: "category", description: "body", picture: "image" },
+  "/competitions": { collection: "competitions", path: "competitions", title: "name", subtitle: "organizer", description: "description", picture: "image" },
+  "/equipment": { collection: "equipment", path: "equipment", title: "name", subtitle: "seller", description: "description", picture: "image" },
   "/theses": { collection: "theses", path: "theses", title: "title", subtitle: "author", description: "abstract" },
   "/channels": { collection: "channels", path: "channels", title: "name", subtitle: "category", description: "category" },
+  "/works": { collection: "works", path: "works", title: "title", subtitle: "ownerName", description: "description", picture: "cover" },
 };
 
 // Listing pages backed by /users, which needs a filtered query.
@@ -202,6 +212,7 @@ const STATIC_PAGES = {
   "/stores": { title: "دليل متاجر العتاد الإعلامي", description: "دليل متاجر بيع وشراء المعدات الإعلامية في الجزائر." },
   "/trainers": { title: "مراكز ومدربو الإعلام", description: "دليل المدربين ومراكز التكوين في مجال الإعلام بالجزائر." },
   "/professionals": { title: "دليل المحترفين", description: "دليل الصحفيين والمصورين والمونتاج والمعلقين الصوتيين في الجزائر." },
+  "/works": { title: "معرض الأعمال", description: "أعمال الطلبة والمحترفين الجزائريين في الصحافة والتصوير والمونتاج والتعليق الصوتي." },
   "/about": { title: "من نحن", description: "تعرّف على منصة سند الإعلامية ورسالتها." },
   "/privacy": { title: "سياسة الخصوصية", description: "كيف تجمع منصة سند بياناتك وتستعملها وتحميها." },
   "/terms": { title: "شروط الاستخدام", description: "شروط استخدام منصة سند الإعلامية." },
@@ -217,6 +228,7 @@ const NAV = [
   ["/competitions", "المسابقات"],
   ["/equipment", "العتاد"],
   ["/channels", "القنوات"],
+  ["/works", "معرض الأعمال"],
   ["/professionals", "المحترفون"],
   ["/trainers", "المدربون"],
   ["/stores", "المتاجر"],
@@ -404,6 +416,23 @@ function buildSchema(kind, { title, description, url, image, subtitle, fields })
         url,
       },
     },
+    CreativeWork: {
+      name: title,
+      description,
+      dateCreated: created,
+      creator: subtitle ? { "@type": "Person", name: subtitle } : PUBLISHER,
+      inLanguage: "ar",
+      interactionStatistic: [
+        ["https://schema.org/ViewAction", readField(fields, "views")],
+        ["https://schema.org/LikeAction", readField(fields, "likes")],
+      ]
+        .filter(([, count]) => Number(count) > 0)
+        .map(([interactionType, userInteractionCount]) => ({
+          "@type": "InteractionCounter",
+          interactionType,
+          userInteractionCount: Number(userInteractionCount),
+        })),
+    },
     Person: {
       name: title,
       description,
@@ -579,12 +608,36 @@ function outboundHtml(fields) {
 }
 
 /** A listing page's items, as real links a crawler can follow. */
+/**
+ * The picture, as an element a crawler can see.
+ *
+ * Google Images indexes <img> found in the HTML, with its alt text and the
+ * words around it. The page carried an og:image and nothing else — and that
+ * is a social sharing card, not an indexing signal — so not one picture on
+ * the site could be found in an image search.
+ *
+ * People are left out on purpose. A member uploaded a photograph for a
+ * professional directory, not to be findable by face in Google Images, so
+ * `trainers` and `profile` name no `picture` however much they show one.
+ */
+function pictureHtml(source, fields, fallbackAlt) {
+  if (!source?.picture) return "";
+  const src = readField(fields, source.picture);
+  if (!src || !String(src).startsWith("http")) return "";
+  const alt =
+    (source.pictureAlt ? toPlainText(readField(fields, source.pictureAlt), 120) : "") ||
+    toPlainText(fallbackAlt, 120);
+  if (!alt) return "";
+  return `<figure><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" /></figure>`;
+}
+
 function listHtml(items) {
   if (items.length === 0) return "";
   return `<ul>${items
     .map(
       (item) =>
         `<li><a href="${escapeHtml(SITE_ORIGIN + item.path)}"><h2>${escapeHtml(item.title)}</h2></a>` +
+        (item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" />` : "") +
         (item.subtitle ? `<p>${escapeHtml(item.subtitle)}</p>` : "") +
         (item.description ? `<p>${escapeHtml(item.description)}</p>` : "") +
         `</li>`
@@ -648,6 +701,7 @@ export default async function handler(req, res) {
         bodyHtml =
           `<article>` +
           `<h1>${escapeHtml(heading)}</h1>` +
+          pictureHtml(route, fields, headline) +
           (facts.length
             ? `<dl>${facts
                 .map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(toPlainText(v, 120))}</dd>`)
@@ -691,11 +745,13 @@ export default async function handler(req, res) {
         .map((d) => {
           const title = readField(d.fields, spec.title);
           if (!title) return null;
+          const thumb = spec.picture ? readField(d.fields, spec.picture) : null;
           return {
             path: `/${spec.path}/${docId(d)}`,
             title: toPlainText(title, 160),
             subtitle: spec.subtitle ? toPlainText(readField(d.fields, spec.subtitle), 80) : "",
             description: toPlainText(readField(d.fields, spec.description), 180),
+            image: thumb && String(thumb).startsWith("http") ? String(thumb) : null,
           };
         })
         .filter(Boolean);

@@ -11,15 +11,22 @@
 
 const SITE = "https://sanadz.media";
 
-// collection -> { path, lastmodField, filter }
+// collection -> { path, changefreq, priority, image }
+//
+// `image` names the field holding the entry's picture. Listing it here tells
+// Google the image directly instead of leaving it to be discovered, which for
+// a site whose pages are barely crawled meant not at all. Profiles carry a
+// photo too and deliberately do not list it: a member's face belongs on their
+// page, not in an image search.
 const SOURCES = [
-  { collection: "jobs", path: "jobs", changefreq: "daily", priority: "0.8" },
-  { collection: "news", path: "news", changefreq: "daily", priority: "0.8" },
-  { collection: "courses", path: "courses", changefreq: "weekly", priority: "0.7" },
-  { collection: "competitions", path: "competitions", changefreq: "weekly", priority: "0.7" },
+  { collection: "jobs", path: "jobs", changefreq: "daily", priority: "0.8", image: "image" },
+  { collection: "news", path: "news", changefreq: "daily", priority: "0.8", image: "image" },
+  { collection: "courses", path: "courses", changefreq: "weekly", priority: "0.7", image: "image" },
+  { collection: "competitions", path: "competitions", changefreq: "weekly", priority: "0.7", image: "image" },
+  { collection: "works", path: "works", changefreq: "weekly", priority: "0.7", image: "cover" },
   { collection: "theses", path: "theses", changefreq: "monthly", priority: "0.6" },
   { collection: "channels", path: "channels", changefreq: "monthly", priority: "0.6" },
-  { collection: "equipment", path: "equipment", changefreq: "weekly", priority: "0.6" },
+  { collection: "equipment", path: "equipment", changefreq: "weekly", priority: "0.6", image: "image" },
 ];
 
 const STATIC_PAGES = [
@@ -32,6 +39,7 @@ const STATIC_PAGES = [
   ["/channels", "weekly", "0.8"],
   ["/stores", "weekly", "0.8"],
   ["/professionals", "weekly", "0.8"],
+  ["/works", "weekly", "0.8"],
   ["/trainers", "weekly", "0.8"],
   ["/theses", "weekly", "0.7"],
   ["/about", "monthly", "0.5"],
@@ -54,17 +62,30 @@ function isoDay(ms) {
   return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
 }
 
-function urlEntry(loc, lastmod, changefreq, priority) {
+/**
+ * `images` are the entry's pictures. Only <image:loc> is emitted — Google
+ * stopped reading the caption, title, licence and geo tags in 2022, so
+ * writing them would be noise.
+ */
+function urlEntry(loc, lastmod, changefreq, priority, images = []) {
   return [
     "  <url>",
     `    <loc>${escapeXml(loc)}</loc>`,
     lastmod ? `    <lastmod>${lastmod}</lastmod>` : null,
     `    <changefreq>${changefreq}</changefreq>`,
     `    <priority>${priority}</priority>`,
+    ...images.map((src) => `    <image:image><image:loc>${escapeXml(src)}</image:loc></image:image>`),
     "  </url>",
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+/** A picture only counts if it is a real, absolute URL. */
+function pictureOf(doc, field) {
+  if (!field) return [];
+  const src = doc.fields?.[field]?.stringValue;
+  return src && src.startsWith("http") ? [src] : [];
 }
 
 async function fetchCollection(base, apiKey, collection) {
@@ -128,7 +149,13 @@ export default async function handler(req, res) {
               const id = d.name.split("/").pop();
               const createdAt = d.fields?.createdAt?.integerValue ?? d.fields?.createdAt?.doubleValue;
               const lastmod = isoDay(createdAt) ?? (d.updateTime ? d.updateTime.slice(0, 10) : null);
-              return urlEntry(`${SITE}/${src.path}/${id}`, lastmod, src.changefreq, src.priority);
+              return urlEntry(
+                `${SITE}/${src.path}/${id}`,
+                lastmod,
+                src.changefreq,
+                src.priority,
+                pictureOf(d, src.image)
+              );
             });
         })
       );
@@ -154,7 +181,8 @@ export default async function handler(req, res) {
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${entries.join("\n")}
 </urlset>`;
 
