@@ -15,6 +15,7 @@ export function useLogoutFlow() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<"idle" | "asking" | "leaving">("idle");
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const timerRef = useRef<number | null>(null);
 
   const requestLogout = useCallback(() => setPhase("asking"), []);
   const cancel = useCallback(() => setPhase("idle"), []);
@@ -28,9 +29,20 @@ export function useLogoutFlow() {
       // the visitor home is still the right outcome.
     }
     // A beat on the farewell screen, so the change is visible rather than a
-    // jarring jump straight to the landing page.
-    setTimeout(() => navigate("/", { replace: true }), 1100);
+    // jarring jump straight to the landing page — then back to idle.
+    //
+    // Closing it is not optional. Navigating does not unmount the hook when
+    // it lives in the header, which every page shares, so the farewell stayed
+    // over the site until the visitor reloaded. It only looked right from a
+    // dashboard, which the navigation happens to unmount.
+    timerRef.current = window.setTimeout(() => {
+      navigate("/", { replace: true });
+      setPhase("idle");
+    }, 1100);
   }, [navigate]);
+
+  // The timer must not fire into a component that has gone away.
+  useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
 
   // Escape cancels, and the page behind must not scroll under the dialog.
   useEffect(() => {
