@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import MyWorks from "./MyWorks";
 import { 
   LogOut, Pencil, User, MapPin,  AlertTriangle, 
   CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check, MessageSquare
@@ -803,6 +804,15 @@ export default function UserDashboard() {
               <Link to={`/profile/${profile.id}`} style={{ color: "var(--theme-accent)", fontSize: "0.8rem", textDecoration: "none" }}>عرض الملف العام</Link>
             </div>
             <WorksSection works={profile.works || []} />
+          </div>
+        )}
+
+        {/* The public gallery — separate from the portfolio preview above:
+            that is a list of links on the profile, these are published works
+            with their own pages and counters. */}
+        {profile.type !== "store" && !editing && (
+          <div className="mt-8">
+            <MyWorks profile={profile} />
           </div>
         )}
 
