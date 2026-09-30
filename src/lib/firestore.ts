@@ -486,9 +486,40 @@ export function subscribeToSiteContent(
 }
 
 // --- FCM TOKENS ---
-// Admin token lives in config/adminFCM (admin-only read/write per rules).
+// The admin's devices live in config/adminFCM (admin-only read/write per
+// rules). It held one token, so enabling notifications on a phone silently
+// unregistered the laptop; it is a list now, and a device joins it instead of
+// replacing what is there.
 export async function saveAdminFCMToken(token: string): Promise<void> {
-  await setDoc(doc(db, "config", "adminFCM"), { token, updatedAt: Date.now() }, { merge: true });
+  await setDoc(
+    doc(db, "config", "adminFCM"),
+    { tokens: arrayUnion(token), updatedAt: Date.now() },
+    { merge: true }
+  );
+}
+
+export interface AdminDeviceReport {
+  /** How many devices are registered to receive the admin's push. */
+  devices: number;
+  /** Whether this browser's own token is among them. */
+  thisDevice: boolean;
+  updatedAt?: number;
+}
+
+/** What is actually stored, so the admin can be shown it rather than guess. */
+export async function getAdminDevices(token?: string): Promise<AdminDeviceReport> {
+  const snap = await getDoc(doc(db, "config", "adminFCM"));
+  const data = snap.exists() ? snap.data() : {};
+  const tokens: string[] = [
+    ...((data.tokens as string[] | undefined) ?? []),
+    ...(typeof data.token === "string" ? [data.token] : []),
+  ];
+  const unique = [...new Set(tokens)];
+  return {
+    devices: unique.length,
+    thisDevice: Boolean(token && unique.includes(token)),
+    updatedAt: typeof data.updatedAt === "number" ? data.updatedAt : undefined,
+  };
 }
 
 // A push token is not public data, so it lives in /fcmTokens/{uid} — readable

@@ -248,7 +248,13 @@ export default function Register() {
         body: `${form.name} سجّل في المنصة كـ ${typeLabel}`,
         link: "/sanad-admin",
         createdAt: Date.now(),
-      }, undefined, "admin").catch(() => {});
+      }, undefined, "admin").catch((e) => {
+        // The person registering can do nothing about this, so it must not
+        // stop them — but swallowing it whole left no trace anywhere of why a
+        // registration never reached the admin's browser. The admin's own
+        // check lives in الإعدادات ← إشعارات المتصفح.
+        console.warn("Admin push for the new registration failed:", e);
+      });
 
       // No verification email: every profile is reviewed by hand before it
       // goes live, so the address is checked by a person either way. Firebase's

@@ -26,9 +26,9 @@ import {
   addNews, updateNews, deleteNews, subscribeToNews,
   addThesis, updateThesis, deleteThesis, subscribeToTheses,
   adminResetPassword, adminDeleteMember, setAdminNote,
-  subscribeToWorks, setWorkFeatured, deleteWork,
+  subscribeToWorks, setWorkFeatured, deleteWork, getAdminDevices,
 } from "../../../lib/firestore";
-import type { MemberDeletionReport } from "../../../lib/firestore";
+import type { MemberDeletionReport, AdminDeviceReport } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
@@ -36,6 +36,8 @@ import { normalizePhone, isValidAlgerianPhone } from "../../../lib/text";
 import { WORK_LABEL, shortCount } from "../../../lib/works";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty, Work } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT, accountTypeLabel, professionsOf } from "../../../lib/types";
+import { pushPermission, currentPushToken, sendTestPush } from "../../../lib/push";
+import type { PushPermission, PushAttempt } from "../../../lib/push";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
 
@@ -2880,10 +2882,102 @@ function AppearanceSection() {
 }
 
 // ── SETTINGS ────────────────────────────────────────────────────
+/**
+ * Why a browser notification did or did not arrive.
+ *
+ * Registrations were not reaching the admin's browser and there was nothing to
+ * look at: the send is fired by the person registering, and its failure is
+ * swallowed. This asks the same questions the code asks and prints the answers.
+ */
+function PushDiagnosis() {
+  const [permission, setPermission] = useState<PushPermission>("unsupported");
+  const [token, setToken] = useState<{ token: string | null; reason?: string } | null>(null);
+  const [devices, setDevices] = useState<AdminDeviceReport | null>(null);
+  const [attempt, setAttempt] = useState<PushAttempt | null>(null);
+  const [sending, setSending] = useState(false);
+
+  const check = useCallback(async () => {
+    setPermission(pushPermission());
+    const found = await currentPushToken();
+    setToken(found);
+    setDevices(await getAdminDevices(found.token ?? undefined).catch(() => null));
+  }, []);
+
+  useEffect(() => { check(); }, [check]);
+
+  const test = async () => {
+    setSending(true);
+    setAttempt(await sendTestPush());
+    setSending(false);
+    await check();
+  };
+
+  const Row = ({ label, ok, children }: { label: string; ok: boolean | null; children: React.ReactNode }) => (
+    <div className="flex items-start justify-between gap-3 py-2" style={{ borderTop: "1px solid var(--p-12)" }}>
+      <span style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", flexShrink: 0 }}>{label}</span>
+      <span style={{ color: ok === null ? "var(--theme-text-secondary, #6aad6a)" : ok ? "#4ade80" : "#f87171", fontSize: "0.8rem", textAlign: "left" }}>
+        {children}
+      </span>
+    </div>
+  );
+
+  return (
+    <div className="rounded-xl p-6" style={S.card}>
+      <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "0.5rem" }}>إشعارات المتصفح</h3>
+      <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem", lineHeight: 1.9, marginBottom: "0.5rem" }}>
+        إشعار داخل الموقع يُحفظ دائماً. أما إشعار المتصفح فيمرّ بهذه الخطوات، وأيّ واحدة تسقط تُسقطه.
+      </p>
+
+      <Row label="الصلاحية" ok={permission === "granted"}>
+        {permission === "granted" ? "ممنوحة" :
+         permission === "denied" ? "محظورة — غيّرها من القفل بجانب شريط العنوان" :
+         permission === "default" ? "لم تُطلب بعد" : "المتصفح لا يدعمها"}
+      </Row>
+
+      <Row label="رمز هذا الجهاز" ok={Boolean(token?.token)}>
+        {token === null ? "جارٍ الفحص..." : token.token ? "صدر بنجاح" : token.reason}
+      </Row>
+
+      <Row label="أجهزة مسجّلة" ok={devices ? devices.devices > 0 : null}>
+        {devices === null ? "—" : devices.devices === 0 ? "لا يوجد" : `${devices.devices}`}
+      </Row>
+
+      <Row label="هذا الجهاز ضمنها" ok={devices?.thisDevice ?? null}>
+        {devices === null ? "—" : devices.thisDevice ? "نعم" : "لا — أعد تحميل الصفحة لتسجيله"}
+      </Row>
+
+      <button
+        onClick={test}
+        disabled={sending}
+        className="btn-dz w-full mt-4 py-2.5 rounded-lg text-sm disabled:opacity-50"
+      >
+        <span>{sending ? "جارٍ الإرسال..." : "أرسل إشعاراً تجريبياً لنفسي"}</span>
+      </button>
+
+      {attempt && (
+        <div className="mt-3 text-xs" style={{ lineHeight: 1.9 }}>
+          {attempt.ok && (attempt.delivered ?? 0) > 0 ? (
+            <p style={{ color: "#4ade80" }}>✓ وصل إلى {attempt.delivered} من {attempt.targeted} جهاز</p>
+          ) : (
+            <p style={{ color: "#f87171" }}>
+              لم يصل. {attempt.reason ?? (attempt.targeted === 0 ? "لا يوجد جهاز مسجّل" : "")}
+              {attempt.failures?.length ? ` (${attempt.failures.join("، ")})` : ""}
+            </p>
+          )}
+          {(attempt.pruned ?? 0) > 0 && (
+            <p style={{ color: "#fbbf24" }}>حُذف {attempt.pruned} رمز جهاز منتهي الصلاحية.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsSection() {
   const user = auth.currentUser;
   return (
     <div className="max-w-lg space-y-6">
+      <PushDiagnosis />
       <div className="rounded-xl p-6" style={S.card}>
         <h3 style={{ color: "var(--theme-text, #c8e6c9)", fontWeight: 600, marginBottom: "1rem" }}>معلومات الحساب</h3>
         <div style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem" }}>

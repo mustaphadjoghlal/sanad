@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Bell, ChevronDown, Facebook, Search } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Bell, BellOff, ChevronDown, Facebook, Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL, FCM_SW_URL, FCM_SW_SCOPE } from "../../lib/firebase";
@@ -352,6 +352,20 @@ export default function Layout() {
                   <Bell size={14} />
                   <span>تفعيل التنبيهات</span>
                 </button>
+              )}
+              {/* Blocked used to look exactly like working: the button above
+                  only shows while the question has not been asked, so someone
+                  who once pressed "Block" saw a clean header and waited for
+                  notifications that could never arrive. */}
+              {currentUser && notifPermission === "denied" && (
+                <span
+                  title="الإشعارات محظورة لهذا الموقع — غيّرها من القفل بجانب شريط العنوان"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
+                  style={{ color: "#f87171", background: "rgba(198,40,40,0.14)", border: "1px solid rgba(198,40,40,0.3)" }}
+                >
+                  <BellOff size={14} />
+                  <span>التنبيهات محظورة</span>
+                </span>
               )}
               {/* Holds the row's width so the header does not jump when the
                   answer arrives. */}

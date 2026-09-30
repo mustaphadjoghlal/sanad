@@ -113,6 +113,50 @@ async function deleteToken(baseUrl, accessToken, uid) {
   }).catch(() => {});
 }
 
+/**
+ * The admin's devices.
+ *
+ * This used to be one field holding one token, so enabling notifications on a
+ * phone silently unregistered the laptop — and a token that had expired stayed
+ * there for good, because the pruning below skipped the admin on purpose.
+ * Every push after that failed with nobody told.
+ *
+ * `tokens` is the list; `token` is read too, so a device registered under the
+ * old shape keeps working until it registers again.
+ */
+async function fetchAdminTokens(baseUrl, accessToken) {
+  const res = await fetch(`${baseUrl}/config/adminFCM`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) return [];
+
+  const fields = (await res.json()).fields ?? {};
+  const list = (fields.tokens?.arrayValue?.values ?? [])
+    .map((v) => v.stringValue)
+    .filter(Boolean);
+  const single = fields.token?.stringValue;
+  if (single) list.push(single);
+  return [...new Set(list)];
+}
+
+/** Writes back the admin's device list, dead entries removed. */
+async function saveAdminTokens(baseUrl, accessToken, tokens) {
+  await fetch(
+    `${baseUrl}/config/adminFCM?updateMask.fieldPaths=tokens&updateMask.fieldPaths=token`,
+    {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fields: {
+          tokens: { arrayValue: { values: tokens.map((t) => ({ stringValue: t })) } },
+          // The old single field is cleared, so a stale copy cannot come back.
+          token: { nullValue: null },
+        },
+      }),
+    }
+  ).catch(() => {});
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -174,14 +218,10 @@ export default async function handler(req, res) {
         } else if (type === targetType) targets.push({ uid, token });
       }
     } else {
-      const fsRes = await fetch(`${baseUrl}/config/adminFCM`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (fsRes.ok) {
-        const data = await fsRes.json();
-        const token = data.fields?.token?.stringValue;
-        if (token) targets = [{ uid: "adminFCM", token }];
-      }
+      targets = (await fetchAdminTokens(baseUrl, accessToken)).map((token) => ({
+        uid: "adminFCM",
+        token,
+      }));
     }
 
     // De-duplicate: the same device may be registered under several accounts.
@@ -224,18 +264,42 @@ export default async function handler(req, res) {
         const err = await fcmRes.json().catch(() => ({}));
         const status = err?.error?.status;
         // UNREGISTERED / INVALID_ARGUMENT means the device is gone for good.
-        if (uid !== "adminFCM" && (status === "NOT_FOUND" || status === "UNREGISTERED" || status === "INVALID_ARGUMENT")) {
+        const dead = status === "NOT_FOUND" || status === "UNREGISTERED" || status === "INVALID_ARGUMENT";
+        if (dead && uid === "adminFCM") {
+          // Collected and written back once, below.
+          return { ok: false, pruned: true, deadToken: token };
+        }
+        if (dead) {
           await deleteToken(baseUrl, accessToken, uid);
           return { ok: false, pruned: true };
         }
-        return { ok: false };
+        return { ok: false, reason: status || `HTTP ${fcmRes.status}` };
       })
     );
 
     const delivered = results.filter((r) => r.ok).length;
     const pruned = results.filter((r) => r.pruned).length;
 
-    return res.status(200).json({ ok: true, delivered, pruned, targeted: targets.length, checkedCount });
+    const deadAdmin = results.map((r) => r.deadToken).filter(Boolean);
+    if (deadAdmin.length > 0) {
+      const alive = targets
+        .filter((t) => t.uid === "adminFCM" && !deadAdmin.includes(t.token))
+        .map((t) => t.token);
+      await saveAdminTokens(baseUrl, accessToken, alive);
+    }
+
+    // What actually went wrong, so a caller that asked can say so rather than
+    // reporting a silent success.
+    const failures = [...new Set(results.filter((r) => !r.ok && r.reason).map((r) => r.reason))];
+
+    return res.status(200).json({
+      ok: true,
+      delivered,
+      pruned,
+      targeted: targets.length,
+      checkedCount,
+      ...(failures.length > 0 ? { failures } : {}),
+    });
   } catch (e) {
     console.error("FCM operation failed:", e);
     return res.status(502).json({ ok: false, reason: "FCM operation failed" });
