@@ -20,7 +20,16 @@ function getAuth() {
   const credentials = JSON.parse(raw);
   cachedAuth = new GoogleAuth({
     credentials,
-    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
+    scopes: [
+      // Sending through FCM.
+      "https://www.googleapis.com/auth/firebase.messaging",
+      // Reading who to send to. This was missing, and it is the whole story:
+      // the token was minted for messaging alone, yet every lookup below goes
+      // to Firestore, which rejects it for insufficient scope. Each rejection
+      // was swallowed into an empty list, so the endpoint reported "no tokens
+      // registered" and no push had ever reached anyone.
+      "https://www.googleapis.com/auth/datastore",
+    ],
   });
   return cachedAuth;
 }
@@ -88,14 +97,27 @@ async function fetchAllUsers(baseUrl, accessToken) {
   return docs;
 }
 
+/**
+ * Firestore refusing to answer is not the same as Firestore answering
+ * "nobody". Collapsing the two is what let a scope mistake look like an empty
+ * address book for months, so a refusal is thrown and reported.
+ */
+async function firestoreGet(url, accessToken, what) {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (res.ok) return res.json();
+
+  const reason = await res.json().then((b) => b?.error?.message).catch(() => null);
+  console.error(`push: ${what} failed`, res.status, reason);
+  const error = new Error(reason || `${what} failed (${res.status})`);
+  error.firestore = true;
+  error.status = res.status;
+  throw error;
+}
+
 // Push tokens live in /fcmTokens/{uid}, keyed by the same uid as the profile.
 async function fetchTokenMap(baseUrl, accessToken) {
-  const res = await fetch(`${baseUrl}/fcmTokens?pageSize=1000`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) return new Map();
+  const data = await firestoreGet(`${baseUrl}/fcmTokens?pageSize=1000`, accessToken, "token lookup");
 
-  const data = await res.json();
   const map = new Map();
   for (const doc of data.documents ?? []) {
     const uid = doc.name.split("/").pop();
@@ -125,12 +147,15 @@ async function deleteToken(baseUrl, accessToken, uid) {
  * old shape keeps working until it registers again.
  */
 async function fetchAdminTokens(baseUrl, accessToken) {
-  const res = await fetch(`${baseUrl}/config/adminFCM`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) return [];
+  // A missing document means no device yet, which is a real answer; anything
+  // else is Firestore refusing, and must not read as "no devices".
+  const doc = await firestoreGet(`${baseUrl}/config/adminFCM`, accessToken, "admin device lookup")
+    .catch((e) => {
+      if (e.status === 404) return {};
+      throw e;
+    });
 
-  const fields = (await res.json()).fields ?? {};
+  const fields = doc.fields ?? {};
   const list = (fields.tokens?.arrayValue?.values ?? [])
     .map((v) => v.stringValue)
     .filter(Boolean);
@@ -302,6 +327,12 @@ export default async function handler(req, res) {
     });
   } catch (e) {
     console.error("FCM operation failed:", e);
-    return res.status(502).json({ ok: false, reason: "FCM operation failed" });
+    // A Firestore refusal names itself, so the admin's test button can say
+    // what is actually wrong instead of "FCM operation failed".
+    return res.status(502).json({
+      ok: false,
+      reason: e?.firestore ? `تعذّرت قراءة قائمة الأجهزة: ${e.message}` : "FCM operation failed",
+      ...(e?.status === 403 ? { code: "missing-scope" } : {}),
+    });
   }
 }

@@ -10,8 +10,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
  * nobody told.
  */
 
+/** What the service account was actually asked to be allowed to do. */
+const grantedScopes: string[][] = [];
+
 vi.mock("google-auth-library", () => ({
   GoogleAuth: class {
+    constructor(options: { scopes: string[] }) {
+      grantedScopes.push(options.scopes);
+    }
     getClient() {
       return Promise.resolve({ getAccessToken: () => Promise.resolve({ token: "sa-token" }) });
     }
@@ -194,5 +200,72 @@ describe("a notification to the admin", () => {
     expect(result.failures).toContain("PERMISSION_DENIED");
     // Not a dead device — it must not be thrown away over a server error.
     expect(savedTokens()).toBeNull();
+  });
+});
+
+describe("what the service account is allowed to do", () => {
+  /**
+   * The bug every other test in this file sailed past, because they all mock
+   * fetch and a mock does not check scopes.
+   *
+   * The token was minted for messaging alone, yet every lookup goes to
+   * Firestore — which rejected it for insufficient scope. Each rejection was
+   * swallowed into an empty list, so the endpoint reported "no tokens
+   * registered" and no push had ever reached anyone.
+   */
+  it("may both send a message and read who to send it to", async () => {
+    adminDoc = { tokens: { arrayValue: { values: [{ stringValue: "phone" }] } } };
+    await push();
+
+    const scopes = grantedScopes.at(-1) ?? [];
+    expect(scopes, "FCM send").toContain("https://www.googleapis.com/auth/firebase.messaging");
+    expect(scopes, "Firestore read — this is the one that was missing").toContain(
+      "https://www.googleapis.com/auth/datastore"
+    );
+  });
+});
+
+describe("when Firestore refuses to answer", () => {
+  const refuse = (status: number, message: string) =>
+    vi.stubGlobal("fetch", (url: string, init: RequestInit = {}) => {
+      if (url.includes("firestore.googleapis.com")) {
+        return Promise.resolve({
+          ok: false,
+          status,
+          json: async () => ({ error: { message, status: "PERMISSION_DENIED" } }),
+        });
+      }
+      return fakeFetch(url, init);
+    });
+
+  it("says so, instead of reporting that nobody is registered", async () => {
+    refuse(403, "Request had insufficient authentication scopes.");
+    const result = await push();
+
+    expect(result.status).toBe(502);
+    expect(result.reason).toContain("insufficient authentication scopes");
+    // The sentence that hid this for months must not come back.
+    expect(result.reason).not.toMatch(/No FCM tokens/);
+  });
+
+  it("names a refusal as a permission problem the caller can act on", async () => {
+    refuse(403, "Permission denied on resource.");
+    const result = await push();
+    expect((result as { code?: string }).code).toBe("missing-scope");
+  });
+
+  it("still treats a missing document as a genuine empty list", async () => {
+    // 404 on config/adminFCM means no device has registered yet — a real
+    // answer, not a refusal.
+    vi.stubGlobal("fetch", (url: string, init: RequestInit = {}) => {
+      if (url.includes("/config/adminFCM")) {
+        return Promise.resolve({ ok: false, status: 404, json: async () => ({ error: { message: "not found" } }) });
+      }
+      return fakeFetch(url, init);
+    });
+
+    const result = await push();
+    expect(result.status).toBe(200);
+    expect(result.reason).toMatch(/No FCM tokens/);
   });
 });
