@@ -5,7 +5,7 @@ import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Settings, LogOut, Plus, Pencil, Trash2,
   X, Menu, Mail, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
-  KeyRound, Copy, MessageCircle, MessageSquare, Sparkles, Eye, Heart,
+  KeyRound, RefreshCw, Copy, MessageCircle, MessageSquare, Sparkles, Eye, Heart,
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -28,7 +28,9 @@ import {
   adminResetPassword, adminDeleteMember, setAdminNote,
   subscribeToWorks, setWorkFeatured, deleteWork, getAdminDevices, getMemberActivity,
 } from "../../../lib/firestore";
-import type { MemberDeletionReport, AdminDeviceReport, MemberActivity } from "../../../lib/firestore";
+import type { MemberDeletionReport, AdminDeviceReport } from "../../../lib/firestore";
+import { seenLabel, activitySummary } from "../../../lib/activity";
+import type { ActivityState } from "../../../lib/activity";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
@@ -1911,20 +1913,6 @@ function MailingList({ profiles, onClose }: { profiles: UserProfile[]; onClose: 
   );
 }
 
-/** "منذ ٣ أيام" reads at a glance; a timestamp does not. */
-function timeAgo(ms: number | null): string {
-  if (!ms) return "لم يدخل قطّ";
-  const minutes = Math.floor((Date.now() - ms) / 60000);
-  if (minutes < 2) return "الآن";
-  if (minutes < 60) return `منذ ${minutes} دقيقة`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `منذ ${hours} ساعة`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `منذ ${days} يوم`;
-  const months = Math.floor(days / 30);
-  return months < 12 ? `منذ ${months} شهر` : `منذ ${Math.floor(months / 12)} سنة`;
-}
-
 // ── PROFESSIONALS SECTION ───────────────────────────────────────
 function ProfessionalsSection() {
   const isMobile = useIsMobile();
@@ -1938,18 +1926,20 @@ function ProfessionalsSection() {
 
   useEffect(() => subscribeToAllProfiles(setProfiles), []);
   useEffect(() => subscribeToCollection<VoiceArtist>("voice", setLegacyVoice), []);
-  useEffect(() => {
+  const loadActivity = useCallback(() => {
+    setActivity({ status: "loading" });
     getMemberActivity()
-      .then((rows) => setActivity(Object.fromEntries(rows.map((r) => [r.uid, r]))))
-      .catch(() => setActivity({}));
+      .then((rows) =>
+        setActivity({ status: "ready", rows: Object.fromEntries(rows.map((r) => [r.uid, r])) })
+      )
+      .catch((e: Error) =>
+        setActivity({ status: "error", message: e?.message ?? "تعذّرت قراءة سجلّ الدخول" })
+      );
   }, []);
 
-  /** The later of the two: a renewed session counts as much as a fresh login. */
-  const lastSeen = (uid: string): number | null => {
-    const row = activity?.[uid];
-    if (!row) return null;
-    return Math.max(row.lastSignInAt ?? 0, row.lastSeenAt ?? 0) || null;
-  };
+  useEffect(() => { loadActivity(); }, [loadActivity]);
+
+  const seen = (uid: string) => seenLabel(activity, uid);
 
   // Only the job titles somebody actually holds, so the list stays short —
   // counting the trades a member added beside their main one.
@@ -1969,9 +1959,12 @@ function ProfessionalsSection() {
   const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null);
   const [legacyTarget, setLegacyTarget] = useState<VoiceArtist | null>(null);
   const [mailingOpen, setMailingOpen] = useState(false);
-  // Keyed by uid. Null while loading, {} if the lookup failed — the list must
-  // still render without it.
-  const [activity, setActivity] = useState<Record<string, MemberActivity> | null>(null);
+  /**
+   * Three states, kept apart on purpose. Collapsing "the lookup failed" into
+   * an empty map made the column say لم يدخل قطّ about every member — stating
+   * as fact about each person something that was only ever a failure to ask.
+   */
+  const [activity, setActivity] = useState<ActivityState>({ status: "loading" });
   const [deleting, setDeleting] = useState(false);
   const [report, setReport] = useState<MemberDeletionReport | null>(null);
 
@@ -2032,20 +2025,32 @@ function ProfessionalsSection() {
             ? <>{profiles.length} محترف مسجل</>
             : <>{filtered.length} من {profiles.length} — {accountTypeLabel(typeFilter)}</>}
           {pendingCount > 0 && <span style={{ color: "#fbbf24" }}> ({pendingCount} انتظار)</span>}
-          {activity && Object.keys(activity).length > 0 && (() => {
+          {(() => {
             // Registering is not using. This says how many came back.
-            const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
-            const returned = profiles.filter((p) => (lastSeen(p.id) ?? 0) > week).length;
-            const never = profiles.filter((p) => !lastSeen(p.id)).length;
+            const summary = activitySummary(activity, profiles.map((p) => p.id));
+            if (!summary) return null;
             return (
               <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-                {" "}· دخل {returned} هذا الأسبوع
-                {never > 0 && <> · {never} لم يدخل قطّ</>}
+                {" "}· دخل {summary.returned} هذا الأسبوع
+                {summary.never > 0 && <> · {summary.never} لم يدخل قطّ</>}
               </span>
             );
           })()}
+          {activity.status === "error" && (
+            <span style={{ color: "#f87171" }}> · تعذّرت قراءة سجلّ الدخول: {activity.message}</span>
+          )}
         </span>
         <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={loadActivity}
+          disabled={activity.status === "loading"}
+          title="إعادة قراءة آخر دخول"
+          className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-1.5 disabled:opacity-50"
+          style={{ background: "var(--p-12)", color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)" }}
+        >
+          <RefreshCw size={14} />
+          تحديث الدخول
+        </button>
         <button
           onClick={() => setMailingOpen(true)}
           className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-1.5"
@@ -2123,11 +2128,9 @@ function ProfessionalsSection() {
                   {p.specialty && <span style={S.badge("var(--p-15)")}>{p.specialty}</span>}
                   {p.location && <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem" }}>{p.location}</span>}
                   <span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span>
-                  {activity && (
-                    <span style={{ color: lastSeen(p.id) ? "var(--theme-text-muted, #4a7a4a)" : "#f87171", fontSize: "0.7rem" }}>
-                      {timeAgo(lastSeen(p.id))}
-                    </span>
-                  )}
+                  <span style={{ color: seen(p.id).never ? "#f87171" : "var(--theme-text-muted, #4a7a4a)", fontSize: "0.7rem" }}>
+                    {seen(p.id).text}
+                  </span>
                 </div>
               </InfoLink>
 
@@ -2171,8 +2174,8 @@ function ProfessionalsSection() {
                     <td style={S.td}><div className="flex flex-wrap gap-1">{professionsOf(p).map((t) => <span key={t} style={S.badge("var(--p-20)")}>{accountTypeLabel(t)}</span>)}</div></td>
                     <td style={S.td}>{p.specialty || "—"}</td>
                     <td style={S.td}>{p.location || "—"}</td>
-                    <td style={{ ...S.td, color: lastSeen(p.id) ? "inherit" : "#f87171", whiteSpace: "nowrap" }}>
-                      {activity === null ? "…" : timeAgo(lastSeen(p.id))}
+                    <td style={{ ...S.td, color: seen(p.id).never ? "#f87171" : "inherit", whiteSpace: "nowrap" }}>
+                      {seen(p.id).text}
                     </td>
                     <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
                     <td style={S.td}>{p.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
