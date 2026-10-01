@@ -663,6 +663,30 @@ export default function Layout() {
               </div>
               {/* Mobile auth */}
               <div className="mt-2 pt-2 flex flex-col gap-1.5" style={{ borderTop: "1px solid var(--p-15)" }}>
+                {/* Enabling notifications was offered in the desktop header
+                    only, inside a container hidden below the md breakpoint —
+                    so on a phone there was no way to turn them on at all.
+                    Most members are on phones. */}
+                {currentUser && notifPermission === "default" && (
+                  <button
+                    type="button"
+                    onClick={() => { requestNotifPermission(); setMobileMenuOpen(false); }}
+                    className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full"
+                    style={{ color: "#fff", background: "var(--theme-accent, #00a355)", border: "none" }}
+                  >
+                    <Bell size={14} />
+                    <span>تفعيل التنبيهات</span>
+                  </button>
+                )}
+                {currentUser && notifPermission === "denied" && (
+                  <span
+                    className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2"
+                    style={{ color: "#f87171", background: "rgba(198,40,40,0.14)", border: "1px solid rgba(198,40,40,0.3)" }}
+                  >
+                    <BellOff size={14} />
+                    <span>التنبيهات محظورة — غيّرها من إعدادات المتصفح</span>
+                  </span>
+                )}
                 {isLoggedOut && (
                   <>
                     <Link to="/login" className="px-4 py-2.5 rounded-lg text-sm text-center" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)", textDecoration: "none" }}>
