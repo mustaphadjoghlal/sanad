@@ -4,7 +4,7 @@ import "react-quill-new/dist/quill.snow.css";
 import {
   LayoutDashboard, BookOpen, ShoppingCart, Briefcase,
   Trophy, Settings, LogOut, Plus, Pencil, Trash2,
-  X, Menu, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
+  X, Menu, Mail, Radio, ExternalLink, Users, Star, Check, AlertTriangle, Palette, Tv, FileText, Bell, Send, Trash, Newspaper, GraduationCap,
   KeyRound, Copy, MessageCircle, MessageSquare, Sparkles, Eye, Heart,
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -1821,6 +1821,96 @@ function CompetitionsSection() {
   );
 }
 
+/**
+ * The approved members' addresses, for a message sent from the admin's own
+ * mailbox.
+ *
+ * Deliberately an export rather than a send button. Sixty-five addresses go
+ * out fine from Zoho; a sender the site owns would need its own service, its
+ * own domain reputation and its own unsubscribe handling before the first
+ * message, and it would still be the same mailbox underneath for a list this
+ * size.
+ *
+ * Approved only, and not negotiable: the message says ملفك معتمد, and sending
+ * that to someone still waiting — or rejected — is worse than not writing.
+ */
+function MailingList({ profiles, onClose }: { profiles: UserProfile[]; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  const recipients = profiles.filter(
+    (p) => p.status === "approved" && p.email && p.email.includes("@")
+  );
+  const addresses = [...new Set(recipients.map((p) => p.email))];
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(addresses.join(", "));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const downloadCsv = () => {
+    // A leading quote keeps a spreadsheet from reading a name as a formula.
+    const cell = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [
+      ["الاسم", "البريد", "المهنة", "الولاية"],
+      ...recipients.map((p) => [p.name, p.email, accountTypeLabel(p.type), p.location ?? ""]),
+    ];
+    const csv = "\uFEFF" + rows.map((r) => r.map(cell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sanad-members-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <Modal title="بُرُد الأعضاء المعتمدين" onClose={onClose}>
+      <div className="space-y-4">
+        <p style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.875rem", lineHeight: 1.9 }}>
+          {addresses.length} عنوان — المعتمدون وحدهم. من ما يزال في الانتظار أو مرفوضاً ليس هنا.
+        </p>
+
+        <div className="rounded-xl p-3" style={{ background: "rgba(180,120,0,0.08)", border: "1px solid rgba(180,120,0,0.3)" }}>
+          <p style={{ color: "#fbbf24", fontSize: "0.8rem", lineHeight: 1.9 }}>
+            ضعها في خانة <strong>Bcc</strong> (نسخة مخفية) لا في <strong>To</strong>. وإلا رأى كل عضو عناوين الجميع،
+            وهو إفشاء لبياناتهم لا رجعة فيه.
+          </p>
+        </div>
+
+        <textarea
+          readOnly
+          value={addresses.join(", ")}
+          onFocus={(e) => e.currentTarget.select()}
+          style={{ ...S.input, minHeight: "140px", resize: "vertical", fontSize: "0.78rem", lineHeight: 1.8 }}
+          dir="ltr"
+        />
+
+        <div className="flex gap-2">
+          <button onClick={copy} className="btn-dz flex-1 py-2.5 rounded-lg text-sm">
+            <span>{copied ? "✓ نُسخت" : "نسخ العناوين"}</span>
+          </button>
+          <button
+            onClick={downloadCsv}
+            className="px-4 py-2.5 rounded-lg text-sm"
+            style={{ background: "var(--p-15)", color: "var(--theme-text, #e8f5e9)", border: "1px solid var(--p-30)" }}
+          >
+            تنزيل CSV
+          </button>
+        </div>
+
+        <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.75rem", lineHeight: 1.9 }}>
+          أرسلها من بريد سند نفسه. وإن تجاوز العدد ما يسمح به مزوّدك في الدفعة الواحدة، قسّمها على دفعات.
+        </p>
+      </div>
+    </Modal>
+  );
+}
+
 // ── PROFESSIONALS SECTION ───────────────────────────────────────
 function ProfessionalsSection() {
   const isMobile = useIsMobile();
@@ -1852,6 +1942,7 @@ function ProfessionalsSection() {
   const [noteTarget, setNoteTarget] = useState<UserProfile | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null);
   const [legacyTarget, setLegacyTarget] = useState<VoiceArtist | null>(null);
+  const [mailingOpen, setMailingOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [report, setReport] = useState<MemberDeletionReport | null>(null);
 
@@ -1913,6 +2004,15 @@ function ProfessionalsSection() {
             : <>{filtered.length} من {profiles.length} — {accountTypeLabel(typeFilter)}</>}
           {pendingCount > 0 && <span style={{ color: "#fbbf24" }}> ({pendingCount} انتظار)</span>}
         </span>
+        <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => setMailingOpen(true)}
+          className="px-3 py-2 rounded-lg text-sm inline-flex items-center gap-1.5"
+          style={{ background: "var(--p-12)", color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)" }}
+        >
+          <Mail size={14} />
+          بُرُد المعتمدين
+        </button>
         <select
           aria-label="ترشيح حسب المهنة"
           value={typeFilter}
@@ -1927,7 +2027,9 @@ function ProfessionalsSection() {
               <option key={value} value={value}>{label}</option>
             ))}
         </select>
+        </div>
       </div>
+      {mailingOpen && <MailingList profiles={profiles} onClose={() => setMailingOpen(false)} />}
       <StatusTabs value={filter} onChange={setFilter} />
 
       {/* Entries the admin typed into the old منشطون section before members
