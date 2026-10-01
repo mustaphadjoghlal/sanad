@@ -64,14 +64,16 @@ export function isUid(value) {
  * caller, and must not be the admin — an endpoint that can lock the admin out
  * of their own dashboard is not one worth having.
  */
-export async function requireAdmin(req, res, targetUid) {
+/**
+ * The half of the gate that does not involve a target account: the method,
+ * the configuration, and proving the caller is the admin. An endpoint that
+ * reads across all accounts rather than acting on one needs exactly this and
+ * nothing more.
+ */
+export async function requireAdminCaller(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).json({ ok: false, error: "Method not allowed" });
-    return null;
-  }
-  if (!isUid(targetUid)) {
-    res.status(400).json({ ok: false, error: "Missing uid" });
     return null;
   }
 
@@ -92,15 +94,29 @@ export async function requireAdmin(req, res, targetUid) {
     res.status(403).json({ ok: false, error: "Forbidden" });
     return null;
   }
-  if (caller.uid === targetUid) {
-    res.status(400).json({ ok: false, error: "Cannot act on your own account here" });
-    return null;
-  }
 
   const client = await auth.getClient();
   const { token: accessToken } = await client.getAccessToken();
   const base = `https://identitytoolkit.googleapis.com/v1/projects/${projectId}/accounts`;
   const headers = { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` };
+
+  return { caller, base, headers };
+}
+
+export async function requireAdmin(req, res, targetUid) {
+  if (!isUid(targetUid)) {
+    res.status(400).json({ ok: false, error: "Missing uid" });
+    return null;
+  }
+
+  const gate = await requireAdminCaller(req, res);
+  if (!gate) return null;
+  const { caller, base, headers } = gate;
+
+  if (caller.uid === targetUid) {
+    res.status(400).json({ ok: false, error: "Cannot act on your own account here" });
+    return null;
+  }
 
   const lookup = await fetch(`${base}:lookup`, {
     method: "POST",

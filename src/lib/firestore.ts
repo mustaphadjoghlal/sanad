@@ -587,9 +587,32 @@ export async function sendNotification(
 }
 
 /** Shared shape of a call to one of the admin-only endpoints. */
+export interface MemberActivity {
+  uid: string;
+  email: string | null;
+  createdAt: number | null;
+  /** When they last signed in. Null means never, since registering. */
+  lastSignInAt: number | null;
+  /** When their session was last renewed — closer to real use than a sign-in. */
+  lastSeenAt: number | null;
+  disabled: boolean;
+}
+
+/**
+ * When each member last used their account.
+ *
+ * Firestore holds the profile; it does not know whether anyone ever came
+ * back after creating it. That lives in the authentication records, which no
+ * client may read, so it comes through the admin endpoint.
+ */
+export async function getMemberActivity(): Promise<MemberActivity[]> {
+  const result = await callAdminEndpoint("/api/admin-activity");
+  return (result.accounts as MemberActivity[]) ?? [];
+}
+
 async function callAdminEndpoint(
   path: string,
-  uid: string
+  uid?: string
 ): Promise<Record<string, unknown>> {
   const user = auth.currentUser;
   if (!user) throw new Error("يجب تسجيل الدخول كمسؤول");
@@ -598,7 +621,7 @@ async function callAdminEndpoint(
   const res = await fetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-    body: JSON.stringify({ uid }),
+    body: JSON.stringify(uid ? { uid } : {}),
   });
   const result = await res.json().catch(() => ({}));
   if (!res.ok || !result.ok) {

@@ -26,9 +26,9 @@ import {
   addNews, updateNews, deleteNews, subscribeToNews,
   addThesis, updateThesis, deleteThesis, subscribeToTheses,
   adminResetPassword, adminDeleteMember, setAdminNote,
-  subscribeToWorks, setWorkFeatured, deleteWork, getAdminDevices,
+  subscribeToWorks, setWorkFeatured, deleteWork, getAdminDevices, getMemberActivity,
 } from "../../../lib/firestore";
-import type { MemberDeletionReport, AdminDeviceReport } from "../../../lib/firestore";
+import type { MemberDeletionReport, AdminDeviceReport, MemberActivity } from "../../../lib/firestore";
 import { applyTheme } from "../../../lib/useTheme";
 import { uploadImage } from "../../../lib/storage";
 import { WILAYAS } from "../../../lib/algeria";
@@ -1911,6 +1911,20 @@ function MailingList({ profiles, onClose }: { profiles: UserProfile[]; onClose: 
   );
 }
 
+/** "منذ ٣ أيام" reads at a glance; a timestamp does not. */
+function timeAgo(ms: number | null): string {
+  if (!ms) return "لم يدخل قطّ";
+  const minutes = Math.floor((Date.now() - ms) / 60000);
+  if (minutes < 2) return "الآن";
+  if (minutes < 60) return `منذ ${minutes} دقيقة`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `منذ ${hours} ساعة`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `منذ ${days} يوم`;
+  const months = Math.floor(days / 30);
+  return months < 12 ? `منذ ${months} شهر` : `منذ ${Math.floor(months / 12)} سنة`;
+}
+
 // ── PROFESSIONALS SECTION ───────────────────────────────────────
 function ProfessionalsSection() {
   const isMobile = useIsMobile();
@@ -1924,6 +1938,18 @@ function ProfessionalsSection() {
 
   useEffect(() => subscribeToAllProfiles(setProfiles), []);
   useEffect(() => subscribeToCollection<VoiceArtist>("voice", setLegacyVoice), []);
+  useEffect(() => {
+    getMemberActivity()
+      .then((rows) => setActivity(Object.fromEntries(rows.map((r) => [r.uid, r]))))
+      .catch(() => setActivity({}));
+  }, []);
+
+  /** The later of the two: a renewed session counts as much as a fresh login. */
+  const lastSeen = (uid: string): number | null => {
+    const row = activity?.[uid];
+    if (!row) return null;
+    return Math.max(row.lastSignInAt ?? 0, row.lastSeenAt ?? 0) || null;
+  };
 
   // Only the job titles somebody actually holds, so the list stays short —
   // counting the trades a member added beside their main one.
@@ -1943,6 +1969,9 @@ function ProfessionalsSection() {
   const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null);
   const [legacyTarget, setLegacyTarget] = useState<VoiceArtist | null>(null);
   const [mailingOpen, setMailingOpen] = useState(false);
+  // Keyed by uid. Null while loading, {} if the lookup failed — the list must
+  // still render without it.
+  const [activity, setActivity] = useState<Record<string, MemberActivity> | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [report, setReport] = useState<MemberDeletionReport | null>(null);
 
@@ -2003,6 +2032,18 @@ function ProfessionalsSection() {
             ? <>{profiles.length} محترف مسجل</>
             : <>{filtered.length} من {profiles.length} — {accountTypeLabel(typeFilter)}</>}
           {pendingCount > 0 && <span style={{ color: "#fbbf24" }}> ({pendingCount} انتظار)</span>}
+          {activity && Object.keys(activity).length > 0 && (() => {
+            // Registering is not using. This says how many came back.
+            const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const returned = profiles.filter((p) => (lastSeen(p.id) ?? 0) > week).length;
+            const never = profiles.filter((p) => !lastSeen(p.id)).length;
+            return (
+              <span style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
+                {" "}· دخل {returned} هذا الأسبوع
+                {never > 0 && <> · {never} لم يدخل قطّ</>}
+              </span>
+            );
+          })()}
         </span>
         <div className="flex items-center gap-2 flex-wrap">
         <button
@@ -2082,6 +2123,11 @@ function ProfessionalsSection() {
                   {p.specialty && <span style={S.badge("var(--p-15)")}>{p.specialty}</span>}
                   {p.location && <span style={{ color: "var(--theme-text-secondary, #6aad6a)", fontSize: "0.75rem" }}>{p.location}</span>}
                   <span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span>
+                  {activity && (
+                    <span style={{ color: lastSeen(p.id) ? "var(--theme-text-muted, #4a7a4a)" : "#f87171", fontSize: "0.7rem" }}>
+                      {timeAgo(lastSeen(p.id))}
+                    </span>
+                  )}
                 </div>
               </InfoLink>
 
@@ -2103,11 +2149,11 @@ function ProfessionalsSection() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr>{["الاسم", "النوع", "التخصص", "الولاية", "الحالة", "مميز", "الإجراءات"].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
+                <tr>{["الاسم", "النوع", "التخصص", "الولاية", "آخر دخول", "الحالة", "مميز", "الإجراءات"].map((h) => <th key={h} style={S.th}>{h}</th>)}</tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={7} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</td></tr>
+                  <tr><td colSpan={8} style={{ ...S.td, textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "3rem" }}>لا يوجد محترفون مسجلون بعد</td></tr>
                 ) : filtered.map((p) => (
                   <tr key={p.id} className="hover:bg-green-950/20 transition-colors" style={p.status === "pending" ? { borderRight: "3px solid rgba(180,120,0,0.5)" } : {}}>
                     <td style={S.td}>
@@ -2125,6 +2171,9 @@ function ProfessionalsSection() {
                     <td style={S.td}><div className="flex flex-wrap gap-1">{professionsOf(p).map((t) => <span key={t} style={S.badge("var(--p-20)")}>{accountTypeLabel(t)}</span>)}</div></td>
                     <td style={S.td}>{p.specialty || "—"}</td>
                     <td style={S.td}>{p.location || "—"}</td>
+                    <td style={{ ...S.td, color: lastSeen(p.id) ? "inherit" : "#f87171", whiteSpace: "nowrap" }}>
+                      {activity === null ? "…" : timeAgo(lastSeen(p.id))}
+                    </td>
                     <td style={S.td}><span style={S.statusBadge(p.status)}>{statusLabel(p.status)}</span></td>
                     <td style={S.td}>{p.featured ? <Star size={14} fill="#fbbf24" color="#fbbf24" /> : "—"}</td>
                     <td style={{ ...S.td, width: "200px" }}>
