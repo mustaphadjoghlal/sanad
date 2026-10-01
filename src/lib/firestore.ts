@@ -614,6 +614,12 @@ async function callAdminEndpoint(
   path: string,
   uid?: string
 ): Promise<Record<string, unknown>> {
+  // Firebase restores the session asynchronously, so on a fresh page load
+  // currentUser is null for a moment. A call made in that moment reported
+  // "sign in as admin" to an admin who was signed in — and, for the activity
+  // lookup that runs the instant the list mounts, that moment was every time.
+  await auth.authStateReady();
+
   const user = auth.currentUser;
   if (!user) throw new Error("يجب تسجيل الدخول كمسؤول");
 
