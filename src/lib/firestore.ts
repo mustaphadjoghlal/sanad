@@ -538,6 +538,12 @@ export interface NotificationResult {
   stored: boolean;
   /** A device push was actually delivered through /api/push. */
   pushed: boolean;
+  /** How many devices received it. */
+  delivered?: number;
+  /** How many the server tried. */
+  targeted?: number;
+  /** How many accounts were considered — the size of the audience. */
+  checkedCount?: number;
   reason?: string;
 }
 
@@ -578,7 +584,16 @@ export async function sendNotification(
     if (!res.ok || !result.ok) {
       throw new Error(result.reason || result.error || `FCM delivery failed (${res.status})`);
     }
-    return { stored: true, pushed: true };
+    // The counts travel back so the sender can be told what actually
+    // happened. "تم الإرسال" over zero devices is not a thing worth saying.
+    return {
+      stored: true,
+      pushed: (result.delivered ?? 0) > 0,
+      delivered: result.delivered,
+      targeted: result.targeted,
+      checkedCount: result.checkedCount,
+      reason: result.reason,
+    };
   } catch (e) {
     const reason = e instanceof Error ? e.message : "FCM delivery failed";
     if (targetType) throw new Error(reason);

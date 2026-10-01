@@ -28,7 +28,7 @@ import {
   adminResetPassword, adminDeleteMember, setAdminNote,
   subscribeToWorks, setWorkFeatured, deleteWork, getAdminDevices, getMemberActivity,
 } from "../../../lib/firestore";
-import type { MemberDeletionReport, AdminDeviceReport } from "../../../lib/firestore";
+import type { MemberDeletionReport, AdminDeviceReport, NotificationResult } from "../../../lib/firestore";
 import { seenLabel, activitySummary } from "../../../lib/activity";
 import type { ActivityState } from "../../../lib/activity";
 import { applyTheme } from "../../../lib/useTheme";
@@ -2884,6 +2884,8 @@ function NotificationsSection() {
   const [form, setForm] = useState({ title: "", body: "", link: "" });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  // What the last broadcast actually reached, so the button cannot claim more.
+  const [delivery, setDelivery] = useState<NotificationResult | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => { return subscribeToNotifications(true, setNotifs); }, []);
@@ -2897,13 +2899,15 @@ function NotificationsSection() {
     }
     setSending(true);
     try {
-      await sendNotification(
+      const result = await sendNotification(
         { title: form.title.trim(), body: form.body.trim(), link: link || undefined, createdAt: Date.now() },
         "all"
       );
       setForm({ title: "", body: "", link: "" });
       setSent(true);
       setTimeout(() => setSent(false), 2500);
+      // "تم الإرسال" over zero devices says nothing. These are the numbers.
+      setDelivery(result);
     } catch (err: unknown) {
       showToast(errorMessage(err, "تعذّر إرسال الإشعار. حاول مجدداً."));
     } finally {
@@ -2925,6 +2929,29 @@ function NotificationsSection() {
         <button onClick={handleSend} disabled={sending || !form.title.trim() || !form.body.trim()} className="btn-dz mt-5 flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm disabled:opacity-50">
           <Send size={15} /><span>{sent ? "✓ تم الإرسال!" : sending ? "جاري الإرسال..." : "إرسال للجميع"}</span>
         </button>
+
+        {delivery && (
+          <div className="mt-4 text-xs" style={{ lineHeight: 1.9, color: "var(--theme-text-muted, #4a7a4a)" }}>
+            <p style={{ color: "#4ade80" }}>✓ حُفظ في جرس الموقع — يراه كل عضو عند دخوله.</p>
+            {(delivery.delivered ?? 0) > 0 ? (
+              <p style={{ color: "#4ade80" }}>
+                ✓ وصل إلى {delivery.delivered} جهاز من {delivery.targeted}
+                {delivery.checkedCount ? ` (من ${delivery.checkedCount} عضواً)` : ""}
+              </p>
+            ) : (
+              <p style={{ color: "#fbbf24" }}>
+                لم يصل إلى أي جهاز — {delivery.reason === "No FCM tokens registered yet"
+                  ? "لا عضو فعّل إشعارات المتصفح بعد"
+                  : delivery.reason ?? "لا أجهزة مسجّلة"}
+                .
+              </p>
+            )}
+            <p style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
+              ملاحظة: الإرسال للجميع يذهب إلى الأعضاء لا إليك — أجهزتك مسجّلة كأجهزة إدارة.
+              لتجرّبه على نفسك استعمل الزرّ في الإعدادات ← إشعارات المتصفح.
+            </p>
+          </div>
+        )}
       </div>
       <div className="rounded-xl p-6" style={S.card}>
         <h3 className="font-semibold mb-4" style={{ color: "var(--theme-text)" }}>سجل الإشعارات ({notifs.length})</h3>
