@@ -28,6 +28,8 @@ export default function Layout() {
   const notifRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
   const prevNotifCountRef = useRef(0);
+  // What to tell the visitor after they asked for notifications.
+  const [notifHint, setNotifHint] = useState<string | null>(null);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     typeof Notification !== "undefined" ? Notification.permission : "denied"
   );
@@ -190,12 +192,44 @@ export default function Layout() {
   // All four logout buttons in this header share the one confirm flow.
   const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
 
-  // Asked for only on an explicit click — the registration effect above picks
-  // it up through `notifPermission`, so no page reload is needed.
+  /**
+   * Asked for only on an explicit click — the registration effect above picks
+   * it up through `notifPermission`, so no page reload is needed.
+   *
+   * It used to call and say nothing, whatever came back. Edge and Chrome both
+   * ship a "quieter notification requests" setting that shows no dialog at
+   * all: the call resolves as still-undecided, or never resolves, and a bell
+   * appears in the address bar instead. Clicking the button then did
+   * precisely nothing visible, which is indistinguishable from a broken
+   * button — and that is what it was reported as.
+   */
   const requestNotifPermission = async () => {
-    if (!("Notification" in window)) return;
-    const permission = await Notification.requestPermission();
+    if (!("Notification" in window)) {
+      setNotifHint("متصفّحك لا يدعم إشعارات الويب.");
+      return;
+    }
+    setNotifHint(null);
+
+    // If the browser suppresses the prompt the promise can hang; the hint
+    // must appear anyway.
+    const decided = await Promise.race([
+      Notification.requestPermission(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
+    ]);
+
+    const permission = decided ?? Notification.permission;
     setNotifPermission(permission);
+
+    if (permission === "granted") {
+      setNotifHint("✓ فُعّلت التنبيهات.");
+      setTimeout(() => setNotifHint(null), 4000);
+    } else if (permission === "denied") {
+      setNotifHint("الإشعارات محظورة لهذا الموقع. غيّرها من أيقونة القفل بجانب شريط العنوان ← الإشعارات ← سماح.");
+    } else {
+      // Still undecided: the prompt was dismissed, or the browser never showed
+      // one. Either way the address bar is where it can be allowed.
+      setNotifHint("لم يُظهر المتصفّح نافذة الإذن. اضغط أيقونة القفل أو الجرس بجانب شريط العنوان ← الإشعارات ← سماح.");
+    }
   };
 
   const isRegularUser = userProfile && userProfile !== "admin";
@@ -209,6 +243,32 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0e0e0e" }}>
       <a href="#main-content" className="skip-link">تخطَّ إلى المحتوى</a>
+
+      {/* What the browser answered when notifications were asked for. Shown
+          under the header because the answer is often "I showed you nothing",
+          and silence there is what made the button look broken. */}
+      {notifHint && (
+        <div
+          role="status"
+          className="px-4 py-2.5 text-sm text-center"
+          style={{
+            background: notifHint.startsWith("✓") ? "rgba(0,163,85,0.14)" : "rgba(180,120,0,0.14)",
+            color: notifHint.startsWith("✓") ? "#4ade80" : "#fbbf24",
+            borderBottom: "1px solid var(--p-20)",
+            lineHeight: 1.9,
+          }}
+        >
+          {notifHint}
+          <button
+            type="button"
+            onClick={() => setNotifHint(null)}
+            aria-label="إخفاء"
+            style={{ marginInlineStart: "0.75rem", background: "none", border: "none", color: "inherit", cursor: "pointer" }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Header */}
       <header
