@@ -114,12 +114,18 @@ type EditFormState = {
   availability: "available" | "busy" | "";
 };
 
-export default function UserDashboard() {
-  usePageTitle("لوحة حسابي", undefined, { noindex: true });
+/**
+ * `preview` shows the dashboard as a kind of member sees it, from a stand-in
+ * profile rather than a real account. Nothing is read from or written to
+ * Firestore while it is set — the admin is looking, not editing, and the
+ * person being imitated does not exist.
+ */
+export default function UserDashboard({ preview }: { preview?: UserProfile } = {}) {
+  usePageTitle(preview ? "معاينة لوحة العضو" : "لوحة حسابي", undefined, { noindex: true });
   const navigate = useNavigate();
   const [uid, setUid] = useState<string | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(preview ?? null);
+  const [authLoading, setAuthLoading] = useState(!preview);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>({
     name: "",
@@ -161,9 +167,19 @@ export default function UserDashboard() {
   const [uploadingWork, setUploadingWork] = useState(false);
   const [workUploadProgress, setWorkUploadProgress] = useState(0);
 
+  /**
+   * A preview must never reach Firestore, Storage or the auth account. Each
+   * writing handler returns on this before doing anything — one line per
+   * handler, rather than one clever wrapper that a future handler would
+   * forget to pass through.
+   */
+  const readOnly = Boolean(preview);
+
   const csvToTags = (value: string) => value.split(",").map((v) => v.trim()).filter(Boolean).slice(0, 20);
 
   useEffect(() => {
+    // A preview has no account behind it, so it must not be sent to /login.
+    if (preview) { setProfile(preview); return; }
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUid(user.uid);
@@ -173,10 +189,10 @@ export default function UserDashboard() {
       }
     });
     return unsub;
-  }, [navigate]);
+  }, [navigate, preview]);
 
   useEffect(() => {
-    if (!uid) return;
+    if (preview || !uid) return;
     const unsub = subscribeToUserProfile(uid, (p) => {
       // A signed-in account with no profile document is a half-finished
       // registration. It has to be signed out before being sent to /login,
@@ -189,7 +205,7 @@ export default function UserDashboard() {
       setProfile(p);
     });
     return unsub;
-  }, [uid, authLoading, navigate]);
+  }, [uid, authLoading, navigate, preview]);
 
   const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
 
@@ -199,6 +215,7 @@ export default function UserDashboard() {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handlePasswordReset = async () => {
+    if (readOnly) return;
     const email = auth.currentUser?.email;
     if (!email) return;
     setAccountBusy(true);
@@ -213,6 +230,7 @@ export default function UserDashboard() {
   };
 
   const handleDeleteAccount = async () => {
+    if (readOnly) return;
     const user = auth.currentUser;
     if (!user || !uid) return;
     setAccountBusy(true);
@@ -267,6 +285,7 @@ export default function UserDashboard() {
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (readOnly) return;
     if (!uid || !e.target.files || e.target.files.length === 0) return;
     setEditError("");
     setPhotoToCrop(e.target.files[0]);
@@ -275,6 +294,7 @@ export default function UserDashboard() {
   };
 
   const handleCropped = async (cropped: File) => {
+    if (readOnly) return;
     if (!uid) return;
     setPhotoToCrop(null);
     setUploadingPhoto(true);
@@ -306,6 +326,7 @@ export default function UserDashboard() {
   };
 
   const handleWorkFileUpload = async (file: File) => {
+    if (readOnly) return;
     if (!uid) return;
     if (!newWorkTitle.trim()) {
       setEditError(newWorkType === "audio" ? "أدخل عنوان العمل الصوتي أولاً" : "أدخل عنوان العمل أولاً");
@@ -364,6 +385,7 @@ export default function UserDashboard() {
   };
 
   const handleSaveEdit = async () => {
+    if (readOnly) return;
     if (!uid || !profile) return;
     if (!editForm.name?.trim()) { setEditError("الاسم مطلوب"); return; }
     if (profile.type === "store" && editForm.username && (usernameStatus === "taken" || usernameStatus === "invalid")) {
@@ -424,6 +446,20 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen" dir="rtl" style={{ background: "#0e0e0e" }}>
+      {preview && (
+        <div
+          className="px-4 py-3 text-sm flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center"
+          style={{ background: "rgba(180,120,0,0.16)", color: "#fbbf24", borderBottom: "1px solid rgba(180,120,0,0.35)" }}
+        >
+          <strong>وضع المعاينة</strong>
+          <span style={{ opacity: 0.9 }}>
+            هكذا يرى {accountTypeLabel(preview.type)} لوحته. الحساب غير حقيقي، ولا يُحفظ أي تعديل.
+          </span>
+          <Link to="/sanad-admin/dashboard" style={{ color: "#fbbf24", textDecoration: "underline" }}>
+            عودة إلى لوحة الأدمن
+          </Link>
+        </div>
+      )}
       {uploadToast && (
         <div
           className="fixed top-4 left-1/2 z-[100] flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm animate-fade-in-up"

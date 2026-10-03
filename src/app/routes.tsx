@@ -33,6 +33,7 @@ const SearchPage = lazy(() => import("./components/Search"));
 const About = lazy(() => import("./components/About"));
 const Privacy = lazy(() => import("./components/Privacy"));
 const Terms = lazy(() => import("./components/Terms"));
+const PreviewMember = lazy(() => import("./components/admin/PreviewMember"));
 const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
 const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
 const Register = lazy(() => import("./components/auth/Register"));
@@ -128,6 +129,13 @@ export const router = createBrowserRouter([
     path: "/auth/action",
     errorElement: <RouteErrorBoundary />,
     element: page(AuthAction),
+  },
+  {
+    // The member dashboard as each kind of member sees it, from a stand-in
+    // profile. Admin only.
+    path: "/sanad-admin/preview/:kind",
+    errorElement: <RouteErrorBoundary />,
+    element: page(PreviewMember),
   },
   {
     path: "/user/dashboard",

@@ -39,6 +39,7 @@ import { WORK_LABEL, shortCount } from "../../../lib/works";
 import type { Course, Job, Equipment, Competition, VoiceArtist, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, NewsCategory, Thesis, ThesisSpecialty, Work } from "../../../lib/types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT, accountTypeLabel, professionsOf } from "../../../lib/types";
 import { pushPermission, currentPushToken, sendTestPush } from "../../../lib/push";
+import { PREVIEW_KINDS } from "../../../lib/previewProfiles";
 import type { PushPermission, PushAttempt } from "../../../lib/push";
 import { usePageTitle } from "../../../lib/usePageTitle";
 import { useLogoutFlow } from "../LogoutConfirm";
@@ -78,7 +79,7 @@ if (typeof document !== "undefined" && !document.getElementById("quill-dark-styl
  */
 const SECTIONS = [
   "overview", "courses", "equipment", "jobs", "competitions",
-  "professionals", "works", "channels", "news", "theses", "appearance", "content",
+  "professionals", "preview", "works", "channels", "news", "theses", "appearance", "content",
   "notifications", "settings",
 ] as const;
 
@@ -728,6 +729,7 @@ export default function AdminDashboard() {
     { id: "jobs"     as Section, label: "الوظائف",   icon: Briefcase },
     { id: "competitions" as Section, label: "المسابقات", icon: Trophy },
     { id: "professionals" as Section, label: "المحترفون", icon: Users },
+    { id: "preview"       as Section, label: "معاينة العضو", icon: Eye },
     { id: "works"        as Section, label: "معرض الأعمال", icon: Sparkles },
     { id: "channels"     as Section, label: "القنوات",   icon: Tv },
     { id: "news"         as Section, label: "الأخبار",   icon: Newspaper },
@@ -856,6 +858,7 @@ export default function AdminDashboard() {
           {activeSection === "jobs"           && <JobsSection />}
           {activeSection === "competitions"   && <CompetitionsSection />}
           {activeSection === "professionals"  && <ProfessionalsSection />}
+          {activeSection === "preview"        && <PreviewSection />}
           {activeSection === "works"          && <WorksAdminSection />}
           {activeSection === "channels"       && <ChannelsSection />}
           {activeSection === "news"           && <NewsSection />}
@@ -2285,6 +2288,47 @@ function ProfessionalsSection() {
           onClose={() => setLegacyTarget(null)}
         />
       )}
+    </div>
+  );
+}
+
+// ── PREVIEW SECTION ─────────────────────────────────────────────
+/**
+ * Opens the member dashboard as each kind of member sees it.
+ *
+ * Checking that a change reads well for a متجر meant registering a fake
+ * store, approving it, filling it in, looking, and deleting it again — every
+ * time. So it went unchecked, and the parts only one kind of member ever sees
+ * went unlooked-at.
+ */
+function PreviewSection() {
+  return (
+    <div>
+      <p className="mb-5 text-sm" style={{ color: "var(--theme-text-muted, #4a7a4a)", lineHeight: 1.9 }}>
+        افتح لوحة العضو كما يراها كل نوع من الحسابات. الملفات هنا مُختلَقة — لا تُقرأ من قاعدة البيانات
+        ولا تُكتب فيها، ولا يُحفظ أي تعديل داخل المعاينة.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {PREVIEW_KINDS.map((kind) => (
+          <Link
+            key={kind.id}
+            to={`/sanad-admin/preview/${kind.id}`}
+            className="rounded-xl p-4 flex items-start gap-3"
+            style={{ ...S.card, textDecoration: "none" }}
+          >
+            <Eye size={18} className="shrink-0 mt-0.5" style={{ color: "var(--theme-accent, #00a355)" }} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: "var(--theme-text, #e8f5e9)", fontWeight: 600, marginBottom: "0.2rem" }}>
+                {kind.label}
+              </div>
+              <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.78rem", lineHeight: 1.8 }}>
+                {kind.description}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
