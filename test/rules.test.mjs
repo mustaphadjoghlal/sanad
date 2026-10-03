@@ -50,6 +50,45 @@ async function seed(fn) {
   await env.withSecurityRulesDisabled(async (ctx) => fn(ctx.firestore()));
 }
 
+describe("users — registration", () => {
+  /**
+   * A profile goes live on registration and is reviewed afterwards: the admin
+   * is notified the moment someone signs up, and removing a bad profile takes
+   * one click. Waiting for approval lost the people who registered and never
+   * came back to find out they had been let in.
+   *
+   * What that opens is deliberate. What it must not open is everything else.
+   */
+  it("ALLOWS a new profile to go live immediately", async () => {
+    await assertSucceeds(setDoc(doc(user(), "users/user1"), profile({ status: "approved" })));
+  });
+
+  it("ALLOWS a new profile to start pending, as before", async () => {
+    await assertSucceeds(setDoc(doc(user(), "users/user1"), profile({ status: "pending" })));
+  });
+
+  it("BLOCKS an account being born rejected", async () => {
+    // Nothing should be able to create a profile already carrying a verdict.
+    await assertFails(setDoc(doc(user(), "users/user1"), profile({ status: "rejected" })));
+  });
+
+  it("BLOCKS putting yourself on the home page while registering", async () => {
+    await assertFails(setDoc(doc(user(), "users/user1"), profile({ status: "approved", featured: true })));
+  });
+
+  it("BLOCKS registering a profile under someone else's id", async () => {
+    await assertFails(setDoc(doc(user("user1"), "users/user2"), profile({ id: "user2", status: "approved" })));
+  });
+
+  it("BLOCKS smuggling a push token onto the public document", async () => {
+    await assertFails(setDoc(doc(user(), "users/user1"), profile({ status: "approved", fcmToken: "tok" })));
+  });
+
+  it("BLOCKS an id that does not match the document it is written to", async () => {
+    await assertFails(setDoc(doc(user(), "users/user1"), profile({ id: "someone-else", status: "approved" })));
+  });
+});
+
 describe("users — self-approval", () => {
   beforeEach(() => seed((db) => setDoc(doc(db, "users/user1"), profile())));
 
@@ -83,8 +122,13 @@ describe("users — self-approval", () => {
     await assertFails(updateDoc(doc(user(), "users/user1"), { status: "approved" }));
   });
 
-  it("BLOCKS creating an already-approved account", async () => {
-    await assertFails(setDoc(doc(user("user2"), "users/user2"), profile({ id: "user2", status: "approved" })));
+  // Creating an approved account is now the point — a profile goes live on
+  // registration and is reviewed afterwards. The covering tests are in
+  // "users — registration" above. What stays blocked is promoting an existing
+  // profile yourself, which the test above this one holds.
+  it("BLOCKS an approved account promoting itself to the home page", async () => {
+    await seed((db) => setDoc(doc(db, "users/user2"), profile({ id: "user2", status: "approved" })));
+    await assertFails(updateDoc(doc(user("user2"), "users/user2"), { featured: true }));
   });
 
   it("ALLOWS creating a pending account", async () => {

@@ -174,14 +174,22 @@ export async function saveUserProfile(
   const existing = await getDoc(ref);
   if (existing.exists()) {
     return updateDoc(ref, clean);
-  } else {
-    return setDoc(ref, {
-      ...clean,
-      id: uid,
-      status: "pending",
-      featured: false,
-      createdAt: Date.now(),
-    });
+  }
+
+  const base = { ...clean, id: uid, featured: false, createdAt: Date.now() };
+
+  // A profile goes live on registration, and the admin reviews it afterwards
+  // — a notification reaches them the moment someone signs up, and removing a
+  // bad profile takes one click. Waiting for approval lost the people who
+  // registered and never came back to find out they had been let in.
+  try {
+    return await setDoc(ref, { ...base, status: "approved" });
+  } catch (e) {
+    // Until the matching security rule is published, the rules still insist a
+    // new profile start as pending. Registering must not fail over that, so
+    // fall back — and the admin approves by hand as before until it is.
+    if ((e as { code?: string })?.code !== "permission-denied") throw e;
+    return setDoc(ref, { ...base, status: "pending" });
   }
 }
 

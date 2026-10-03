@@ -245,7 +245,7 @@ export default function Register() {
       const typeLabel = mainType === "store" ? "متجر عتاد" : mainType === "trainer" ? "مدرب / مركز تدريب" : "محترف إعلامي";
       await sendNotification({
         title: "مستخدم جديد 🎉",
-        body: `${form.name} سجّل في المنصة كـ ${typeLabel}`,
+        body: `${form.name} سجّل كـ ${typeLabel} — ملفه منشور الآن`,
         link: "/sanad-admin",
         createdAt: Date.now(),
       }, undefined, "admin").catch((e) => {
@@ -317,10 +317,10 @@ export default function Register() {
           </div>
           <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--theme-text, #e8f5e9)" }}>تم التسجيل بنجاح!</h2>
           <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7 }}>
-            ملفك الآن قيد المراجعة، وسيتم إشعارك فور الموافقة عليه.
+            ملفك منشور الآن في دليل المحترفين. لم تعد هناك مراجعة تنتظرها.
           </p>
           <p style={{ color: "var(--theme-text-secondary, #6aad6a)", lineHeight: 1.7, marginTop: "0.5rem" }}>
-            يمكنك تسجيل الدخول إلى حسابك من الآن.
+            ادخل إلى لوحتك وأكمل نبذتك وارفع أعمالك — فملف فيه أعمال يُفتح، وملف فارغ يُتجاوَز.
           </p>
           <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.85rem", marginTop: "1rem" }}>
             سيتم تحويلك لصفحة تسجيل الدخول خلال ثوانٍ...
