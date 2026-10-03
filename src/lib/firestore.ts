@@ -18,11 +18,12 @@ import {
   increment,
   runTransaction,
 } from "firebase/firestore";
-import type { FirestoreError, UpdateData, DocumentData } from "firebase/firestore";
+import type { FirestoreError, UpdateData, DocumentData, QuerySnapshot } from "firebase/firestore";
 import { db, auth } from "./firebase";
 import type { Course, Job, Equipment, Competition, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, OrderStatus, TrainerCourse, CourseRegistration, Work } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 import { stockDelta, applyStockDelta } from "./storeStats";
+import { sortWorks } from "./works";
 
 // Generic helpers
 function col(name: string) {
@@ -300,11 +301,35 @@ export function subscribeToWorks(
       ? [orderBy("featured", "desc"), orderBy("createdAt", "desc")]
       : [orderBy("createdAt", "desc")];
 
-  return onSnapshot(
+  const read = (snap: QuerySnapshot) =>
+    snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Work);
+
+  /**
+   * Both of the interesting orderings need a composite index, and a missing
+   * index does not degrade — the whole listener fails. The gallery then
+   * emptied itself, silently, and looked like it was flickering because a
+   * browser with a warm cache still had the previous answer.
+   *
+   * So: fall back to the ordering every collection has for free, and sort in
+   * the client. A deployed index makes this path unnecessary; its absence no
+   * longer makes the gallery disappear.
+   */
+  let fallback: (() => void) | null = null;
+  const stop = onSnapshot(
     query(col("works"), ...order, limit(max)),
-    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Work)),
-    (error) => { reportError("works", error); onError?.(error); }
+    (snap) => callback(read(snap)),
+    (error) => {
+      reportError("works", error);
+      if (fallback) return;
+      fallback = onSnapshot(
+        query(col("works"), orderBy("createdAt", "desc"), limit(max)),
+        (snap) => callback(sortWorks(read(snap), sort)),
+        (secondError) => { reportError("works-fallback", secondError); onError?.(secondError); }
+      );
+    }
   );
+
+  return () => { stop(); fallback?.(); };
 }
 
 /** One member's works, for their profile page and their dashboard. */

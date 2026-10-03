@@ -35,3 +35,32 @@ export function shortCount(n: number | undefined): string {
   if (value < 1000) return String(value);
   return `${(value / 1000).toFixed(1).replace(/\.0$/, "")} ألف`;
 }
+
+
+/**
+ * Orders works the way each sort means, in the client.
+ *
+ * Firestore can do this itself, but only with a composite index — and when
+ * that index is missing the whole listener fails rather than degrading. The
+ * home page then showed an empty gallery on one load and a full one on the
+ * next, depending on whether that browser happened to hold a warm cache from
+ * an earlier query that did work. "Sometimes it appears" was never about the
+ * works; it was about which browser had seen them before.
+ */
+export function sortWorks<T extends { featured: boolean; likes: number; createdAt: number }>(
+  works: T[],
+  sort: "newest" | "popular" | "featured"
+): T[] {
+  const ordered = [...works];
+  if (sort === "popular") {
+    ordered.sort((a, b) => b.likes - a.likes || b.createdAt - a.createdAt);
+  } else if (sort === "featured") {
+    // A starred work stays pinned above the rest, newest first within each.
+    ordered.sort(
+      (a, b) => Number(b.featured) - Number(a.featured) || b.createdAt - a.createdAt
+    );
+  } else {
+    ordered.sort((a, b) => b.createdAt - a.createdAt);
+  }
+  return ordered;
+}
