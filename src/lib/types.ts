@@ -405,6 +405,13 @@ export interface AudioSample {
 
 export type Gender = 'male' | 'female';
 
+export interface DeliveryZone {
+  /** A wilaya name as WILAYAS spells it. */
+  wilaya: string;
+  /** Delivery cost in dinars. Zero is free delivery, which shops advertise. */
+  price: number;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -430,6 +437,14 @@ export interface UserProfile {
   phone?: string;
   experience?: string;
   storeStatus?: 'trial' | 'paid';
+  /**
+   * Where a store delivers, and for how much.
+   *
+   * A buyer in Tamanrasset ordering from a shop that only delivers around
+   * Algiers found that out after the seller phoned them back — if the seller
+   * bothered. An empty or absent list means the shop has not said.
+   */
+  delivery?: DeliveryZone[];
   organization?: string;
   status: 'pending' | 'approved' | 'rejected';
   featured: boolean;

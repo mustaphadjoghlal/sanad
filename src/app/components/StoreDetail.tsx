@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowRight, Phone, MessageCircle, BadgeCheck, MapPin, Tag } from "lucide-react";
+import { ArrowRight, Phone, MessageCircle, BadgeCheck, MapPin, Tag, Truck } from "lucide-react";
 import { getUserProfile, getStoreByUsername, subscribeToActiveStoreProducts } from "../../lib/firestore";
 import type { UserProfile, Product } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
@@ -134,6 +134,29 @@ export default function StoreDetail() {
                 <p style={{ color: "#374151", fontSize: "0.875rem", lineHeight: 1.7, margin: "0 0 1rem", whiteSpace: "pre-wrap" }}>
                   {store.bio}
                 </p>
+              )}
+
+              {/* Where this shop delivers. A buyer four wilayas away used to
+                  learn this only after ordering, if at all. */}
+              {store.delivery && store.delivery.length > 0 && (
+                <div style={{ marginBottom: "1rem" }}>
+                  <p style={{ color: "#374151", fontSize: "0.8rem", fontWeight: 600, margin: "0 0 0.4rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <Truck size={14} /> يوصّل إلى {store.delivery.length} ولاية
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[...store.delivery]
+                      .sort((a, b) => a.price - b.price)
+                      .map((zone) => (
+                        <span
+                          key={zone.wilaya}
+                          style={{ fontSize: "0.75rem", color: "#166534", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "9999px", padding: "0.2rem 0.6rem" }}
+                        >
+                          {zone.wilaya}
+                          {zone.price > 0 ? ` · ${zone.price} دج` : " · مجاناً"}
+                        </span>
+                      ))}
+                  </div>
+                </div>
               )}
 
               <div className="flex flex-wrap gap-2">

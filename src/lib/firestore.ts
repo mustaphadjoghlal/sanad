@@ -16,11 +16,13 @@ import {
   arrayUnion,
   arrayRemove,
   increment,
+  runTransaction,
 } from "firebase/firestore";
 import type { FirestoreError, UpdateData, DocumentData } from "firebase/firestore";
 import { db, auth } from "./firebase";
-import type { Course, Job, Equipment, Competition, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, TrainerCourse, CourseRegistration, Work } from "./types";
+import type { Course, Job, Equipment, Competition, UserProfile, ThemeSettings, Channel, SiteContent, AppNotification, NewsItem, Thesis, Product, Order, OrderStatus, TrainerCourse, CourseRegistration, Work } from "./types";
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
+import { stockDelta, applyStockDelta } from "./storeStats";
 
 // Generic helpers
 function col(name: string) {
@@ -948,6 +950,47 @@ export async function addOrder(data: Omit<Order, "id" | "createdAt">) {
 }
 export async function updateOrder(id: string, data: Partial<Omit<Order, "id">>) {
   return updateDoc(docRef("orders", id), data);
+}
+
+/**
+ * Moves an order to a new status, and the stock with it.
+ *
+ * Stock was a number the seller typed and then edited by hand forever: it
+ * never moved when something sold, so it said whatever it last said. A count
+ * that lies is worse than no count, because the shop keeps selling what it
+ * does not have.
+ *
+ * One transaction, so an order cannot be marked sold without the units
+ * leaving, and a sale cannot be undone without them coming back. Marking a
+ * sold order cancelled returns them; marking it sold again takes them out
+ * once more. Anything that is not a crossing of the sold line moves nothing.
+ */
+export async function setOrderStatus(
+  order: Pick<Order, "id" | "productId" | "quantity" | "status">,
+  status: OrderStatus
+): Promise<void> {
+  const delta = stockDelta(order.status, status, order.quantity);
+
+  // Nothing crosses the sold line, so nothing moves.
+  if (delta === 0) {
+    await updateDoc(docRef("orders", order.id), { status });
+    return;
+  }
+
+  await runTransaction(db, async (tx) => {
+    const productRef = docRef("products", order.productId);
+    const snapshot = await tx.get(productRef);
+
+    if (snapshot.exists()) {
+      tx.update(productRef, {
+        quantity: applyStockDelta(Number(snapshot.data().quantity ?? 0), delta),
+      });
+    }
+    // A product deleted since the order is not a reason to refuse the status
+    // change — the order is still real and the seller still has to close it.
+
+    tx.update(docRef("orders", order.id), { status });
+  });
 }
 export function subscribeToStoreOrders(
   storeId: string,
