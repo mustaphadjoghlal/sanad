@@ -5,10 +5,11 @@ import {
   Clock3, ExternalLink, Globe, Languages, Linkedin, Mail, MapPin, Mic2, Phone,
   Play, Share2, Sparkles, Twitter, User, Youtube, Instagram, Facebook,
 } from "lucide-react";
-import { getUserProfile } from "../../lib/firestore";
-import type { UserProfile } from "../../lib/types";
+import { getUserProfile, subscribeToUserWorks } from "../../lib/firestore";
+import type { UserProfile, Work } from "../../lib/types";
 import { accountTypeLabel, professionsOf } from "../../lib/types";
 import WorksSection from "./WorksSection";
+import WorkCard from "./WorkCard";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { personSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 
@@ -93,6 +94,20 @@ export default function ProfilePage() {
     if (!id) return;
     setLoading(true);
     getUserProfile(id).then((p) => { setProfile(p); setLoading(false); }).catch(() => { setProfile(null); setLoading(false); });
+  }, [id]);
+
+  /**
+   * What this member published to the gallery.
+   *
+   * `profile.works` below is a different list — links and files kept on the
+   * profile document itself, from before the gallery existed. A member who
+   * published to the gallery saw it on the home page and then nowhere on
+   * their own page, because this page only ever read the other one.
+   */
+  const [galleryWorks, setGalleryWorks] = useState<Work[]>([]);
+  useEffect(() => {
+    if (!id) return;
+    return subscribeToUserWorks(id, setGalleryWorks, () => setGalleryWorks([]));
   }, [id]);
 
   const languages = useMemo(() => safeTags(profile?.languages), [profile?.languages]);
@@ -217,7 +232,22 @@ export default function ProfilePage() {
               <section className="rounded-2xl p-5 md:p-6" style={{ background: "linear-gradient(145deg,#141914,#101410)", border: "1px solid var(--p-20)" }}><div className="flex items-center gap-2 mb-4"><Mic2 size={18} style={{ color: "var(--theme-accent)" }} /><h2 className="text-lg font-bold" style={{ color: "var(--theme-text)" }}>عينات الأداء الصوتي</h2></div><EmptyShowcase label="لا توجد عينات صوتية بعد" text="يمكن لصاحب الملف إضافة عينات دوبلاج أو إعلانات أو وثائقيات من لوحة التحكم." /></section>
             )}
 
-            {profile.works && profile.works.length > 0 ? <WorksSection works={profile.works} title="الأعمال والمعرض" /> : <section className="rounded-2xl p-5 md:p-6" style={{ background: "linear-gradient(145deg,#141914,#101410)", border: "1px solid var(--p-20)" }}><div className="flex items-center gap-2 mb-4"><BriefcaseBusiness size={18} style={{ color: "var(--theme-accent)" }} /><h2 className="text-lg font-bold" style={{ color: "var(--theme-text)" }}>الأعمال والمعرض</h2></div><EmptyShowcase label="المعرض فارغ حالياً" text="أضف فيديوهات أو صوراً أو روابط أعمالك ليشاهدها العملاء والمؤسسات." /></section>}
+            {galleryWorks.length > 0 && (
+              <section className="rounded-2xl p-5 md:p-6" style={{ background: "linear-gradient(145deg,#141914,#101410)", border: "1px solid var(--p-20)" }}>
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={18} style={{ color: "var(--theme-accent)" }} />
+                    <h2 className="text-lg font-bold" style={{ color: "var(--theme-text)" }}>معرض الأعمال</h2>
+                  </div>
+                  <span className="text-xs" style={{ color: "var(--theme-text-muted)" }}>{galleryWorks.length} عمل</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {galleryWorks.map((w) => <WorkCard key={w.id} work={w} />)}
+                </div>
+              </section>
+            )}
+
+            {profile.works && profile.works.length > 0 ? <WorksSection works={profile.works} title="أعمال وروابط أخرى" /> : galleryWorks.length > 0 ? null : <section className="rounded-2xl p-5 md:p-6" style={{ background: "linear-gradient(145deg,#141914,#101410)", border: "1px solid var(--p-20)" }}><div className="flex items-center gap-2 mb-4"><BriefcaseBusiness size={18} style={{ color: "var(--theme-accent)" }} /><h2 className="text-lg font-bold" style={{ color: "var(--theme-text)" }}>الأعمال والمعرض</h2></div><EmptyShowcase label="المعرض فارغ حالياً" text="أضف فيديوهات أو صوراً أو روابط أعمالك ليشاهدها العملاء والمؤسسات." /></section>}
           </main>
 
           <aside className="space-y-6">
