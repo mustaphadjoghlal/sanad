@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MyWorks from "./MyWorks";
+import StoreManager from "../StoreManager";
+import TrainerManager from "../TrainerManager";
 import { 
   LogOut, Pencil, User, MapPin,  AlertTriangle, 
   CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check, MessageSquare
@@ -855,8 +857,23 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
           </div>
         )}
 
+        {/* A store runs a shop and a trainer runs courses. Both screens were
+            written and then wired to nothing, so every account type — a
+            store, a trainer, a student — saw the same bare profile page. */}
+        {profile.type === "store" && profile.status === "approved" && !editing && (
+          <div className="mt-8">
+            <StoreManager uid={profile.id} profile={profile} readOnly={readOnly} />
+          </div>
+        )}
+
+        {profile.type === "trainer" && profile.status === "approved" && !editing && (
+          <div className="mt-8">
+            <TrainerManager trainerId={profile.id} readOnly={readOnly} />
+          </div>
+        )}
+
         {/* User Stats/Shortcuts - for individual accounts */}
-        {profile.type !== "store" && !editing && (
+        {profile.type !== "store" && profile.type !== "trainer" && !editing && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="p-5 rounded-2xl" style={{ ...S.card }}>
               <div className="flex items-center gap-2 mb-4"><Mic size={18} style={{ color: "var(--theme-accent)" }} /><h3 className="text-sm font-bold" style={{ color: "var(--theme-text)" }}>إدارة العينات الصوتية</h3></div>
