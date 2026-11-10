@@ -6,6 +6,7 @@ import { db } from "../../lib/firebase";
 import type { Course } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { courseSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
+import { safeUrl } from "../../lib/url";
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +31,7 @@ export default function CourseDetail() {
         setCourse({ id: snap.id, ...snap.data() } as Course);
       }
       setLoading(false);
-    });
+    }).catch(() => { setNotFound(true); setLoading(false); });
   }, [id]);
 
   if (loading) {
@@ -146,7 +147,7 @@ export default function CourseDetail() {
         {/* CTA link */}
         {c.link && (
           <a
-            href={c.link}
+            href={safeUrl(c.link)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"

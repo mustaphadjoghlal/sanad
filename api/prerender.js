@@ -317,8 +317,30 @@ function firestoreBase(projectId) {
 async function fetchDoc(projectId, apiKey, collection, id) {
   const url = `${firestoreBase(projectId)}/${collection}/${encodeURIComponent(id)}?key=${apiKey}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+  // "It is not there" and "it could not be read just now" are different
+  // answers. A missing document, or one the rules keep private (a profile
+  // that is not approved), is gone as far as a visitor is concerned; a
+  // timeout or a server error is not, and must not be reported as gone.
+  if (res.status === 404 || res.status === 403) return MISSING;
   if (!res.ok) return null;
-  return (await res.json()).fields ?? null;
+  const fields = (await res.json()).fields ?? null;
+  return fields && !isPublished(collection, fields) ? MISSING : fields;
+}
+
+const MISSING = Symbol("missing");
+
+/**
+ * Whether the site itself would show this document.
+ *
+ * A listing waiting for review, a rejected one, a product taken off sale:
+ * the rules still let anyone read them by id, so this function could — and
+ * did — hand them to a search engine as pages, where the site shows
+ * "not found".
+ */
+function isPublished(collection, fields) {
+  const status = fields.status?.stringValue;
+  if (!status) return true;
+  return collection === "products" ? status === "active" : status === "approved";
 }
 
 async function fetchCollection(projectId, apiKey, collection, pageSize = 60) {
@@ -678,6 +700,8 @@ export default async function handler(req, res) {
   let type = "website";
   let bodyHtml = "";
   const schemas = [];
+  // Set when the address names something that is not on the site.
+  let notFound = false;
 
   const segments = path.split("/").filter(Boolean);
   const route = segments.length === 2 ? ROUTES[segments[0]] : null;
@@ -685,7 +709,9 @@ export default async function handler(req, res) {
   try {
     if (route && projectId && apiKey) {
       // ── A single item ──────────────────────────────────────────
-      const fields = await fetchDoc(projectId, apiKey, route.collection, segments[1]);
+      const found = await fetchDoc(projectId, apiKey, route.collection, segments[1]);
+      if (found === MISSING) notFound = true;
+      const fields = found === MISSING ? null : found;
       const title = fields ? readField(fields, route.title) : undefined;
 
       if (title) {
@@ -834,6 +860,26 @@ export default async function handler(req, res) {
   }
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+  // Answering 200 for something that is not there is a "soft 404": the
+  // search engine indexes an empty page under that address, and keeps a
+  // deleted job or a removed profile in its results. Say so instead.
+  if (notFound) {
+    res.setHeader("Cache-Control", "public, s-maxage=60");
+    res.setHeader("X-Robots-Tag", "noindex");
+    return res.status(404).send(
+      render({
+        title: `الصفحة غير موجودة | ${SITE_NAME}`,
+        description: "هذه الصفحة غير موجودة أو لم تعد متاحة.",
+        image: DEFAULT_IMAGE,
+        url,
+        type: "website",
+        bodyHtml: "<h1>الصفحة غير موجودة</h1><p>هذه الصفحة غير موجودة أو لم تعد متاحة.</p>",
+        schemas: [],
+      })
+    );
+  }
+
   res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=86400");
   return res.status(200).send(render({ ...meta, image, url, type, bodyHtml, schemas }));
 }

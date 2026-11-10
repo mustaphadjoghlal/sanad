@@ -5,6 +5,7 @@ import { getNewsItem } from "../../lib/firestore";
 import type { NewsItem, NewsCategory } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { newsArticle, breadcrumbs, useStructuredData } from "../../lib/structuredData";
+import { safeUrl } from "../../lib/url";
 
 const categoryColors: Record<NewsCategory, string> = {
   "قناة جديدة": "rgba(0,80,40,0.3)",
@@ -34,7 +35,7 @@ export default function NewsDetail() {
 
   useEffect(() => {
     if (!id) return;
-    getNewsItem(id).then((data) => { setItem(data); setLoading(false); });
+    getNewsItem(id).then((data) => { setItem(data); setLoading(false); }).catch(() => setLoading(false));
   }, [id]);
 
   if (loading) {
@@ -120,7 +121,7 @@ export default function NewsDetail() {
         {/* External link */}
         {item.link && (
           <a
-            href={item.link}
+            href={safeUrl(item.link)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 mt-8 px-5 py-2.5 rounded-xl text-sm transition-all hover:opacity-80"

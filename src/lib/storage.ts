@@ -1,4 +1,4 @@
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, listAll, deleteObject } from "firebase/storage";
 import { app } from "./firebase";
 
 const storage = getStorage(app);
@@ -159,4 +159,35 @@ export async function uploadProfilePhoto(
 ): Promise<string> {
   const photo = await compressImage(file, 800, 0.85);
   return uploadImage(`profile-photos/${uid}`, photo, onProgress);
+}
+
+/** Every folder a member's uploads can land in, each keyed by their uid. */
+export const MEMBER_FOLDERS = [
+  "profile-photos",
+  "product-images",
+  "trainer-courses",
+  "audio-samples",
+  "works",
+] as const;
+
+/**
+ * Removes every file a member uploaded, and says how many that was.
+ *
+ * Nothing ever deleted a file: a closed account left its photographs, product
+ * pictures and voice samples in storage, still served to anyone holding the
+ * link. This never throws — a file that will not go must not stop the account
+ * itself from being deleted.
+ */
+export async function deleteMemberFiles(uid: string): Promise<number> {
+  let removed = 0;
+  for (const folder of MEMBER_FOLDERS) {
+    try {
+      const { items } = await listAll(ref(storage, `${folder}/${uid}`));
+      const results = await Promise.allSettled(items.map((item) => deleteObject(item)));
+      removed += results.filter((r) => r.status === "fulfilled").length;
+    } catch (e) {
+      console.error(`[storage:delete:${folder}]`, e);
+    }
+  }
+  return removed;
 }

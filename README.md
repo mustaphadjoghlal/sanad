@@ -1,11 +1,46 @@
+# منصة سند الإعلامية — sanadz.media
 
-  # موقع سند الإعلامي الشامل
+المنصة الجزائرية الإعلامية الشاملة: دليل المحترفين، معرض الأعمال، الوظائف،
+الدورات، المسابقات، المعدات، المتاجر، المدربون، ودليل القنوات.
 
-  This is a code bundle for موقع سند الإعلامي الشامل. The original project is available at https://www.figma.com/design/XpbFnewsckQ6YmAFwNrZw6/%D9%85%D9%88%D9%82%D8%B9-%D8%B3%D9%86%D8%AF-%D8%A7%D9%84%D8%A5%D8%B9%D9%84%D8%A7%D9%85%D9%8A-%D8%A7%D9%84%D8%B4%D8%A7%D9%85%D9%84.
+## البنية
 
-  ## Running the code
+| الجزء | المكان |
+| --- | --- |
+| الواجهة (React + Vite + Tailwind) | `src/` |
+| قاعدة البيانات والملفات والدخول | Firebase (Firestore، Storage، Auth) |
+| قواعد الأمان | `firestore.rules`، `storage.rules` |
+| دوال الخادم (Vercel) | `api/` — الإشعارات، إدارة الحسابات، صفحات محركات البحث، خريطة الموقع |
 
-  Run `npm i` to install the dependencies.
+## التشغيل محلياً
 
-  Run `npm run dev` to start the development server.
-  
+```bash
+cp .env.example .env   # ثم املأ قيم Firebase
+npm ci
+npm run dev
+```
+
+## الفحوص
+
+```bash
+npm run typecheck
+npm run lint
+npm test                # اختبارات الوحدات
+npm run build
+
+# اختبارات قواعد الأمان — تحتاج Java ومحاكي Firestore
+npx firebase-tools@13.29.1 emulators:exec --only firestore \
+  --project sanad-rules-test "npm run test:rules"
+```
+
+## النشر
+
+- **الواجهة ودوال الخادم:** تُنشر على Vercel تلقائياً عند الدمج. متغيرات
+  البيئة موثّقة في `.env.example`.
+- **قواعد الأمان والفهارس لا تُنشر مع الموقع.** بعد أي تعديل عليها:
+
+  ```bash
+  npx firebase-tools deploy --only firestore:rules,firestore:indexes,storage
+  ```
+
+  تعديل في `firestore.rules` أو `storage.rules` لا أثر له حتى يُنفَّذ هذا الأمر.

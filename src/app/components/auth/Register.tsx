@@ -245,7 +245,7 @@ export default function Register() {
       const typeLabel = mainType === "store" ? "متجر عتاد" : mainType === "trainer" ? "مدرب / مركز تدريب" : "محترف إعلامي";
       await sendNotification({
         title: "مستخدم جديد 🎉",
-        body: `${form.name} سجّل كـ ${typeLabel} — ملفه منشور الآن`,
+        body: `${baseProfile.name} سجّل كـ ${typeLabel} — ملفه منشور الآن`,
         link: "/sanad-admin",
         createdAt: Date.now(),
       }, undefined, "admin").catch((e) => {
@@ -256,12 +256,14 @@ export default function Register() {
         console.warn("Admin push for the new registration failed:", e);
       });
 
-      // No verification email: every profile is reviewed by hand before it
-      // goes live, so the address is checked by a person either way. Firebase's
-      // verification page is an English page on a firebaseapp.com domain, and
-      // it lands in spam often enough that it mostly served to strand people
-      // who had in fact registered correctly. Nothing ever gated on
-      // emailVerified, so the mail was a dead end even when it arrived.
+      // No verification email. Firebase's verification page is an English
+      // page on a firebaseapp.com domain, and it lands in spam often enough
+      // that it mostly served to strand people who had registered correctly.
+      //
+      // Know what that costs: a profile is public the moment it is created,
+      // and nothing has proved the address belongs to whoever typed it. The
+      // admin's notification below is the only check, and it comes after the
+      // fact — so it must keep working.
 
       // createUserWithEmailAndPassword signs the new account in. Sending them
       // to /login while still authenticated left the header showing them as
@@ -1063,7 +1065,7 @@ export default function Register() {
                     <Link to="/terms" target="_blank" style={{ color: "var(--theme-accent, #00a355)" }}>شروط الاستخدام</Link>
                     {" "}و{" "}
                     <Link to="/privacy" target="_blank" style={{ color: "var(--theme-accent, #00a355)" }}>سياسة الخصوصية</Link>،
-                    وأعلم أنه بعد اعتماد ملفي ستظهر بياناتي — بما فيها البريد الإلكتروني ورقم الهاتف — للعموم في دليل المنصة.
+                    وأعلم أن بياناتي ستظهر فور التسجيل — بما فيها البريد الإلكتروني ورقم الهاتف — للعموم في دليل المنصة.
                   </span>
                 </label>
 

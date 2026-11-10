@@ -4,6 +4,7 @@ import { ArrowRight, Tv, Radio, Globe, Mail, Phone, MapPin, Facebook, Youtube, I
 import { getChannel, getRelatedChannels } from "../../lib/firestore";
 import type { Channel } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { safeUrl } from "../../lib/url";
 
 const categoryColors: Record<string, string> = {
   "وطنية":           "var(--p-25)",
@@ -68,7 +69,7 @@ export default function ChannelDetail() {
       if (data?.category) {
         getRelatedChannels(data.category, data.id).then(setRelated).catch(() => {});
       }
-    });
+    }).catch(() => setLoading(false));
   }, [id]);
 
   if (loading) {
@@ -211,7 +212,7 @@ export default function ChannelDetail() {
 
               {channel.website && (
                 <a
-                  href={channel.website}
+                  href={safeUrl(channel.website)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 transition-opacity hover:opacity-75"
@@ -235,7 +236,7 @@ export default function ChannelDetail() {
               <div className="flex flex-wrap gap-3">
                 {channel.facebook && (
                   <a
-                    href={channel.facebook}
+                    href={safeUrl(channel.facebook)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all hover:scale-105"
@@ -246,7 +247,7 @@ export default function ChannelDetail() {
                 )}
                 {channel.youtube && (
                   <a
-                    href={channel.youtube}
+                    href={safeUrl(channel.youtube)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all hover:scale-105"
@@ -257,7 +258,7 @@ export default function ChannelDetail() {
                 )}
                 {channel.instagram && (
                   <a
-                    href={channel.instagram}
+                    href={safeUrl(channel.instagram)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all hover:scale-105"
@@ -268,7 +269,7 @@ export default function ChannelDetail() {
                 )}
                 {channel.twitter && (
                   <a
-                    href={channel.twitter}
+                    href={safeUrl(channel.twitter)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all hover:scale-105"

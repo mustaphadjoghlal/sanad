@@ -6,6 +6,7 @@ import type { Channel } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
+import { safeUrl } from "../../lib/url";
 
 const categoryColors: Record<string, string> = {
   "وطنية":   "var(--p-25)",
@@ -112,13 +113,13 @@ function ChannelCard({ ch }: { ch: Channel }) {
           </div>
         )}
         {ch.website && ch.type === "website" ? (
-          <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.opacity = "0.8"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.opacity = "1"} style={{ color: "#ffb74d", textDecoration: "none", fontWeight: 600, fontSize: "0.95rem" }}>
+          <a href={safeUrl(ch.website)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.opacity = "0.8"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.opacity = "1"} style={{ color: "#ffb74d", textDecoration: "none", fontWeight: 600, fontSize: "0.95rem" }}>
             <Globe size={15} />
             <span dir="ltr">{ch.website.replace(/^https?:\/\//, "")}</span>
             <ExternalLink size={13} />
           </a>
         ) : ch.website ? (
-          <a href={ch.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = ""} style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
+          <a href={safeUrl(ch.website)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors" onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"} onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = ""} style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}>
             <Globe size={13} />
             <span dir="ltr">{ch.website.replace(/^https?:\/\//, "")}</span>
             <ExternalLink size={11} />
@@ -130,7 +131,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
       {hasSocial && (
         <div className="flex gap-2 pt-2.5" style={{ borderTop: "1px solid var(--p-12)" }}>
           {ch.facebook && (
-            <a href={ch.facebook} target="_blank" rel="noopener noreferrer"
+            <a href={safeUrl(ch.facebook)} target="_blank" rel="noopener noreferrer"
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
               style={{ background: "rgba(24,119,242,0.15)", border: "1px solid rgba(24,119,242,0.25)" }}
             >
@@ -138,7 +139,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
             </a>
           )}
           {ch.youtube && (
-            <a href={ch.youtube} target="_blank" rel="noopener noreferrer"
+            <a href={safeUrl(ch.youtube)} target="_blank" rel="noopener noreferrer"
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
               style={{ background: "rgba(255,0,0,0.12)", border: "1px solid rgba(255,0,0,0.2)" }}
             >
@@ -146,7 +147,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
             </a>
           )}
           {ch.instagram && (
-            <a href={ch.instagram} target="_blank" rel="noopener noreferrer"
+            <a href={safeUrl(ch.instagram)} target="_blank" rel="noopener noreferrer"
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
               style={{ background: "rgba(193,53,132,0.15)", border: "1px solid rgba(193,53,132,0.25)" }}
             >
@@ -154,7 +155,7 @@ function ChannelCard({ ch }: { ch: Channel }) {
             </a>
           )}
           {ch.twitter && (
-            <a href={ch.twitter} target="_blank" rel="noopener noreferrer"
+            <a href={safeUrl(ch.twitter)} target="_blank" rel="noopener noreferrer"
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
               style={{ background: "rgba(29,161,242,0.12)", border: "1px solid rgba(29,161,242,0.2)" }}
             >

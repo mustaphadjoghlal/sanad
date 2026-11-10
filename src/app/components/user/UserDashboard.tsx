@@ -7,7 +7,7 @@ import {
   LogOut, Pencil, User, MapPin,  AlertTriangle, 
   CheckCircle, ExternalLink, ImageIcon, Trash2, Plus, Play, Mic, Check, MessageSquare
 } from "lucide-react";
-import { onAuthStateChanged, sendPasswordResetEmail, deleteUser, signOut } from "firebase/auth";
+import { onAuthStateChanged, sendPasswordResetEmail, deleteUser, signOut, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { 
   subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification, deleteAccountData
@@ -215,6 +215,8 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
   // policy told users they could change their password and delete their data.
   const [accountBusy, setAccountBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   const handlePasswordReset = async () => {
     if (readOnly) return;
@@ -234,21 +236,39 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
   const handleDeleteAccount = async () => {
     if (readOnly) return;
     const user = auth.currentUser;
-    if (!user || !uid) return;
+    if (!user || !uid || !user.email) return;
+    if (!deletePassword) { setDeleteError("أدخل كلمة المرور لتأكيد الحذف"); return; }
     setAccountBusy(true);
+    setDeleteError("");
+
+    // The password comes first, and nothing is touched until it is right.
+    //
+    // Firebase refuses to delete an account on a session older than a few
+    // minutes. The data used to be deleted before that refusal arrived, which
+    // left an account that could sign in to nothing and an address that could
+    // never register again. Signing in afresh here makes the session recent,
+    // so the deletion at the end cannot be refused for being stale.
+    try {
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, deletePassword));
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code;
+      setDeleteError(
+        code === "auth/wrong-password" || code === "auth/invalid-credential"
+          ? "كلمة المرور غير صحيحة"
+          : code === "auth/too-many-requests"
+          ? "محاولات كثيرة. انتظر قليلاً ثم أعد المحاولة."
+          : "تعذّر التحقق من كلمة المرور. تحقق من اتصالك وحاول مجدداً."
+      );
+      setAccountBusy(false);
+      return;
+    }
+
     try {
       await deleteAccountData(uid);
       await deleteUser(user);
       navigate("/");
-    } catch (err: unknown) {
-      const code = (err as { code?: string })?.code;
-      if (code === "auth/requires-recent-login") {
-        // Firebase refuses to delete an account on a stale session.
-        setEditError("لأسباب أمنية، سجّل خروجاً ثم دخولاً وأعد المحاولة.");
-      } else {
-        setEditError("تعذّر حذف الحساب. حاول مجدداً.");
-      }
-      setConfirmDelete(false);
+    } catch {
+      setDeleteError("تعذّر إكمال حذف الحساب. حاول مجدداً، وإن تكرر الأمر فتواصل معنا.");
     } finally {
       setAccountBusy(false);
     }
@@ -941,8 +961,24 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
             <div className="mt-4 p-4 rounded-xl" style={{ background: "rgba(198,40,40,0.08)", border: "1px solid rgba(198,40,40,0.25)" }}>
               <p className="text-sm font-bold mb-1" style={{ color: "#f87171" }}>حذف الحساب نهائياً؟</p>
               <p className="text-xs mb-4" style={{ color: "#fca5a5", lineHeight: 1.8 }}>
-                سيُحذف ملفك الشخصي وأعمالك وعيناتك الصوتية وبياناتك كلها، ولا يمكن التراجع.
+                سيُحذف ملفك الشخصي وأعمالك وصورك وعيناتك الصوتية، ومنتجاتك ودوراتك وطلباتها إن وُجدت، ولا يمكن التراجع.
               </p>
+              <label htmlFor="delete-account-password" className="block text-xs mb-1.5" style={{ color: "#fca5a5" }}>
+                كلمة المرور للتأكيد
+              </label>
+              <input
+                id="delete-account-password"
+                type="password"
+                autoComplete="current-password"
+                value={deletePassword}
+                onChange={(e) => { setDeletePassword(e.target.value); setDeleteError(""); }}
+                disabled={accountBusy}
+                className="w-full rounded-lg px-3 py-2 text-sm mb-3"
+                style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(198,40,40,0.35)", color: "#fff", maxWidth: "20rem", display: "block" }}
+              />
+              {deleteError && (
+                <p role="alert" className="text-xs mb-3" style={{ color: "#f87171" }}>{deleteError}</p>
+              )}
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -955,7 +991,7 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setConfirmDelete(false)}
+                  onClick={() => { setConfirmDelete(false); setDeletePassword(""); setDeleteError(""); }}
                   disabled={accountBusy}
                   className="px-4 py-2 rounded-lg text-sm"
                   style={{ background: "var(--p-15)", color: "var(--theme-text)", border: "1px solid var(--p-30)", cursor: "pointer" }}

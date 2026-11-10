@@ -41,7 +41,7 @@ export default function TrainerDetail() {
 
   useEffect(() => {
     if (!id) return;
-    getTrainer(id).then((t) => { setTrainer(t); setLoading(false); });
+    getTrainer(id).then((t) => { setTrainer(t); setLoading(false); }).catch(() => setLoading(false));
     return subscribeToApprovedTrainerCourses(id, setCourses);
   }, [id]);
 

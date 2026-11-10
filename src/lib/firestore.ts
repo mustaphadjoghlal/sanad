@@ -17,6 +17,7 @@ import {
   arrayRemove,
   increment,
   runTransaction,
+  writeBatch,
 } from "firebase/firestore";
 import type { FirestoreError, UpdateData, DocumentData, QuerySnapshot } from "firebase/firestore";
 import { db, auth } from "./firebase";
@@ -24,6 +25,7 @@ import type { Course, Job, Equipment, Competition, UserProfile, ThemeSettings, C
 import { DEFAULT_THEME, DEFAULT_SITE_CONTENT } from "./types";
 import { stockDelta, applyStockDelta } from "./storeStats";
 import { sortWorks } from "./works";
+import { deleteMemberFiles } from "./storage";
 
 // Generic helpers
 function col(name: string) {
@@ -234,16 +236,50 @@ export function subscribeToUserProfile(
   );
 }
 
+/** Every collection that holds documents belonging to one member. */
+const MEMBER_CONTENT: { collection: string; field: string }[] = [
+  { collection: "products", field: "storeId" },
+  { collection: "orders", field: "storeId" },
+  { collection: "trainerCourses", field: "trainerId" },
+  { collection: "courseRegistrations", field: "trainerId" },
+  { collection: "works", field: "ownerId" },
+];
+
 /**
- * Deletes the account's data. The privacy policy promises this, and the
- * button that offered it was wired to nothing.
+ * Deletes the account's data — all of it.
+ *
+ * The privacy policy promises this. It used to remove the profile and the
+ * push token and nothing else: a store's products stayed on the shelves, its
+ * orders kept the buyers' phone numbers, a member's works stayed in the
+ * gallery under a name that led nowhere, and every uploaded file stayed in
+ * storage for good.
+ *
+ * The profile goes last. Each earlier step is allowed by the rules only while
+ * the member is who they say they are, and if one of them fails the profile
+ * is still there to try again from.
  *
  * The auth user itself is removed by the caller, which needs the live
- * credential; here we clear what the account owns in Firestore.
+ * credential.
  */
 export async function deleteAccountData(uid: string): Promise<void> {
+  for (const { collection: name, field } of MEMBER_CONTENT) {
+    await deleteWhere(name, field, uid).catch((e) => reportError(`delete:${name}`, e as Error));
+  }
+  await deleteMemberFiles(uid);
   await deleteDoc(doc(db, "fcmTokens", uid)).catch(() => {});
-  await deleteDoc(doc(db, "users", uid));
+
+  const ref = doc(db, "users", uid);
+  const profile = await getDoc(ref);
+  if (profile.exists() && profile.data().status === "rejected") {
+    // The rules let a rejected profile go only together with this marker;
+    // otherwise deleting and registering again would undo the rejection.
+    const batch = writeBatch(db);
+    batch.set(doc(db, "removedProfiles", uid), { removedAt: Date.now() });
+    batch.delete(ref);
+    await batch.commit();
+    return;
+  }
+  await deleteDoc(ref);
 }
 
 export async function resubmitProfile(uid: string): Promise<void> {
@@ -613,7 +649,7 @@ export async function sendNotification(
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({ title: notif.title, body: notif.body, targetType }),
+      body: JSON.stringify({ title: notif.title, body: notif.body, link: notif.link, targetType }),
     });
     const result = await res.json().catch(() => ({}));
     if (!res.ok || !result.ok) {
@@ -700,7 +736,7 @@ async function callAdminEndpoint(
 export interface MemberDeletionReport {
   profileDeleted: boolean;
   authAccountDeleted: boolean;
-  removed: { products: number; courses: number; registrations: number; orders: number };
+  removed: { products: number; courses: number; registrations: number; orders: number; works: number; files: number };
   /** Arabic descriptions of anything that did not go through. */
   problems: string[];
 }
@@ -737,7 +773,7 @@ export async function adminDeleteMember(uid: string): Promise<MemberDeletionRepo
   const report: MemberDeletionReport = {
     profileDeleted: false,
     authAccountDeleted: false,
-    removed: { products: 0, courses: 0, registrations: 0, orders: 0 },
+    removed: { products: 0, courses: 0, registrations: 0, orders: 0, works: 0, files: 0 },
     problems: [],
   };
 
@@ -758,6 +794,10 @@ export async function adminDeleteMember(uid: string): Promise<MemberDeletionRepo
   await sweep("orders", "orders", "storeId", "طلبات المتجر");
   await sweep("courses", "trainerCourses", "trainerId", "دورات المدرب");
   await sweep("registrations", "courseRegistrations", "trainerId", "تسجيلات الدورات");
+  // Their gallery works too: left behind, each one stayed in the public
+  // gallery under a name that linked to a profile that no longer existed.
+  await sweep("works", "works", "ownerId", "أعمال المعرض");
+  report.removed.files = await deleteMemberFiles(uid);
 
   await deleteDoc(doc(db, "fcmTokens", uid)).catch(() => {});
 
@@ -1002,15 +1042,22 @@ export async function setOrderStatus(
   order: Pick<Order, "id" | "productId" | "quantity" | "status">,
   status: OrderStatus
 ): Promise<void> {
-  const delta = stockDelta(order.status, status, order.quantity);
-
-  // Nothing crosses the sold line, so nothing moves.
-  if (delta === 0) {
-    await updateDoc(docRef("orders", order.id), { status });
-    return;
-  }
-
   await runTransaction(db, async (tx) => {
+    // The order is read here, not taken from the caller. What the screen
+    // holds can be stale — the same order open in two tabs, or a tap that
+    // lands twice — and a delta worked out from a stale status takes the
+    // units out of stock a second time.
+    const orderRef = docRef("orders", order.id);
+    const current = await tx.get(orderRef);
+    const from = (current.exists() ? current.data().status : order.status) as OrderStatus;
+    const delta = stockDelta(from, status, order.quantity);
+
+    // Nothing crosses the sold line, so nothing moves.
+    if (delta === 0) {
+      tx.update(orderRef, { status });
+      return;
+    }
+
     const productRef = docRef("products", order.productId);
     const snapshot = await tx.get(productRef);
 
@@ -1022,7 +1069,7 @@ export async function setOrderStatus(
     // A product deleted since the order is not a reason to refuse the status
     // change — the order is still real and the seller still has to close it.
 
-    tx.update(docRef("orders", order.id), { status });
+    tx.update(orderRef, { status });
   });
 }
 export function subscribeToStoreOrders(

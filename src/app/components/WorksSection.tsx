@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Youtube, Mic, FileText, ImageIcon, ExternalLink, Play, Briefcase } from "lucide-react";
 import type { PortfolioWork, WorkType } from "../../lib/types";
+import { safeUrl } from "../../lib/url";
 
 function ytId(url: string) {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
@@ -78,7 +79,7 @@ export default function WorksSection({ works, title = "أعمالي" }: { works:
                     />
                   </div>
                 ) : (
-                  <a href={w.url} target="_blank" rel="noopener noreferrer" className="block">
+                  <a href={safeUrl(w.url)} target="_blank" rel="noopener noreferrer" className="block">
                     <div
                       className="flex items-center justify-center"
                       style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "0.6rem", background: "#161616", border: "1px solid var(--p-25)" }}
@@ -113,7 +114,7 @@ export default function WorksSection({ works, title = "أعمالي" }: { works:
           {items.map((w) => (
             <a
               key={w.id}
-              href={w.url}
+              href={safeUrl(w.url)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm px-3 py-2.5 rounded-lg transition-colors"
@@ -129,7 +130,7 @@ export default function WorksSection({ works, title = "أعمالي" }: { works:
       {tab === "image" && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {items.map((w) => (
-            <a key={w.id} href={w.url} target="_blank" rel="noopener noreferrer">
+            <a key={w.id} href={safeUrl(w.url)} target="_blank" rel="noopener noreferrer">
               <img loading="lazy" decoding="async"
                 src={w.url}
                 alt={w.title || "عمل"}
