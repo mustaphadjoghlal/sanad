@@ -2231,7 +2231,8 @@ function ProfessionalsSection() {
               </ul>
 
               {(report.removed.products > 0 || report.removed.orders > 0 ||
-                report.removed.courses > 0 || report.removed.registrations > 0) && (
+                report.removed.courses > 0 || report.removed.registrations > 0 ||
+                report.removed.works > 0 || report.removed.files > 0) && (
                 <div className="mt-4 p-3 rounded-lg text-sm" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-secondary)" }}>
                   <p className="mb-1.5" style={{ color: "var(--theme-text-muted)", fontSize: "0.78rem" }}>وحُذف معه:</p>
                   <div className="flex gap-1.5 flex-wrap">
@@ -2239,6 +2240,8 @@ function ProfessionalsSection() {
                     {report.removed.orders > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.orders} طلب</span>}
                     {report.removed.courses > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.courses} دورة</span>}
                     {report.removed.registrations > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.registrations} تسجيل</span>}
+                    {report.removed.works > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.works} عمل</span>}
+                    {report.removed.files > 0 && <span style={S.badge("var(--p-20)")}>{report.removed.files} ملف مرفوع</span>}
                   </div>
                 </div>
               )}

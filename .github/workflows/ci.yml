@@ -28,8 +28,13 @@ jobs:
 
       - run: npm run build
 
-      # Report known advisories without failing on a transitive low-severity
-      # one that has no upstream fix yet.
+      # A critical advisory in something that ships to visitors stops the
+      # build. This step used to be allowed to fail, so it never stopped
+      # anything — a critical one in the HTML sanitiser sat there unnoticed.
+      # High ones are still reported below without failing: the two that
+      # remain come through the Firebase SDK and have no upstream fix yet.
+      - run: npm audit --omit=dev --audit-level=critical
+
       - run: npm audit --omit=dev --audit-level=high
         continue-on-error: true
 

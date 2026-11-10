@@ -6,6 +6,7 @@ import { db } from "../../lib/firebase";
 import type { Competition } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { competitionEvent, breadcrumbs, useStructuredData } from "../../lib/structuredData";
+import { safeUrl } from "../../lib/url";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
 const typeBg: Record<string, string> = { university: "rgba(26,82,118,0.3)", national: "var(--p-30)", international: "rgba(120,66,18,0.3)" };
@@ -34,7 +35,7 @@ export default function CompetitionDetail() {
         setCompetition({ id: snap.id, ...snap.data() } as Competition);
       }
       setLoading(false);
-    });
+    }).catch(() => { setNotFound(true); setLoading(false); });
   }, [id]);
 
   if (loading) {
@@ -172,7 +173,7 @@ export default function CompetitionDetail() {
         {/* CTA link */}
         {c.link && (
           <a
-            href={c.link}
+            href={safeUrl(c.link)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"

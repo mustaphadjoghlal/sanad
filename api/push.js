@@ -83,7 +83,16 @@ async function fetchAllUsers(baseUrl, accessToken) {
       },
       body: JSON.stringify({ structuredQuery }),
     });
-    if (!res.ok) break;
+    // A refusal is not an empty page. Breaking out here quietly sent a
+    // broadcast to whoever had been read so far and called it complete.
+    if (!res.ok) {
+      const reason = await res.json().then((b) => b?.[0]?.error?.message ?? b?.error?.message).catch(() => null);
+      console.error("push: member lookup failed", res.status, reason);
+      const error = new Error(reason || `member lookup failed (${res.status})`);
+      error.firestore = true;
+      error.status = res.status;
+      throw error;
+    }
 
     const rows = await res.json();
     const batch = (Array.isArray(rows) ? rows : []).map((r) => r.document).filter(Boolean);
@@ -116,13 +125,27 @@ async function firestoreGet(url, accessToken, what) {
 
 // Push tokens live in /fcmTokens/{uid}, keyed by the same uid as the profile.
 async function fetchTokenMap(baseUrl, accessToken) {
-  const data = await firestoreGet(`${baseUrl}/fcmTokens?pageSize=1000`, accessToken, "token lookup");
-
   const map = new Map();
-  for (const doc of data.documents ?? []) {
-    const uid = doc.name.split("/").pop();
-    const token = doc.fields?.token?.stringValue;
-    if (uid && token) map.set(uid, token);
+  let pageToken = null;
+
+  // Firestore hands back a page at a time. Reading only the first meant that
+  // past a few hundred devices the rest were silently left out of every
+  // broadcast, with the count reported as if it were everyone.
+  for (let page = 0; page < 200; page++) {
+    const data = await firestoreGet(
+      `${baseUrl}/fcmTokens?pageSize=300${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ""}`,
+      accessToken,
+      "token lookup"
+    );
+
+    for (const doc of data.documents ?? []) {
+      const uid = doc.name.split("/").pop();
+      const token = doc.fields?.token?.stringValue;
+      if (uid && token) map.set(uid, token);
+    }
+
+    pageToken = data.nextPageToken ?? null;
+    if (!pageToken) break;
   }
   return map;
 }
@@ -182,13 +205,63 @@ async function saveAdminTokens(baseUrl, accessToken, tokens) {
   ).catch(() => {});
 }
 
+/**
+ * What a member's own action may put on the admin's screen.
+ *
+ * Any signed-in account can reach this endpoint — registering is what raises
+ * the alert — and registering is open to anyone. Left as it was, that made it
+ * a way to push any text at all to the admin's phone: "your account is
+ * suspended, sign in here…". So a member's text is shortened and loses
+ * anything that reads as an address to visit; the admin's own broadcasts are
+ * left exactly as written.
+ */
+const LINK_LIKE = /(?:https?:\/\/|www\.)\S+|\b[\w-]+(?:\.[\w-]+)*\.(?:com|net|org|io|me|co|dz|ly|app|xyz|info|link|site|online|top|ru|cn)\b\S*/gi;
+
+export function memberText(value, maxLen) {
+  return String(value ?? "")
+    .replace(LINK_LIKE, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLen);
+}
+
+/**
+ * A ceiling on how often one account may alert the admin. It lives in this
+ * instance's memory, so it is a brake rather than a wall — a fresh instance
+ * starts counting again — but it stops the simple loop, which is the one
+ * that would actually be tried.
+ */
+const MEMBER_WINDOW_MS = 10 * 60 * 1000;
+const MEMBER_MAX_PER_WINDOW = 3;
+const recentByCaller = new Map();
+
+export function allowMemberPush(uid, now = Date.now()) {
+  const recent = (recentByCaller.get(uid) ?? []).filter((t) => now - t < MEMBER_WINDOW_MS);
+  if (recent.length >= MEMBER_MAX_PER_WINDOW) {
+    recentByCaller.set(uid, recent);
+    return false;
+  }
+  recent.push(now);
+  recentByCaller.set(uid, recent);
+  // Keep the map from growing without bound on a long-lived instance.
+  if (recentByCaller.size > 5000) recentByCaller.clear();
+  return true;
+}
+
+/** Only ever a path on this site — never somewhere else. */
+function internalLink(value) {
+  return typeof value === "string" && value.length <= 300 && /^\/(?!\/)/.test(value) ? value : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  const { title, body, targetType } = req.body ?? {};
+  const { targetType } = req.body ?? {};
+  let { title, body } = req.body ?? {};
+  const link = internalLink(req.body?.link);
   if (typeof title !== "string" || !title.trim()) {
     return res.status(400).json({ ok: false, error: "Missing title" });
   }
@@ -213,6 +286,14 @@ export default async function handler(req, res) {
   const isAdmin = caller.email === ADMIN_EMAIL;
   if (targetType && !isAdmin) {
     return res.status(403).json({ ok: false, reason: "Broadcast requires admin" });
+  }
+  if (!isAdmin) {
+    if (!allowMemberPush(caller.uid)) {
+      return res.status(429).json({ ok: false, reason: "Too many notifications" });
+    }
+    title = memberText(title, 80);
+    body = memberText(body, 200);
+    if (!title) return res.status(400).json({ ok: false, error: "Missing title" });
   }
 
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
@@ -276,6 +357,9 @@ export default async function handler(req, res) {
               message: {
                 token,
                 notification: { title, body: body ?? "" },
+                // Where a tap on it should lead. The worker reads this and
+                // only ever follows a path on this site.
+                ...(link ? { data: { link } } : {}),
                 webpush: { notification: { icon: "/icon-192.png" }, fcm_options: {} },
                 android: { priority: "high" },
                 apns: { payload: { aps: { sound: "default" } } },

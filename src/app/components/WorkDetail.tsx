@@ -12,6 +12,7 @@ import { WORK_LABEL, shortCount, youtubeId } from "../../lib/works";
 import WorkCard from "./WorkCard";
 import VideoEmbed from "./VideoEmbed";
 import { WORK_ICON } from "./workIcons";
+import { safeUrl } from "../../lib/url";
 
 export default function WorkDetail() {
   const { id } = useParams<{ id: string }>();
@@ -42,7 +43,7 @@ export default function WorkDetail() {
       setLoading(false);
       // Counted once per work per session, inside the helper.
       if (data) countWorkView(data.id);
-    });
+    }).catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [id]);
 
@@ -147,7 +148,7 @@ export default function WorkDetail() {
               <div className="p-6 flex flex-col items-center gap-4">
                 {work.cover && <img src={work.cover} alt={work.title} className="w-full rounded-xl" />}
                 <a
-                  href={work.url}
+                  href={safeUrl(work.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-dz inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm"

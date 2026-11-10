@@ -10,6 +10,10 @@ service firebase.storage {
       return request.auth != null && request.auth.uid == uid;
     }
 
+    // `write` covers deletion too, and a deletion carries no file to check —
+    // so a rule that tested the file's type refused every delete, and nothing
+    // a member uploaded could ever be removed again. Uploading and deleting
+    // are therefore separate permissions below.
     function isImage() {
       return request.resource.contentType.matches('image/.*')
           && request.resource.size < 5 * 1024 * 1024; // 5MB max
@@ -21,41 +25,46 @@ service firebase.storage {
     }
 
     // ── Admin-managed content images (site content, public read) ─────────
-    match /competitions/{allPaths=**} { allow read: if true; allow write: if isAdmin() && isImage(); }
-    match /courses/{allPaths=**}      { allow read: if true; allow write: if isAdmin() && isImage(); }
-    match /equipment/{allPaths=**}    { allow read: if true; allow write: if isAdmin() && isImage(); }
-    match /jobs/{allPaths=**}         { allow read: if true; allow write: if isAdmin() && isImage(); }
-    match /news/{allPaths=**}         { allow read: if true; allow write: if isAdmin() && isImage(); }
-    match /carousel-placeholders/{allPaths=**} { allow read: if true; allow write: if isAdmin() && isImage(); }
+    match /competitions/{allPaths=**} { allow read: if true; allow create, update: if isAdmin() && isImage(); allow delete: if isAdmin(); }
+    match /courses/{allPaths=**}      { allow read: if true; allow create, update: if isAdmin() && isImage(); allow delete: if isAdmin(); }
+    match /equipment/{allPaths=**}    { allow read: if true; allow create, update: if isAdmin() && isImage(); allow delete: if isAdmin(); }
+    match /jobs/{allPaths=**}         { allow read: if true; allow create, update: if isAdmin() && isImage(); allow delete: if isAdmin(); }
+    match /news/{allPaths=**}         { allow read: if true; allow create, update: if isAdmin() && isImage(); allow delete: if isAdmin(); }
+    match /carousel-placeholders/{allPaths=**} { allow read: if true; allow create, update: if isAdmin() && isImage(); allow delete: if isAdmin(); }
 
     // ── Profile photos: public read, owner uploads to own folder ─────────
     match /profile-photos/{uid}/{fileName} {
       allow read: if true;
-      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+      allow create, update: if (isOwner(uid) || isAdmin()) && isImage();
+      allow delete: if isOwner(uid) || isAdmin();
     }
 
     // ── Store product images: public read, store owner uploads own ───────
     match /product-images/{uid}/{fileName} {
       allow read: if true;
-      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+      allow create, update: if (isOwner(uid) || isAdmin()) && isImage();
+      allow delete: if isOwner(uid) || isAdmin();
     }
 
     // ── Trainer course images: public read, trainer uploads own ──────────
     match /trainer-courses/{uid}/{fileName} {
       allow read: if true;
-      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+      allow create, update: if (isOwner(uid) || isAdmin()) && isImage();
+      allow delete: if isOwner(uid) || isAdmin();
     }
 
     // ── Voice artist audio samples: public read, owner uploads own ───────
     match /audio-samples/{uid}/{fileName} {
       allow read: if true;
-      allow write: if (isOwner(uid) || isAdmin()) && isAudio();
+      allow create, update: if (isOwner(uid) || isAdmin()) && isAudio();
+      allow delete: if isOwner(uid) || isAdmin();
     }
 
     // ── Portfolio works — images: public read, owner uploads own ─────────
     match /works/{uid}/{fileName} {
       allow read: if true;
-      allow write: if (isOwner(uid) || isAdmin()) && isImage();
+      allow create, update: if (isOwner(uid) || isAdmin()) && isImage();
+      allow delete: if isOwner(uid) || isAdmin();
     }
 
     // Everything else: denied by default.

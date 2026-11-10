@@ -41,7 +41,7 @@ export default function StoreDetail() {
       setStore(p as StoreProfile);
       setResolvedId(p?.id ?? null);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import { getThesis } from "../../lib/firestore";
 import type { Thesis, ThesisSpecialty } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { thesisSchema, breadcrumbs, useStructuredData } from "../../lib/structuredData";
+import { safeUrl } from "../../lib/url";
 
 const specColors: Record<ThesisSpecialty, string> = {
   "إعلام واتصال": "var(--p-25)",
@@ -37,7 +38,7 @@ export default function ThesisDetail() {
 
   useEffect(() => {
     if (!id) return;
-    getThesis(id).then((data) => { setThesis(data); setLoading(false); });
+    getThesis(id).then((data) => { setThesis(data); setLoading(false); }).catch(() => setLoading(false));
   }, [id]);
 
   if (loading) {
@@ -156,7 +157,7 @@ export default function ThesisDetail() {
         {/* PDF link */}
         {thesis.pdfUrl && (
           <a
-            href={thesis.pdfUrl}
+            href={safeUrl(thesis.pdfUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-80"

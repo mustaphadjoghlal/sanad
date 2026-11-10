@@ -7,6 +7,7 @@ import type { Job } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { sanitizeHtml } from "../../lib/sanitize";
 import { jobPosting, breadcrumbs, useStructuredData } from "../../lib/structuredData";
+import { safeUrl } from "../../lib/url";
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -31,7 +32,7 @@ export default function JobDetail() {
         setJob({ id: snap.id, ...snap.data() } as Job);
       }
       setLoading(false);
-    });
+    }).catch(() => { setNotFound(true); setLoading(false); });
   }, [id]);
 
   if (loading) {
@@ -172,7 +173,7 @@ export default function JobDetail() {
                 <div style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.75rem" }}>المصدر</div>
                 {j.source.startsWith("http") ? (
                   <a
-                    href={j.source}
+                    href={safeUrl(j.source)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 hover:opacity-75 transition-opacity"
@@ -261,7 +262,7 @@ export default function JobDetail() {
                   href = `mailto:${trimmed}`;
                 } else if (trimmed.startsWith("http")) {
                   Icon = Globe;
-                  href = trimmed;
+                  href = safeUrl(trimmed) ?? "";
                   label = "رابط التقديم الإلكتروني";
                 } else if (/^[\d\s+.-]+$/.test(trimmed.replace(/[^\d]/g, ""))) {
                   Icon = Phone;

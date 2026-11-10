@@ -71,7 +71,7 @@ export default function ProductDetail() {
       if (p?.image) setMainImage(p.image);
       setForm(emptyForm());
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, [id]);
 
   const sf = (field: keyof OrderForm, value: string | number) => {

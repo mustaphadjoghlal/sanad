@@ -23,7 +23,7 @@ service cloud.firestore {
     function noPrivilegedProfileFields() {
       return !request.resource.data.diff(resource.data).affectedKeys()
                .hasAny(['status', 'featured', 'rejectionNote', 'adminNote', 'adminNoteAt',
-                        'id', 'type', 'createdAt']);
+                        'id', 'type', 'createdAt', 'storeStatus']);
     }
 
     // A rejected profile may be resubmitted by its owner — that is the only
@@ -63,7 +63,10 @@ service cloud.firestore {
       return isAuth()
              && resource.data.ownerId == request.auth.uid
              && request.resource.data.diff(resource.data).affectedKeys()
-                  .hasOnly(['title', 'description', 'url', 'cover', 'type']);
+                  .hasOnly(['title', 'description', 'url', 'cover', 'type'])
+             && isShortString(request.resource.data.title, 200)
+             && request.resource.data.type in ['article', 'video', 'audio', 'image']
+             && hasWebUrls();
     }
 
     // A view is a +1 on that one field, by anyone, signed in or not. It can
@@ -90,6 +93,21 @@ service cloud.firestore {
                    && request.resource.data.likedBy == resource.data.likedBy.removeAll([request.auth.uid])
                    && request.resource.data.likes == resource.data.likes - 1)
                 );
+    }
+
+    // A link a member typed is shown to every visitor as something to click,
+    // so it must be a web address and nothing else — never `javascript:` or
+    // `data:`. The form checks this too, but a form is not a guard: anyone
+    // can write to the database without it.
+    function isWebUrl(value) {
+      return value is string && value.size() <= 1000 && value.matches('https?://.+');
+    }
+
+    function hasWebUrls() {
+      return isWebUrl(request.resource.data.url)
+             && (!('cover' in request.resource.data.keys())
+                 || request.resource.data.cover == null
+                 || isWebUrl(request.resource.data.cover));
     }
 
     // Internal links only — never an absolute URL pointing off-platform.
@@ -126,14 +144,34 @@ service cloud.firestore {
                         || request.resource.data.status == 'pending')
                     && request.resource.data.featured == false
                     && request.resource.data.id == userId
-                    && !request.resource.data.keys().hasAny(['fcmToken']);
+                    && !request.resource.data.keys().hasAny(['fcmToken'])
+                    && !exists(/databases/$(database)/documents/removedProfiles/$(userId));
 
       allow update: if isAdmin()
                     || (isOwner(userId)
                         && noNewFcmToken()
                         && (noPrivilegedProfileFields() || isResubmission()));
 
-      allow delete: if isOwner(userId) || isAdmin();
+      // A member may delete their own profile — the privacy policy promises
+      // it. A rejected one may too, but only while leaving a marker behind in
+      // the same write: without it, deleting and registering the profile again
+      // was a way to walk a rejection back to 'approved' unseen.
+      allow delete: if isAdmin()
+                    || (isOwner(userId)
+                        && (resource.data.status != 'rejected'
+                            || existsAfter(/databases/$(database)/documents/removedProfiles/$(userId))));
+    }
+
+    // ── The marker a rejected member leaves when deleting their profile. It
+    //    holds nothing about them; it only stops the same account from
+    //    creating a fresh, approved profile. Only the admin can lift it. ───
+    match /removedProfiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId)
+                    && request.resource.data.keys().hasOnly(['removedAt'])
+                    && request.resource.data.removedAt is number;
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     // ── Push tokens: written by their owner, never publicly readable.
@@ -208,7 +246,10 @@ service cloud.firestore {
                         && resource.data.storeId == request.auth.uid
                         && request.resource.data.diff(resource.data).affectedKeys()
                              .hasOnly(['status', 'sellerNote']));
-      allow delete: if isAdmin();
+      // The store may delete its own orders: they hold buyers' names and
+      // phone numbers, and a store that closes its account must be able to
+      // take them with it.
+      allow delete: if isAdmin() || (isAuth() && resource.data.storeId == request.auth.uid);
     }
 
     // ── Trainer courses: public read; a trainer submits their own courses
@@ -271,7 +312,7 @@ service cloud.firestore {
                     && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved'
                     && isShortString(request.resource.data.title, 200)
                     && request.resource.data.type in ['article', 'video', 'audio', 'image']
-                    && isShortString(request.resource.data.url, 1000)
+                    && hasWebUrls()
                     && (!('description' in request.resource.data.keys())
                         || (request.resource.data.description is string
                             && request.resource.data.description.size() <= 2000))

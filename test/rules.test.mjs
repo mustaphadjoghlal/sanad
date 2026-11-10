@@ -11,7 +11,7 @@ import {
   assertSucceeds,
   assertFails,
 } from "@firebase/rules-unit-testing";
-import { doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField, addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField, addDoc, collection, getDocs, query, where, writeBatch } from "firebase/firestore";
 
 const ADMIN = "admin@sanadz.media";
 let env;
@@ -219,12 +219,95 @@ describe("users — deletion", () => {
     expect(orders.size).toBe(1); // the other store's order is left alone
   });
 
+  it("ALLOWS a member closing their account to find and delete everything that was theirs", async () => {
+    await seed((db) => setDoc(doc(db, "works/w9"), { ownerId: "user1", title: "عمل", type: "article", url: "https://example.com" }));
+    const db = user();
+    for (const [name, field] of [
+      ["products", "storeId"], ["orders", "storeId"], ["trainerCourses", "trainerId"],
+      ["courseRegistrations", "trainerId"], ["works", "ownerId"],
+    ]) {
+      const mine = await assertSucceeds(getDocs(query(collection(db, name), where(field, "==", "user1"))));
+      expect(mine.size, name).toBeGreaterThan(0);
+      for (const d of mine.docs) await assertSucceeds(deleteDoc(d.ref));
+    }
+    await assertSucceeds(deleteDoc(doc(db, "fcmTokens/user1")));
+    await assertSucceeds(deleteDoc(doc(db, "users/user1")));
+  });
+
   it("leaves another store's products untouched after the sweep", async () => {
     const db = admin();
     const mine = await getDocs(query(collection(db, "products"), where("storeId", "==", "user1")));
     await Promise.all(mine.docs.map((d) => deleteDoc(d.ref)));
     const survivor = await getDoc(doc(db, "products/other"));
     expect(survivor.exists()).toBe(true);
+  });
+});
+
+describe("users — a rejection cannot be walked back by deleting the profile", () => {
+  beforeEach(() => seed((db) => setDoc(doc(db, "users/user1"), profile({ status: "rejected" }))));
+
+  it("BLOCKS a rejected member deleting the profile on its own", async () => {
+    await assertFails(deleteDoc(doc(user(), "users/user1")));
+  });
+
+  it("ALLOWS a rejected member to delete it together with the marker", async () => {
+    const db = user();
+    const batch = writeBatch(db);
+    batch.set(doc(db, "removedProfiles/user1"), { removedAt: Date.now() });
+    batch.delete(doc(db, "users/user1"));
+    await assertSucceeds(batch.commit());
+  });
+
+  it("BLOCKS registering a fresh approved profile once the marker is there", async () => {
+    await seed(async (db) => {
+      await deleteDoc(doc(db, "users/user1"));
+      await setDoc(doc(db, "removedProfiles/user1"), { removedAt: Date.now() });
+    });
+    await assertFails(setDoc(doc(user(), "users/user1"), profile({ status: "approved" })));
+    await assertFails(setDoc(doc(user(), "users/user1"), profile({ status: "pending" })));
+  });
+
+  it("BLOCKS the member removing the marker, or writing one for somebody else", async () => {
+    await seed((db) => setDoc(doc(db, "removedProfiles/user1"), { removedAt: Date.now() }));
+    await assertFails(deleteDoc(doc(user(), "removedProfiles/user1")));
+    await assertFails(setDoc(doc(user("user2"), "removedProfiles/user1"), { removedAt: Date.now() }));
+    await assertSucceeds(deleteDoc(doc(admin(), "removedProfiles/user1")));
+  });
+
+  it("still ALLOWS an approved member to delete their own profile outright", async () => {
+    await seed((db) => setDoc(doc(db, "users/user1"), profile({ status: "approved" })));
+    await assertSucceeds(deleteDoc(doc(user(), "users/user1")));
+  });
+
+  it("BLOCKS a store changing its own plan", async () => {
+    await seed((db) => setDoc(doc(db, "users/user1"), profile({ type: "store", status: "approved", storeStatus: "trial" })));
+    await assertFails(updateDoc(doc(user(), "users/user1"), { storeStatus: "paid" }));
+    await assertSucceeds(updateDoc(doc(user(), "users/user1"), { bio: "متجر", storeStatus: "trial" }));
+  });
+});
+
+describe("works — a link must be a web address", () => {
+  beforeEach(() => seed(async (db) => {
+    await setDoc(doc(db, "users/user1"), profile({ status: "approved" }));
+    await setDoc(doc(db, "works/w1"), work());
+  }));
+
+  it("BLOCKS publishing a work whose link is a script", async () => {
+    await assertFails(setDoc(doc(user(), "works/w2"), work({ url: "javascript:alert(1)" })));
+    await assertFails(setDoc(doc(user(), "works/w2"), work({ url: "data:text/html,<script>1</script>" })));
+  });
+
+  it("BLOCKS a script hidden in the cover", async () => {
+    await assertFails(setDoc(doc(user(), "works/w2"), work({ cover: "javascript:alert(1)" })));
+  });
+
+  it("BLOCKS editing a published work's link into a script", async () => {
+    await assertFails(updateDoc(doc(user(), "works/w1"), { url: "javascript:alert(1)" }));
+  });
+
+  it("ALLOWS an ordinary link and cover", async () => {
+    await assertSucceeds(setDoc(doc(user(), "works/w2"), work({ url: "http://example.com/x", cover: "https://example.com/c.jpg" })));
+    await assertSucceeds(updateDoc(doc(user(), "works/w1"), { url: "https://example.com/b" }));
   });
 });
 
@@ -463,6 +546,12 @@ describe("orders", () => {
     await seed((db) => setDoc(doc(db, "orders/o1"), order()));
     await assertSucceeds(getDoc(doc(user("store1"), "orders/o1")));
     await assertSucceeds(updateDoc(doc(user("store1"), "orders/o1"), { status: "in_delivery" }));
+  });
+
+  it("ALLOWS a store to delete its own orders, and nobody else's", async () => {
+    await seed((db) => setDoc(doc(db, "orders/o1"), order()));
+    await assertFails(deleteDoc(doc(user("store2"), "orders/o1")));
+    await assertSucceeds(deleteDoc(doc(user("store1"), "orders/o1")));
   });
 
   it("BLOCKS a store rewriting the buyer's details", async () => {

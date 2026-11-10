@@ -17,13 +17,16 @@ export default function EquipmentDetail() {
   useEffect(() => {
     if (!id) return;
     getDoc(doc(db, "equipment", id)).then((snap) => {
-      if (!snap.exists()) {
+      // A listing still waiting for review, or turned down, is not on the
+      // site — and must not be reachable by its address either.
+      const status = snap.data()?.status;
+      if (!snap.exists() || (status && status !== "approved")) {
         setNotFound(true);
       } else {
         setEquipment({ id: snap.id, ...snap.data() } as Equipment);
       }
       setLoading(false);
-    });
+    }).catch(() => { setNotFound(true); setLoading(false); });
   }, [id]);
 
   if (loading) {

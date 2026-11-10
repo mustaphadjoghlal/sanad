@@ -5,6 +5,7 @@ import type { Course } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
+import { safeUrl } from "../../lib/url";
 
 export default function Courses() {
   usePageTitle("الدورات التدريبية", "دورات تدريبية مجانية ومدفوعة في الصحافة، التصوير، المونتاج والتقديم — منصة سند الإعلامية.");
@@ -96,7 +97,7 @@ export default function Courses() {
                 <p style={{ color: "var(--theme-text-muted, #4a7a4a)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>المدرب: {c.instructor}</p>
                 {c.description && <p style={{ color: "var(--theme-text-dim, #3a5e3a)", fontSize: "0.8rem", lineHeight: 1.6 }}>{c.description}</p>}
                 {c.link && (
-                  <a href={c.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-3 text-sm transition-colors" style={{ color: "var(--theme-primary, #006233)" }}>
+                  <a href={safeUrl(c.link)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-3 text-sm transition-colors" style={{ color: "var(--theme-primary, #006233)" }}>
                     <span>سجّل الآن</span><ExternalLink size={13} />
                   </a>
                 )}

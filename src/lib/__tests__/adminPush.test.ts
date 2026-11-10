@@ -269,3 +269,43 @@ describe("when Firestore refuses to answer", () => {
     expect(result.reason).toMatch(/No FCM tokens/);
   });
 });
+
+describe("what a member's action may push to the admin", () => {
+  async function helpers() {
+    // @ts-expect-error — the endpoint is plain JS served by a Vercel function.
+    return (await import("../../../api/push.js")) as {
+      memberText: (value: unknown, maxLen: number) => string;
+      allowMemberPush: (uid: string, now?: number) => boolean;
+    };
+  }
+
+  it("drops anything that reads as an address to visit", async () => {
+    const { memberText } = await helpers();
+    expect(memberText("حسابك موقوف، ادخل https://evil.example/login الآن", 200)).toBe("حسابك موقوف، ادخل الآن");
+    expect(memberText("زر www.evil.com/x", 200)).toBe("زر");
+    expect(memberText("زر evil.com/reset فوراً", 200)).toBe("زر فوراً");
+  });
+
+  it("leaves an ordinary alert as it was written", async () => {
+    const { memberText } = await helpers();
+    expect(memberText("أمين بن علي سجّل كـ محترف إعلامي — ملفه منشور الآن", 200))
+      .toBe("أمين بن علي سجّل كـ محترف إعلامي — ملفه منشور الآن");
+  });
+
+  it("cuts a long text short", async () => {
+    const { memberText } = await helpers();
+    expect(memberText("ا".repeat(500), 80)).toHaveLength(80);
+  });
+
+  it("lets a few through and then stops the loop, per account", async () => {
+    const { allowMemberPush } = await helpers();
+    const now = 1_000_000;
+    expect(allowMemberPush("loop-uid", now)).toBe(true);
+    expect(allowMemberPush("loop-uid", now + 1)).toBe(true);
+    expect(allowMemberPush("loop-uid", now + 2)).toBe(true);
+    expect(allowMemberPush("loop-uid", now + 3)).toBe(false);
+    // Somebody else is not held back by it, and the window does pass.
+    expect(allowMemberPush("other-uid", now + 3)).toBe(true);
+    expect(allowMemberPush("loop-uid", now + 11 * 60 * 1000)).toBe(true);
+  });
+});
