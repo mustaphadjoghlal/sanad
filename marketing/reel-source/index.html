@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>Sanad Reel</title>
+<style>
+  @font-face { font-family: "Cairo"; font-weight: 700; src: url(fonts/cairo-arabic-700-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Cairo"; font-weight: 800; src: url(fonts/cairo-arabic-800-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Cairo"; font-weight: 900; src: url(fonts/cairo-arabic-900-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Cairo"; font-weight: 700; src: url(fonts/cairo-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+  @font-face { font-family: "Cairo"; font-weight: 800; src: url(fonts/cairo-latin-800-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+  @font-face { font-family: "Cairo"; font-weight: 900; src: url(fonts/cairo-latin-800-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+  @font-face { font-family: "Tajawal"; font-weight: 500; src: url(fonts/tajawal-arabic-500-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Tajawal"; font-weight: 700; src: url(fonts/tajawal-arabic-700-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+
+  :root { --g1: #00a355; --g2: #2ee6a0; --g3: #006233; --red: #ef4444; }
+  html, body { margin: 0; padding: 0; background: #000; }
+  #stage {
+    position: relative; width: 1080px; height: 1920px; overflow: hidden;
+    background: radial-gradient(120% 80% at 50% 40%, #0b1d13 0%, #06110b 55%, #030805 100%);
+    font-family: "Cairo", sans-serif; color: #fff; direction: rtl;
+  }
+  .a { position: absolute; left: 0; top: 0; will-change: transform, opacity; white-space: nowrap; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  #grid {
+    background-image: radial-gradient(rgba(255,255,255,0.07) 1.6px, transparent 1.8px);
+    background-size: 54px 54px;
+  }
+  .glow { position: absolute; width: 1400px; height: 1400px; border-radius: 50%; left: -160px; }
+  #glowG { background: radial-gradient(circle, rgba(0,196,106,0.35) 0%, rgba(0,163,85,0.12) 35%, transparent 65%); }
+  #glowR { background: radial-gradient(circle, rgba(239,68,68,0.22) 0%, rgba(120,30,30,0.08) 35%, transparent 65%); }
+  #vignette { background: radial-gradient(75% 60% at 50% 50%, transparent 55%, rgba(0,0,0,0.65) 100%); }
+  .dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #2ee6a0; }
+
+  .h { font-weight: 900; text-align: center; line-height: 1.3; letter-spacing: 0; white-space: normal; width: 960px; }
+  .h .w { display: inline-block; }
+  .acc { background: linear-gradient(90deg, #2ee6a0, #00c46a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  /* search */
+  .search {
+    width: 900px; height: 150px; border-radius: 75px; display: flex; align-items: center; gap: 28px;
+    padding: 0 30px; box-sizing: border-box;
+    background: linear-gradient(160deg, rgba(255,255,255,0.13), rgba(255,255,255,0.05));
+    border: 2px solid rgba(255,255,255,0.16); box-shadow: 0 30px 90px rgba(0,0,0,0.55);
+  }
+  .sicon { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #00a355, #2ee6a0); flex-shrink: 0; }
+  .stext { font-family: "Tajawal", "Cairo"; font-weight: 700; font-size: 54px; color: #fff; }
+  .caret { display: inline-block; width: 5px; height: 62px; background: #2ee6a0; vertical-align: middle; margin-right: 6px; border-radius: 3px; }
+  .drop { width: 900px; border-radius: 40px; padding: 34px 40px; box-sizing: border-box;
+    background: rgba(18,28,22,0.92); border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
+  .skel { height: 34px; border-radius: 17px; margin: 22px 0; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; }
+  .skel i { position: absolute; top: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent); }
+  .qmark { font-size: 900px; font-weight: 900; color: rgba(46,230,160,0.06); }
+
+  /* chaos cards */
+  .card { border-radius: 36px; background: #151b17; border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6); overflow: hidden; }
+  .pg { width: 640px; filter: grayscale(1); }
+  .pg .cover { height: 150px; background: linear-gradient(135deg, #2a2f2c, #1b201d); }
+  .pg .row { display: flex; align-items: center; gap: 24px; padding: 0 36px; margin-top: -55px; }
+  .pg .av { width: 120px; height: 120px; border-radius: 50%; background: #3a403c; border: 6px solid #151b17; display: flex; align-items: center; justify-content: center; }
+  .pg .nm { font-size: 40px; font-weight: 800; color: #b9c2bc; margin-top: 50px; }
+  .pg .meta { display: flex; align-items: center; gap: 12px; padding: 22px 36px 36px; font-family: "Tajawal","Cairo"; font-weight: 700; font-size: 34px; color: #7d8781; }
+  .pg .lines { padding: 0 36px 34px; }
+  .pg .lines div { height: 22px; border-radius: 11px; background: rgba(255,255,255,0.07); margin-top: 16px; }
+  .web { position: absolute; left: 14px; top: 14px; width: 120px; height: 120px; opacity: 0.35; }
+
+  .ad { width: 660px; padding: 40px 44px; box-sizing: border-box; position: relative; overflow: visible; }
+  .tag { display: inline-flex; align-items: center; gap: 10px; padding: 8px 22px; border-radius: 30px; background: rgba(255,255,255,0.08);
+    font-family: "Tajawal","Cairo"; font-weight: 700; font-size: 30px; color: #a3aea7; }
+  .ad .ttl { font-size: 54px; font-weight: 900; color: #d9e2dc; margin: 22px 0 10px; }
+  .ad .dl { display: flex; align-items: center; gap: 12px; font-family: "Tajawal","Cairo"; font-weight: 700; font-size: 34px; color: #8b958f; }
+  .stamp { position: absolute; left: 34px; top: 40px; padding: 8px 34px; border: 7px solid var(--red); border-radius: 18px;
+    color: var(--red); font-size: 64px; font-weight: 900; background: rgba(239,68,68,0.08); }
+
+  .bub { display: inline-flex; align-items: center; gap: 18px; padding: 18px 26px 18px 22px; border-radius: 60px;
+    background: #1b2420; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.55); }
+  .bub .ba { width: 64px; height: 64px; border-radius: 50%; background: #2b3530; display: flex; align-items: center; justify-content: center; }
+  .bub .bn { font-family: "Tajawal","Cairo"; font-weight: 700; font-size: 36px; color: #d2dbd5; }
+  .bub .bc { min-width: 54px; height: 54px; padding: 0 14px; box-sizing: border-box; border-radius: 27px; background: var(--red);
+    font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center; color: #fff; }
+
+  .opp { display: inline-flex; align-items: center; gap: 18px; padding: 26px 44px; border-radius: 60px;
+    background: linear-gradient(135deg, #00a355, #00c46a); font-size: 46px; font-weight: 900; color: #fff;
+    box-shadow: 0 0 60px rgba(46,230,160,0.7), 0 20px 50px rgba(0,0,0,0.5); }
+
+  .flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(220,255,236,1) 0%, rgba(46,230,160,0.6) 30%, transparent 70%); }
+  .ring { width: 420px; height: 420px; border-radius: 50%; border: 4px solid rgba(46,230,160,0.8); }
+  .logoimg { display: block; }
+
+  /* features */
+  .feat { width: 880px; height: 190px; display: flex; align-items: center; gap: 34px; padding: 0 34px; box-sizing: border-box;
+    border-radius: 44px; background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
+    border: 2px solid rgba(46,230,160,0.25); box-shadow: 0 30px 80px rgba(0,0,0,0.45); }
+  .ftile { width: 124px; height: 124px; border-radius: 34px; background: linear-gradient(135deg, #006233, #00a355 60%, #2ee6a0);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 12px 40px rgba(0,163,85,0.45); }
+  .ftitle { font-size: 56px; font-weight: 900; line-height: 1.2; }
+  .fsub { font-family: "Tajawal","Cairo"; font-weight: 500; font-size: 32px; color: #9fd8b9; margin-top: 4px; }
+  .fbadge { margin-right: auto; padding: 10px 24px; border-radius: 26px; background: rgba(46,230,160,0.15); color: #2ee6a0;
+    border: 2px solid rgba(46,230,160,0.4); font-size: 30px; font-weight: 800; }
+
+  /* works */
+  .work { width: 410px; border-radius: 38px; overflow: hidden; background: #121a15; border: 2px solid rgba(46,230,160,0.22);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+  .thumb { height: 250px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .pbtn { width: 104px; height: 104px; border-radius: 50%; background: rgba(255,255,255,0.92); display: flex; align-items: center; justify-content: center; }
+  .wave { display: flex; align-items: center; gap: 9px; height: 140px; }
+  .wave i { width: 12px; border-radius: 6px; background: #fff; display: block; }
+  .wbody { padding: 22px 28px 26px; }
+  .wtitle { font-size: 40px; font-weight: 800; }
+  .wmeta { display: flex; gap: 28px; margin-top: 10px; font-size: 32px; font-weight: 800; color: #a9cdb8; }
+  .wmeta span { display: inline-flex; align-items: center; gap: 8px; }
+  .heartf { color: #ff5a7a; }
+
+  .swoosh { width: 620px; height: 70px; }
+  .url { padding: 18px 54px; border-radius: 50px; border: 3px solid rgba(46,230,160,0.6); background: rgba(46,230,160,0.08);
+    font-size: 52px; font-weight: 800; color: #e9fff3; direction: ltr; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="bg">
+    <div class="glow" id="glowG"></div>
+    <div class="glow" id="glowR"></div>
+    <div class="layer" id="grid"></div>
+    <div class="layer" id="dots"></div>
+  </div>
+  <div class="layer" id="fx"></div>
+  <div class="layer" id="vignette"></div>
+</div>
+<script src="icons.js"></script>
+<script>
+const stage = document.getElementById("stage");
+const fx = document.getElementById("fx");
+const W = 1080, H = 1920, CX = 540;
+
+// ── math ────────────────────────────────────────────────────────────
+const cl = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const p = (t, s, d) => cl((t - s) / d);
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const ei = (x) => x * x * x;
+const back = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 + 2.4 * Math.pow(x - 1, 3) + 1.4 * Math.pow(x - 1, 2));
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+const ic = (n, size, color = "#fff", sw = 2.2, fill = "none") =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg>`;
+
+// ── element registry ───────────────────────────────────────────────
+const anims = [];
+const subs = [];
+function A(html, fn, cls = "", parent = fx) {
+  const d = document.createElement("div");
+  d.className = "a " + cls;
+  d.innerHTML = html;
+  parent.appendChild(d);
+  anims.push({ d, fn });
+  return d;
+}
+function apply(d, s) {
+  if (!s || s.o <= 0.002) { d.style.display = "none"; return; }
+  d.style.display = "";
+  d.style.opacity = s.o;
+  d.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -50%) rotate(${s.r || 0}deg) scale(${s.s ?? 1})`;
+  d.style.filter = s.b > 0.05 ? `blur(${s.b}px)` : "none";
+}
+
+/** A line of text whose words rise in one after another, and leave together. */
+function headline(text, o) {
+  const { y, size = 88, start, end, color = "#fff", hl = [], weight = 900, out = 0.35, x = CX } = o;
+  const words = text.split(" ");
+  // "|" marks where a long line breaks, so it breaks between phrases rather than wherever it runs out of room.
+  const html = words.map((w) => (w === "|" ? "<br>" : `<span class="w ${hl.includes(w) ? "acc" : ""}">${w}</span>`)).join(" ");
+  const d = A(`<div class="h" style="font-size:${size}px;color:${color};font-weight:${weight}">${html}</div>`, (t) => {
+    if (t < start - 0.05 || t > end + out) return null;
+    const k = eio(p(t, end, out));
+    const dim = o.dimAt ? lerp(1, o.dimTo ?? 0.45, eo(p(t, o.dimAt, 0.4))) : 1;
+    return { x, y: y - k * 50, o: (1 - k) * dim, b: k * 14, s: 1 - k * 0.04 };
+  });
+  const spans = [...d.querySelectorAll(".w")];
+  subs.push((t) => spans.forEach((sp, i) => {
+    const k = eo(p(t, start + i * 0.09, 0.5));
+    sp.style.opacity = k;
+    sp.style.transform = `translateY(${(1 - k) * 60}px)`;
+    sp.style.filter = k < 0.98 ? `blur(${(1 - k) * 12}px)` : "none";
+  }));
+  return d;
+}
+
+// ── background ─────────────────────────────────────────────────────
+const dotsEl = document.getElementById("dots");
+const R = rng(7);
+const dots = Array.from({ length: 42 }, () => {
+  const d = document.createElement("div"); d.className = "dot"; dotsEl.appendChild(d);
+  return { d, x: R() * W, y: R() * H, v: 20 + R() * 50, s: 0.4 + R() * 1.2, ph: R() * 6.28 };
+});
+const glowG = document.getElementById("glowG"), glowR = document.getElementById("glowR"), grid = document.getElementById("grid");
+
+function bg(t) {
+  const chaos = p(t, 3.2, 0.8) * (1 - p(t, 9.8, 0.5));
+  glowG.style.opacity = (1 - chaos * 0.85) * (0.85 + 0.15 * Math.sin(t * 1.3));
+  glowG.style.transform = `translate(${Math.sin(t * 0.4) * 60}px, ${180 + Math.cos(t * 0.33) * 80}px)`;
+  glowR.style.opacity = chaos * 0.9;
+  glowR.style.transform = `translate(${Math.cos(t * 0.5) * 80}px, ${300 + Math.sin(t * 0.45) * 100}px)`;
+  grid.style.backgroundPosition = `0px ${(t * 22) % 54}px`;
+  grid.style.opacity = 0.9 - chaos * 0.4;
+  for (const q of dots) {
+    const y = ((q.y - t * q.v) % H + H) % H;
+    q.d.style.transform = `translate(${q.x + Math.sin(t * 0.8 + q.ph) * 14}px, ${y}px) scale(${q.s})`;
+    q.d.style.opacity = (0.15 + 0.35 * (0.5 + 0.5 * Math.sin(t * 2 + q.ph))) * (1 - chaos * 0.7);
+    q.d.style.background = chaos > 0.5 ? "#9aa59f" : "#2ee6a0";
+  }
+}
+
+// ═══ Scene 1 — the search (0 – 3.4) ══════════════════════════════════
+A(`<div class="qmark">؟</div>`, (t) => {
+  if (t > 3.6) return null;
+  const k = eo(p(t, 0, 1.2)), out = p(t, 3.0, 0.5);
+  return { x: CX + 40, y: 860, o: k * (1 - out), r: -8 + t * 3, s: 0.9 + t * 0.04 };
+});
+
+const Q = "تبحث عن فرصة في الإعلام؟";
+const bar = A(`<div class="search"><div class="sicon">${ic("search", 52, "#fff", 2.6)}</div><div class="stext"><span id="typed"></span><span class="caret" id="caret"></span></div></div>`, (t) => {
+  if (t > 3.5) return null;
+  const k = back(p(t, 0.05, 0.6)), out = eio(p(t, 3.0, 0.4));
+  const shake = t > 2.55 && t < 2.95 ? Math.sin(t * 90) * 10 * (1 - p(t, 2.55, 0.4)) : 0;
+  return { x: CX + shake, y: 860 - out * 40, o: cl(k) * (1 - out), s: 0.8 + 0.2 * k - out * 0.08, b: out * 12 };
+});
+const typed = bar.querySelector("#typed"), caret = bar.querySelector("#caret");
+subs.push((t) => {
+  const n = Math.round(Q.length * cl((t - 0.5) / 1.5));
+  typed.textContent = Q.slice(0, n);
+  caret.style.opacity = Math.floor(t * 3.2) % 2 === 0 || (t > 0.5 && t < 2.0) ? 1 : 0;
+});
+
+const drop = A(`<div class="drop">${[78, 56, 68].map((w) => `<div class="skel" style="width:${w}%"><i></i></div>`).join("")}</div>`, (t) => {
+  if (t < 1.9 || t > 3.5) return null;
+  const k = eo(p(t, 2.0, 0.45)), out = eio(p(t, 3.0, 0.4));
+  return { x: CX, y: 1075 + (1 - k) * -40 - out * 40, o: k * (1 - out), b: out * 12 };
+});
+const shimmers = [...drop.querySelectorAll(".skel i")];
+subs.push((t) => shimmers.forEach((s, i) => { s.style.left = `${(((t * 1.4 + i * 0.2) % 1.4) / 1.4) * 160 - 50}%`; }));
+
+// ═══ Scene 2 — the chaos (3.4 – 7.7) ════════════════════════════════
+headline("صفحاتٌ مهجورة…", { y: 430, start: 3.4, end: 4.6, size: 100 });
+headline("إعلاناتٌ منتهية…", { y: 430, start: 4.75, end: 6.0, size: 100 });
+headline("ومجموعاتٌ لا تنتهي.", { y: 430, start: 6.15, end: 7.55, size: 100 });
+
+/** Everything chaotic is pulled into the centre and gone at 9.6 – 10.1. */
+function collapse(s, t) {
+  if (!s) return s;
+  const k = ei(p(t, 9.55, 0.5));
+  if (k >= 1) return null;
+  return { ...s, x: lerp(s.x, CX, k), y: lerp(s.y, 960, k), s: (s.s ?? 1) * (1 - k * 0.95), r: (s.r || 0) + k * 120, o: s.o * (1 - k * 0.3) };
+}
+/** Restless motion that grows as the crowd thickens. */
+const jitter = (t, ph, base = 6) => {
+  const amp = base + 14 * p(t, 7.7, 1.2);
+  return { jx: Math.sin(t * 2.3 + ph) * amp, jy: Math.cos(t * 1.9 + ph * 1.7) * amp };
+};
+
+const webSvg = `<svg class="web" viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="1.5"><path d="M0 0 L100 100 M0 0 L100 40 M0 0 L40 100 M0 0 L100 0 M0 0 L0 100"/><path d="M30 0 Q22 22 0 30 M60 0 Q45 45 0 60 M90 0 Q68 68 0 90"/></svg>`;
+A(`<div class="card pg">${webSvg}<div class="cover"></div><div class="row"><div class="av">${ic("radio", 60, "#6b746f")}</div><div class="nm">صفحة فرص الإعلام</div></div>
+   <div class="meta">${ic("clock", 36, "#7d8781")} آخر منشور: منذ 3 سنوات</div><div class="lines"><div style="width:90%"></div><div style="width:70%"></div></div></div>`, (t) => {
+  if (t < 3.45) return null;
+  const k = back(p(t, 3.5, 0.55)), mv = eio(p(t, 4.7, 0.6));
+  const flick = t < 4.7 ? 0.8 + 0.2 * Math.abs(Math.sin(t * 13)) : 0.85;
+  const { jx, jy } = jitter(t, 1.1);
+  return collapse({ x: lerp(CX, 300, mv) + jx * mv, y: lerp(930, 1330, mv) + jy * mv, o: cl(k * 1.4) * flick, s: lerp(0.6 + 0.4 * k, 0.66, mv), r: lerp(0, -9, mv) }, t);
+});
+
+A(`<div class="card ad"><div class="tag">${ic("briefcase", 30, "#a3aea7")} إعلان توظيف</div><div class="ttl">مطلوب مقدّم أخبار</div>
+   <div class="dl">${ic("clock", 34, "#8b958f")} آخر أجل: 12 مارس 2021</div><div class="stamp" id="stamp">انتهى</div></div>`, (t) => {
+  if (t < 4.75) return null;
+  const k = back(p(t, 4.8, 0.55)), mv = eio(p(t, 6.0, 0.6));
+  const { jx, jy } = jitter(t, 2.7);
+  return collapse({ x: lerp(CX, 760, mv) + jx * mv, y: lerp(920, 1520, mv) + jy * mv, o: cl(k * 1.4), s: lerp(0.6 + 0.4 * k, 0.64, mv), r: lerp(0, 8, mv) }, t);
+});
+const stamp = document.getElementById("stamp");
+subs.push((t) => {
+  const k = p(t, 5.3, 0.22);
+  stamp.style.opacity = k > 0 ? 1 : 0;
+  stamp.style.transform = `rotate(-14deg) scale(${lerp(2.4, 1, eo(k))})`;
+});
+
+const groups = [
+  ["فرص إعلامية DZ", "+99"], ["صحفيون جزائريون", "245"], ["وظائف الإعلام", "1.2k"], ["مونتاج وتصوير", "87"],
+  ["إذاعات الجزائر", "312"], ["مجموعة المعلّقين", "56"], ["عروض عمل الإعلام", "+99"], ["طلبة الإعلام", "640"],
+  ["قنوات وفرص", "128"], ["مذيعون ومقدّمون", "73"], ["فرص التدريب", "410"], ["إعلام وتواصل", "2.3k"],
+  ["كتّاب المحتوى", "95"], ["مصوّرون محترفون", "188"],
+];
+const RB = rng(42);
+function bubble(name, count, x, y, start, seed) {
+  const r = (RB() - 0.5) * 14, ph = RB() * 6.28;
+  A(`<div class="bub"><div class="ba">${ic("users", 36, "#9aa59f")}</div><div class="bn">${name}</div><div class="bc">${count}</div></div>`, (t) => {
+    if (t < start) return null;
+    const k = back(p(t, start, 0.38));
+    const { jx, jy } = jitter(t, ph, 5);
+    return collapse({ x: x + jx, y: y + jy, o: cl(k * 1.6), s: 0.4 + 0.6 * k, r }, t);
+  });
+}
+groups.forEach(([n, c], i) => {
+  const col = i % 2, row = Math.floor(i / 2);
+  const x = (col ? 330 : 740) + (RB() - 0.5) * 180;
+  const y = 660 + row * 130 + (RB() - 0.5) * 60;
+  bubble(n, c, x, y, 6.2 + i * 0.085, i);
+});
+
+// ═══ Scene 3 — the opportunity lost in the crowd (7.7 – 10.1) ════════
+headline("والفرصة ضائعة | في الزحام.", { y: 430, start: 7.7, end: 9.45, size: 96, hl: ["والفرصة"] });
+
+A(`<div class="opp">${ic("sparkles", 50, "#fff", 2.4)} فرصة عمل حقيقية</div>`, (t) => {
+  if (t < 7.85) return null;
+  const k = back(p(t, 7.9, 0.5)), lost = eio(p(t, 8.5, 0.9));
+  return collapse({ x: CX, y: 1080, o: cl(k * 1.5) * lerp(1, 0.25, lost), s: (0.5 + 0.5 * k) * lerp(1, 0.72, lost) }, t);
+});
+const noise = [["رسائل غير مقروءة", "3.4k"], ["منشورات قديمة", "999"], ["روابط معطّلة", "41"], ["إعلانات مكررة", "+99"],
+  ["مجموعة جديدة", "12"], ["تنبيهات", "530"], ["طلبات انضمام", "77"], ["رسائل مزعجة", "1.8k"]];
+noise.forEach(([n, c], i) => {
+  const ang = (i / noise.length) * Math.PI * 2 + 0.4;
+  const x = CX + Math.cos(ang) * (150 + RB() * 90);
+  const y = 1080 + Math.sin(ang) * (120 + RB() * 140);
+  bubble(n, c, x, y, 8.45 + i * 0.07, 100 + i);
+});
+
+const flash = A(``, (t) => {
+  if (t < 9.9 || t > 10.8) return null;
+  const k = p(t, 9.9, 0.18), out = p(t, 10.08, 0.7);
+  return { x: CX, y: 960, o: eo(k) * (1 - eo(out)), s: 1 };
+}, "");
+flash.innerHTML = `<div class="flash" style="position:static;width:1400px;height:1400px;border-radius:50%"></div>`;
+
+// ═══ Scene 4 — Sanad (10.1 – 12.6) ═══════════════════════════════════
+[0, 1, 2].forEach((i) => A(`<div class="ring"></div>`, (t) => {
+  const st = 10.15 + i * 0.28;
+  if (t < st || t > st + 1.6) return null;
+  const k = eo(p(t, st, 1.6));
+  return { x: CX, y: 840, o: (1 - k) * 0.9, s: 0.55 + k * 1.9 };
+}));
+A(`<img class="logoimg" src="icon-512.png" style="width:420px;height:420px" />`, (t) => {
+  if (t < 10.1 || t > 12.9) return null;
+  const k = back(p(t, 10.12, 0.7)), out = eio(p(t, 12.25, 0.5));
+  const bob = Math.sin(t * 2.4) * 8;
+  return { x: CX, y: 840 + bob - out * 160, o: cl(k * 1.6) * (1 - out), s: (0.3 + 0.7 * k) * (1 - out * 0.4), r: (1 - cl(k)) * -25 };
+});
+const wm = A(`<img class="logoimg" src="logo.png" style="width:680px;filter:drop-shadow(0 0 40px rgba(46,230,160,0.45))" />`, (t) => {
+  if (t < 10.6 || t > 23.7) return null;
+  const mv = eio(p(t, 12.3, 0.55)), out = eio(p(t, 23.3, 0.35));
+  return { x: CX, y: lerp(1150, 290, mv), o: 1 - out, s: lerp(1, 0.52, mv), b: out * 10 };
+});
+const wmImg = wm.querySelector("img");
+subs.push((t) => {
+  const k = eo(p(t, 10.65, 0.7));
+  wmImg.style.clipPath = `inset(0 0 0 ${(1 - k) * 100}%)`;
+});
+
+// ═══ Scene 5 — one platform (12.6 – 16.8) ════════════════════════════
+headline("منصةٌ واحدة تجمع لك", { y: 520, start: 12.7, end: 16.45, size: 90, hl: ["واحدة"] });
+const feats = [
+  ["briefcase", "عروض التوظيف", "مذيع · محرر · مونتير · مصوّر", "جديد"],
+  ["graduation-cap", "الدورات", "تكوين مع محترفين في الميدان", "سجّل"],
+  ["trophy", "المسابقات", "جوائز وفرص للظهور", "شارك"],
+];
+feats.forEach(([icon, title, sub, badge], i) => {
+  const st = 13.2 + i * 0.45, y = 790 + i * 225, dir = i % 2 ? -1 : 1;
+  const d = A(`<div class="feat"><div class="ftile">${ic(icon, 66, "#fff", 2.2)}</div><div><div class="ftitle">${title}</div><div class="fsub">${sub}</div></div><div class="fbadge">${badge}</div></div>`, (t) => {
+    if (t < st || t > 16.9) return null;
+    const k = eo(p(t, st, 0.6)), out = eio(p(t, 16.35 + i * 0.06, 0.4));
+    return { x: CX + (1 - k) * 420 * dir + out * -380 * dir, y, o: cl(k * 1.3) * (1 - out), b: (1 - k) * 10 + out * 10 };
+  });
+  const b = d.querySelector(".fbadge");
+  subs.push((t) => { const k = back(p(t, st + 0.55, 0.4)); b.style.opacity = cl(k * 1.5); b.style.transform = `scale(${0.3 + 0.7 * k})`; });
+});
+
+// ═══ Scene 6 — your work, on show (16.8 – 19.6) ══════════════════════
+headline("ومساحةً تعرض | فيها أعمالك.", { y: 520, start: 16.85, end: 19.3, size: 88, hl: ["أعمالك."] });
+const fmt = (n) => (n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(Math.round(n)));
+const works = [
+  { title: "تقرير مصوّر", bg: "linear-gradient(135deg,#0f5132,#00a355)", kind: "video", likes: 128, views: 2400 },
+  { title: "تعليق صوتي", bg: "linear-gradient(135deg,#123a5c,#1f8a70)", kind: "audio", likes: 96, views: 1800 },
+  { title: "صور ميدانية", bg: "linear-gradient(135deg,#3b2a12,#b7791f)", kind: "photo", likes: 214, views: 3100 },
+  { title: "مقال رأي", bg: "linear-gradient(135deg,#2a1748,#6b46c1)", kind: "article", likes: 73, views: 950 },
+];
+works.forEach((w, i) => {
+  const col = i % 2, row = Math.floor(i / 2);
+  const x = col ? 320 : 760, y = 880 + row * 440, st = 17.15 + i * 0.2;
+  const inner =
+    w.kind === "video" ? `<div class="pbtn">${ic("play", 52, "#006233", 2.4, "#006233")}</div>`
+    : w.kind === "audio" ? `<div class="wave">${Array.from({ length: 13 }, () => "<i></i>").join("")}</div>`
+    : w.kind === "photo" ? ic("camera", 110, "#fff", 1.8)
+    : ic("file-text", 110, "#fff", 1.8);
+  const d = A(`<div class="work"><div class="thumb" style="background:${w.bg}">${inner}</div><div class="wbody"><div class="wtitle">${w.title}</div>
+     <div class="wmeta"><span>${ic("heart", 34, "#ff5a7a", 2.4, "#ff5a7a")}<b class="lk">0</b></span><span>${ic("eye", 34, "#a9cdb8")}<b class="vw">0</b></span></div></div></div>`, (t) => {
+    if (t < st || t > 19.7) return null;
+    const k = back(p(t, st, 0.55)), out = eio(p(t, 19.25 + i * 0.04, 0.35));
+    return { x, y: y + (1 - cl(k)) * 80, o: cl(k * 1.4) * (1 - out), s: (0.7 + 0.3 * k) * (1 - out * 0.1), b: out * 10 };
+  });
+  const lk = d.querySelector(".lk"), vw = d.querySelector(".vw"), bars = [...d.querySelectorAll(".wave i")];
+  subs.push((t) => {
+    const k = eo(p(t, st + 0.3, 1.6));
+    lk.textContent = fmt(w.likes * k); vw.textContent = fmt(w.views * k);
+    bars.forEach((b, j) => { b.style.height = `${30 + 100 * Math.abs(Math.sin(t * 6 + j * 0.7))}px`; });
+  });
+  // hearts drifting up from the card
+  for (let h = 0; h < 2; h++) {
+    const hs = 17.9 + i * 0.25 + h * 0.6, hx = x + (RB() - 0.5) * 200;
+    A(ic("heart", 46, "#ff5a7a", 2, "#ff5a7a"), (t) => {
+      if (t < hs || t > hs + 1.3) return null;
+      const k = p(t, hs, 1.3);
+      return { x: hx + Math.sin(k * 6) * 20, y: y - 60 - k * 260, o: Math.sin(k * Math.PI), s: 0.6 + k * 0.6 };
+    });
+  }
+});
+
+// ═══ Scene 7 — more (19.6 – 23.6) ════════════════════════════════════
+const kin = [["فرصٌ أكثر…", 19.7], ["تدريبٌ أكثر…", 20.55], ["تواصلٌ أكثر…", 21.4]];
+kin.forEach(([txt, st], i) =>
+  headline(txt, { y: 640 + i * 165, start: st, end: 23.3, size: 112, hl: ["أكثر…"], dimAt: kin[i + 1]?.[1] ?? 22.25, dimTo: 0.5 }));
+headline("وسندٌ لك.", { y: 1200, start: 22.3, end: 23.3, size: 170, hl: ["وسندٌ", "لك."] });
+const sw = A(`<svg class="swoosh" viewBox="0 0 620 70" fill="none"><path id="swp" d="M600 40 C 450 10, 200 70, 20 30" stroke="url(#sg)" stroke-width="12" stroke-linecap="round"/>
+  <defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-color="#00a355"/><stop offset="1" stop-color="#2ee6a0"/></linearGradient></defs></svg>`, (t) => {
+  if (t < 22.5 || t > 23.7) return null;
+  const out = eio(p(t, 23.3, 0.35));
+  return { x: CX, y: 1340 - out * 50, o: 1 - out, b: out * 12 };
+});
+const swp = sw.querySelector("#swp");
+subs.push((t) => { const L = 640; swp.style.strokeDasharray = L; swp.style.strokeDashoffset = L * (1 - eo(p(t, 22.6, 0.5))); });
+
+// ═══ Scene 8 — sign-off (23.6 – end) ═════════════════════════════════
+[0, 1].forEach((i) => A(`<div class="ring"></div>`, (t) => {
+  const st = 23.7 + i * 0.35;
+  if (t < st || t > st + 1.6) return null;
+  const k = eo(p(t, st, 1.6));
+  return { x: CX, y: 720, o: (1 - k) * 0.8, s: 0.5 + k * 1.6 };
+}));
+A(`<img class="logoimg" src="icon-512.png" style="width:330px;height:330px" />`, (t) => {
+  if (t < 23.65) return null;
+  const k = back(p(t, 23.7, 0.65));
+  return { x: CX, y: 720 + Math.sin(t * 2.2) * 6, o: cl(k * 1.6), s: 0.3 + 0.7 * k };
+});
+const wm2 = A(`<img class="logoimg" src="logo.png" style="width:600px;filter:drop-shadow(0 0 36px rgba(46,230,160,0.5))" />`, (t) => {
+  if (t < 24.0) return null;
+  return { x: CX, y: 975, o: 1 };
+});
+const wm2Img = wm2.querySelector("img");
+subs.push((t) => { wm2Img.style.clipPath = `inset(0 0 0 ${(1 - eo(p(t, 24.0, 0.7))) * 100}%)`; });
+headline("المنصة الإعلامية", { y: 1175, start: 24.55, end: 99, size: 80 });
+headline("الجزائرية الشاملة", { y: 1280, start: 24.9, end: 99, size: 80, hl: ["الجزائرية", "الشاملة"] });
+A(`<div class="url">sanadz.media</div>`, (t) => {
+  if (t < 25.5) return null;
+  const k = back(p(t, 25.55, 0.55));
+  const pulse = 1 + 0.025 * Math.sin((t - 26) * 3.2) * p(t, 26.2, 0.5);
+  return { x: CX, y: 1450, o: cl(k * 1.5), s: (0.6 + 0.4 * k) * pulse };
+});
+
+// ── render ─────────────────────────────────────────────────────────
+window.DURATION = 28.0;
+window.render = (t) => {
+  bg(t);
+  for (const { d, fn } of anims) apply(d, fn(t));
+  for (const s of subs) s(t);
+  // a gentle fade at the very start and end, so the loop is not a hard cut
+  stage.style.opacity = Math.min(p(t, 0, 0.25), 1 - p(t, window.DURATION - 0.35, 0.35));
+};
+window.ready = (async () => {
+  const faces = ["700 40px Cairo", "800 40px Cairo", "900 40px Cairo", "500 40px Tajawal", "700 40px Tajawal"];
+  await Promise.all(faces.flatMap((f) => [document.fonts.load(f, "سند الإعلام"), document.fonts.load(f, "sanadz.media 123…")]));
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((im) => (im.complete ? 0 : new Promise((r) => (im.onload = r)))));
+  window.render(0);
+  return true;
+})();
+</script>
+</body>
+</html>
