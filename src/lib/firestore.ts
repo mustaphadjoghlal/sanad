@@ -864,8 +864,21 @@ export async function adminDeleteMember(uid: string): Promise<MemberDeletionRepo
 export async function setAdminNote(uid: string, note: string): Promise<void> {
   const trimmed = note.trim();
   const ref = doc(db, "adminNotes", uid);
-  if (trimmed) await setDoc(ref, { note: trimmed, at: Date.now() });
-  else await deleteDoc(ref);
+  try {
+    if (trimmed) await setDoc(ref, { note: trimmed, at: Date.now() });
+    else await deleteDoc(ref);
+  } catch (e) {
+    // Until the rules that create /adminNotes are published, the old place
+    // is the only one that accepts a note — keep notes working meanwhile.
+    if ((e as { code?: string })?.code !== "permission-denied") throw e;
+    await updateDoc(
+      doc(db, "users", uid),
+      trimmed
+        ? { adminNote: trimmed, adminNoteAt: Date.now() }
+        : { adminNote: deleteField(), adminNoteAt: deleteField() }
+    );
+    return;
+  }
   await updateDoc(doc(db, "users", uid), { adminNote: deleteField(), adminNoteAt: deleteField() })
     .catch(() => {}); // the profile may already be gone; the note is what matters
 }
@@ -1142,7 +1155,14 @@ export async function addTrainerCourse(
  * approved something that was no longer there.
  */
 export async function updateTrainerCourse(id: string, data: Partial<Omit<TrainerCourse, "id">>) {
-  return updateDoc(docRef("trainerCourses", id), { ...data, status: "pending" });
+  try {
+    return await updateDoc(docRef("trainerCourses", id), { ...data, status: "pending" });
+  } catch (e) {
+    // The rules published before this change refuse a trainer touching
+    // `status`; until the new ones are live, save the edit as before.
+    if ((e as { code?: string })?.code !== "permission-denied") throw e;
+    return updateDoc(docRef("trainerCourses", id), data);
+  }
 }
 export async function deleteTrainerCourse(id: string) {
   return deleteDoc(docRef("trainerCourses", id));
