@@ -6,6 +6,7 @@ import type { Job } from "../../lib/types";
 import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
+import { CardCover } from "./Cover";
 
 const employmentMap: Record<string, { label: string; bg: string; color: string }> = {
   fulltime:        { label: "دوام كلي",          bg: "rgba(0,80,40,0.35)",   color: "#66bb6a" },
@@ -115,31 +116,21 @@ export default function Jobs() {
                 style={{ background: "linear-gradient(145deg, #141414, #101010)", textDecoration: "none", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}
               >
                 {/* Cover */}
-                {j.image ? (
-                  <div className="relative overflow-hidden" style={{ height: "160px" }}>
-                    <img loading="lazy" decoding="async" src={j.image} alt={j.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    {j.employmentType && (() => {
-                      const s = employmentMap[j.employmentType];
-                      return s ? (
-                        <span className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full" style={{ background: s.bg, color: s.color, backdropFilter: "blur(4px)" }}>
-                          {s.label}
-                        </span>
-                      ) : null;
-                    })()}
-                  </div>
-                ) : (
-                  <div className="relative" style={{ height: "160px", background: "linear-gradient(135deg, var(--p-15), var(--p-05))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Briefcase size={44} style={{ color: "var(--p-30)" }} />
-                    {j.employmentType && (() => {
-                      const s = employmentMap[j.employmentType];
-                      return s ? (
-                        <span className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full" style={{ background: s.bg, color: s.color }}>
-                          {s.label}
-                        </span>
-                      ) : null;
-                    })()}
-                  </div>
-                )}
+                <CardCover
+                  src={j.image}
+                  alt={j.title}
+                  imgClassName="transition-transform duration-500 group-hover:scale-105"
+                  fallback={<Briefcase size={44} style={{ color: "var(--p-30)" }} />}
+                >
+                  {j.employmentType && (() => {
+                    const s = employmentMap[j.employmentType];
+                    return s ? (
+                      <span className="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full" style={{ background: s.bg, color: s.color, backdropFilter: "blur(4px)" }}>
+                        {s.label}
+                      </span>
+                    ) : null;
+                  })()}
+                </CardCover>
 
                 {/* Content */}
                 <div className="p-4 flex flex-col gap-2">

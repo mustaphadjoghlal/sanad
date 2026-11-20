@@ -5,6 +5,7 @@ import { subscribeToNews } from "../../lib/firestore";
 import type { NewsItem, NewsCategory } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
+import { CardCover } from "./Cover";
 
 const categoryColors: Record<NewsCategory, string> = {
   "قناة جديدة": "rgba(0,80,40,0.3)",
@@ -103,7 +104,7 @@ export default function NewsPage() {
                 className="card-glow rounded-2xl overflow-hidden animate-fade-in-up block"
                 style={{ textDecoration: "none", background: "linear-gradient(145deg, #141414, #101010)", opacity: 0, animationFillMode: "forwards", animationDelay: `${i * 0.05}s` }}
               >
-                {item.image && <div style={{ height: "180px", overflow: "hidden" }}><img loading="lazy" decoding="async" src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
+                {item.image && <CardCover src={item.image} alt={item.imageAlt || item.title} />}
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <span

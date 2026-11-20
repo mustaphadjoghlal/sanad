@@ -6,6 +6,7 @@ import type { NewsItem, NewsCategory } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { newsArticle, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 import { safeUrl } from "../../lib/url";
+import { DetailCover } from "./Cover";
 
 const categoryColors: Record<NewsCategory, string> = {
   "قناة جديدة": "rgba(0,80,40,0.3)",
@@ -58,12 +59,7 @@ export default function NewsDetail() {
   return (
     <div dir="rtl" style={{ background: "#0e0e0e", minHeight: "100vh" }}>
       {/* Cover image */}
-      {item.image && (
-        <div style={{ height: "320px", overflow: "hidden", position: "relative" }}>
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, #0e0e0e 100%)", zIndex: 1 }} />
-          <img loading="lazy" decoding="async" src={item.image} alt={item.imageAlt || item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        </div>
-      )}
+      {item.image && <DetailCover src={item.image} alt={item.imageAlt || item.title} />}
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Link
@@ -106,7 +102,7 @@ export default function NewsDetail() {
                   src={img.url}
                   alt={img.alt}
                   className="w-full rounded-xl"
-                  style={{ border: "1px solid var(--p-20)", objectFit: "cover", maxHeight: "480px" }}
+                  style={{ border: "1px solid var(--p-20)", objectFit: "contain", maxHeight: "480px", background: "#060a07" }}
                 />
                 {img.alt && (
                   <figcaption className="text-xs mt-2 text-center" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>

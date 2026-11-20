@@ -8,6 +8,7 @@ import { usePageTitle } from "../../lib/usePageTitle";
 import { sanitizeHtml } from "../../lib/sanitize";
 import { jobPosting, breadcrumbs, useStructuredData } from "../../lib/structuredData";
 import { safeUrl } from "../../lib/url";
+import { DetailCover } from "./Cover";
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -71,7 +72,7 @@ export default function JobDetail() {
 
       {/* Cover image */}
       {j.image ? (
-        <div className="w-full mt-4 overflow-hidden" style={{ maxHeight: "420px" }}><img loading="lazy" decoding="async" src={j.image} alt={j.title} className="w-full object-cover" style={{ maxHeight: "420px", objectPosition: "center" }} /></div>
+        <div className="mt-4"><DetailCover src={j.image} alt={j.title} /></div>
       ) : (
         <div
           className="w-full mt-4 flex items-center justify-center"
