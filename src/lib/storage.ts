@@ -23,11 +23,19 @@ function describeStorageError(error: unknown, file?: File): string {
   return (error as Error)?.message ?? "خطأ غير معروف";
 }
 
+/**
+ * Uploads a picture. It is shrunk first unless the caller already did that
+ * (`compress: false`): product, course, job and news images used to go up
+ * exactly as they came off the phone, up to 5 MB each, and every visitor of a
+ * listing then downloaded them at full size.
+ */
 export async function uploadImage(
   path: string,
-  file: File,
-  onProgress?: (percent: number) => void
+  original: File,
+  onProgress?: (percent: number) => void,
+  { compress = true }: { compress?: boolean } = {}
 ): Promise<string> {
+  const file = compress ? await compressImage(original) : original;
   const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
   const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -80,12 +88,18 @@ export async function compressImage(
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     bitmap.close();
 
+    // A PNG may be a logo with a transparent background, which JPEG would
+    // fill with black. WebP keeps the transparency; a browser that cannot
+    // encode WebP hands back a PNG instead, which the size check below sends
+    // back to the original.
+    const target = file.type === "image/png" ? "image/webp" : "image/jpeg";
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", quality)
+      canvas.toBlob(resolve, target, quality)
     );
-    if (!blob || blob.size >= file.size) return file;
+    if (!blob || blob.size >= file.size || !blob.type.startsWith("image/")) return file;
 
-    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
+    const extension = blob.type === "image/webp" ? ".webp" : blob.type === "image/png" ? ".png" : ".jpg";
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + extension, { type: blob.type });
   } catch {
     return file;
   }
@@ -115,10 +129,10 @@ export async function uploadWorkImage(
   const thumb = await compressImage(file, 600, 0.7);
 
   const url = await uploadImage(`works/${uid}`, renamed(full, "full"), (p) =>
-    onProgress?.(Math.round(p * 0.8))
+    onProgress?.(Math.round(p * 0.8)), { compress: false }
   );
   const cover = await uploadImage(`works/${uid}`, renamed(thumb, "cover"), (p) =>
-    onProgress?.(80 + Math.round(p * 0.2))
+    onProgress?.(80 + Math.round(p * 0.2)), { compress: false }
   );
   return { url, cover };
 }
@@ -158,7 +172,7 @@ export async function uploadProfilePhoto(
   onProgress?: (percent: number) => void
 ): Promise<string> {
   const photo = await compressImage(file, 800, 0.85);
-  return uploadImage(`profile-photos/${uid}`, photo, onProgress);
+  return uploadImage(`profile-photos/${uid}`, photo, onProgress, { compress: false });
 }
 
 /** Every folder a member's uploads can land in, each keyed by their uid. */

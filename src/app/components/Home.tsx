@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Briefcase, Tv, Trophy, ArrowLeft, Users, CalendarDays, Newspaper, ChevronLeft, ChevronRight, Store, MapPin } from "lucide-react";
-import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, subscribeToWorks } from "../../lib/firestore";
+import { subscribeToFeatured, subscribeToCollection, subscribeToFirstBy, subscribeToSiteContent, getLatestNews, subscribeToWorks } from "../../lib/firestore";
+
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem, Work } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 import heroImage from "../assets/hero.webp";
 import { usePageTitle } from "../../lib/usePageTitle";
 import WorkCard from "./WorkCard";
 import { CardCover } from "./Cover";
+
+/** How many documents a front-page block reads to show its 8. */
+const HOME_FETCH = 30;
 
 /* ── Animated counter ── */
 function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
@@ -203,12 +207,14 @@ export default function Home() {
   useEffect(() => {
     const unsubs = [
       subscribeToFeatured<Course>("courses",       setFeaturedCourses, noop),
+      // The front page shows 8 of each, so it reads a few more than 8 (room
+      // for pending ones to be filtered out) instead of the whole collection.
       subscribeToCollection<Job>("jobs", (d) => {
         const approved = d.filter((j) => j.status === "approved" || !j.status);
         setFeaturedJobs([...approved].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8));
-      }, noop),
+      }, noop, HOME_FETCH),
       subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3)), noop),
-      subscribeToCollection<Competition>("competitions", (comps) => {
+      subscribeToFirstBy<Competition>("competitions", "startDate", "asc", HOME_FETCH, (comps) => {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
         setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 8));
       }, noop),

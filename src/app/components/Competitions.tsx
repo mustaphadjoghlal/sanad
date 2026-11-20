@@ -7,6 +7,8 @@ import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
 import { CardCover } from "./Cover";
+import { ShowMore } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 const typeLabel: Record<string, string> = { university: "جامعية", national: "وطنية", international: "دولية" };
 const typeBg: Record<string, string>    = { university: "rgba(30,100,180,0.45)", national: "rgba(0,100,50,0.45)", international: "rgba(160,80,0,0.45)" };
@@ -35,6 +37,8 @@ export default function Competitions() {
     const matchType = typeFilter ? c.type === typeFilter : true;
     return isVisible && matchSearch && matchType;
   });
+
+  const { shown, remaining, more } = useShowMore(filtered);
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -108,7 +112,7 @@ export default function Competitions() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((c, i) => (
+            {shown.map((c, i) => (
               <Link
                 key={c.id}
                 to={`/competitions/${c.id}`}
@@ -152,6 +156,7 @@ export default function Competitions() {
                 </div>
               </Link>
             ))}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
       </div>

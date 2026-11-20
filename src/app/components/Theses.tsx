@@ -6,6 +6,8 @@ import type { Thesis, ThesisSpecialty } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { matchesQuery } from "../../lib/text";
 import LoadError from "./LoadError";
+import { ShowMore, CardGridSkeleton } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 const SPECIALTIES: ThesisSpecialty[] = ["إعلام واتصال", "صحافة", "سمعي بصري", "إعلام آلي"];
 
@@ -45,6 +47,8 @@ export default function ThesesPage() {
     const matchSearch = matchesQuery(q, t.title, t.author, t.university, t.supervisor, ...(t.keywords ?? []));
     return matchSpec && matchYear && matchSearch;
   });
+
+  const { shown, remaining, more } = useShowMore(filtered);
 
   return (
     <div dir="rtl" style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -132,14 +136,14 @@ export default function ThesesPage() {
         {loadError ? (
           <LoadError />
         ) : loading ? (
-          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
+          <CardGridSkeleton withImage={false} />
         ) : filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
             {items.length === 0 ? "لم يتم إضافة مذكرات بعد." : "لا توجد نتائج."}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((t, i) => (
+            {shown.map((t, i) => (
               <Link
                 key={t.id}
                 to={`/theses/${t.id}`}
@@ -179,6 +183,7 @@ export default function ThesesPage() {
                 </div>
               </Link>
             ))}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
       </div>

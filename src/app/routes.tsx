@@ -42,13 +42,22 @@ const ForgotPassword = lazy(() => import("./components/auth/ForgotPassword"));
 const AuthAction = lazy(() => import("./components/auth/AuthAction"));
 const UserDashboard = lazy(() => import("./components/user/UserDashboard"));
 
+/**
+ * Shown while a page's code downloads. It used to be a spinner filling the
+ * whole screen, which reads as "the site hung"; the header stays in place
+ * (it lives in Layout) and this hints at the content about to appear.
+ */
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#0e0e0e" }}>
-      <div
-        className="w-10 h-10 rounded-full animate-spin"
-        style={{ border: "3px solid rgba(0, 98, 51, 0.2)", borderTopColor: "#00a355" }}
-      />
+    <div className="min-h-screen" style={{ background: "#0e0e0e" }} aria-busy="true" aria-label="جاري التحميل">
+      <div className="container mx-auto px-4 py-10 animate-pulse">
+        <div style={{ height: "28px", width: "40%", background: "var(--p-10, rgba(0,98,51,0.1))", borderRadius: "6px", marginBottom: "2rem" }} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-xl" style={{ height: "220px", background: "linear-gradient(145deg,#141414,#101010)", border: "1px solid var(--p-15, rgba(0,98,51,0.15))" }} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

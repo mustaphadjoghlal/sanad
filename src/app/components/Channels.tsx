@@ -7,6 +7,8 @@ import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
 import { safeUrl } from "../../lib/url";
+import { ShowMore, CardGridSkeleton } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 /*
  * Category badges: a tinted background with a light text colour, chosen for
@@ -169,6 +171,8 @@ export default function ChannelsPage() {
     { key: "club",       label: "نوادي إعلامية",   icon: Mic },
   ];
 
+  const { shown, remaining, more } = useShowMore(filtered);
+
   return (
     <div className="brand" style={{ background: "var(--b-ink)", minHeight: "100vh" }}>
       {/* Hero */}
@@ -229,7 +233,7 @@ export default function ChannelsPage() {
         {loadError ? (
           <LoadError />
         ) : loading ? (
-          <div className="text-center py-16" style={{ color: "var(--b-text-3)" }}>جاري التحميل...</div>
+          <CardGridSkeleton withImage={false} />
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center rounded-2xl" style={{ border: "1px dashed var(--b-line-strong)" }}>
             <Tv size={32} aria-hidden="true" className="mx-auto mb-3" style={{ color: "var(--b-text-3)" }} />
@@ -237,7 +241,8 @@ export default function ChannelsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((ch) => <ChannelCard key={ch.id} ch={ch} />)}
+            {shown.map((ch) => <ChannelCard key={ch.id} ch={ch} />)}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
 

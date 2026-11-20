@@ -72,6 +72,26 @@ export function subscribeToCollection<T extends { id: string }>(
   );
 }
 
+/**
+ * The first `max` documents by one field — for a block that shows a handful,
+ * so it downloads a handful instead of the whole collection.
+ */
+export function subscribeToFirstBy<T extends { id: string }>(
+  colName: string,
+  field: string,
+  direction: "asc" | "desc",
+  max: number,
+  callback: (items: T[]) => void,
+  onError?: (error: Error) => void
+) {
+  const q = query(col(colName), orderBy(field, direction), limit(max));
+  return onSnapshot(
+    q,
+    (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as T))),
+    (error) => reportError(`${colName}:by-${field}`, error, onError)
+  );
+}
+
 // Subscribe to featured items (featured === true AND status === 'approved' or no status)
 export function subscribeToFeatured<T extends { id: string; createdAt?: number }>(
   colName: string,
