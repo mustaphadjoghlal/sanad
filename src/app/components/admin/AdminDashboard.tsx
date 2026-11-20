@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import {
@@ -13,6 +13,7 @@ import { auth, ADMIN_EMAIL } from "../../../lib/firebase";
 import {
   subscribeToCollection,
   subscribeToAllProfiles,
+  subscribeToAdminNotes,
   addCourse, updateCourse, deleteCourse,
   addJob, updateJob, deleteJob,
   addEquipment, updateEquipment, deleteEquipment,
@@ -1919,7 +1920,13 @@ function MailingList({ profiles, onClose }: { profiles: UserProfile[]; onClose: 
 // ── PROFESSIONALS SECTION ───────────────────────────────────────
 function ProfessionalsSection() {
   const isMobile = useIsMobile();
-  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [rawProfiles, setProfiles] = useState<UserProfile[]>([]);
+  const [notes, setNotes] = useState<Map<string, string> | null>(null);
+  // Notes are kept apart from the public profile; they are shown on it here.
+  const profiles = useMemo(
+    () => rawProfiles.map((p) => ({ ...p, adminNote: notes?.get(p.id) ?? p.adminNote })),
+    [rawProfiles, notes]
+  );
   const [filter, setFilter] = useState<StatusFilter>("all");
   // A معلق صوتي is a محترف like any other, so this is where they are found
   // now — by their job title, rather than in a section of their own that
@@ -1928,6 +1935,16 @@ function ProfessionalsSection() {
   const [legacyVoice, setLegacyVoice] = useState<VoiceArtist[]>([]);
 
   useEffect(() => subscribeToAllProfiles(setProfiles), []);
+  useEffect(() => subscribeToAdminNotes(setNotes), []);
+  // Notes written before they moved still sit on public profiles. Opening
+  // this section moves each one into /adminNotes once; after that there is
+  // nothing left to move.
+  useEffect(() => {
+    if (!notes) return;
+    for (const p of rawProfiles) {
+      if (p.adminNote && !notes.has(p.id)) setAdminNote(p.id, p.adminNote).catch(() => {});
+    }
+  }, [rawProfiles, notes]);
   useEffect(() => subscribeToCollection<VoiceArtist>("voice", setLegacyVoice), []);
   const loadActivity = useCallback(() => {
     setActivity({ status: "loading" });

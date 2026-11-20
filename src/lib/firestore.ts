@@ -855,14 +855,49 @@ export async function adminDeleteMember(uid: string): Promise<MemberDeletionRepo
  * Unlike a rejection this does not take the profile offline, so it can be
  * used to ask an approved member for a better photo without hiding them from
  * the directory meanwhile. An empty note clears it.
+ *
+ * The note lives in /adminNotes/{uid}, which only that member and the admin
+ * can read. It used to sit on the profile itself, and an approved profile is
+ * public — so anyone reading the database directly could read what the admin
+ * had told a member. Any copy still on the profile is removed here.
  */
 export async function setAdminNote(uid: string, note: string): Promise<void> {
   const trimmed = note.trim();
-  await updateDoc(
-    doc(db, "users", uid),
-    trimmed
-      ? { adminNote: trimmed, adminNoteAt: Date.now() }
-      : { adminNote: deleteField(), adminNoteAt: deleteField() }
+  const ref = doc(db, "adminNotes", uid);
+  try {
+    if (trimmed) await setDoc(ref, { note: trimmed, at: Date.now() });
+    else await deleteDoc(ref);
+  } catch (e) {
+    // Until the rules that create /adminNotes are published, the old place
+    // is the only one that accepts a note — keep notes working meanwhile.
+    if ((e as { code?: string })?.code !== "permission-denied") throw e;
+    await updateDoc(
+      doc(db, "users", uid),
+      trimmed
+        ? { adminNote: trimmed, adminNoteAt: Date.now() }
+        : { adminNote: deleteField(), adminNoteAt: deleteField() }
+    );
+    return;
+  }
+  await updateDoc(doc(db, "users", uid), { adminNote: deleteField(), adminNoteAt: deleteField() })
+    .catch(() => {}); // the profile may already be gone; the note is what matters
+}
+
+/** Every admin note, by member id — admin only. */
+export function subscribeToAdminNotes(callback: (notes: Map<string, string>) => void) {
+  return onSnapshot(
+    collection(db, "adminNotes"),
+    (snap) => callback(new Map(snap.docs.map((d) => [d.id, String(d.data().note ?? "")]))),
+    (error) => reportError("adminNotes", error)
+  );
+}
+
+/** The note the admin left for this member, if any. */
+export function subscribeToMyAdminNote(uid: string, callback: (note: string | null) => void) {
+  return onSnapshot(
+    doc(db, "adminNotes", uid),
+    (snap) => callback(snap.exists() ? String(snap.data().note ?? "") || null : null),
+    () => callback(null)
   );
 }
 
@@ -1114,8 +1149,20 @@ export async function addTrainerCourse(
 ) {
   return addDoc(col("trainerCourses"), { ...data, createdAt: Date.now(), status: "pending", featured: false });
 }
+/**
+ * A trainer's edit sends the course back to review. Approving a course and
+ * then letting its text, price or images change freely meant the admin had
+ * approved something that was no longer there.
+ */
 export async function updateTrainerCourse(id: string, data: Partial<Omit<TrainerCourse, "id">>) {
-  return updateDoc(docRef("trainerCourses", id), data);
+  try {
+    return await updateDoc(docRef("trainerCourses", id), { ...data, status: "pending" });
+  } catch (e) {
+    // The rules published before this change refuse a trainer touching
+    // `status`; until the new ones are live, save the edit as before.
+    if ((e as { code?: string })?.code !== "permission-denied") throw e;
+    return updateDoc(docRef("trainerCourses", id), data);
+  }
 }
 export async function deleteTrainerCourse(id: string) {
   return deleteDoc(docRef("trainerCourses", id));

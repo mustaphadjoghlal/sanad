@@ -10,7 +10,7 @@ import {
 import { onAuthStateChanged, sendPasswordResetEmail, deleteUser, signOut, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { 
-  subscribeToUserProfile, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification, deleteAccountData
+  subscribeToUserProfile, subscribeToMyAdminNote, saveUserProfile, isUsernameAvailable, resubmitProfile, sendNotification, deleteAccountData
 } from "../../../lib/firestore";
 import { uploadImage, uploadAudioSample, uploadProfilePhoto, compressImage } from "../../../lib/storage";
 import type { UserProfile, PortfolioWork, WorkType, Gender, AudioSample, SocialLinks } from "../../../lib/types";
@@ -127,6 +127,8 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
   const navigate = useNavigate();
   const [uid, setUid] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(preview ?? null);
+  const [adminNote, setAdminNoteText] = useState<string | null>(null);
+  useEffect(() => (preview || !uid ? undefined : subscribeToMyAdminNote(uid, setAdminNoteText)), [preview, uid]);
   const [authLoading, setAuthLoading] = useState(!preview);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>({
@@ -616,12 +618,12 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
               )}
               {/* A remark from the platform that does not reject the profile,
                   so it shows whatever the status is. */}
-              {profile.adminNote && (
+              {(adminNote ?? profile.adminNote) && (
                 <div className="mt-5 p-4 rounded-xl flex items-start gap-3" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.25)" }}>
                   <MessageSquare size={18} className="shrink-0" style={{ color: "#60a5fa" }} />
                   <div>
                     <p className="text-xs font-semibold mb-1" style={{ color: "#60a5fa" }}>ملاحظة من إدارة المنصة:</p>
-                    <p className="text-xs leading-relaxed" style={{ color: "#bfdbfe" }}>{profile.adminNote}</p>
+                    <p className="text-xs leading-relaxed" style={{ color: "#bfdbfe" }}>{adminNote ?? profile.adminNote}</p>
                   </div>
                 </div>
               )}
