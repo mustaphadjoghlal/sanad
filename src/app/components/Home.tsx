@@ -50,7 +50,7 @@ function OnAirBoard({ jobs, loaded }: { jobs: Job[]; loaded: boolean }) {
               <li key={job.id}>
                 <Link to={`/jobs/${job.id}`} className="b-board__row">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate" style={{ color: "var(--b-text)", fontWeight: 500 }}>{job.title}</p>
+                    <p className="line-clamp-2" style={{ color: "var(--b-text)", fontWeight: 500, lineHeight: 1.6 }}>{job.title}</p>
                     <p className="truncate text-sm mt-1" style={{ color: "var(--b-text-3)" }}>
                       {[job.company, job.location].filter(Boolean).join(" · ")}
                     </p>
@@ -268,8 +268,8 @@ export default function Home() {
         <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: -1, background: "linear-gradient(90deg, rgba(6,10,7,0.2), rgba(6,10,7,0.85) 70%)" }} />
 
         <div className="container mx-auto px-4 pt-12 pb-10 md:pt-20 md:pb-16">
-          <div className="grid md:grid-cols-12 gap-10 items-center">
-            <div className="md:col-span-7">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
+            <div className="md:col-span-7 min-w-0">
               {!ready ? (
                 // First visit, before the copy arrives from Firestore: the
                 // shape of the headline instead of an empty band.
@@ -323,7 +323,7 @@ export default function Home() {
 
             {/* The newest openings, drawn like a broadcast rundown */}
             {(!jobsLoaded || featuredJobs.length > 0) && (
-              <div className="md:col-span-5">
+              <div className="md:col-span-5 min-w-0">
                 <OnAirBoard jobs={featuredJobs} loaded={jobsLoaded} />
               </div>
             )}
