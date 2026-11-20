@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Bell, BellOff, ChevronDown, Facebook, Search, Home as HomeIcon, Newspaper, BookOpen, Camera, Briefcase, Trophy, Users, GraduationCap, Tv, FileText, Store, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Bell, BellOff, ChevronDown, Facebook, Instagram, Search, Home as HomeIcon, Newspaper, BookOpen, Camera, Briefcase, Trophy, Users, GraduationCap, Tv, FileText, Store, LogIn, UserPlus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DropdownMenu, Popover, VisuallyHidden } from "radix-ui";
 import { onAuthStateChanged } from "firebase/auth";
@@ -532,15 +532,26 @@ export default function Layout() {
         <div className="container mx-auto px-4 py-10 flex flex-col items-center text-center gap-4">
           <img src="/logo.png" alt="سند" width={120} height={36} loading="lazy" decoding="async" className="h-9 w-auto" />
           <p className="text-sm" style={{ color: "var(--b-text-2)" }}>المنصة الجزائرية الشاملة لمجال الإعلام</p>
-          <a
-            href="https://www.facebook.com/profile.php?id=61590628561028"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="b-btn b-btn--ghost b-btn--sm"
-          >
-            <Facebook size={15} aria-hidden="true" />
-            صفحتنا على فيسبوك
-          </a>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <a
+              href="https://www.facebook.com/profile.php?id=61590628561028"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="b-btn b-btn--ghost b-btn--sm"
+            >
+              <Facebook size={15} aria-hidden="true" />
+              فيسبوك
+            </a>
+            <a
+              href="https://www.instagram.com/sanadzmedia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="b-btn b-btn--ghost b-btn--sm"
+            >
+              <Instagram size={15} aria-hidden="true" />
+              إنستغرام
+            </a>
+          </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm" aria-label="روابط الموقع">
             {[
               { to: "/about", label: "من نحن" },

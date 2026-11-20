@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Users, Briefcase, BookOpen, Trophy } from "lucide-react";
+import { Facebook, Instagram, Users, Briefcase, BookOpen, Trophy } from "lucide-react";
 import { usePageTitle } from "../../lib/usePageTitle";
 
 export default function About() {
@@ -73,6 +73,13 @@ export default function About() {
               <div>
                 <p className="text-sm font-medium" style={{ color: "var(--theme-text)" }}>صفحة فيسبوك</p>
                 <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>منصة سند الرسمية</p>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/sanadzmedia" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 rounded-xl transition-colors hover:border-[var(--p-25)]" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)", textDecoration: "none" }}>
+              <Instagram size={18} style={{ color: "#e1306c" }} />
+              <div>
+                <p className="text-sm font-medium" style={{ color: "var(--theme-text)" }}>حساب إنستغرام</p>
+                <p className="text-sm" style={{ color: "var(--theme-text-muted)" }} dir="ltr">@sanadzmedia</p>
               </div>
             </a>
           </div>
