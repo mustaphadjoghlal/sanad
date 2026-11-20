@@ -19,8 +19,14 @@ body {
 }
 
 /* Card backgrounds — !important overrides inline styles */
+/*
+ * Cards are always dark, in the logo's palette. They used to take their
+ * colour from the admin theme, but every badge, chip and link inside them is
+ * coloured for a dark card: once the theme card colour was set light, that
+ * left pale text on pale grey across the site.
+ */
 .card-glow {
-  background: linear-gradient(145deg, var(--theme-bg-card, #141414), var(--theme-bg-card-end, var(--theme-bg-card, #141414))) !important;
+  background: linear-gradient(160deg, #111913, #0c120e) !important;
 }
 
 /* Buttons use theme accent */
@@ -200,18 +206,19 @@ body {
 
 /* Green glow card */
 .card-glow {
-  border: 1px solid var(--p-30);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-  /* Scope card text variables inside cards */
-  --theme-text:           var(--theme-card-text);
-  --theme-text-secondary: var(--theme-card-text-secondary);
-  --theme-text-muted:     var(--theme-card-text-muted);
-  --theme-text-dim:       var(--theme-card-text-dim);
+  /* Text inside a card is always light, to match the dark card above. */
+  --theme-text:           #ffffff;
+  --theme-text-secondary: rgba(255, 255, 255, 0.76);
+  --theme-text-muted:     rgba(255, 255, 255, 0.58);
+  --theme-text-dim:       rgba(255, 255, 255, 0.45);
+  --theme-badge-text:     #5ee39c;
 }
 
 .card-glow:hover {
-  border-color: var(--p-60);
-  box-shadow: 0 0 24px var(--p-20), 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-color: rgba(15, 166, 89, 0.4);
+  box-shadow: 0 18px 40px -24px rgba(15, 166, 89, 0.55);
   transform: translateY(-4px);
 }
 
