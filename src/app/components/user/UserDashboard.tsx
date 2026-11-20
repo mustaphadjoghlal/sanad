@@ -379,7 +379,7 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
         setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "audio", title: newWorkTitle.trim(), url }] }));
       } else if (newWorkType === "image") {
         const image = await compressImage(file, 1600, 0.82);
-        const url = await uploadImage(`works/${uid}`, image, (p) => setWorkUploadProgress(p));
+        const url = await uploadImage(`works/${uid}`, image, (p) => setWorkUploadProgress(p), { compress: false });
         setEditForm((p) => ({ ...p, works: [...p.works, { id: genWorkId(), type: "image", title: newWorkTitle.trim(), url }] }));
       }
       setNewWorkTitle("");

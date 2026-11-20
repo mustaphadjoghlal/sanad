@@ -6,6 +6,8 @@ import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
 import { safeUrl } from "../../lib/url";
+import { ShowMore, CardGridSkeleton } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 export default function Courses() {
   usePageTitle("الدورات التدريبية", "دورات تدريبية مجانية ومدفوعة في الصحافة، التصوير، المونتاج والتقديم — منصة سند الإعلامية.");
@@ -29,6 +31,8 @@ export default function Courses() {
     const matchType = typeFilter ? c.type === typeFilter : true;
     return isVisible && matchSearch && matchType;
   });
+
+  const { shown, remaining, more } = useShowMore(filtered);
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -73,7 +77,7 @@ export default function Courses() {
         {loadError ? (
           <LoadError />
         ) : loading ? (
-          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
+          <CardGridSkeleton />
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ animationDelay: "0.35s", opacity: 0, animationFillMode: "forwards" }}>
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
@@ -85,7 +89,7 @@ export default function Courses() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((c, i) => (
+            {shown.map((c, i) => (
               <div key={c.id} className="card-glow rounded-xl p-5 animate-fade-in-up" style={{ background: "linear-gradient(145deg, #141414, #101010)", animationDelay: `${i * 0.07}s`, opacity: 0, animationFillMode: "forwards" }}>
                 <div className="flex items-start justify-between mb-3">
                   <span style={{ background: c.type === "free" ? "var(--p-30)" : "rgba(26,82,118,0.35)", color: c.type === "free" ? "var(--theme-badge-text, #81c784)" : "#7fb3d3", fontSize: "0.72rem", padding: "0.2rem 0.6rem", borderRadius: "9999px" }}>
@@ -103,6 +107,7 @@ export default function Courses() {
                 )}
               </div>
             ))}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
       </div>

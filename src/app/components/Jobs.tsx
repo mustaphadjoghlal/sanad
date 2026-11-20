@@ -7,6 +7,8 @@ import { matchesQuery } from "../../lib/text";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
 import { CardCover } from "./Cover";
+import { ShowMore } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 const employmentMap: Record<string, { label: string; bg: string; color: string }> = {
   fulltime:        { label: "دوام كلي",          bg: "rgba(0,80,40,0.35)",   color: "#66bb6a" },
@@ -39,6 +41,8 @@ export default function Jobs() {
 
   const wilayas = [...new Set(items.map((j) => j.location).filter(Boolean))];
   const types = [...new Set(items.map((j) => j.jobType).filter(Boolean))];
+
+  const { shown, remaining, more } = useShowMore(filtered);
 
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -108,7 +112,7 @@ export default function Jobs() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((j, i) => (
+            {shown.map((j, i) => (
               <Link
                 key={j.id}
                 to={`/jobs/${j.id}`}
@@ -169,6 +173,7 @@ export default function Jobs() {
                 </div>
               </Link>
             ))}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
       </div>

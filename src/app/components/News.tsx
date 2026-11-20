@@ -6,6 +6,8 @@ import type { NewsItem, NewsCategory } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import LoadError from "./LoadError";
 import { CardCover } from "./Cover";
+import { ShowMore, CardGridSkeleton } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 const categoryColors: Record<NewsCategory, string> = {
   "قناة جديدة": "rgba(0,80,40,0.3)",
@@ -35,6 +37,8 @@ export default function NewsPage() {
   }, []);
 
   const filtered = cat === "all" ? items : items.filter((n) => n.category === cat);
+
+  const { shown, remaining, more } = useShowMore(filtered);
 
   return (
     <div dir="rtl" style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -90,14 +94,14 @@ export default function NewsPage() {
         {loadError ? (
           <LoadError />
         ) : loading ? (
-          <div className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>جاري التحميل...</div>
+          <CardGridSkeleton />
         ) : filtered.length === 0 ? (
           <div className="text-center py-20" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
             {items.length === 0 ? "لم يتم نشر أخبار بعد." : "لا توجد أخبار في هذه الفئة."}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((item, i) => (
+            {shown.map((item, i) => (
               <Link
                 key={item.id}
                 to={`/news/${item.id}`}
@@ -123,6 +127,7 @@ export default function NewsPage() {
                 </div>
               </Link>
             ))}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
       </div>

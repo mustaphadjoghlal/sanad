@@ -10,6 +10,8 @@ import { WORK_LABEL } from "../../lib/works";
 import WorkCard from "./WorkCard";
 import { useStructuredData } from "../../lib/structuredData";
 import LoadError from "./LoadError";
+import { ShowMore, CardGridSkeleton } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 const SORTS: { key: Sort; label: string }[] = [
   { key: "featured", label: "مختارات المنصة" },
@@ -61,6 +63,8 @@ export default function WorksPage() {
         }
       : null
   );
+
+  const { shown, remaining, more } = useShowMore(filtered);
 
   if (loadError) return <LoadError />;
 
@@ -133,9 +137,7 @@ export default function WorksPage() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: "center", color: "var(--theme-text-dim, #3a5e3a)", padding: "4rem" }}>
-            جاري التحميل...
-          </div>
+          <CardGridSkeleton />
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem" }}>
             <p style={{ color: "var(--theme-text-dim, #3a5e3a)", marginBottom: "1rem" }}>
@@ -149,7 +151,8 @@ export default function WorksPage() {
           </div>
         ) : (
           <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 15rem), 1fr))" }}>
-            {filtered.map((w) => <WorkCard key={w.id} work={w} />)}
+            {shown.map((w) => <WorkCard key={w.id} work={w} />)}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
       </div>

@@ -6,6 +6,8 @@ import type { UserProfile } from "../../lib/types";
 import { usePageTitle } from "../../lib/usePageTitle";
 import { matchesQuery } from "../../lib/text";
 import LoadError from "./LoadError";
+import { ShowMore, CardGridSkeleton } from "./ListStates";
+import { useShowMore } from "../../lib/useShowMore";
 
 type StoreProfile = UserProfile & { whatsapp?: string };
 
@@ -25,6 +27,8 @@ export default function Stores() {
   }, []);
 
   const filtered = stores.filter((s) => matchesQuery(search, s.name, s.specialty, s.location));
+
+  const { shown, remaining, more } = useShowMore(filtered);
 
   return (
     <div dir="rtl" style={{ background: "#0e0e0e", minHeight: "100vh" }}>
@@ -49,16 +53,14 @@ export default function Stores() {
         {loadError ? (
           <LoadError />
         ) : loading ? (
-          <p className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
-            جاري التحميل...
-          </p>
+          <CardGridSkeleton withImage={false} />
         ) : filtered.length === 0 ? (
           <p className="text-center py-16" style={{ color: "var(--theme-text-dim, #3a5e3a)" }}>
             لا توجد متاجر
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((s) => (
+            {shown.map((s) => (
               <Link
                 key={s.id}
                 to={`/stores/${s.username || s.id}`}
@@ -119,6 +121,7 @@ export default function Stores() {
                 </div>
               </Link>
             ))}
+            <ShowMore remaining={remaining} onMore={more} />
           </div>
         )}
       </div>
