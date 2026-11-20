@@ -105,7 +105,7 @@ export default function Jobs() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
               <Briefcase size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد عروض توظيف حالياً." : "لا توجد نتائج."}</p>
@@ -163,7 +163,7 @@ export default function Jobs() {
                   <div className="flex items-center justify-between mt-1 pt-3" style={{ borderTop: "1px solid var(--p-12)" }}>
                     {j.deadline ? (
                       <span className="flex items-center gap-1 text-xs" style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>
-                        <Calendar size={11} />آخر أجل: {j.deadline}
+                        <Calendar size={11} />آخر أجل: <bdi>{j.deadline}</bdi>
                       </span>
                     ) : <span />}
                     <span className="flex items-center gap-1 text-xs" style={{ color: "var(--theme-accent, #00a355)" }}>

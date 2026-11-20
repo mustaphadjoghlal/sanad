@@ -177,10 +177,9 @@ export default function ChannelsPage() {
     <div className="brand" style={{ background: "var(--b-ink)", minHeight: "100vh" }}>
       {/* Hero */}
       <div className="relative px-4 py-10 md:py-14 overflow-hidden" style={{ borderBottom: "1px solid var(--b-line)", isolation: "isolate" }}>
-        <div className="b-glow" aria-hidden="true" style={{ top: "-22rem", left: "-12rem", zIndex: -1 }} />
         <div className="container mx-auto">
           <span className="b-eyebrow mb-4">دليل سند</span>
-          <h1 className="text-3xl md:text-5xl font-extrabold mt-4 mb-3" style={{ color: "var(--b-text)" }}>دليل القنوات الجزائرية</h1>
+          <h1 className="text-3xl md:text-5xl font-semibold mt-4 mb-3" style={{ color: "var(--b-text)" }}>دليل القنوات الجزائرية</h1>
           <p className="text-base md:text-lg max-w-2xl" style={{ color: "var(--b-text-2)", lineHeight: 1.8 }}>
             الترددات، البريد الإلكتروني، العناوين، ومواقع التواصل — كل ما تحتاجه في مكان واحد
           </p>

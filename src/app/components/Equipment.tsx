@@ -49,7 +49,7 @@ export default function EquipmentPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Seller CTA */}
         <div className="rounded-xl p-6 mb-8 flex items-start gap-4 animate-fade-in-up" style={{ background: "linear-gradient(135deg, var(--p-15), var(--p-05))", border: "1px solid var(--p-35)", animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" }}>
-          <div className="p-3 rounded-xl flex-shrink-0 animate-float" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}>
+          <div className="p-3 rounded-xl flex-shrink-0" style={{ background: "var(--p-20)", border: "1px solid var(--p-30)" }}>
             <Store size={26} style={{ color: "var(--theme-accent, #00a355)" }} />
           </div>
           <div>
@@ -80,7 +80,7 @@ export default function EquipmentPage() {
           <CardGridSkeleton withImage={false} />
         ) : filtered.length === 0 ? (
           <div className="empty-state rounded-xl py-20 text-center animate-fade-in" style={{ opacity: 0, animationFillMode: "forwards" }}>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "var(--p-15)", border: "1px solid var(--p-30)" }}>
               <ShoppingCart size={28} style={{ color: "var(--theme-primary, #006233)" }} />
             </div>
             <p style={{ color: "var(--theme-text-muted, #4a7a4a)" }}>{items.length === 0 ? "لا توجد منتجات بعد." : "لا توجد نتائج."}</p>

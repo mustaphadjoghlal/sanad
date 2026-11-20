@@ -46,7 +46,7 @@ export default function Privacy() {
     <div style={{ background: "#0e0e0e", minHeight: "100vh" }} dir="rtl">
       <div className="relative py-12 px-4" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>
         <div className="container mx-auto max-w-2xl">
-          <h1 className="text-3xl font-black mb-2" style={{ color: "var(--theme-text)" }}>سياسة الخصوصية</h1>
+          <h1 className="text-3xl font-semibold mb-2" style={{ color: "var(--theme-text)" }}>سياسة الخصوصية</h1>
           <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>آخر تحديث: سبتمبر 2026</p>
         </div>
       </div>

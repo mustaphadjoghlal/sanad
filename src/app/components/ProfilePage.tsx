@@ -162,7 +162,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex-1 min-w-0 pb-1">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <h1 className="text-2xl md:text-3xl font-black" style={{ color: "var(--theme-text)" }}>{profile.name}</h1>
+                  <h1 className="text-2xl md:text-3xl font-semibold" style={{ color: "var(--theme-text)" }}>{profile.name}</h1>
                   <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs" style={{ color: "#91e6aa", background: "rgba(0,163,85,.14)", border: "1px solid rgba(0,163,85,.28)" }}><CheckCircle2 size={13} /> معتمد</span>
                 </div>
                 {profile.tagline && <p className="text-base mb-2" style={{ color: "var(--theme-accent)" }}>{profile.tagline}</p>}
