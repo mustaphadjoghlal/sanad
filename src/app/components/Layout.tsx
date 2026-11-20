@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Bell, BellOff, ChevronDown, Facebook, Search } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Bell, BellOff, ChevronDown, Facebook, Search, Home as HomeIcon, Newspaper, BookOpen, Camera, Briefcase, Trophy, Users, GraduationCap, Tv, FileText, Store, LogIn, UserPlus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { Dialog, DropdownMenu, Popover, VisuallyHidden } from "radix-ui";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, getMessagingInstance, FCM_VAPID_KEY, ADMIN_EMAIL, FCM_SW_URL, FCM_SW_SCOPE } from "../../lib/firebase";
 import { subscribeToUserProfile, subscribeToNotifications, markAllNotificationsRead, saveAdminFCMToken, saveUserFCMToken } from "../../lib/firestore";
@@ -24,9 +25,6 @@ export default function Layout() {
   const [userProfile, setUserProfile] = useState<UserProfile | null | "admin">(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const notifRef = useRef<HTMLDivElement>(null);
-  const moreRef = useRef<HTMLDivElement>(null);
   const prevNotifCountRef = useRef(0);
   // What to tell the visitor after they asked for notifications.
   const [notifHint, setNotifHint] = useState<string | null>(null);
@@ -36,20 +34,20 @@ export default function Layout() {
   const location = useLocation();
 
   const navLinks = [
-    { to: "/", label: "الرئيسية" },
-    { to: "/news", label: "أخبار" },
-    { to: "/courses", label: "الدورات" },
-    { to: "/equipment", label: "العتاد" },
-    { to: "/jobs", label: "التوظيف" },
-    { to: "/competitions", label: "المسابقات" },
+    { to: "/", label: "الرئيسية", icon: HomeIcon },
+    { to: "/news", label: "أخبار", icon: Newspaper },
+    { to: "/courses", label: "الدورات", icon: BookOpen },
+    { to: "/equipment", label: "العتاد", icon: Camera },
+    { to: "/jobs", label: "التوظيف", icon: Briefcase },
+    { to: "/competitions", label: "المسابقات", icon: Trophy },
   ];
 
   const moreLinks = [
-    { to: "/professionals", label: "دليل المحترفين" },
-    { to: "/trainers", label: "مراكز التدريب" },
-    { to: "/channels", label: "دليل القنوات" },
-    { to: "/theses", label: "مذكرات التخرج" },
-    { to: "/stores", label: "سوق المعدات" },
+    { to: "/professionals", label: "دليل المحترفين", icon: Users },
+    { to: "/trainers", label: "مراكز التدريب", icon: GraduationCap },
+    { to: "/channels", label: "دليل القنوات", icon: Tv },
+    { to: "/theses", label: "مذكرات التخرج", icon: FileText },
+    { to: "/stores", label: "سوق المعدات", icon: Store },
   ];
 
   useEffect(() => {
@@ -177,17 +175,9 @@ export default function Layout() {
     return () => { cancelled = true; };
   }, [currentUser, userProfile, notifPermission]);
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  useEffect(() => { setMoreOpen(false); }, [location.pathname]);
+  // Radix closes the menus on outside click and Escape; a route change has to
+  // close the notifications list too, since a notification link navigates.
+  useEffect(() => { setNotifOpen(false); }, [location.pathname]);
 
   // All four logout buttons in this header share the one confirm flow.
   const { requestLogout, dialog: logoutDialog } = useLogoutFlow();
@@ -240,8 +230,18 @@ export default function Layout() {
     ? notifications.filter((n) => !n.readBy?.includes(currentUser.uid)).length
     : 0;
 
+  const isActivePath = (to: string) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
+  const moreActive = moreLinks.some((l) => isActivePath(l.to));
+
+  const openNotifications = (open: boolean) => {
+    setNotifOpen(open);
+    if (open && unreadCount > 0 && currentUser) {
+      markAllNotificationsRead(notifications.map((n) => n.id), currentUser.uid);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col" dir="rtl" style={{ background: "#0e0e0e" }}>
+    <div className="min-h-screen flex flex-col brand" dir="rtl" style={{ background: "var(--b-ink)" }}>
       <a href="#main-content" className="skip-link">تخطَّ إلى المحتوى</a>
 
       {/* What the browser answered when notifications were asked for. Shown
@@ -252,9 +252,9 @@ export default function Layout() {
           role="status"
           className="px-4 py-2.5 text-sm text-center"
           style={{
-            background: notifHint.startsWith("✓") ? "rgba(0,163,85,0.14)" : "rgba(180,120,0,0.14)",
+            background: notifHint.startsWith("✓") ? "rgba(15,166,89,0.14)" : "rgba(180,120,0,0.14)",
             color: notifHint.startsWith("✓") ? "#4ade80" : "#fbbf24",
-            borderBottom: "1px solid var(--p-20)",
+            borderBottom: "1px solid var(--b-line)",
             lineHeight: 1.9,
           }}
         >
@@ -271,468 +271,256 @@ export default function Layout() {
       )}
 
       {/* Header */}
-      <header
-        className="sticky top-0 z-50 transition-all duration-300"
-        style={{
-          background: scrolled
-            ? "rgba(11,15,11,0.95)"
-            : "rgba(11,15,11,0.85)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid var(--p-30)",
-          boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.5)" : "none",
-        }}
-      >
+      <header className="b-header sticky top-0 z-50" data-scrolled={scrolled}>
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link
-              to="/"
-              className="flex items-center gap-2 group"
-              style={{ textDecoration: "none" }}
-            >
+          <div className="flex items-center justify-between gap-3 h-16">
+            <Link to="/" className="flex items-center shrink-0" style={{ textDecoration: "none" }}>
               <img
                 src="/logo.png"
                 width={120}
                 height={40}
                 alt="سند — المنصة الجزائرية الإعلامية الشاملة"
-                className="h-10 w-auto transition-all duration-300 group-hover:scale-105"
+                className="h-9 md:h-10 w-auto"
               />
             </Link>
 
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex gap-1 items-center">
-              {navLinks.map((link) => {
-                const isActive = location.pathname === link.to;
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="relative px-3 py-2 text-sm rounded-lg transition-all duration-200"
-                    style={{
-                      color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
-                      background: isActive ? "var(--p-15)" : "transparent",
-                      textDecoration: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        (e.currentTarget as HTMLElement).style.color = "var(--theme-text, #e8f5e9)";
-                        (e.currentTarget as HTMLElement).style.background = "var(--p-10)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        (e.currentTarget as HTMLElement).style.color = "var(--theme-text-secondary, #a5d6a7)";
-                        (e.currentTarget as HTMLElement).style.background = "transparent";
-                      }
-                    }}
-                  >
-                    {link.label}
-                    {isActive && (
-                      <span
-                        className="absolute bottom-0 right-3 left-3 h-0.5 rounded-full"
-                        style={{ background: "linear-gradient(90deg, transparent, var(--theme-accent, #00a355), transparent)" }}
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-
-              {/* More dropdown */}
-              <div className="relative" ref={moreRef}>
-                <button
-                  type="button"
-                  aria-expanded={moreOpen}
-                  aria-haspopup="true"
-                  aria-label="روابط إضافية"
-                  onClick={() => setMoreOpen((o) => !o)}
-                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200"
-                  style={{
-                    color: moreLinks.some((l) => location.pathname.startsWith(l.to)) ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
-                    background: moreOpen ? "var(--p-15)" : "transparent",
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-10)"; }}
-                  onMouseLeave={(e) => { if (!moreOpen) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+            {/* Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-0.5" aria-label="القائمة الرئيسية">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="b-nav-link"
+                  aria-current={isActivePath(link.to) ? "page" : undefined}
                 >
+                  {link.label}
+                </Link>
+              ))}
+
+              <DropdownMenu.Root modal={false} dir="rtl">
+                <DropdownMenu.Trigger className="b-nav-link" data-active={moreActive}>
                   المزيد
-                  <ChevronDown size={14} style={{ transition: "transform 0.2s", transform: moreOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
-                </button>
-                {moreOpen && (
-                  <div
-                    className="absolute top-full mt-1 animate-fade-in-down"
-                    style={{
-                      right: 0, minWidth: "160px", zIndex: 100,
-                      background: "linear-gradient(145deg, #141414, #101010)",
-                      border: "1px solid var(--p-30)",
-                      borderRadius: "0.75rem",
-                      boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {moreLinks.map((link) => {
-                      const isActive = location.pathname.startsWith(link.to);
-                      return (
-                        <Link
-                          key={link.to}
-                          to={link.to}
-                          className="block px-4 py-2.5 text-sm transition-colors"
-                          style={{
-                            color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
-                            background: isActive ? "var(--p-12)" : "transparent",
-                            textDecoration: "none",
-                          }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-10)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isActive ? "var(--p-12)" : "transparent"; }}
-                        >
+                  <ChevronDown size={14} aria-hidden="true" />
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content className="b-pop b-menu brand" align="start" sideOffset={8}>
+                    {moreLinks.map((link) => (
+                      <DropdownMenu.Item key={link.to} asChild>
+                        <Link to={link.to} className="b-menu-item" aria-current={isActivePath(link.to) ? "page" : undefined}>
+                          <link.icon size={16} aria-hidden="true" />
                           {link.label}
                         </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                      </DropdownMenu.Item>
+                    ))}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
             </nav>
 
-            {/* Search icon */}
-            <Link to="/search" aria-label="البحث في الموقع" className="hidden md:flex p-2 rounded-lg transition-all duration-200" style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--p-20)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-10)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
-              <Search size={16} />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/search" aria-label="البحث في الموقع" className="b-icon-btn hidden sm:inline-flex">
+                <Search size={17} />
+              </Link>
 
-            {/* Right side: Auth buttons */}
-            <div className="hidden md:flex items-center gap-2">
-              {/* Notification Permission Prompt */}
-              {currentUser && notifPermission === "default" && (
-                <button
-                  type="button"
-                  onClick={requestNotifPermission}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs animate-pulse"
-                  style={{ color: "#fff", background: "var(--theme-accent, #00a355)", border: "none" }}
-                >
-                  <Bell size={14} />
-                  <span>تفعيل التنبيهات</span>
-                </button>
-              )}
-              {/* Blocked used to look exactly like working: the button above
-                  only shows while the question has not been asked, so someone
-                  who once pressed "Block" saw a clean header and waited for
-                  notifications that could never arrive. */}
-              {currentUser && notifPermission === "denied" && (
-                <span
-                  title="الإشعارات محظورة لهذا الموقع — غيّرها من القفل بجانب شريط العنوان"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
-                  style={{ color: "#f87171", background: "rgba(198,40,40,0.14)", border: "1px solid rgba(198,40,40,0.3)" }}
-                >
-                  <BellOff size={14} />
-                  <span>التنبيهات محظورة</span>
-                </span>
-              )}
-              {/* Holds the row's width so the header does not jump when the
-                  answer arrives. */}
-              {!authResolved && (
-                <span
-                  aria-hidden="true"
-                  style={{ display: "inline-block", width: "8.5rem", height: "2rem" }}
-                />
-              )}
-              {isLoggedOut && (
-                <>
-                  <Link
-                    to="/login"
-                    className="px-4 py-1.5 rounded-lg text-sm transition-all duration-200"
-                    style={{
-                      color: "var(--theme-badge-text, #81c784)",
-                      border: "1px solid var(--p-35)",
-                      textDecoration: "none",
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-                  >
-                    دخول
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="btn-dz px-4 py-1.5 rounded-lg text-sm"
-                    style={{ textDecoration: "none" }}
-                  >
-                    تسجيل
-                  </Link>
-                </>
-              )}
-              {isRegularUser && (
-                <>
-                  <Link
-                    to="/user/dashboard"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
-                    style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-35)", textDecoration: "none" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-                  >
-                    <LayoutDashboard size={14} />
-                    <span>لوحتي</span>
-                  </Link>
-                  <button
-                    onClick={requestLogout}
-                    type="button"
-                    aria-label="تسجيل الخروج"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
-                    style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}
-                  >
-                    <LogOut size={14} />
-                    <span>خروج</span>
+              {/* Desktop account actions */}
+              <div className="hidden lg:flex items-center gap-2">
+                {currentUser && notifPermission === "default" && (
+                  <button type="button" onClick={requestNotifPermission} className="b-btn b-btn--primary b-btn--sm">
+                    <Bell size={14} aria-hidden="true" />
+                    تفعيل التنبيهات
                   </button>
-                </>
-              )}
-              {isAdmin && (
-                <>
-                  <Link
-                    to="/sanad-admin/dashboard"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-200"
-                    style={{ color: "#ffd54f", border: "1px solid rgba(255,213,79,0.3)", textDecoration: "none" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,213,79,0.08)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                )}
+                {/* Blocked used to look exactly like working: someone who once
+                    pressed "Block" saw a clean header and waited for
+                    notifications that could never arrive. */}
+                {currentUser && notifPermission === "denied" && (
+                  <span
+                    title="الإشعارات محظورة لهذا الموقع — غيّرها من القفل بجانب شريط العنوان"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
+                    style={{ color: "#f87171", background: "rgba(198,40,40,0.14)", border: "1px solid rgba(198,40,40,0.3)" }}
                   >
-                    <LayoutDashboard size={14} />
-                    <span>لوحة الأدمن</span>
+                    <BellOff size={14} aria-hidden="true" />
+                    التنبيهات محظورة
+                  </span>
+                )}
+                {/* Holds the row's width so the header does not jump when the
+                    answer arrives. */}
+                {!authResolved && <span aria-hidden="true" style={{ display: "inline-block", width: "8.5rem", height: "2.25rem" }} />}
+                {isLoggedOut && (
+                  <>
+                    <Link to="/login" className="b-btn b-btn--ghost b-btn--sm">دخول</Link>
+                    <Link to="/register" className="b-btn b-btn--primary b-btn--sm">تسجيل</Link>
+                  </>
+                )}
+                {isRegularUser && (
+                  <Link to="/user/dashboard" className="b-btn b-btn--ghost b-btn--sm">
+                    <LayoutDashboard size={15} aria-hidden="true" />
+                    لوحتي
                   </Link>
-                  <button
-                    onClick={requestLogout}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
-                    style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}
-                  >
-                    <LogOut size={14} />
+                )}
+                {isAdmin && (
+                  <Link to="/sanad-admin/dashboard" className="b-btn b-btn--ghost b-btn--sm" style={{ color: "#ffd54f", borderColor: "rgba(255,213,79,0.3)" }}>
+                    <LayoutDashboard size={15} aria-hidden="true" />
+                    لوحة الأدمن
+                  </Link>
+                )}
+                {(isRegularUser || isAdmin) && (
+                  <button type="button" onClick={requestLogout} aria-label="تسجيل الخروج" className="b-icon-btn" style={{ color: "#ef9a9a" }}>
+                    <LogOut size={16} />
                   </button>
-                </>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Notification Bell */}
-            {currentUser && (
-              <div className="relative" ref={notifRef}>
-                <button
-                  type="button"
-                  aria-expanded={notifOpen}
-                  aria-haspopup="true"
-                  aria-label={unreadCount > 0 ? `الإشعارات (${unreadCount} غير مقروء)` : "الإشعارات"}
-                  onClick={() => {
-                    setNotifOpen((o) => !o);
-                    if (!notifOpen && unreadCount > 0 && currentUser) {
-                      markAllNotificationsRead(notifications.map((n) => n.id), currentUser.uid);
-                    }
-                  }}
-                  className="relative p-2 rounded-lg transition-all duration-200"
-                  style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--p-25)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--p-12)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-                >
-                  <Bell size={18} />
-                  {unreadCount > 0 && (
-                    <span
-                      className="absolute -top-1 -left-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-xs font-bold"
-                      style={{ background: "var(--theme-accent)", color: "#fff", fontSize: "0.65rem", padding: "0 4px" }}
+              {/* Notifications */}
+              {currentUser && (
+                <Popover.Root open={notifOpen} onOpenChange={openNotifications}>
+                  <Popover.Trigger
+                    className="b-icon-btn"
+                    aria-label={unreadCount > 0 ? `الإشعارات (${unreadCount} غير مقروء)` : "الإشعارات"}
+                  >
+                    <Bell size={18} />
+                    {unreadCount > 0 && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute -top-1.5 -left-1.5 min-w-[19px] h-[19px] rounded-full flex items-center justify-center font-bold"
+                        style={{ background: "var(--b-green)", color: "var(--b-on-green)", fontSize: "0.65rem", padding: "0 4px", border: "2px solid var(--b-ink)" }}
+                      >
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </Popover.Trigger>
+                  <Popover.Portal>
+                    <Popover.Content
+                      className="b-pop brand overflow-hidden"
+                      align="end"
+                      sideOffset={10}
+                      collisionPadding={8}
+                      dir="rtl"
+                      style={{ width: "min(calc(100vw - 16px), 24rem)" }}
                     >
-                      <span aria-hidden="true">{unreadCount > 9 ? "9+" : unreadCount}</span>
-                    </span>
-                  )}
-                </button>
-                {notifOpen && (
-                  <div
-                    className="rounded-xl overflow-hidden animate-fade-in-down"
-                    style={{
-                      position: "fixed",
-                      top: "72px",
-                      left: "8px",
-                      right: "8px",
-                      zIndex: 200,
-                      background: "#141414",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      boxShadow: "0 16px 40px rgba(0,0,0,0.8)",
-                    }}
-                  >
-                    <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                      <span className="font-semibold text-sm" style={{ color: "#e8f5e9" }}>الإشعارات</span>
-                    </div>
-                    <div className="max-h-72 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="py-8 text-center text-sm" style={{ color: "#6aad6a" }}>لا توجد إشعارات</div>
-                      ) : (
-                        notifications.map((n) => {
-                          const isUnread = !n.readBy?.includes(currentUser.uid);
-                          const inner = (
-                            <div
-                              className="px-4 py-3 transition-colors"
-                              style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: isUnread ? "rgba(0,163,85,0.08)" : "transparent", cursor: n.link ? "pointer" : "default" }}
-                              onMouseEnter={(e) => { if (n.link) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isUnread ? "rgba(0,163,85,0.08)" : "transparent"; }}
-                            >
-                              <div className="flex items-start gap-2">
-                                {isUnread && <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: "var(--theme-accent)" }} />}
-                                <div className={isUnread ? "" : "pr-4"}>
-                                  <p className="text-sm font-medium" style={{ color: "#e8f5e9" }}>{n.title}</p>
-                                  <p className="text-xs mt-0.5" style={{ color: "#a5d6a7" }}>{n.body}</p>
-                                  <p className="text-xs mt-1" style={{ color: "#6aad6a" }}>
+                      <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--b-line)" }}>
+                        <span className="font-bold text-sm">الإشعارات</span>
+                        <Popover.Close className="b-icon-btn" aria-label="إغلاق" style={{ width: "2rem", height: "2rem" }}>
+                          <X size={15} />
+                        </Popover.Close>
+                      </div>
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="py-10 text-center text-sm" style={{ color: "var(--b-text-3)" }}>لا توجد إشعارات</div>
+                        ) : (
+                          notifications.map((n) => {
+                            const isUnread = !n.readBy?.includes(currentUser.uid);
+                            const inner = (
+                              <div
+                                className="px-4 py-3 flex items-start gap-2.5"
+                                style={{ borderBottom: "1px solid var(--b-line)", background: isUnread ? "var(--b-green-08)" : "transparent" }}
+                              >
+                                <span className="w-2 h-2 rounded-full mt-2 flex-shrink-0" style={{ background: isUnread ? "var(--b-green)" : "transparent" }} />
+                                <div className="min-w-0">
+                                  <p className="text-sm font-bold" style={{ color: "var(--b-text)" }}>{n.title}</p>
+                                  <p className="text-xs mt-1" style={{ color: "var(--b-text-2)", lineHeight: 1.7 }}>{n.body}</p>
+                                  <p className="text-[0.7rem] mt-1.5" style={{ color: "var(--b-text-3)" }}>
                                     {new Date(n.createdAt).toLocaleDateString("ar-DZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                                   </p>
                                 </div>
                               </div>
-                            </div>
-                          );
-                          return n.link ? (
-                            <Link key={n.id} to={n.link} onClick={() => setNotifOpen(false)} style={{ textDecoration: "none", display: "block" }}>
-                              {inner}
-                            </Link>
-                          ) : (
-                            <div key={n.id}>{inner}</div>
-                          );
-                        })
+                            );
+                            return n.link ? (
+                              <Link key={n.id} to={n.link} className="block hover:bg-white/[0.03]" style={{ textDecoration: "none" }}>
+                                {inner}
+                              </Link>
+                            ) : (
+                              <div key={n.id}>{inner}</div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </Popover.Content>
+                  </Popover.Portal>
+                </Popover.Root>
+              )}
+
+              {/* Mobile menu: a drawer from the right, with focus trapped
+                  inside and the page behind it locked. */}
+              <Dialog.Root open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <Dialog.Trigger className="b-icon-btn lg:hidden" aria-label="فتح القائمة">
+                  <Menu size={20} />
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay className="b-overlay" />
+                  <Dialog.Content className="b-drawer brand" dir="rtl" aria-describedby={undefined}>
+                    <VisuallyHidden.Root><Dialog.Title>القائمة</Dialog.Title></VisuallyHidden.Root>
+                    <div className="flex items-center justify-between px-4 h-16 shrink-0" style={{ borderBottom: "1px solid var(--b-line)" }}>
+                      <img src="/logo.png" alt="سند" width={110} height={36} className="h-9 w-auto" />
+                      <Dialog.Close className="b-icon-btn" aria-label="إغلاق القائمة">
+                        <X size={20} />
+                      </Dialog.Close>
+                    </div>
+
+                    <nav className="flex-1 overflow-y-auto p-3 flex flex-col gap-0.5" aria-label="القائمة الرئيسية">
+                      <Link to="/search" className="b-drawer-link mb-2" style={{ border: "1px solid var(--b-line-strong)" }}>
+                        <Search size={18} aria-hidden="true" />
+                        <span style={{ color: "var(--b-text-3)" }}>ابحث في سند…</span>
+                      </Link>
+                      {navLinks.map((link) => (
+                        <Link key={link.to} to={link.to} className="b-drawer-link" aria-current={isActivePath(link.to) ? "page" : undefined}>
+                          <link.icon size={18} aria-hidden="true" />
+                          {link.label}
+                        </Link>
+                      ))}
+                      <p className="px-3 pt-4 pb-1.5 text-xs font-bold" style={{ color: "var(--b-text-3)" }}>أدلّة وخدمات</p>
+                      {moreLinks.map((link) => (
+                        <Link key={link.to} to={link.to} className="b-drawer-link" aria-current={isActivePath(link.to) ? "page" : undefined}>
+                          <link.icon size={18} aria-hidden="true" />
+                          {link.label}
+                        </Link>
+                      ))}
+                    </nav>
+
+                    <div className="p-3 flex flex-col gap-2 shrink-0" style={{ borderTop: "1px solid var(--b-line)" }}>
+                      {/* Enabling notifications used to be desktop-only, so on
+                          a phone there was no way to turn them on at all. */}
+                      {currentUser && notifPermission === "default" && (
+                        <button type="button" onClick={() => { requestNotifPermission(); setMobileMenuOpen(false); }} className="b-btn b-btn--primary w-full">
+                          <Bell size={16} aria-hidden="true" />
+                          تفعيل التنبيهات
+                        </button>
+                      )}
+                      {currentUser && notifPermission === "denied" && (
+                        <span className="px-3 py-2.5 rounded-xl text-sm flex items-center gap-2" style={{ color: "#f87171", background: "rgba(198,40,40,0.14)", border: "1px solid rgba(198,40,40,0.3)" }}>
+                          <BellOff size={15} aria-hidden="true" />
+                          التنبيهات محظورة — غيّرها من إعدادات المتصفح
+                        </span>
+                      )}
+                      {isLoggedOut && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Link to="/login" className="b-btn b-btn--ghost"><LogIn size={16} aria-hidden="true" />دخول</Link>
+                          <Link to="/register" className="b-btn b-btn--primary"><UserPlus size={16} aria-hidden="true" />تسجيل</Link>
+                        </div>
+                      )}
+                      {(isRegularUser || isAdmin) && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Link
+                            to={isAdmin ? "/sanad-admin/dashboard" : "/user/dashboard"}
+                            className="b-btn b-btn--ghost"
+                            style={isAdmin ? { color: "#ffd54f", borderColor: "rgba(255,213,79,0.3)" } : undefined}
+                          >
+                            <LayoutDashboard size={16} aria-hidden="true" />
+                            {isAdmin ? "لوحة الأدمن" : "لوحتي"}
+                          </Link>
+                          <button type="button" onClick={() => { setMobileMenuOpen(false); requestLogout(); }} className="b-btn b-btn--ghost" style={{ color: "#ef9a9a", borderColor: "rgba(198,40,40,0.3)" }}>
+                            <LogOut size={16} aria-hidden="true" />
+                            خروج
+                          </button>
+                        </div>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Mobile menu button */}
-            <button
-              type="button"
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-nav"
-              aria-label={mobileMenuOpen ? "إغلاق القائمة" : "فتح القائمة"}
-              className="md:hidden p-2 rounded-lg transition-all duration-200"
-              style={{
-                color: "var(--theme-text-secondary, #a5d6a7)",
-                background: mobileMenuOpen ? "var(--p-20)" : "transparent",
-                border: "1px solid var(--p-30)",
-              }}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
+            </div>
           </div>
-
-          {/* Mobile Nav */}
-          {mobileMenuOpen && (
-            <nav
-              id="mobile-nav"
-              className="md:hidden pb-4 flex flex-col gap-1 animate-fade-in-down"
-              style={{ borderTop: "1px solid var(--p-20)", paddingTop: "0.75rem" }}
-            >
-              {navLinks.map((link, i) => {
-                const isActive = location.pathname === link.to;
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="px-4 py-2.5 rounded-lg transition-all duration-200 animate-slide-in-right"
-                    style={{
-                      color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-secondary, #a5d6a7)",
-                      background: isActive ? "var(--p-15)" : "transparent",
-                      textDecoration: "none",
-                      animationDelay: `${i * 0.05}s`,
-                      opacity: 0,
-                      animationFillMode: "forwards",
-                    }}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-              <div style={{ borderTop: "1px solid var(--p-12)", marginTop: "0.25rem", paddingTop: "0.25rem" }}>
-                {moreLinks.map((link, i) => {
-                  const isActive = location.pathname.startsWith(link.to);
-                  return (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      className="px-4 py-2.5 rounded-lg transition-all duration-200 animate-slide-in-right flex items-center gap-2"
-                      style={{
-                        color: isActive ? "var(--theme-accent, #00a355)" : "var(--theme-text-muted, #4a7a4a)",
-                        background: isActive ? "var(--p-15)" : "transparent",
-                        textDecoration: "none",
-                        animationDelay: `${(navLinks.length + i) * 0.05}s`,
-                        opacity: 0,
-                        animationFillMode: "forwards",
-                        fontSize: "0.875rem",
-                      }}
-                    >
-                      <span style={{ fontSize: "0.7rem", opacity: 0.6 }}>•</span>
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </div>
-              {/* Mobile auth */}
-              <div className="mt-2 pt-2 flex flex-col gap-1.5" style={{ borderTop: "1px solid var(--p-15)" }}>
-                {/* Enabling notifications was offered in the desktop header
-                    only, inside a container hidden below the md breakpoint —
-                    so on a phone there was no way to turn them on at all.
-                    Most members are on phones. */}
-                {currentUser && notifPermission === "default" && (
-                  <button
-                    type="button"
-                    onClick={() => { requestNotifPermission(); setMobileMenuOpen(false); }}
-                    className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full"
-                    style={{ color: "#fff", background: "var(--theme-accent, #00a355)", border: "none" }}
-                  >
-                    <Bell size={14} />
-                    <span>تفعيل التنبيهات</span>
-                  </button>
-                )}
-                {currentUser && notifPermission === "denied" && (
-                  <span
-                    className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2"
-                    style={{ color: "#f87171", background: "rgba(198,40,40,0.14)", border: "1px solid rgba(198,40,40,0.3)" }}
-                  >
-                    <BellOff size={14} />
-                    <span>التنبيهات محظورة — غيّرها من إعدادات المتصفح</span>
-                  </span>
-                )}
-                {isLoggedOut && (
-                  <>
-                    <Link to="/login" className="px-4 py-2.5 rounded-lg text-sm text-center" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)", textDecoration: "none" }}>
-                      دخول
-                    </Link>
-                    <Link to="/register" className="btn-dz px-4 py-2.5 rounded-lg text-sm text-center" style={{ textDecoration: "none" }}>
-                      تسجيل
-                    </Link>
-                  </>
-                )}
-                {isRegularUser && (
-                  <>
-                    <Link to="/user/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "var(--theme-badge-text, #81c784)", border: "1px solid var(--p-30)", textDecoration: "none" }}>
-                      <LayoutDashboard size={14} />
-                      <span>لوحتي</span>
-                    </Link>
-                    <button onClick={requestLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
-                      <LogOut size={14} />
-                      <span>خروج</span>
-                    </button>
-                  </>
-                )}
-                {isAdmin && (
-                  <>
-                    <Link to="/sanad-admin/dashboard" className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2" style={{ color: "#ffd54f", border: "1px solid rgba(255,213,79,0.3)", textDecoration: "none" }}>
-                      <LayoutDashboard size={14} />
-                      <span>لوحة الأدمن</span>
-                    </Link>
-                    <button onClick={requestLogout} className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-2 w-full" style={{ color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.2)" }}>
-                      <LogOut size={14} />
-                      <span>خروج</span>
-                    </button>
-                  </>
-                )}
-              </div>
-            </nav>
-          )}
         </div>
-
-        {/* Bottom accent line */}
-        <div
-          className="h-px"
-          style={{
-            background: "linear-gradient(90deg, transparent, var(--p-40), transparent)",
-          }}
-        />
       </header>
 
       <main id="main-content" className="flex-1" tabIndex={-1}>
@@ -740,67 +528,32 @@ export default function Layout() {
       </main>
 
       {/* Footer */}
-      <footer
-        style={{
-          background: "linear-gradient(180deg, #0e0e0e 0%, #080808 100%)",
-          borderTop: "1px solid var(--p-20)",
-        }}
-      >
-        <div
-          className="h-px mb-8"
-          style={{
-            background: "linear-gradient(90deg, transparent, var(--theme-primary, #006233), var(--theme-accent, #00a355), var(--theme-primary, #006233), transparent)",
-          }}
-        />
-        <div className="container mx-auto px-4 pb-8 text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <img src="/logo.png" alt="سند" width={110} height={36} loading="lazy" decoding="async" className="h-9 w-auto" />
-          </div>
-          <p style={{ color: "var(--theme-text-secondary, #b0bec5)" }} className="mb-4 text-sm">
-            المنصة الجزائرية الشاملة لمجال الإعلام
-          </p>
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <a
-              href="https://www.facebook.com/profile.php?id=61590628561028"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm transition-colors"
-              style={{ color: "var(--theme-text-muted, #78909c)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#1877f2"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted, #78909c)"; }}
-            >
-              <Facebook size={14} />
-              <span>صفحتنا على فيسبوك</span>
-            </a>
-          </div>
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <Link to="/about" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
-              من نحن
-            </Link>
-            <span style={{ color: "var(--p-20)" }}>·</span>
-            <Link to="/privacy" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
-              الخصوصية
-            </Link>
-            <span style={{ color: "var(--p-20)" }}>·</span>
-            <Link to="/terms" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
-              الشروط
-            </Link>
-            <span style={{ color: "var(--p-20)" }}>·</span>
-            <Link to="/search" className="text-xs transition-colors" style={{ color: "var(--theme-text-dim)", textDecoration: "none" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-muted)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--theme-text-dim)"; }}>
-              البحث
-            </Link>
-          </div>
-          <p style={{ color: "var(--theme-text-dim, #455a64)" }} className="text-xs">
-            جميع الحقوق محفوظة © {new Date().getFullYear()}
-          </p>
+      <footer style={{ background: "var(--b-ink)", borderTop: "1px solid var(--b-line)" }}>
+        <div className="container mx-auto px-4 py-10 flex flex-col items-center text-center gap-4">
+          <img src="/logo.png" alt="سند" width={110} height={36} loading="lazy" decoding="async" className="h-9 w-auto" />
+          <p className="text-sm" style={{ color: "var(--b-text-2)" }}>المنصة الجزائرية الشاملة لمجال الإعلام</p>
+          <a
+            href="https://www.facebook.com/profile.php?id=61590628561028"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="b-btn b-btn--ghost b-btn--sm"
+          >
+            <Facebook size={15} aria-hidden="true" />
+            صفحتنا على فيسبوك
+          </a>
+          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm" aria-label="روابط الموقع">
+            {[
+              { to: "/about", label: "من نحن" },
+              { to: "/privacy", label: "الخصوصية" },
+              { to: "/terms", label: "الشروط" },
+              { to: "/search", label: "البحث" },
+            ].map((l) => (
+              <Link key={l.to} to={l.to} className="hover:text-white transition-colors" style={{ color: "var(--b-text-3)", textDecoration: "none" }}>
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <p className="text-xs" style={{ color: "var(--b-text-3)" }}>جميع الحقوق محفوظة © {new Date().getFullYear()}</p>
         </div>
       </footer>
 

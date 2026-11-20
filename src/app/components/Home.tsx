@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Briefcase, Tv, Trophy, ArrowLeft, Users, Zap, Newspaper, ChevronLeft, ChevronRight, Store } from "lucide-react";
+import { BookOpen, Briefcase, Tv, Trophy, ArrowLeft, Users, CalendarDays, Newspaper, ChevronLeft, ChevronRight, Store, MapPin } from "lucide-react";
+import { AspectRatio } from "radix-ui";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, subscribeToWorks } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem, Work } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
@@ -30,73 +31,67 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
   return <span ref={ref}>{val}{suffix}</span>;
 }
 
-/* ── Editorial section header ── */
+/* ── The logo's three bars ── */
+function Bars() {
+  return <span className="b-bars" aria-hidden="true"><span /><span /><span /></span>;
+}
+
+/* ── Signal waves from the logo, used as decoration ── */
+function SignalWaves({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 200 200" fill="none" aria-hidden="true">
+      <circle cx="40" cy="160" r="14" fill="#0fa659" />
+      <path d="M40 106a54 54 0 0 1 54 54" stroke="#0fa659" strokeWidth="12" strokeLinecap="round" />
+      <path d="M40 60a100 100 0 0 1 100 100" stroke="#0fa659" strokeWidth="12" strokeLinecap="round" opacity="0.6" />
+    </svg>
+  );
+}
+
+/* ── Section header ── */
 function SectionHeader({ title, link, linkLabel }: { title: string; link: string; linkLabel: string }) {
   return (
-    <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className="flex-shrink-0 w-1 h-7 rounded-sm" style={{ background: "var(--theme-accent, #00a355)" }} />
-        <h2 className="text-xl font-black" style={{ color: "var(--theme-text, #e8f5e9)" }}>{title}</h2>
-        <div className="h-px flex-1" style={{ background: "var(--p-15)" }} />
+    <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="flex items-center gap-3 min-w-0">
+        <Bars />
+        <h2 className="text-xl md:text-2xl font-extrabold truncate" style={{ color: "var(--b-text)" }}>{title}</h2>
       </div>
-      <Link
-        to={link}
-        className="flex items-center gap-1.5 text-sm mr-6 flex-shrink-0 transition-all duration-200"
-        style={{ color: "var(--theme-accent, #00a355)", textDecoration: "none" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.7"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
-      >
-        {linkLabel} <ArrowLeft size={14} />
+      <Link to={link} className="b-link">
+        {linkLabel} <ArrowLeft size={15} aria-hidden="true" />
       </Link>
     </div>
   );
 }
 
-/* ── Editorial card ── */
-function EditorialCard({ to, children, delay = "0s" }: { to: string; children: React.ReactNode; delay?: string }) {
+function Section({ children, tinted = false }: { children: React.ReactNode; tinted?: boolean }) {
   return (
-    <Link
-      to={to}
-      className="block animate-fade-in-up"
-      style={{
-        textDecoration: "none",
-        background: "#0a0d0a",
-        borderTop: "2px solid var(--p-20)",
-        borderRight: "1px solid var(--p-10)",
-        borderBottom: "1px solid var(--p-10)",
-        borderLeft: "1px solid var(--p-10)",
-        transition: "border-top-color 0.2s, transform 0.2s",
-        opacity: 0,
-        animationFillMode: "forwards",
-        animationDelay: delay,
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderTopColor = "var(--theme-accent, #00a355)";
-        el.style.transform = "translateY(-3px)";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderTopColor = "var(--p-20)";
-        el.style.transform = "translateY(0)";
-      }}
-    >
-      {children}
-    </Link>
+    <section style={{ borderTop: "1px solid var(--b-line)", background: tinted ? "var(--b-surface)" : undefined }}>
+      <div className="container mx-auto px-4 py-10 md:py-16">{children}</div>
+    </section>
+  );
+}
+
+function CardImage({ src, alt, ratio = 16 / 9 }: { src?: string; alt: string; ratio?: number }) {
+  if (!src) return null;
+  return (
+    <div style={{ overflow: "hidden", borderBottom: "1px solid var(--b-line)" }}>
+      <AspectRatio.Root ratio={ratio}>
+        <img loading="lazy" decoding="async" src={src} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      </AspectRatio.Root>
+    </div>
   );
 }
 
 const services = [
-  { icon: BookOpen,  title: "الدورات التدريبية", link: "/courses" },
-  { icon: Briefcase, title: "عروض التوظيف",      link: "/jobs" },
-  { icon: Tv,        title: "دليل القنوات",      link: "/channels" },
-  { icon: Trophy,    title: "المسابقات",          link: "/competitions" },
-  { icon: Newspaper, title: "أخبار الإعلام",     link: "/news" },
-  { icon: Store,     title: "سوق المعدات",       link: "/stores" },
+  { icon: BookOpen,  title: "الدورات التدريبية", desc: "طوّر مهاراتك مع مدرّبين ومراكز معتمدة", link: "/courses" },
+  { icon: Briefcase, title: "عروض التوظيف",      desc: "فرص عمل في المؤسسات الإعلامية",      link: "/jobs" },
+  { icon: Tv,        title: "دليل القنوات",      desc: "القنوات الجزائرية في مكان واحد",       link: "/channels" },
+  { icon: Trophy,    title: "المسابقات",          desc: "مسابقات وطنية وجامعية ودولية",        link: "/competitions" },
+  { icon: Newspaper, title: "أخبار الإعلام",     desc: "آخر مستجدات القطاع الإعلامي",          link: "/news" },
+  { icon: Store,     title: "سوق المعدات",       desc: "كاميرات وصوت وإضاءة بين المحترفين",    link: "/stores" },
 ];
 
 /* ── Auto carousel ── */
-function AutoCarousel({ children }: { children: React.ReactNode[] }) {
+function AutoCarousel({ children, label }: { children: React.ReactNode[]; label: string }) {
   const [idx, setIdx] = useState(0);
   const pausedRef = useRef(false);
   const idxRef = useRef(0);
@@ -104,42 +99,51 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
   const n = children.length;
 
   // idxRef mirrors idx so the interval below always advances from the current
-  // slide rather than the one captured when it was created. Memoising next
-  // makes that explicit instead of leaving it to an omitted dependency.
+  // slide rather than the one captured when it was created.
   const goTo = useCallback((i: number) => { idxRef.current = i; setIdx(i); }, []);
   const prev = useCallback(() => goTo((idxRef.current - 1 + n) % n), [goTo, n]);
   const next = useCallback(() => goTo((idxRef.current + 1) % n), [goTo, n]);
 
   useEffect(() => {
     if (n <= 1) return;
-    const t = setInterval(() => { if (!pausedRef.current) next(); }, 3800);
+    const t = setInterval(() => { if (!pausedRef.current) next(); }, 4500);
     return () => clearInterval(t);
   }, [n, next]);
 
   return (
     <div
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={label}
       onMouseEnter={() => { pausedRef.current = true; }}
       onMouseLeave={() => { pausedRef.current = false; }}
-      onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+      onFocus={() => { pausedRef.current = true; }}
+      onBlur={() => { pausedRef.current = false; }}
+      onTouchStart={(e) => { pausedRef.current = true; touchStartX.current = e.touches[0].clientX; }}
       onTouchEnd={(e) => {
+        pausedRef.current = false;
         if (touchStartX.current === null) return;
         const dx = touchStartX.current - e.changedTouches[0].clientX;
-        if (Math.abs(dx) > 40) { if (dx > 0) next(); else prev(); }
+        // RTL: swiping right moves forward.
+        if (Math.abs(dx) > 40) { if (dx < 0) next(); else prev(); }
         touchStartX.current = null;
       }}
     >
-      {/* Slide — show only active, fade between */}
       <div style={{ position: "relative" }}>
         {children.map((child, i) => (
           <div
             key={i}
+            aria-hidden={i !== idx}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${i + 1} من ${n}`}
             style={{
               opacity: i === idx ? 1 : 0,
               transition: "opacity 0.4s ease",
               position: i === idx ? "relative" : "absolute",
-              top: 0, left: 0, right: 0,
+              inset: 0,
               pointerEvents: i === idx ? "auto" : "none",
-              width: "100%",
+              visibility: i === idx ? "visible" : "hidden",
             }}
           >
             {child}
@@ -147,19 +151,25 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
         ))}
       </div>
 
-      {/* Controls */}
       {n > 1 && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginTop: "1.1rem" }}>
-          <button onClick={prev} type="button" aria-label="السابق" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-            <ChevronRight size={14} />
+        <div className="flex items-center justify-center gap-3 mt-5">
+          <button onClick={prev} type="button" aria-label="السابق" className="b-icon-btn" style={{ width: "2.25rem", height: "2.25rem" }}>
+            <ChevronRight size={16} />
           </button>
-          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          <div className="flex items-center gap-1.5">
             {children.map((_, i) => (
-              <button key={i} onClick={() => goTo(i)} style={{ width: i === idx ? "18px" : "6px", height: "6px", borderRadius: "3px", background: i === idx ? "var(--theme-accent)" : "var(--p-20)", border: "none", cursor: "pointer", padding: 0, transition: "all 0.3s" }} />
+              <button
+                key={i}
+                type="button"
+                onClick={() => goTo(i)}
+                aria-label={`الشريحة ${i + 1}`}
+                aria-current={i === idx}
+                style={{ width: i === idx ? "20px" : "7px", height: "7px", borderRadius: "4px", background: i === idx ? "var(--b-green)" : "rgba(255,255,255,0.18)", border: "none", cursor: "pointer", padding: 0, transition: "all 0.3s" }}
+              />
             ))}
           </div>
-          <button onClick={next} type="button" aria-label="التالي" style={{ background: "var(--p-10)", border: "1px solid var(--p-20)", color: "var(--theme-text-muted)", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-            <ChevronLeft size={14} />
+          <button onClick={next} type="button" aria-label="التالي" className="b-icon-btn" style={{ width: "2.25rem", height: "2.25rem" }}>
+            <ChevronLeft size={16} />
           </button>
         </div>
       )}
@@ -167,6 +177,8 @@ function AutoCarousel({ children }: { children: React.ReactNode[] }) {
   );
 }
 
+const muted = { color: "var(--b-text-3)" } as const;
+const soft = { color: "var(--b-text-2)" } as const;
 
 export default function Home() {
   usePageTitle("", "منصة سند الإعلامية — المنصة الجزائرية الشاملة للإعلام: دورات تدريبية، فرص عمل، معدات، مسابقات، دليل القنوات والمحترفين.", { path: "/" });
@@ -213,6 +225,7 @@ export default function Home() {
 
   const c = content ?? DEFAULT_SITE_CONTENT;
   const ready = content !== null;
+  const fade = (delay: number): React.CSSProperties => ({ opacity: ready ? 1 : 0, transition: `opacity 0.5s ${delay}s` });
 
   const stats = [
     { value: 6,   suffix: "",    label: "خدمات متكاملة" },
@@ -222,569 +235,261 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ background: "#080b08", minHeight: "100vh", position: "relative" }}>
+    <div className="brand" style={{ background: "var(--b-ink)", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
 
-      {/* Grain texture overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          zIndex: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-          opacity: 0.04,
-        }}
-      />
+      {/* ══ HERO ═══════════════════════════════════════════════════════ */}
+      <section style={{ position: "relative", isolation: "isolate" }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, zIndex: -2, pointerEvents: "none",
+            backgroundImage: `url(${heroImage})`, backgroundSize: "cover", backgroundPosition: "center",
+            opacity: 0.32,
+            WebkitMaskImage: "linear-gradient(to bottom, #000 30%, transparent 95%)",
+            maskImage: "linear-gradient(to bottom, #000 30%, transparent 95%)",
+            animation: "hero-zoom 18s ease-in-out infinite alternate",
+          }}
+        />
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: -1, background: "linear-gradient(90deg, rgba(6,10,7,0.2), rgba(6,10,7,0.85) 70%)" }} />
+        <div className="b-glow" aria-hidden="true" style={{ top: "-16rem", left: "-14rem", zIndex: -1 }} />
 
-      <div style={{ position: "relative", zIndex: 1 }}>
+        <div className="container mx-auto px-4 pt-12 pb-10 md:pt-20 md:pb-16">
+          <div className="grid md:grid-cols-12 gap-10 items-center">
+            <div className="md:col-span-7">
+              {c.heroBadge && <div className="b-eyebrow mb-6" style={fade(0)}>{c.heroBadge}</div>}
 
-        {/* ══ HERO ═══════════════════════════════════════════════════════ */}
-        <section style={{ borderBottom: "1px solid var(--p-15)", position: "relative", overflow: "hidden" }}>
-          {/* Top accent line */}
-          <div style={{ height: "2px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)", position: "relative", zIndex: 1 }} />
-
-          {/* Cinematic background — purely aesthetic, never intercepts
-              clicks. Edges dissolve via radial mask (no visible borders),
-              imperceptible 18s zoom. */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 0,
-              pointerEvents: "none",
-              backgroundImage: `url(${heroImage})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              WebkitMaskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
-              maskImage: "radial-gradient(circle, rgba(0,0,0,1) 55%, rgba(0,0,0,0.8) 75%, transparent 100%)",
-              animation: "hero-zoom 18s ease-in-out infinite alternate",
-            }}
-          />
-          {/* Dark overlay — keeps the text fully readable */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 0,
-              pointerEvents: "none",
-              background: "linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.88))",
-            }}
-          />
-
-          <div className="container mx-auto px-4 py-10 md:py-16" style={{ position: "relative", zIndex: 1 }}>
-            <div className="grid md:grid-cols-5 gap-0 items-center">
-
-              {/* Content — right column (RTL = displayed first) */}
-              <div
-                className="md:col-span-3 flex flex-col justify-center md:pl-16"
-                style={{ borderLeft: "1px solid var(--p-12)" }}
+              <h1
+                style={{
+                  fontSize: "clamp(2.6rem, 7vw, 5rem)",
+                  fontWeight: 800,
+                  lineHeight: 1.15,
+                  letterSpacing: 0,
+                  marginBottom: "1.25rem",
+                  color: "var(--b-text)",
+                  ...fade(0.1),
+                }}
               >
-                {/* Label */}
-                <div
-                  className="flex items-center gap-3 mb-8"
-                  style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s" }}
-                >
-                  <div style={{ width: "2rem", height: "1px", background: "var(--theme-accent, #00a355)" }} />
-                  <span style={{ color: "var(--theme-accent, #00a355)", fontSize: "0.7rem", letterSpacing: "0.25em", fontWeight: 700, textTransform: "uppercase" }}>
-                    {c.heroBadge}
+                {c.heroTitle}{" "}
+                <span style={{ color: "var(--b-green)" }}>{c.siteName}</span>
+              </h1>
+
+              <p style={{ ...soft, fontSize: "clamp(1.05rem, 2.2vw, 1.3rem)", fontWeight: 500, lineHeight: 1.7, marginBottom: "0.5rem", ...fade(0.2) }}>
+                {c.heroSubtitle}
+              </p>
+              <p style={{ ...muted, fontSize: "0.95rem", lineHeight: 1.9, maxWidth: "34rem", marginBottom: "2rem", ...fade(0.3) }}>
+                {c.heroDescription}
+              </p>
+
+              <div className="flex flex-wrap gap-3" style={fade(0.4)}>
+                <Link to="/courses" className="b-btn b-btn--primary">
+                  <span>{c.heroCta1}</span>
+                  <ArrowLeft size={18} aria-hidden="true" />
+                </Link>
+                <Link to="/register" className="b-btn b-btn--ghost">
+                  <Users size={18} aria-hidden="true" />
+                  <span>{c.heroCta2}</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Stats: a 2×2 panel beside the text on desktop, a strip under it on phones */}
+            <div className="md:col-span-5 relative">
+              <SignalWaves className="hidden md:block" style={{ position: "absolute", width: "9rem", top: "-4.5rem", left: "-1rem", opacity: 0.5 }} />
+              <div
+                className="grid grid-cols-4 md:grid-cols-2"
+                style={{ background: "var(--b-line)", gap: "1px", border: "1px solid var(--b-line)", borderRadius: "var(--b-radius)", overflow: "hidden", position: "relative" }}
+              >
+                {stats.map((s) => (
+                  <div key={s.label} className="text-center px-1 py-4 md:py-7" style={{ background: "rgba(12,18,14,0.92)" }}>
+                    <div className="text-xl md:text-4xl" style={{ fontWeight: 800, color: "var(--b-green-hi)", lineHeight: 1.1 }}>
+                      <AnimatedCounter target={s.value} suffix={s.suffix} />
+                    </div>
+                    <div className="text-[0.68rem] md:text-sm mt-1.5" style={muted}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ SERVICES ══════════════════════════════════════════════════ */}
+      <Section>
+        <div className="mb-8 flex flex-col items-center text-center gap-3">
+          {c.servicesLabel && <span className="b-eyebrow">{c.servicesLabel}</span>}
+          <h2 className="text-2xl md:text-3xl font-extrabold" style={{ color: "var(--b-text)" }}>{c.servicesTitle}</h2>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          {services.map((s) => (
+            <Link key={s.link} to={s.link} className="b-service">
+              <div className="flex items-center">
+                <span className="b-service__icon"><s.icon size={22} aria-hidden="true" /></span>
+                <ArrowLeft size={16} className="b-service__arrow hidden sm:block" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[0.95rem] md:text-base" style={{ color: "var(--b-text)" }}>{s.title}</h3>
+                <p className="text-xs md:text-sm mt-1" style={{ ...muted, lineHeight: 1.7 }}>{s.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Section>
+
+      {/* ══ WORKS GALLERY ═════════════════════════════════════════════ */}
+      {works.length > 0 && (
+        <Section tinted>
+          <SectionHeader title="أعمال أعضاء المنصة" link="/works" linkLabel="كل الأعمال" />
+          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 14rem), 1fr))" }}>
+            {works.slice(0, 8).map((w) => <WorkCard key={w.id} work={w} />)}
+          </div>
+        </Section>
+      )}
+
+      {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
+      {featuredCourses.length > 0 && (
+        <Section>
+          <SectionHeader title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featuredCourses.slice(0, 3).map((course) => (
+              <Link key={course.id} to={`/courses/${course.id}`} className="b-card">
+                <CardImage src={course.image} alt={course.title} />
+                <div className="p-5">
+                  <h3 className="font-bold mb-1.5 line-clamp-2" style={{ color: "var(--b-text)", fontSize: "1rem" }}>{course.title}</h3>
+                  {course.instructor && <p className="text-sm mb-3" style={muted}>{course.instructor}</p>}
+                  <div className="flex gap-2 flex-wrap">
+                    <span className={course.type === "free" ? "b-chip" : "b-chip b-chip--blue"}>
+                      {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
+                    </span>
+                    {course.duration && <span className="b-chip b-chip--muted">{course.duration}</span>}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* ══ JOBS ══════════════════════════════════════════════════════ */}
+      {featuredJobs.length > 0 && (
+        <Section tinted>
+          <SectionHeader title="فرص عمل" link="/jobs" linkLabel="كل الفرص" />
+          <AutoCarousel label="فرص عمل">
+            {featuredJobs.map((job) => (
+              <Link key={job.id} to={`/jobs/${job.id}`} className="b-card" style={{ maxWidth: "48rem", marginInline: "auto" }}>
+                <CardImage src={job.image} alt={job.title} ratio={2} />
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="font-bold" style={{ color: "var(--b-text)", fontSize: "1.05rem", minWidth: 0, wordBreak: "break-word" }}>{job.title}</h3>
+                    {job.jobType && <span className="b-chip">{job.jobType}</span>}
+                  </div>
+                  <p className="text-sm" style={soft}>{job.company}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs" style={muted}>
+                    {job.location && <span className="inline-flex items-center gap-1"><MapPin size={13} aria-hidden="true" />{job.location}</span>}
+                    {job.deadline && <span className="inline-flex items-center gap-1"><CalendarDays size={13} aria-hidden="true" />آخر أجل: {job.deadline}</span>}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </AutoCarousel>
+        </Section>
+      )}
+
+      {/* ══ FEATURED EQUIPMENT ════════════════════════════════════════ */}
+      {featuredEquipment.length > 0 && (
+        <Section>
+          <SectionHeader title="عتاد مميز" link="/equipment" linkLabel="كل العتاد" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featuredEquipment.map((eq) => (
+              <Link key={eq.id} to={`/equipment/${eq.id}`} className="b-card">
+                <CardImage src={eq.image} alt={eq.name} ratio={4 / 3} />
+                <div className="p-4">
+                  {eq.category && <span className="b-chip mb-2">{eq.category}</span>}
+                  <h3 className="font-bold mt-2 line-clamp-2" style={{ color: "var(--b-text)", fontSize: "0.95rem" }}>{eq.name}</h3>
+                  <p className="mt-1.5 font-bold" style={{ color: "var(--b-green-hi)", fontSize: "0.95rem" }}>{eq.price?.toLocaleString()} دج</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* ══ COMPETITIONS ═════════════════════════════════════════════ */}
+      {upcomingComps.length > 0 && (
+        <Section tinted>
+          <SectionHeader title="مسابقات قادمة" link="/competitions" linkLabel="كل المسابقات" />
+          <AutoCarousel label="مسابقات قادمة">
+            {upcomingComps.map((comp) => (
+              <Link key={comp.id} to={`/competitions/${comp.id}`} className="b-card" style={{ maxWidth: "48rem", marginInline: "auto" }}>
+                <CardImage src={comp.image} alt={comp.name} ratio={2} />
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="font-bold" style={{ color: "var(--b-text)", fontSize: "1.05rem", minWidth: 0, wordBreak: "break-word" }}>{comp.name}</h3>
+                    {comp.type && (
+                      <span className={comp.type === "international" ? "b-chip b-chip--amber" : comp.type === "university" ? "b-chip b-chip--blue" : "b-chip"}>
+                        {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
+                      </span>
+                    )}
+                  </div>
+                  {comp.organizer && <p className="text-sm mb-3" style={soft}>{comp.organizer}</p>}
+                  <span className="inline-flex items-center gap-1.5 text-xs" style={muted}>
+                    <CalendarDays size={13} aria-hidden="true" style={{ color: "var(--b-green)" }} />
+                    {comp.startDate}{comp.endDate && ` — ${comp.endDate}`}
                   </span>
                 </div>
+              </Link>
+            ))}
+          </AutoCarousel>
+        </Section>
+      )}
 
-                {/* H1 */}
-                <h1
-                  style={{
-                    fontSize: "clamp(2.8rem, 7vw, 5.5rem)",
-                    fontWeight: 900,
-                    lineHeight: 1.05,
-                    marginBottom: "1.5rem",
-                    color: "var(--theme-text, #e8f5e9)",
-                    opacity: ready ? 1 : 0,
-                    transition: "opacity 0.5s 0.1s",
-                  }}
-                >
-                  {c.heroTitle}{" "}
-                  <span style={{ color: "var(--theme-accent, #00a355)" }}>{c.siteName}</span>
-                </h1>
-
-                {/* Subtitle */}
-                <p
-                  style={{
-                    color: "var(--theme-text-secondary, #a5d6a7)",
-                    fontSize: "clamp(1rem, 2vw, 1.2rem)",
-                    lineHeight: 1.6,
-                    marginBottom: "0.75rem",
-                    opacity: ready ? 1 : 0,
-                    transition: "opacity 0.5s 0.2s",
-                  }}
-                >
-                  {c.heroSubtitle}
-                </p>
-
-                {/* Description */}
-                <p
-                  style={{
-                    color: "var(--theme-text-muted, #6aad6a)",
-                    fontSize: "0.9rem",
-                    lineHeight: 1.9,
-                    maxWidth: "460px",
-                    marginBottom: "2.5rem",
-                    opacity: ready ? 1 : 0,
-                    transition: "opacity 0.5s 0.3s",
-                  }}
-                >
-                  {c.heroDescription}
-                </p>
-
-                {/* CTAs */}
-                <div
-                  className="flex flex-wrap gap-3"
-                  style={{ opacity: ready ? 1 : 0, transition: "opacity 0.5s 0.4s" }}
-                >
-                  <Link
-                    to="/courses"
-                    className="btn-dz flex items-center gap-2 font-semibold"
-                    style={{ textDecoration: "none", padding: "0.85rem 1.75rem", borderRadius: "4px", fontSize: "0.95rem" }}
-                  >
-                    <span>{c.heroCta1}</span>
-                    <ArrowLeft size={17} />
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="flex items-center gap-2 font-semibold transition-all duration-200"
-                    style={{
-                      border: "1px solid var(--p-30)",
-                      color: "var(--theme-text-secondary, #a5d6a7)",
-                      textDecoration: "none",
-                      padding: "0.85rem 1.75rem",
-                      borderRadius: "4px",
-                      fontSize: "0.95rem",
-                    }}
-                    onMouseEnter={(e) => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.borderColor = "var(--theme-accent)";
-                      el.style.color = "var(--theme-accent)";
-                    }}
-                    onMouseLeave={(e) => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.borderColor = "var(--p-30)";
-                      el.style.color = "var(--theme-text-secondary, #a5d6a7)";
-                    }}
-                  >
-                    <Users size={17} />
-                    {c.heroCta2}
-                  </Link>
+      {/* ══ LATEST NEWS ═══════════════════════════════════════════════ */}
+      {latestNews.length > 0 && (
+        <Section>
+          <SectionHeader title="آخر الأخبار" link="/news" linkLabel="كل الأخبار" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {latestNews.map((item) => (
+              <Link key={item.id} to={`/news/${item.id}`} className="b-card">
+                <CardImage src={item.image} alt={item.title} />
+                <div className="p-5">
+                  <span className="inline-flex items-center gap-1.5 text-xs mb-2" style={muted}>
+                    <Newspaper size={13} aria-hidden="true" style={{ color: "var(--b-green)" }} />
+                    {item.date}
+                  </span>
+                  <h3 className="font-bold line-clamp-2 mb-2" style={{ color: "var(--b-text)", fontSize: "1rem" }}>{item.title}</h3>
+                  <p className="text-sm line-clamp-2" style={{ ...muted, lineHeight: 1.8 }}>{item.body}</p>
                 </div>
-              </div>
-
-              {/* Decorative — left column (hidden on mobile) */}
-              <div
-                className="hidden md:flex md:col-span-2 items-center justify-center relative"
-                style={{ paddingRight: "2rem" }}
-              >
-                {/* Large ghost "سند" */}
-                <span style={{
-                  position: "absolute",
-                  fontSize: "18rem",
-                  fontWeight: 900,
-                  color: "var(--theme-accent, #00a355)",
-                  opacity: 0.04,
-                  userSelect: "none",
-                  lineHeight: 1,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  whiteSpace: "nowrap",
-                  pointerEvents: "none",
-                }}>سند</span>
-
-                {/* Decorative geometric lines */}
-                <div style={{ position: "absolute", top: "18%", right: "15%", width: "1px", height: "100px", background: "linear-gradient(to bottom, transparent, var(--p-25), transparent)" }} />
-                <div style={{ position: "absolute", bottom: "18%", left: "20%", width: "70px", height: "1px", background: "linear-gradient(to left, transparent, var(--p-25))" }} />
-                <div style={{ position: "absolute", top: "12%", left: "30%", width: "1px", height: "40px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
-                <div style={{ position: "absolute", bottom: "30%", right: "20%", width: "30px", height: "1px", background: "var(--theme-accent, #00a355)", opacity: 0.25 }} />
-
-                {/* Stats — 2×2 grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "var(--p-15)", border: "1px solid var(--p-15)", position: "relative", zIndex: 2, width: "240px" }}>
-                  {stats.map((s, i) => (
-                    <div key={i} style={{ background: "#080b08", padding: "1.5rem 1rem", textAlign: "center" }}>
-                      <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--theme-accent, #00a355)", lineHeight: 1 }}>
-                        <AnimatedCounter target={s.value} suffix={s.suffix} />
-                      </div>
-                      <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.65rem", marginTop: "0.35rem", letterSpacing: "0.04em" }}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile stats */}
-            <div className="grid grid-cols-4 md:hidden mt-10" style={{ gap: "1px", background: "var(--p-12)" }}>
-              {stats.map((s, i) => (
-                <div key={i} style={{ background: "#080b08", padding: "1rem 0.25rem", textAlign: "center" }}>
-                  <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "var(--theme-accent, #00a355)" }}>
-                    <AnimatedCounter target={s.value} suffix={s.suffix} />
-                  </div>
-                  <div style={{ color: "var(--theme-text-dim, #455a64)", fontSize: "0.6rem", marginTop: "0.2rem" }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
+              </Link>
+            ))}
           </div>
-        </section>
+        </Section>
+      )}
 
-        {/* ══ SERVICES — Orbital circle layout ═══════════════════════════ */}
-        <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-          <div className="container mx-auto px-4 py-10 md:py-16">
-            <div className="mb-8 text-center">
-              <p style={{ color: "var(--theme-accent)", fontSize: "0.7rem", letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "0.5rem" }}>
-                {c.servicesLabel}
-              </p>
-              <h2 className="text-2xl font-black" style={{ color: "var(--theme-text)" }}>{c.servicesTitle}</h2>
+      {/* ══ CTA ═══════════════════════════════════════════════════════ */}
+      <section className="container mx-auto px-4 py-12 md:py-20">
+        <div
+          className="relative overflow-hidden p-7 md:p-14"
+          style={{ borderRadius: "24px", background: "linear-gradient(135deg, #0d1a12, var(--b-surface))", border: "1px solid var(--b-green-30)", isolation: "isolate" }}
+        >
+          <div className="b-glow" aria-hidden="true" style={{ bottom: "-20rem", right: "-12rem", zIndex: -1 }} />
+          <SignalWaves style={{ position: "absolute", width: "14rem", bottom: "-3rem", left: "-3rem", opacity: 0.1, zIndex: -1 }} />
+          <div className="grid md:grid-cols-5 gap-8 items-center">
+            <div className="md:col-span-3">
+              <span className="b-eyebrow mb-4">انضم إلى المنصة</span>
+              <h2 style={{ fontSize: "clamp(1.8rem, 4.5vw, 3rem)", fontWeight: 800, lineHeight: 1.25, color: "var(--b-text)", margin: "1rem 0" }}>
+                {c.ctaTitle}
+              </h2>
+              <p style={{ ...soft, lineHeight: 1.9, fontSize: "1rem", maxWidth: "30rem" }}>{c.ctaSubtitle}</p>
             </div>
-
-            {/* ── Desktop: orbital ── */}
-            <div className="hidden md:flex justify-center">
-              {(() => {
-                const W = 520, H = 560, CX = 260, CY = 280, R = 190, ITEM = 92;
-                const positions = services.map((_, i) => {
-                  const a = (-90 + i * 60) * Math.PI / 180;
-                  return { x: CX + R * Math.cos(a), y: CY + R * Math.sin(a) };
-                });
-                return (
-                  <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0 }}>
-                    {/* SVG: orbit ring + spokes */}
-                    <svg
-                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}
-                      viewBox={`0 0 ${W} ${H}`}
-                    >
-                      <circle cx={CX} cy={CY} r={R} fill="none" stroke="var(--p-15)" strokeWidth="1" strokeDasharray="5 7" />
-                      {positions.map((p, i) => (
-                        <line key={i} x1={CX} y1={CY} x2={p.x} y2={p.y} stroke="var(--p-10)" strokeWidth="1" />
-                      ))}
-                    </svg>
-
-                    {/* Center circle */}
-                    <div style={{
-                      position: "absolute",
-                      width: "128px", height: "128px",
-                      top: "50%", left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      borderRadius: "50%",
-                      background: "linear-gradient(135deg, #141414, #101010)",
-                      border: "1px solid var(--p-30)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                      zIndex: 2,
-                      boxShadow: "0 0 40px rgba(0,163,85,0.08)",
-                    }}>
-                      <span style={{ color: "var(--theme-accent)", fontWeight: 900, fontSize: "0.75rem", lineHeight: 1.4, padding: "0 12px" }}>
-                        خدمات<br />المنصة
-                      </span>
-                    </div>
-
-                    {/* Service items */}
-                    {services.map((s, i) => {
-                      const p = positions[i];
-                      return (
-                        <Link
-                          key={s.link}
-                          to={s.link}
-                          style={{
-                            position: "absolute",
-                            left: `${p.x}px`,
-                            top: `${p.y}px`,
-                            transform: "translate(-50%, -50%)",
-                            textDecoration: "none",
-                            textAlign: "center",
-                            zIndex: 3,
-                            width: `${ITEM}px`,
-                          }}
-                          onMouseEnter={(e) => {
-                            const circle = e.currentTarget.querySelector(".svc-circle") as HTMLElement;
-                            if (circle) { circle.style.borderColor = "var(--theme-accent)"; circle.style.boxShadow = "0 0 20px rgba(0,163,85,0.25)"; circle.style.transform = "scale(1.08)"; }
-                          }}
-                          onMouseLeave={(e) => {
-                            const circle = e.currentTarget.querySelector(".svc-circle") as HTMLElement;
-                            if (circle) { circle.style.borderColor = "var(--p-20)"; circle.style.boxShadow = "none"; circle.style.transform = "scale(1)"; }
-                          }}
-                        >
-                          <div
-                            className="svc-circle"
-                            style={{
-                              width: `${ITEM}px`, height: `${ITEM}px`,
-                              borderRadius: "50%",
-                              background: "linear-gradient(145deg, #141414, #101010)",
-                              border: "1px solid var(--p-20)",
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "6px",
-                              transition: "border-color 0.25s, box-shadow 0.25s, transform 0.25s",
-                            }}
-                          >
-                            <s.icon size={22} style={{ color: "var(--theme-accent, #00a355)" }} />
-                          </div>
-                          <p style={{ marginTop: "8px", fontSize: "0.72rem", fontWeight: 700, color: "var(--theme-text-muted, #6aad6a)", lineHeight: 1.35, whiteSpace: "nowrap" }}>
-                            {s.title}
-                          </p>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* ── Mobile: 2×3 grid ── */}
-            <div className="md:hidden grid grid-cols-2 gap-4">
-              {services.map((s) => (
-                <Link
-                  key={s.link}
-                  to={s.link}
-                  style={{
-                    textDecoration: "none",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "10px",
-                    padding: "1.25rem 0.75rem",
-                    borderRadius: "12px",
-                    background: "linear-gradient(145deg, #141414, #101010)",
-                    border: "1px solid var(--p-20)",
-                    textAlign: "center",
-                  }}
-                >
-                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "var(--p-10)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <s.icon size={22} style={{ color: "var(--theme-accent, #00a355)" }} />
-                  </div>
-                  <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--theme-text-muted, #6aad6a)" }}>{s.title}</span>
-                </Link>
-              ))}
+            <div className="md:col-span-2 flex flex-col sm:flex-row md:flex-col gap-3 md:items-end">
+              <Link to="/register" className="b-btn b-btn--primary">
+                <span>{c.ctaButton}</span>
+                <ArrowLeft size={18} aria-hidden="true" />
+              </Link>
+              <Link to="/courses" className="b-btn b-btn--ghost">{c.ctaButton2}</Link>
             </div>
           </div>
-        </section>
-
-        {/* ══ WORKS GALLERY ═════════════════════════════════════════════ */}
-        {works.length > 0 && (
-          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-8 md:py-14">
-              <SectionHeader title="أعمال أعضاء المنصة" link="/works" linkLabel="كل الأعمال" />
-              <div
-                className="grid gap-4"
-                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 14rem), 1fr))" }}
-              >
-                {works.slice(0, 8).map((w) => <WorkCard key={w.id} work={w} />)}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
-        {featuredCourses.length > 0 && (
-          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-8 md:py-14">
-              <SectionHeader title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
-                {featuredCourses.slice(0, 3).map((course, i) => (
-                  <EditorialCard key={course.id} to={`/courses/${course.id}`} delay={`${i * 0.09}s`}>
-                    {course.image && <div style={{ height: "170px", overflow: "hidden" }}><img loading="lazy" decoding="async" src={course.image} alt={course.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="p-5">
-                      <h3 className="font-bold mb-2" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{course.title}</h3>
-                      {course.instructor && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.78rem", marginBottom: "0.75rem" }}>{course.instructor}</p>}
-                      <div className="flex gap-2 flex-wrap">
-                        <span style={{ fontSize: "0.72rem", padding: "0.15rem 0.6rem", background: course.type === "free" ? "var(--p-15)" : "rgba(26,82,118,0.3)", color: course.type === "free" ? "var(--theme-accent)" : "#64b5f6" }}>
-                          {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
-                        </span>
-                        {course.duration && <span style={{ fontSize: "0.72rem", padding: "0.15rem 0.6rem", background: "var(--p-08)", color: "var(--theme-text-muted)" }}>{course.duration}</span>}
-                      </div>
-                    </div>
-                  </EditorialCard>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ══ JOBS CAROUSEL ═════════════════════════════════════════════ */}
-        {featuredJobs.length > 0 && (
-          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-8 md:py-14">
-              <SectionHeader title="فرص عمل" link="/jobs" linkLabel="كل الفرص" />
-              <AutoCarousel>
-                {featuredJobs.map((job) => (
-                  <Link
-                    key={job.id}
-                    to={`/jobs/${job.id}`}
-                    style={{ textDecoration: "none", display: "block", width: "100%", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
-                  >
-                    {job.image && <div style={{ height: "200px", overflow: "hidden" }}><img loading="lazy" decoding="async" src={job.image} alt={job.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="p-5" style={{ minWidth: 0 }}>
-                      <div className="flex items-start gap-2 mb-2" style={{ justifyContent: "space-between" }}>
-                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem", minWidth: 0, wordBreak: "break-word", flex: 1 }}>{job.title}</h3>
-                        {job.jobType && <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", background: "var(--p-15)", color: "var(--theme-accent)", flexShrink: 0 }}>{job.jobType}</span>}
-                      </div>
-                      <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.85rem", marginBottom: "0.3rem" }}>{job.company}</p>
-                      {job.location && <p style={{ color: "var(--theme-text-dim)", fontSize: "0.76rem" }}>{job.location}</p>}
-                      {job.deadline && <p style={{ color: "var(--theme-text-muted)", fontSize: "0.72rem", marginTop: "0.5rem" }}>الموعد النهائي: {job.deadline}</p>}
-                    </div>
-                  </Link>
-                ))}
-              </AutoCarousel>
-            </div>
-          </section>
-        )}
-
-        {/* ══ FEATURED EQUIPMENT ════════════════════════════════════════ */}
-        {featuredEquipment.length > 0 && (
-          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-8 md:py-14">
-              <SectionHeader title="عتاد مميز" link="/equipment" linkLabel="كل العتاد" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
-                {featuredEquipment.map((eq, i) => (
-                  <EditorialCard key={eq.id} to={`/equipment/${eq.id}`} delay={`${i * 0.09}s`}>
-                    {eq.image && <div style={{ height: "150px", overflow: "hidden" }}><img loading="lazy" decoding="async" src={eq.image} alt={eq.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="p-4">
-                      <h3 className="font-bold mb-1" style={{ color: "var(--theme-text)", fontSize: "0.9rem" }}>{eq.name}</h3>
-                      {eq.category && <p style={{ color: "var(--theme-accent)", fontSize: "0.75rem" }}>{eq.category}</p>}
-                      <p style={{ color: "var(--theme-text-dim)", fontSize: "0.75rem", marginTop: "0.25rem" }}>{eq.price?.toLocaleString()} دج</p>
-                    </div>
-                  </EditorialCard>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ══ COMPETITIONS CAROUSEL ════════════════════════════════════ */}
-        {upcomingComps.length > 0 && (
-          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-8 md:py-14">
-              <SectionHeader title="مسابقات قادمة" link="/competitions" linkLabel="كل المسابقات" />
-              <AutoCarousel>
-                {upcomingComps.map((comp) => (
-                  <Link
-                    key={comp.id}
-                    to={`/competitions/${comp.id}`}
-                    style={{ textDecoration: "none", display: "block", width: "100%", background: "#0a0d0a", borderTop: "2px solid var(--p-20)" }}
-                  >
-                    {comp.image && <div style={{ height: "200px", overflow: "hidden" }}><img loading="lazy" decoding="async" src={comp.image} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="p-5" style={{ minWidth: 0 }}>
-                      <div className="flex items-start gap-2 mb-2" style={{ justifyContent: "space-between" }}>
-                        <h3 className="font-bold" style={{ color: "var(--theme-text)", fontSize: "1rem", minWidth: 0, wordBreak: "break-word", flex: 1 }}>{comp.name}</h3>
-                        {comp.type && (
-                          <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", flexShrink: 0, background: comp.type === "international" ? "rgba(122,56,0,0.3)" : comp.type === "university" ? "rgba(26,79,122,0.3)" : "var(--p-15)", color: comp.type === "international" ? "#fb923c" : comp.type === "university" ? "#64b5f6" : "var(--theme-accent)" }}>
-                            {comp.type === "university" ? "جامعي" : comp.type === "national" ? "وطني" : "دولي"}
-                          </span>
-                        )}
-                      </div>
-                      {comp.organizer && <p style={{ color: "var(--theme-text-secondary)", fontSize: "0.83rem", marginBottom: "0.4rem" }}>{comp.organizer}</p>}
-                      <div className="flex items-center gap-2">
-                        <Zap size={12} style={{ color: "var(--theme-accent)" }} />
-                        <span style={{ color: "var(--theme-text-dim)", fontSize: "0.73rem" }}>{comp.startDate}</span>
-                        {comp.endDate && <><span style={{ color: "var(--p-25)" }}>—</span><span style={{ color: "var(--theme-text-dim)", fontSize: "0.73rem" }}>{comp.endDate}</span></>}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </AutoCarousel>
-            </div>
-          </section>
-        )}
-
-
-        {/* ══ LATEST NEWS ═══════════════════════════════════════════════ */}
-        {latestNews.length > 0 && (
-          <section style={{ borderBottom: "1px solid var(--p-15)" }}>
-            <div className="container mx-auto px-4 py-8 md:py-14">
-              <SectionHeader title="آخر الأخبار" link="/news" linkLabel="كل الأخبار" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--p-10)" }}>
-                {latestNews.map((item, i) => (
-                  <EditorialCard key={item.id} to={`/news/${item.id}`} delay={`${i * 0.09}s`}>
-                    {item.image && <div style={{ height: "150px", overflow: "hidden" }}><img loading="lazy" decoding="async" src={item.image} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>}
-                    <div className="p-5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Newspaper size={12} style={{ color: "var(--theme-accent)" }} />
-                        <span style={{ color: "var(--theme-text-dim)", fontSize: "0.72rem" }}>{item.date}</span>
-                      </div>
-                      <h3 className="font-bold line-clamp-2 mb-2" style={{ color: "var(--theme-text)", fontSize: "0.95rem" }}>{item.title}</h3>
-                      <p className="text-xs line-clamp-2" style={{ color: "var(--theme-text-muted)" }}>{item.body}</p>
-                    </div>
-                  </EditorialCard>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ══ CTA — Full-bleed editorial ════════════════════════════════ */}
-        <section style={{ position: "relative", overflow: "hidden" }}>
-          {/* Accent line top */}
-          <div style={{ height: "1px", background: "linear-gradient(to left, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
-
-          <div className="container mx-auto px-4 py-10 md:py-20">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              {/* Left — big statement text */}
-              <div>
-                <p style={{ color: "var(--theme-accent)", fontSize: "0.7rem", letterSpacing: "0.25em", textTransform: "uppercase", marginBottom: "1rem" }}>
-                  انضم إلى المنصة
-                </p>
-                <h2
-                  style={{
-                    fontSize: "clamp(2rem, 5vw, 3.5rem)",
-                    fontWeight: 900,
-                    lineHeight: 1.1,
-                    color: "var(--theme-text, #e8f5e9)",
-                    marginBottom: "1.5rem",
-                  }}
-                >
-                  {c.ctaTitle}
-                </h2>
-                <p style={{ color: "var(--theme-text-muted, #6aad6a)", lineHeight: 1.8, fontSize: "0.95rem", maxWidth: "400px" }}>
-                  {c.ctaSubtitle}
-                </p>
-              </div>
-
-              {/* Right — buttons + geometric accent */}
-              <div className="flex flex-col gap-4 md:items-end">
-                <div style={{ width: "60px", height: "1px", background: "var(--theme-accent, #00a355)", marginBottom: "0.5rem" }} />
-                <Link
-                  to="/register"
-                  className="btn-dz flex items-center gap-2 font-semibold"
-                  style={{ textDecoration: "none", padding: "1rem 2rem", borderRadius: "4px", fontSize: "1rem", width: "fit-content" }}
-                >
-                  <span>{c.ctaButton}</span>
-                  <ArrowLeft size={18} />
-                </Link>
-                <Link
-                  to="/courses"
-                  className="flex items-center gap-2 font-semibold transition-all duration-200"
-                  style={{
-                    border: "1px solid var(--p-25)",
-                    color: "var(--theme-text-secondary, #a5d6a7)",
-                    textDecoration: "none",
-                    padding: "1rem 2rem",
-                    borderRadius: "4px",
-                    fontSize: "1rem",
-                    width: "fit-content",
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--theme-accent)"; (e.currentTarget as HTMLElement).style.color = "var(--theme-accent)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-25)"; (e.currentTarget as HTMLElement).style.color = "var(--theme-text-secondary, #a5d6a7)"; }}
-                >
-                  {c.ctaButton2}
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom accent line */}
-          <div style={{ height: "1px", background: "linear-gradient(to right, transparent, var(--theme-accent, #00a355) 50%, transparent)" }} />
-        </section>
-
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
