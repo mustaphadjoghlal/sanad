@@ -84,9 +84,9 @@ function SectionHeader({ title, link, linkLabel }: { title: string; link: string
   );
 }
 
-function Section({ children, tinted = false }: { children: React.ReactNode; tinted?: boolean }) {
+function Section({ children, tinted = false, id }: { children: React.ReactNode; tinted?: boolean; id?: string }) {
   return (
-    <section style={{ borderTop: "1px solid var(--b-line)", background: tinted ? "var(--b-surface)" : undefined }}>
+    <section id={id} style={{ borderTop: "1px solid var(--b-line)", background: tinted ? "var(--b-surface)" : undefined, scrollMarginTop: "64px" }}>
       <div className="container mx-auto px-4 py-10 md:py-16">{children}</div>
     </section>
   );
@@ -308,10 +308,19 @@ export default function Home() {
                   </p>
 
                   <div className="flex flex-wrap gap-3">
-                    <Link to="/courses" className="b-btn b-btn--primary">
+                    {/* Exploring starts with what the platform holds, not one
+                        section of it: the button scrolls to the services. */}
+                    <a
+                      href="#services"
+                      className="b-btn b-btn--primary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById("services")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                    >
                       <span>{c.heroCta1}</span>
                       <ArrowLeft size={18} aria-hidden="true" />
-                    </Link>
+                    </a>
                     <Link to="/register" className="b-btn b-btn--ghost">
                       <Users size={18} aria-hidden="true" />
                       <span>{c.heroCta2}</span>
@@ -332,7 +341,7 @@ export default function Home() {
       </section>
 
       {/* ══ SERVICES ══════════════════════════════════════════════════ */}
-      <Section>
+      <Section id="services">
         <div className="mb-8 flex flex-col items-center text-center gap-3">
           {c.servicesLabel && <span className="b-eyebrow">{c.servicesLabel}</span>}
           <h2 className="text-2xl md:text-3xl font-semibold" style={{ color: "var(--b-text)" }}>{c.servicesTitle}</h2>
