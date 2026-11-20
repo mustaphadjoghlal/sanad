@@ -567,7 +567,7 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
                 </div>
                 <div className="flex-1 min-w-0 pb-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h2 className="text-xl md:text-2xl font-black" style={{ color: "var(--theme-text)" }}>{profile.name}</h2>
+                    <h2 className="text-xl md:text-2xl font-semibold" style={{ color: "var(--theme-text)" }}>{profile.name}</h2>
                     {profile.status === "approved" && (
                       <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#7ee8a2", background: "rgba(0,163,85,0.15)", border: "1px solid rgba(0,163,85,0.3)" }}>
                         <CheckCircle size={10} /> معتمد
@@ -594,22 +594,22 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
               <div className="mt-6 grid grid-cols-3 gap-3 pt-5" style={{ borderTop: "1px solid var(--p-15)" }}>
                 <div className="text-center">
                   <p className="text-[10px] uppercase font-bold mb-1" style={{ color: "var(--theme-text-muted)", letterSpacing: "0.05em" }}>الأعمال</p>
-                  <p className="text-lg font-black" style={{ color: "var(--theme-text)" }}>{profile.works?.length || 0}</p>
+                  <p className="text-lg font-semibold" style={{ color: "var(--theme-text)" }}>{profile.works?.length || 0}</p>
                 </div>
                 <div className="text-center" style={{ borderLeft: "1px solid var(--p-10)", borderRight: "1px solid var(--p-10)" }}>
                   <p className="text-[10px] uppercase font-bold mb-1" style={{ color: "var(--theme-text-muted)", letterSpacing: "0.05em" }}>الصوتيات</p>
-                  <p className="text-lg font-black" style={{ color: "var(--theme-text)" }}>{profile.audioSamples?.length || 0}</p>
+                  <p className="text-lg font-semibold" style={{ color: "var(--theme-text)" }}>{profile.audioSamples?.length || 0}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-[10px] uppercase font-bold mb-1" style={{ color: "var(--theme-text-muted)", letterSpacing: "0.05em" }}>الخبرة</p>
-                  <p className="text-lg font-black truncate px-1" style={{ color: "var(--theme-text)" }}>{profile.experience || "-"}</p>
+                  <p className="text-lg font-semibold truncate px-1" style={{ color: "var(--theme-text)" }}>{profile.experience || "-"}</p>
                 </div>
               </div>
               {profile.status === "rejected" && profile.rejectionNote && (
                 <div className="mt-5 p-4 rounded-xl flex items-start gap-3" style={{ background: "rgba(198,40,40,0.08)", border: "1px solid rgba(198,40,40,0.2)" }}>
                   <AlertTriangle size={18} className="shrink-0" style={{ color: "#f87171" }} />
                   <div>
-                    <p className="text-xs font-black mb-1" style={{ color: "#f87171" }}>يحتاج ملفك لتعديلات:</p>
+                    <p className="text-xs font-semibold mb-1" style={{ color: "#f87171" }}>يحتاج ملفك لتعديلات:</p>
                     <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>{profile.rejectionNote}</p>
                   </div>
                 </div>
@@ -620,7 +620,7 @@ export default function UserDashboard({ preview }: { preview?: UserProfile } = {
                 <div className="mt-5 p-4 rounded-xl flex items-start gap-3" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.25)" }}>
                   <MessageSquare size={18} className="shrink-0" style={{ color: "#60a5fa" }} />
                   <div>
-                    <p className="text-xs font-black mb-1" style={{ color: "#60a5fa" }}>ملاحظة من إدارة المنصة:</p>
+                    <p className="text-xs font-semibold mb-1" style={{ color: "#60a5fa" }}>ملاحظة من إدارة المنصة:</p>
                     <p className="text-xs leading-relaxed" style={{ color: "#bfdbfe" }}>{profile.adminNote}</p>
                   </div>
                 </div>

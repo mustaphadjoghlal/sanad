@@ -13,41 +13,59 @@ import { CardCover } from "./Cover";
 /** How many documents a front-page block reads to show its 8. */
 const HOME_FETCH = 30;
 
-/* ── Animated counter ── */
-function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const observer = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return;
-      observer.disconnect();
-      let start = 0;
-      const step = Math.ceil(target / 40);
-      const timer = setInterval(() => {
-        start = Math.min(start + step, target);
-        setVal(start);
-        if (start >= target) clearInterval(timer);
-      }, 30);
-    });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target]);
-  return <span ref={ref}>{val}{suffix}</span>;
-}
-
 /* ── The logo's three bars ── */
 function Bars() {
   return <span className="b-bars" aria-hidden="true"><span /><span /><span /></span>;
 }
 
-/* ── Signal waves from the logo, used as decoration ── */
-function SignalWaves({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
+/* ── On-air board: the newest openings, in place of decorative figures ── */
+const today = () => new Date().toISOString().slice(0, 10);
+
+/** Open means a deadline that has not passed yet; it gets the live dot. */
+function isOpen(job: Job) {
+  return Boolean(job.deadline && job.deadline >= today());
+}
+
+function OnAirBoard({ jobs, loaded }: { jobs: Job[]; loaded: boolean }) {
   return (
-    <svg className={className} style={style} viewBox="0 0 200 200" fill="none" aria-hidden="true">
-      <circle cx="40" cy="160" r="14" fill="#0fa659" />
-      <path d="M40 106a54 54 0 0 1 54 54" stroke="#0fa659" strokeWidth="12" strokeLinecap="round" />
-      <path d="M40 60a100 100 0 0 1 100 100" stroke="#0fa659" strokeWidth="12" strokeLinecap="round" opacity="0.6" />
-    </svg>
+    <div className="b-board">
+      <div className="b-board__head">
+        <span className="b-live" aria-hidden="true" />
+        <span>آخر الفرص</span>
+        <Link to="/jobs" className="b-link" style={{ marginInlineStart: "auto", fontSize: "0.8125rem" }}>
+          كل الفرص <ArrowLeft size={14} aria-hidden="true" />
+        </Link>
+      </div>
+      <ul>
+        {!loaded
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <li key={i} className="b-board__row" aria-hidden="true">
+                <div className="flex-1 space-y-2 animate-pulse">
+                  <div style={{ height: "14px", width: "70%", borderRadius: "4px", background: "rgba(255,255,255,0.06)" }} />
+                  <div style={{ height: "12px", width: "40%", borderRadius: "4px", background: "rgba(255,255,255,0.04)" }} />
+                </div>
+              </li>
+            ))
+          : jobs.slice(0, 3).map((job) => (
+              <li key={job.id}>
+                <Link to={`/jobs/${job.id}`} className="b-board__row">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate" style={{ color: "var(--b-text)", fontWeight: 500 }}>{job.title}</p>
+                    <p className="truncate text-sm mt-1" style={{ color: "var(--b-text-3)" }}>
+                      {[job.company, job.location].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  {job.deadline && (
+                    <span className="b-board__meta">
+                      {isOpen(job) && <span className="b-live b-live--sm" aria-label="مفتوحة" />}
+                      <bdi>{job.deadline}</bdi>
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+      </ul>
+    </div>
   );
 }
 
@@ -57,7 +75,7 @@ function SectionHeader({ title, link, linkLabel }: { title: string; link: string
     <div className="flex items-center justify-between gap-4 mb-6">
       <div className="flex items-center gap-3 min-w-0">
         <Bars />
-        <h2 className="text-xl md:text-2xl font-extrabold truncate" style={{ color: "var(--b-text)" }}>{title}</h2>
+        <h2 className="text-xl md:text-2xl font-semibold truncate" style={{ color: "var(--b-text)" }}>{title}</h2>
       </div>
       <Link to={link} className="b-link">
         {linkLabel} <ArrowLeft size={15} aria-hidden="true" />
@@ -166,7 +184,7 @@ function AutoCarousel({ children, label }: { children: React.ReactNode[]; label:
                 onClick={() => goTo(i)}
                 aria-label={`الشريحة ${i + 1}`}
                 aria-current={i === idx}
-                style={{ width: i === idx ? "20px" : "7px", height: "7px", borderRadius: "4px", background: i === idx ? "var(--b-green)" : "rgba(255,255,255,0.18)", border: "none", cursor: "pointer", padding: 0, transition: "all 0.3s" }}
+                style={{ width: i === idx ? "20px" : "7px", height: "7px", borderRadius: "4px", background: i === idx ? "var(--b-green)" : "rgba(255,255,255,0.18)", border: "none", cursor: "pointer", padding: 0, transition: "width 0.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s" }}
               />
             ))}
           </div>
@@ -186,6 +204,7 @@ export default function Home() {
   usePageTitle("", "منصة سند الإعلامية — المنصة الجزائرية الشاملة للإعلام: دورات تدريبية، فرص عمل، معدات، مسابقات، دليل القنوات والمحترفين.", { path: "/" });
   const [featuredCourses,   setFeaturedCourses]   = useState<Course[]>([]);
   const [featuredJobs,      setFeaturedJobs]      = useState<Job[]>([]);
+  const [jobsLoaded,        setJobsLoaded]        = useState(false);
   const [featuredEquipment, setFeaturedEquipment] = useState<Equipment[]>([]);
   const [upcomingComps,     setUpcomingComps]     = useState<Competition[]>([]);
   const [latestNews,        setLatestNews]        = useState<NewsItem[]>([]);
@@ -212,7 +231,8 @@ export default function Home() {
       subscribeToCollection<Job>("jobs", (d) => {
         const approved = d.filter((j) => j.status === "approved" || !j.status);
         setFeaturedJobs([...approved].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8));
-      }, noop, HOME_FETCH),
+        setJobsLoaded(true);
+      }, () => setJobsLoaded(true), HOME_FETCH),
       subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3)), noop),
       subscribeToFirstBy<Competition>("competitions", "startDate", "asc", HOME_FETCH, (comps) => {
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
@@ -229,14 +249,6 @@ export default function Home() {
 
   const c = content ?? DEFAULT_SITE_CONTENT;
   const ready = content !== null;
-  const fade = (delay: number): React.CSSProperties => ({ opacity: ready ? 1 : 0, transition: `opacity 0.5s ${delay}s` });
-
-  const stats = [
-    { value: 6,   suffix: "",    label: "خدمات متكاملة" },
-    { value: 69,  suffix: "",    label: "ولاية" },
-    { value: 100, suffix: "%",   label: "محتوى جزائري" },
-    { value: 7,   suffix: "/24", label: "متاح دائماً" },
-  ];
 
   return (
     <div className="brand" style={{ background: "var(--b-ink)", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
@@ -251,68 +263,70 @@ export default function Home() {
             opacity: 0.32,
             WebkitMaskImage: "linear-gradient(to bottom, #000 30%, transparent 95%)",
             maskImage: "linear-gradient(to bottom, #000 30%, transparent 95%)",
-            animation: "hero-zoom 18s ease-in-out infinite alternate",
           }}
         />
         <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: -1, background: "linear-gradient(90deg, rgba(6,10,7,0.2), rgba(6,10,7,0.85) 70%)" }} />
-        <div className="b-glow" aria-hidden="true" style={{ top: "-16rem", left: "-14rem", zIndex: -1 }} />
 
         <div className="container mx-auto px-4 pt-12 pb-10 md:pt-20 md:pb-16">
           <div className="grid md:grid-cols-12 gap-10 items-center">
             <div className="md:col-span-7">
-              {c.heroBadge && <div className="b-eyebrow mb-6" style={fade(0)}>{c.heroBadge}</div>}
-
-              <h1
-                style={{
-                  fontSize: "clamp(2.6rem, 7vw, 5rem)",
-                  fontWeight: 800,
-                  lineHeight: 1.15,
-                  letterSpacing: 0,
-                  marginBottom: "1.25rem",
-                  color: "var(--b-text)",
-                  ...fade(0.1),
-                }}
-              >
-                {c.heroTitle}{" "}
-                <span style={{ color: "var(--b-green)" }}>{c.siteName}</span>
-              </h1>
-
-              <p style={{ ...soft, fontSize: "clamp(1.05rem, 2.2vw, 1.3rem)", fontWeight: 500, lineHeight: 1.7, marginBottom: "0.5rem", ...fade(0.2) }}>
-                {c.heroSubtitle}
-              </p>
-              <p style={{ ...muted, fontSize: "0.95rem", lineHeight: 1.9, maxWidth: "34rem", marginBottom: "2rem", ...fade(0.3) }}>
-                {c.heroDescription}
-              </p>
-
-              <div className="flex flex-wrap gap-3" style={fade(0.4)}>
-                <Link to="/courses" className="b-btn b-btn--primary">
-                  <span>{c.heroCta1}</span>
-                  <ArrowLeft size={18} aria-hidden="true" />
-                </Link>
-                <Link to="/register" className="b-btn b-btn--ghost">
-                  <Users size={18} aria-hidden="true" />
-                  <span>{c.heroCta2}</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Stats: a 2×2 panel beside the text on desktop, a strip under it on phones */}
-            <div className="md:col-span-5 relative">
-              <SignalWaves className="hidden md:block" style={{ position: "absolute", width: "9rem", top: "-4.5rem", left: "-1rem", opacity: 0.5 }} />
-              <div
-                className="grid grid-cols-4 md:grid-cols-2"
-                style={{ background: "var(--b-line)", gap: "1px", border: "1px solid var(--b-line)", borderRadius: "var(--b-radius)", overflow: "hidden", position: "relative" }}
-              >
-                {stats.map((s) => (
-                  <div key={s.label} className="text-center px-1 py-4 md:py-7" style={{ background: "rgba(12,18,14,0.92)" }}>
-                    <div className="text-xl md:text-4xl" style={{ fontWeight: 800, color: "var(--b-green-hi)", lineHeight: 1.1 }}>
-                      <AnimatedCounter target={s.value} suffix={s.suffix} />
-                    </div>
-                    <div className="text-[0.68rem] md:text-sm mt-1.5" style={muted}>{s.label}</div>
+              {!ready ? (
+                // First visit, before the copy arrives from Firestore: the
+                // shape of the headline instead of an empty band.
+                <div className="animate-pulse" aria-busy="true" aria-label="جاري التحميل">
+                  <div style={{ height: "3.25rem", width: "85%", borderRadius: "8px", background: "rgba(255,255,255,0.06)", marginBottom: "1rem" }} />
+                  <div style={{ height: "3.25rem", width: "55%", borderRadius: "8px", background: "rgba(255,255,255,0.06)", marginBottom: "1.5rem" }} />
+                  <div style={{ height: "1.25rem", width: "70%", borderRadius: "6px", background: "rgba(255,255,255,0.04)", marginBottom: "2rem" }} />
+                  <div className="flex gap-3">
+                    <div style={{ height: "3rem", width: "9rem", borderRadius: "12px", background: "rgba(255,255,255,0.06)" }} />
+                    <div style={{ height: "3rem", width: "9rem", borderRadius: "12px", background: "rgba(255,255,255,0.04)" }} />
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <>
+                  {c.heroBadge && <div className="b-eyebrow mb-4">{c.heroBadge}</div>}
+
+                  <h1
+                    style={{
+                      fontSize: "clamp(2.25rem, 6vw, 4rem)",
+                      fontWeight: 600,
+                      lineHeight: 1.3,
+                      letterSpacing: 0,
+                      marginBottom: "1.25rem",
+                      color: "var(--b-text)",
+                    }}
+                  >
+                    {c.heroTitle}{" "}
+                    <span style={{ color: "var(--b-green-hi)" }}>{c.siteName}</span>
+                  </h1>
+
+                  <p style={{ ...soft, fontSize: "clamp(1.0625rem, 2vw, 1.25rem)", fontWeight: 400, lineHeight: 1.7, marginBottom: "0.5rem", maxWidth: "36rem" }}>
+                    {c.heroSubtitle}
+                  </p>
+                  <p style={{ ...muted, fontSize: "0.9375rem", lineHeight: 1.8, maxWidth: "34rem", marginBottom: "2rem" }}>
+                    {c.heroDescription}
+                  </p>
+
+                  <div className="flex flex-wrap gap-3">
+                    <Link to="/courses" className="b-btn b-btn--primary">
+                      <span>{c.heroCta1}</span>
+                      <ArrowLeft size={18} aria-hidden="true" />
+                    </Link>
+                    <Link to="/register" className="b-btn b-btn--ghost">
+                      <Users size={18} aria-hidden="true" />
+                      <span>{c.heroCta2}</span>
+                    </Link>
+                  </div>
+                </>
+              )}
             </div>
+
+            {/* The newest openings, drawn like a broadcast rundown */}
+            {(!jobsLoaded || featuredJobs.length > 0) && (
+              <div className="md:col-span-5">
+                <OnAirBoard jobs={featuredJobs} loaded={jobsLoaded} />
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -321,17 +335,17 @@ export default function Home() {
       <Section>
         <div className="mb-8 flex flex-col items-center text-center gap-3">
           {c.servicesLabel && <span className="b-eyebrow">{c.servicesLabel}</span>}
-          <h2 className="text-2xl md:text-3xl font-extrabold" style={{ color: "var(--b-text)" }}>{c.servicesTitle}</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold" style={{ color: "var(--b-text)" }}>{c.servicesTitle}</h2>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {services.map((s) => (
             <Link key={s.link} to={s.link} className="b-service">
               <div className="flex items-center">
-                <span className="b-service__icon"><s.icon size={22} aria-hidden="true" /></span>
+                <span className="b-service__icon"><s.icon size={18} strokeWidth={1.5} aria-hidden="true" /></span>
                 <ArrowLeft size={16} className="b-service__arrow hidden sm:block" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="font-bold text-[0.95rem] md:text-base" style={{ color: "var(--b-text)" }}>{s.title}</h3>
+                <h3 className="font-medium text-[0.95rem] md:text-base" style={{ color: "var(--b-text)" }}>{s.title}</h3>
                 <p className="text-xs md:text-sm mt-1" style={{ ...muted, lineHeight: 1.7 }}>{s.desc}</p>
               </div>
             </Link>
@@ -355,7 +369,7 @@ export default function Home() {
                   <p className="text-sm" style={soft}>{job.company}</p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs" style={muted}>
                     {job.location && <span className="inline-flex items-center gap-1"><MapPin size={13} aria-hidden="true" />{job.location}</span>}
-                    {job.deadline && <span className="inline-flex items-center gap-1"><CalendarDays size={13} aria-hidden="true" />آخر أجل: {job.deadline}</span>}
+                    {job.deadline && <span className="inline-flex items-center gap-1"><CalendarDays size={13} aria-hidden="true" />آخر أجل: <bdi>{job.deadline}</bdi></span>}
                   </div>
                 </div>
               </Link>
@@ -437,7 +451,7 @@ export default function Home() {
                   {comp.organizer && <p className="text-sm mb-3" style={soft}>{comp.organizer}</p>}
                   <span className="inline-flex items-center gap-1.5 text-xs" style={muted}>
                     <CalendarDays size={13} aria-hidden="true" style={{ color: "var(--b-green)" }} />
-                    {comp.startDate}{comp.endDate && ` — ${comp.endDate}`}
+                    <bdi>{comp.startDate}</bdi>{comp.endDate && <> — <bdi>{comp.endDate}</bdi></>}
                   </span>
                 </div>
               </Link>
@@ -472,14 +486,12 @@ export default function Home() {
       <section className="container mx-auto px-4 py-12 md:py-20">
         <div
           className="relative overflow-hidden p-7 md:p-14"
-          style={{ borderRadius: "24px", background: "linear-gradient(135deg, #0d1a12, var(--b-surface))", border: "1px solid var(--b-green-30)", isolation: "isolate" }}
+          style={{ borderRadius: "20px", background: "var(--b-surface)", border: "1px solid var(--b-line)" }}
         >
-          <div className="b-glow" aria-hidden="true" style={{ bottom: "-20rem", right: "-12rem", zIndex: -1 }} />
-          <SignalWaves style={{ position: "absolute", width: "14rem", bottom: "-3rem", left: "-3rem", opacity: 0.1, zIndex: -1 }} />
           <div className="grid md:grid-cols-5 gap-8 items-center">
             <div className="md:col-span-3">
               <span className="b-eyebrow mb-4">انضم إلى المنصة</span>
-              <h2 style={{ fontSize: "clamp(1.8rem, 4.5vw, 3rem)", fontWeight: 800, lineHeight: 1.25, color: "var(--b-text)", margin: "1rem 0" }}>
+              <h2 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 600, lineHeight: 1.35, color: "var(--b-text)", margin: "1rem 0" }}>
                 {c.ctaTitle}
               </h2>
               <p style={{ ...soft, lineHeight: 1.9, fontSize: "1rem", maxWidth: "30rem" }}>{c.ctaSubtitle}</p>

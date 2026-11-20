@@ -32,7 +32,7 @@ export default function Trainers() {
           <p style={{ color: "var(--theme-accent)", fontSize: "0.8rem", letterSpacing: "0.15em", marginBottom: "0.5rem" }}>
             التدريب المهني
           </p>
-          <h1 className="text-4xl font-black mb-3" style={{ color: "var(--theme-text)" }}>
+          <h1 className="text-4xl font-semibold mb-3" style={{ color: "var(--theme-text)" }}>
             المدربون ومراكز التدريب
           </h1>
           <p style={{ color: "var(--theme-text-muted)", maxWidth: "520px", margin: "0 auto 1.5rem" }}>

@@ -10,7 +10,7 @@ export default function NotFound() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4" dir="rtl">
       <div className="text-center">
-        <p className="text-6xl font-black mb-4" style={{ color: "var(--theme-accent, #00a355)" }}>404</p>
+        <p className="text-6xl font-semibold mb-4" style={{ color: "var(--theme-accent, #00a355)" }}>404</p>
         <h1 className="text-xl mb-2" style={{ color: "var(--theme-text, #e8f5e9)" }}>الصفحة غير موجودة</h1>
         <p className="text-sm mb-8" style={{ color: "var(--theme-text-muted, #78909c)" }}>
           الرابط الذي فتحته غير صحيح أو تم حذف محتواه.

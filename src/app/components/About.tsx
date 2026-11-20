@@ -30,7 +30,7 @@ export default function About() {
 
         {/* Mission */}
         <div className="rounded-2xl p-8 mb-8" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}>
-          <h2 className="text-2xl font-black mb-4" style={{ color: "var(--theme-text)" }}>من نحن؟</h2>
+          <h2 className="text-2xl font-semibold mb-4" style={{ color: "var(--theme-text)" }}>من نحن؟</h2>
           <p className="leading-relaxed mb-4" style={{ color: "var(--theme-text-muted)", lineHeight: 1.9 }}>
             سند هي منصة رقمية جزائرية أُسِّست لتكون مرجعاً شاملاً للقطاع الإعلامي في الجزائر. نهدف إلى تمكين الإعلاميين والصحفيين والمنتجين والمصورين من بناء حضورهم الرقمي، والوصول إلى فرص العمل، والدورات التدريبية، والمسابقات المتخصصة.
           </p>
@@ -41,7 +41,7 @@ export default function About() {
 
         {/* Services */}
         <div className="rounded-2xl p-8 mb-8" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}>
-          <h2 className="text-2xl font-black mb-6" style={{ color: "var(--theme-text)" }}>خدماتنا</h2>
+          <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--theme-text)" }}>خدماتنا</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               { icon: Users, title: "دليل المحترفين", desc: "ملفات شخصية معتمدة لإعلاميي الجزائر" },
@@ -64,7 +64,7 @@ export default function About() {
 
         {/* Contact */}
         <div className="rounded-2xl p-8 mb-8" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}>
-          <h2 className="text-2xl font-black mb-6" style={{ color: "var(--theme-text)" }}>تواصل معنا</h2>
+          <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--theme-text)" }}>تواصل معنا</h2>
           <div className="space-y-4">
             <a href="https://www.facebook.com/profile.php?id=61590628561028" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 rounded-xl transition-colors" style={{ background: "var(--p-08)", border: "1px solid var(--p-15)", textDecoration: "none" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--p-25)"; }}

@@ -5,8 +5,10 @@
  */
 
 :root {
-  --font-body: 'Tajawal', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Cairo', 'Tajawal', 'Segoe UI', system-ui, sans-serif;
+  /* One family drawn for Arabic and Latin together, so mixed lines keep one
+     texture. Loaded at 400/500/600 only: hierarchy comes from size. */
+  --font-body: 'Readex Pro', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Readex Pro', 'Segoe UI', system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -24,9 +26,13 @@ body * {
   font-family: inherit;
 }
 
+/* Letter spacing is always 0 on Arabic: any tracking pulls the joined
+   letters apart. Headings max out at 600. */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 code, kbd, samp, pre {

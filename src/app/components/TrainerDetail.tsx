@@ -122,7 +122,7 @@ export default function TrainerDetail() {
               }
             </div>
 
-            <h1 className="text-2xl font-black mb-1" style={{ color: "var(--theme-text)" }}>{trainer.name}</h1>
+            <h1 className="text-2xl font-semibold mb-1" style={{ color: "var(--theme-text)" }}>{trainer.name}</h1>
             {trainer.organization && <p className="text-sm mb-2" style={{ color: "var(--theme-accent)" }}>{trainer.organization}</p>}
             {trainer.specialty && (
               <span className="inline-block text-xs px-3 py-1 rounded-full mb-4" style={{ background: "var(--p-15)", color: "var(--theme-badge-text)" }}>

@@ -1,7 +1,8 @@
 /*
  * Brand palette taken from the Sanad logo: a white wordmark, a single green
- * (#0FA659) for the bars, dot and signal waves, on near-black with green glows
- * in the corners.
+ * (#0FA659) for the bars, dot and signal waves, on near-black.
+ * The green is the accent: it marks the primary action, the current page and
+ * what is open right now. Surfaces stay neutral and nothing glows.
  *
  * Scoped to `.brand` (the header, footer and home page) so the admin's theme
  * settings still drive the rest of the site until those pages are redone.
@@ -26,6 +27,8 @@
   --b-text-3: rgba(255, 255, 255, 0.52);
   --b-on-green: #03170b;
   --b-radius: 14px;
+  /* One easing curve for every transition on the brand pages. */
+  --b-ease: cubic-bezier(0.22, 1, 0.36, 1);
   color: var(--b-text);
 }
 
@@ -38,19 +41,19 @@
   min-height: 3rem;
   padding: 0 1.5rem;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 0.95rem;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+  transition: background-color 0.15s var(--b-ease), border-color 0.15s var(--b-ease), color 0.15s var(--b-ease), transform 0.15s var(--b-ease);
   cursor: pointer;
 }
-.b-btn:active { transform: translateY(1px); }
+.b-btn:active { transform: scale(0.97); }
+.b-btn:focus-visible { outline: 2px solid var(--b-green-hi); outline-offset: 2px; }
 .b-btn--primary {
   background: var(--b-green);
   color: var(--b-on-green);
   border: 1px solid var(--b-green);
-  box-shadow: 0 8px 24px -10px rgba(15, 166, 89, 0.7);
 }
 .b-btn--primary:hover { background: var(--b-green-hi); border-color: var(--b-green-hi); }
 .b-btn--ghost {
@@ -84,20 +87,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  background: var(--b-green-08);
-  border: 1px solid var(--b-green-30);
   color: var(--b-green-hi);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-.b-eyebrow::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--b-green);
-  box-shadow: 0 0 0 4px var(--b-green-14);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 /* ── The logo's three bars, used as a section marker ─────────────────── */
@@ -127,24 +119,23 @@
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  transition: border-color 0.15s var(--b-ease), background-color 0.15s var(--b-ease);
 }
+/* Hover is a surface step and a hairline, nothing moves. */
 .b-card:hover,
 .b-card:focus-visible {
-  border-color: var(--b-green-30);
-  transform: translateY(-3px);
-  box-shadow: 0 18px 40px -24px rgba(15, 166, 89, 0.55);
+  border-color: var(--b-line-strong);
+  background: var(--b-surface-2);
 }
-.b-card img { transition: transform 0.5s ease; }
-.b-card:hover img { transform: scale(1.04); }
+.b-card:focus-visible { outline: 2px solid var(--b-green-hi); outline-offset: 2px; }
 
 .b-chip {
   display: inline-flex;
   align-items: center;
   padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
   background: var(--b-green-14);
   color: var(--b-green-hi);
   white-space: nowrap;
@@ -159,7 +150,7 @@
   gap: 0.35rem;
   color: var(--b-green-hi);
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -170,41 +161,85 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1.1rem;
+  padding: 20px;
   height: 100%;
   border-radius: var(--b-radius);
-  background: linear-gradient(160deg, var(--b-surface-2), var(--b-surface));
+  background: var(--b-surface);
   border: 1px solid var(--b-line);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.25s, transform 0.25s;
+  transition: border-color 0.15s var(--b-ease), background-color 0.15s var(--b-ease);
 }
 .b-service:hover,
-.b-service:focus-visible { border-color: var(--b-green-30); transform: translateY(-3px); }
+.b-service:focus-visible { border-color: var(--b-line-strong); background: var(--b-surface-2); }
+.b-service:focus-visible { outline: 2px solid var(--b-green-hi); outline-offset: 2px; }
 .b-service__icon {
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--b-green-14);
-  color: var(--b-green-hi);
-  border: 1px solid var(--b-green-30);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--b-text-2);
+  border: 1px solid var(--b-line);
 }
-.b-service__arrow { margin-inline-start: auto; color: var(--b-text-3); transition: color 0.2s, transform 0.2s; }
-.b-service:hover .b-service__arrow { color: var(--b-green-hi); transform: translateX(-3px); }
+.b-service__arrow { margin-inline-start: auto; color: var(--b-text-3); transition: color 0.15s var(--b-ease); }
+.b-service:hover .b-service__arrow { color: var(--b-green-hi); }
 
-/* ── Corner glows, as on the logo artwork ────────────────────────────── */
-.b-glow {
-  position: absolute;
-  width: 34rem;
-  height: 34rem;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(15, 166, 89, 0.22), transparent 65%);
-  pointer-events: none;
-  filter: blur(10px);
+/* ── On-air board: the home hero's one rich moment ───────────────────── */
+.b-board {
+  background: var(--b-surface);
+  border: 1px solid var(--b-line);
+  border-radius: 16px;
+  overflow: hidden;
 }
+.b-board__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--b-line);
+  color: var(--b-text-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.b-board__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--b-line);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.15s var(--b-ease);
+}
+.b-board li:last-child .b-board__row { border-bottom: 0; }
+a.b-board__row:hover { background: var(--b-surface-2); }
+a.b-board__row:focus-visible { outline: 2px solid var(--b-green-hi); outline-offset: -2px; }
+.b-board__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--b-text-3);
+}
+
+/* The signature: a small "on air" dot for what is open right now. It is
+   live, so it is the one thing allowed to breathe. */
+.b-live {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--b-green-hi);
+  flex-shrink: 0;
+  animation: b-live 2s ease-in-out infinite;
+}
+.b-live--sm { width: 6px; height: 6px; animation: none; }
+@keyframes b-live { 50% { opacity: 0.35; } }
 
 /* ── Header ──────────────────────────────────────────────────────────── */
 .b-header {
@@ -214,7 +249,7 @@
   border-bottom: 1px solid var(--b-line);
   transition: background-color 0.3s, box-shadow 0.3s;
 }
-.b-header[data-scrolled="true"] { background: rgba(6, 10, 7, 0.95); box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.8); }
+.b-header[data-scrolled="true"] { background: rgba(6, 10, 7, 0.95);  }
 
 .b-nav-link {
   position: relative;
@@ -315,7 +350,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .b-pop, .b-overlay, .b-drawer { animation: none; }
-  .b-card, .b-service, .b-card img { transition: none; }
+  .b-card, .b-service, .b-btn { transition: none; }
+  .b-live { animation: none; }
 }
 
 }
