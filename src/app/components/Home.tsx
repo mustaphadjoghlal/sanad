@@ -333,40 +333,6 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ══ WORKS GALLERY ═════════════════════════════════════════════ */}
-      {works.length > 0 && (
-        <Section tinted>
-          <SectionHeader title="أعمال أعضاء المنصة" link="/works" linkLabel="كل الأعمال" />
-          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 14rem), 1fr))" }}>
-            {works.slice(0, 8).map((w) => <WorkCard key={w.id} work={w} />)}
-          </div>
-        </Section>
-      )}
-
-      {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
-      {featuredCourses.length > 0 && (
-        <Section>
-          <SectionHeader title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {featuredCourses.slice(0, 3).map((course) => (
-              <Link key={course.id} to={`/courses/${course.id}`} className="b-card">
-                <CardImage src={course.image} alt={course.title} />
-                <div className="p-5">
-                  <h3 className="font-bold mb-1.5 line-clamp-2" style={{ color: "var(--b-text)", fontSize: "1rem" }}>{course.title}</h3>
-                  {course.instructor && <p className="text-sm mb-3" style={muted}>{course.instructor}</p>}
-                  <div className="flex gap-2 flex-wrap">
-                    <span className={course.type === "free" ? "b-chip" : "b-chip b-chip--blue"}>
-                      {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
-                    </span>
-                    {course.duration && <span className="b-chip b-chip--muted">{course.duration}</span>}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </Section>
-      )}
-
       {/* ══ JOBS ══════════════════════════════════════════════════════ */}
       {featuredJobs.length > 0 && (
         <Section tinted>
@@ -389,6 +355,40 @@ export default function Home() {
               </Link>
             ))}
           </AutoCarousel>
+        </Section>
+      )}
+
+      {/* ══ WORKS GALLERY ═════════════════════════════════════════════ */}
+      {works.length > 0 && (
+        <Section>
+          <SectionHeader title="أعمال أعضاء المنصة" link="/works" linkLabel="كل الأعمال" />
+          <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 14rem), 1fr))" }}>
+            {works.slice(0, 8).map((w) => <WorkCard key={w.id} work={w} />)}
+          </div>
+        </Section>
+      )}
+
+      {/* ══ FEATURED COURSES ══════════════════════════════════════════ */}
+      {featuredCourses.length > 0 && (
+        <Section tinted>
+          <SectionHeader title="دورات مميزة" link="/courses" linkLabel="كل الدورات" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featuredCourses.slice(0, 3).map((course) => (
+              <Link key={course.id} to={`/courses/${course.id}`} className="b-card">
+                <CardImage src={course.image} alt={course.title} />
+                <div className="p-5">
+                  <h3 className="font-bold mb-1.5 line-clamp-2" style={{ color: "var(--b-text)", fontSize: "1rem" }}>{course.title}</h3>
+                  {course.instructor && <p className="text-sm mb-3" style={muted}>{course.instructor}</p>}
+                  <div className="flex gap-2 flex-wrap">
+                    <span className={course.type === "free" ? "b-chip" : "b-chip b-chip--blue"}>
+                      {course.type === "free" ? "مجانية" : `${course.price?.toLocaleString()} دج`}
+                    </span>
+                    {course.duration && <span className="b-chip b-chip--muted">{course.duration}</span>}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </Section>
       )}
 
