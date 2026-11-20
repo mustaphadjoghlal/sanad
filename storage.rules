@@ -14,8 +14,10 @@ service firebase.storage {
     // so a rule that tested the file's type refused every delete, and nothing
     // a member uploaded could ever be removed again. Uploading and deleting
     // are therefore separate permissions below.
+    // Raster formats only. SVG is an image type too, but it is a document
+    // that can carry script; nothing on the site needs one uploaded.
     function isImage() {
-      return request.resource.contentType.matches('image/.*')
+      return request.resource.contentType.matches('image/(jpeg|png|webp|gif|avif|heic|heif)')
           && request.resource.size < 5 * 1024 * 1024; // 5MB max
     }
 

@@ -592,6 +592,40 @@ describe("trainer courses", () => {
     await seed((db) => setDoc(doc(db, "trainerCourses/c1"), { trainerId: "t1", title: "د", status: "pending", featured: false, createdAt: Date.now() }));
     await assertSucceeds(updateDoc(doc(user("t1"), "trainerCourses/c1"), { title: "عنوان محدّث" }));
   });
+
+  it("BLOCKS silently editing an approved course", async () => {
+    await seed((db) => setDoc(doc(db, "trainerCourses/c1"), { trainerId: "t1", title: "د", status: "approved", featured: false, createdAt: Date.now() }));
+    await assertFails(updateDoc(doc(user("t1"), "trainerCourses/c1"), { title: "محتوى آخر" }));
+  });
+
+  it("ALLOWS editing an approved course when it goes back to review", async () => {
+    await seed((db) => setDoc(doc(db, "trainerCourses/c1"), { trainerId: "t1", title: "د", status: "approved", featured: false, createdAt: Date.now() }));
+    await assertSucceeds(updateDoc(doc(user("t1"), "trainerCourses/c1"), { title: "محتوى آخر", status: "pending" }));
+  });
+});
+
+describe("adminNotes — private to the member and the admin", () => {
+  beforeEach(() => seed((db) => setDoc(doc(db, "adminNotes/user1"), { note: "حسّن صورتك", at: Date.now() })));
+
+  it("ALLOWS the member to read their own note", async () => {
+    await assertSucceeds(getDoc(doc(user(), "adminNotes/user1")));
+  });
+
+  it("BLOCKS other members and visitors reading it", async () => {
+    await assertFails(getDoc(doc(user("user2"), "adminNotes/user1")));
+    await assertFails(getDoc(doc(guest(), "adminNotes/user1")));
+  });
+
+  it("BLOCKS the member writing or deleting it", async () => {
+    await assertFails(setDoc(doc(user(), "adminNotes/user1"), { note: "كل شيء ممتاز", at: Date.now() }));
+    await assertFails(deleteDoc(doc(user(), "adminNotes/user1")));
+  });
+
+  it("ALLOWS the admin to write, list and delete notes", async () => {
+    await assertSucceeds(setDoc(doc(admin(), "adminNotes/user1"), { note: "رقم هاتفك لا يعمل", at: Date.now() }));
+    await assertSucceeds(getDocs(collection(admin(), "adminNotes")));
+    await assertSucceeds(deleteDoc(doc(admin(), "adminNotes/user1")));
+  });
 });
 
 describe("course registrations", () => {

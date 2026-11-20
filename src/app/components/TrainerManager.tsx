@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, X, Trash2, Clock, MapPin, Calendar, DollarSign, ImageIcon, BookOpen, Inbox } from "lucide-react";
-import { subscribeToTrainerCourses, addTrainerCourse, updateTrainerCourse, deleteTrainerCourse, subscribeToTrainerRegistrations } from "../../lib/firestore";
+import { subscribeToTrainerCourses, addTrainerCourse, updateTrainerCourse, deleteTrainerCourse, subscribeToTrainerRegistrations, sendNotification } from "../../lib/firestore";
 import { uploadImage } from "../../lib/storage";
 import type { TrainerCourse, CourseRegistration } from "../../lib/types";
 
@@ -78,6 +78,12 @@ export default function TrainerManager({ trainerId, readOnly = false }: Props) {
       };
       if (editId) {
         await updateTrainerCourse(editId, data);
+        sendNotification({
+          title: "دورة معدّلة بانتظار المراجعة",
+          body: `عُدّلت الدورة «${String(form.title).slice(0, 150)}» وعادت إلى قائمة المراجعة`,
+          link: "/sanad-admin",
+          createdAt: Date.now(),
+        }, undefined, "admin").catch(() => {});
       } else {
         await addTrainerCourse(data);
       }
