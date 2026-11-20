@@ -277,7 +277,7 @@ export default function Layout() {
             <Link to="/" className="flex items-center shrink-0" style={{ textDecoration: "none" }}>
               <img
                 src="/logo.png"
-                width={120}
+                width={133}
                 height={40}
                 alt="سند — المنصة الجزائرية الإعلامية الشاملة"
                 className="h-9 md:h-10 w-auto"
@@ -451,7 +451,7 @@ export default function Layout() {
                   <Dialog.Content className="b-drawer brand" dir="rtl" aria-describedby={undefined}>
                     <VisuallyHidden.Root><Dialog.Title>القائمة</Dialog.Title></VisuallyHidden.Root>
                     <div className="flex items-center justify-between px-4 h-16 shrink-0" style={{ borderBottom: "1px solid var(--b-line)" }}>
-                      <img src="/logo.png" alt="سند" width={110} height={36} className="h-9 w-auto" />
+                      <img src="/logo.png" alt="سند" width={120} height={36} className="h-9 w-auto" />
                       <Dialog.Close className="b-icon-btn" aria-label="إغلاق القائمة">
                         <X size={20} />
                       </Dialog.Close>
@@ -530,7 +530,7 @@ export default function Layout() {
       {/* Footer */}
       <footer style={{ background: "var(--b-ink)", borderTop: "1px solid var(--b-line)" }}>
         <div className="container mx-auto px-4 py-10 flex flex-col items-center text-center gap-4">
-          <img src="/logo.png" alt="سند" width={110} height={36} loading="lazy" decoding="async" className="h-9 w-auto" />
+          <img src="/logo.png" alt="سند" width={120} height={36} loading="lazy" decoding="async" className="h-9 w-auto" />
           <p className="text-sm" style={{ color: "var(--b-text-2)" }}>المنصة الجزائرية الشاملة لمجال الإعلام</p>
           <a
             href="https://www.facebook.com/profile.php?id=61590628561028"
