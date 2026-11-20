@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Briefcase, Tv, Trophy, ArrowLeft, Users, CalendarDays, Newspaper, ChevronLeft, ChevronRight, Store, MapPin } from "lucide-react";
-import { AspectRatio } from "radix-ui";
 import { subscribeToFeatured, subscribeToCollection, subscribeToSiteContent, getLatestNews, subscribeToWorks } from "../../lib/firestore";
 import type { Course, Job, Equipment, Competition, SiteContent, NewsItem, Work } from "../../lib/types";
 import { DEFAULT_SITE_CONTENT } from "../../lib/types";
 import heroImage from "../assets/hero.webp";
 import { usePageTitle } from "../../lib/usePageTitle";
 import WorkCard from "./WorkCard";
+import { CardCover } from "./Cover";
 
 /* ── Animated counter ── */
 function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
@@ -70,13 +70,11 @@ function Section({ children, tinted = false }: { children: React.ReactNode; tint
   );
 }
 
-function CardImage({ src, alt, ratio = 16 / 9 }: { src?: string; alt: string; ratio?: number }) {
+function CardImage({ src, alt, ratio }: { src?: string; alt: string; ratio?: number }) {
   if (!src) return null;
   return (
-    <div style={{ overflow: "hidden", borderBottom: "1px solid var(--b-line)" }}>
-      <AspectRatio.Root ratio={ratio}>
-        <img loading="lazy" decoding="async" src={src} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-      </AspectRatio.Root>
+    <div style={{ borderBottom: "1px solid var(--b-line)" }}>
+      <CardCover src={src} alt={alt} ratio={ratio} />
     </div>
   );
 }
@@ -376,7 +374,7 @@ export default function Home() {
           <AutoCarousel label="فرص عمل">
             {featuredJobs.map((job) => (
               <Link key={job.id} to={`/jobs/${job.id}`} className="b-card" style={{ maxWidth: "48rem", marginInline: "auto" }}>
-                <CardImage src={job.image} alt={job.title} ratio={2} />
+                <CardImage src={job.image} alt={job.title} />
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <h3 className="font-bold" style={{ color: "var(--b-text)", fontSize: "1.05rem", minWidth: 0, wordBreak: "break-word" }}>{job.title}</h3>
@@ -420,7 +418,7 @@ export default function Home() {
           <AutoCarousel label="مسابقات قادمة">
             {upcomingComps.map((comp) => (
               <Link key={comp.id} to={`/competitions/${comp.id}`} className="b-card" style={{ maxWidth: "48rem", marginInline: "auto" }}>
-                <CardImage src={comp.image} alt={comp.name} ratio={2} />
+                <CardImage src={comp.image} alt={comp.name} />
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <h3 className="font-bold" style={{ color: "var(--b-text)", fontSize: "1.05rem", minWidth: 0, wordBreak: "break-word" }}>{comp.name}</h3>
