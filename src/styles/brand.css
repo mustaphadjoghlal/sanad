@@ -1,0 +1,321 @@
+/*
+ * Brand palette taken from the Sanad logo: a white wordmark, a single green
+ * (#0FA659) for the bars, dot and signal waves, on near-black with green glows
+ * in the corners.
+ *
+ * Scoped to `.brand` (the header, footer and home page) so the admin's theme
+ * settings still drive the rest of the site until those pages are redone.
+ */
+/* In the components layer so Tailwind utilities (hidden, lg:hidden…) can
+   still override these classes. */
+@layer components {
+.brand {
+  --b-green: #0fa659;
+  --b-green-hi: #18c06c;
+  --b-green-deep: #0a7a41;
+  --b-green-08: rgba(15, 166, 89, 0.08);
+  --b-green-14: rgba(15, 166, 89, 0.14);
+  --b-green-30: rgba(15, 166, 89, 0.3);
+  --b-ink: #060a07;
+  --b-surface: #0c120e;
+  --b-surface-2: #111913;
+  --b-line: rgba(255, 255, 255, 0.08);
+  --b-line-strong: rgba(255, 255, 255, 0.14);
+  --b-text: #ffffff;
+  --b-text-2: rgba(255, 255, 255, 0.74);
+  --b-text-3: rgba(255, 255, 255, 0.52);
+  --b-on-green: #03170b;
+  --b-radius: 14px;
+  color: var(--b-text);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+.b-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.b-btn:active { transform: translateY(1px); }
+.b-btn--primary {
+  background: var(--b-green);
+  color: var(--b-on-green);
+  border: 1px solid var(--b-green);
+  box-shadow: 0 8px 24px -10px rgba(15, 166, 89, 0.7);
+}
+.b-btn--primary:hover { background: var(--b-green-hi); border-color: var(--b-green-hi); }
+.b-btn--ghost {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--b-text);
+  border: 1px solid var(--b-line-strong);
+}
+.b-btn--ghost:hover { border-color: var(--b-green); color: var(--b-green-hi); }
+.b-btn--sm { min-height: 2.25rem; padding: 0 0.9rem; font-size: 0.85rem; border-radius: 10px; }
+
+.b-icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--b-line-strong);
+  color: var(--b-text-2);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+}
+.b-icon-btn:hover,
+.b-icon-btn[data-state="open"] { border-color: var(--b-green); color: var(--b-text); background: var(--b-green-08); }
+
+/* ── Eyebrow label: no letter-spacing, it breaks Arabic joins ─────────── */
+.b-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: var(--b-green-08);
+  border: 1px solid var(--b-green-30);
+  color: var(--b-green-hi);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.b-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--b-green);
+  box-shadow: 0 0 0 4px var(--b-green-14);
+}
+
+/* ── The logo's three bars, used as a section marker ─────────────────── */
+.b-bars {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.b-bars span {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--b-green);
+}
+.b-bars span:nth-child(1) { width: 18px; }
+.b-bars span:nth-child(2) { width: 22px; }
+.b-bars span:nth-child(3) { width: 14px; }
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.b-card {
+  display: block;
+  height: 100%;
+  background: var(--b-surface);
+  border: 1px solid var(--b-line);
+  border-radius: var(--b-radius);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+}
+.b-card:hover,
+.b-card:focus-visible {
+  border-color: var(--b-green-30);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px -24px rgba(15, 166, 89, 0.55);
+}
+.b-card img { transition: transform 0.5s ease; }
+.b-card:hover img { transform: scale(1.04); }
+
+.b-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--b-green-14);
+  color: var(--b-green-hi);
+  white-space: nowrap;
+}
+.b-chip--muted { background: rgba(255, 255, 255, 0.06); color: var(--b-text-2); }
+.b-chip--blue { background: rgba(56, 132, 255, 0.14); color: #8ab8ff; }
+.b-chip--amber { background: rgba(251, 146, 60, 0.14); color: #fdba74; }
+
+.b-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--b-green-hi);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.b-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* ── Service tiles: rounded square like the logo's frame ─────────────── */
+.b-service {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.1rem;
+  height: 100%;
+  border-radius: var(--b-radius);
+  background: linear-gradient(160deg, var(--b-surface-2), var(--b-surface));
+  border: 1px solid var(--b-line);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.25s, transform 0.25s;
+}
+.b-service:hover,
+.b-service:focus-visible { border-color: var(--b-green-30); transform: translateY(-3px); }
+.b-service__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--b-green-14);
+  color: var(--b-green-hi);
+  border: 1px solid var(--b-green-30);
+}
+.b-service__arrow { margin-inline-start: auto; color: var(--b-text-3); transition: color 0.2s, transform 0.2s; }
+.b-service:hover .b-service__arrow { color: var(--b-green-hi); transform: translateX(-3px); }
+
+/* ── Corner glows, as on the logo artwork ────────────────────────────── */
+.b-glow {
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(15, 166, 89, 0.22), transparent 65%);
+  pointer-events: none;
+  filter: blur(10px);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────── */
+.b-header {
+  background: rgba(6, 10, 7, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--b-line);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+.b-header[data-scrolled="true"] { background: rgba(6, 10, 7, 0.95); box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.8); }
+
+.b-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--b-text-2);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+}
+.b-nav-link:hover,
+.b-nav-link[data-state="open"] { color: var(--b-text); background: rgba(255, 255, 255, 0.05); }
+.b-nav-link[aria-current="page"],
+.b-nav-link[data-active="true"] { color: var(--b-green-hi); }
+.b-nav-link[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  inset-inline: 0.75rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--b-green);
+}
+
+/* ── Radix popovers / menus / drawer ─────────────────────────────────── */
+.b-pop {
+  z-index: 200;
+  background: var(--b-surface-2);
+  border: 1px solid var(--b-line-strong);
+  border-radius: var(--b-radius);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.9);
+  color: var(--b-text);
+  transform-origin: var(--radix-popper-transform-origin);
+  animation: b-pop-in 0.16s ease-out;
+}
+.b-menu { min-width: 12rem; padding: 0.35rem; }
+.b-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--b-text-2);
+  text-decoration: none;
+  outline: none;
+  cursor: pointer;
+}
+.b-menu-item[data-highlighted] { background: var(--b-green-08); color: var(--b-text); }
+.b-menu-item[aria-current="page"] { color: var(--b-green-hi); }
+
+.b-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  animation: b-fade 0.2s ease-out;
+}
+.b-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 301;
+  width: min(86vw, 22rem);
+  display: flex;
+  flex-direction: column;
+  background: var(--b-ink);
+  border-left: 1px solid var(--b-line-strong);
+  box-shadow: -30px 0 60px -30px rgba(0, 0, 0, 0.9);
+  animation: b-drawer-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  outline: none;
+}
+.b-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: var(--b-text-2);
+  text-decoration: none;
+}
+.b-drawer-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--b-text); }
+.b-drawer-link[aria-current="page"] { background: var(--b-green-08); color: var(--b-green-hi); }
+.b-drawer-link svg { flex-shrink: 0; opacity: 0.85; }
+
+@keyframes b-pop-in { from { opacity: 0; transform: scale(0.97) translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes b-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes b-drawer-in { from { transform: translateX(100%); } to { transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .b-pop, .b-overlay, .b-drawer { animation: none; }
+  .b-card, .b-service, .b-card img { transition: none; }
+}
+
+}
