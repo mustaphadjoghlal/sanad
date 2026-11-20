@@ -5,10 +5,8 @@
  */
 
 :root {
-  /* One family drawn for Arabic and Latin together, so mixed lines keep one
-     texture. Loaded at 400/500/600 only: hierarchy comes from size. */
-  --font-body: 'Readex Pro', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Readex Pro', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Tajawal', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Cairo', 'Tajawal', 'Segoe UI', system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
