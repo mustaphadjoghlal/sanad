@@ -221,20 +221,50 @@ export default function Home() {
 
   // Featured first, so the front page shows what the platform has picked and
   // falls back to the newest when nothing has been picked yet.
-  useEffect(() => subscribeToWorks("featured", setWorks, undefined, 12), []);
+  // Which sections the live listeners have already filled. The CDN copy
+  // below only fills what is still empty, never overwrites live data.
+  const live = useRef(new Set<string>());
+  const mark = <T,>(key: string, set: (v: T) => void) => (v: T) => { live.current.add(key); set(v); };
+
+  useEffect(() => subscribeToWorks("featured", mark("works", setWorks), undefined, 12), []);
+
+  // First paint from /api/home: one CDN-cached request, so a first visit on a
+  // slow connection shows content in a moment instead of waiting for
+  // Firestore's live connection to open.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/home")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d?.ok) return;
+        const fill = <T,>(key: string, value: T[] | null | undefined, set: (v: T[]) => void) => {
+          if (Array.isArray(value) && !live.current.has(key)) set(value);
+        };
+        fill("jobs", d.jobs, (v: Job[]) => { setFeaturedJobs(v); setJobsLoaded(true); });
+        fill("competitions", d.competitions, setUpcomingComps);
+        fill("news", d.news, setLatestNews);
+        fill("courses", d.courses, setFeaturedCourses);
+        fill("equipment", d.equipment, setFeaturedEquipment);
+        fill("works", d.works, setWorks);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const unsubs = [
-      subscribeToFeatured<Course>("courses",       setFeaturedCourses, noop),
+      subscribeToFeatured<Course>("courses",       mark("courses", setFeaturedCourses), noop),
       // The front page shows 8 of each, so it reads a few more than 8 (room
       // for pending ones to be filtered out) instead of the whole collection.
       subscribeToCollection<Job>("jobs", (d) => {
+        live.current.add("jobs");
         const approved = d.filter((j) => j.status === "approved" || !j.status);
         setFeaturedJobs([...approved].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8));
         setJobsLoaded(true);
       }, () => setJobsLoaded(true), HOME_FETCH),
-      subscribeToFeatured<Equipment>("equipment",  (d) => setFeaturedEquipment(d.slice(0, 3)), noop),
+      subscribeToFeatured<Equipment>("equipment",  (d) => { live.current.add("equipment"); setFeaturedEquipment(d.slice(0, 3)); }, noop),
       subscribeToFirstBy<Competition>("competitions", "startDate", "asc", HOME_FETCH, (comps) => {
+        live.current.add("competitions");
         const approved = comps.filter((c) => c.status === "approved" || !c.status);
         setUpcomingComps([...approved].sort((a, b) => a.startDate.localeCompare(b.startDate)).slice(0, 8));
       }, noop),
@@ -243,7 +273,7 @@ export default function Home() {
         try { localStorage.setItem("sanad_site_content", JSON.stringify(data)); } catch { /* private mode */ }
       }, noop),
     ];
-    getLatestNews(3).then(setLatestNews).catch(() => setLatestNews([]));
+    getLatestNews(3).then(mark("news", setLatestNews)).catch(() => {});
     return () => unsubs.forEach((u) => u());
   }, []);
 

@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { initializeFirestore } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache, terminate, clearIndexedDbPersistence } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getMessaging, isSupported } from "firebase/messaging";
@@ -17,8 +17,36 @@ export const app = initializeApp(firebaseConfig);
 // ignoreUndefinedProperties: optional form fields are passed as undefined
 // (order note, registration email, notification link, ...) and addDoc/setDoc
 // would otherwise throw "Unsupported field value: undefined".
-export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });
+//
+// Persistent cache: documents a visitor has already seen are kept in
+// IndexedDB, so on the next visit every listener answers from the device at
+// once and the network only brings what changed. Without it each visit
+// waited for the live connection before showing anything. Browsers that
+// refuse IndexedDB (some private modes) fall back to memory.
+function localCache() {
+  try {
+    return persistentLocalCache({ tabManager: persistentMultipleTabManager() });
+  } catch {
+    return memoryLocalCache();
+  }
+}
+export const db = initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: localCache() });
 export const auth = getAuth(app);
+
+/**
+ * Wipes the cached documents from this device. Called on sign-out: a store's
+ * orders hold buyers' names and phone numbers, and on a shared computer they
+ * must not outlive the session. Firestore cannot be used afterwards, so the
+ * caller reloads the page.
+ */
+export async function clearLocalData() {
+  try {
+    await terminate(db);
+    await clearIndexedDbPersistence(db);
+  } catch {
+    // Another tab still holds the cache open; it is cleared on its sign-out.
+  }
+}
 export const storage = getStorage(app);
 export const ADMIN_EMAIL = "admin@sanadz.media";
 export const FCM_VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined;
