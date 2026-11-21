@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { LogOut, AlertTriangle } from "lucide-react";
-import { auth } from "../../lib/firebase";
+import { auth, clearLocalData } from "../../lib/firebase";
 
 /**
  * One logout flow for all six logout buttons (header, mobile menu, the user
@@ -12,7 +11,6 @@ import { auth } from "../../lib/firebase";
  * easy to do by accident on a phone where the button sits beside the menu.
  */
 export function useLogoutFlow() {
-  const navigate = useNavigate();
   const [phase, setPhase] = useState<"idle" | "asking" | "leaving">("idle");
   const cancelRef = useRef<HTMLButtonElement>(null);
   const timerRef = useRef<number | null>(null);
@@ -24,6 +22,7 @@ export function useLogoutFlow() {
     setPhase("leaving");
     try {
       await signOut(auth);
+      await clearLocalData();
     } catch {
       // Even if the sign-out call fails, the local session is gone; sending
       // the visitor home is still the right outcome.
@@ -35,11 +34,13 @@ export function useLogoutFlow() {
     // it lives in the header, which every page shares, so the farewell stayed
     // over the site until the visitor reloaded. It only looked right from a
     // dashboard, which the navigation happens to unmount.
+    //
+    // A full load rather than a client-side navigation: the device cache was
+    // just cleared, and Firestore has to start fresh after that.
     timerRef.current = window.setTimeout(() => {
-      navigate("/", { replace: true });
-      setPhase("idle");
+      window.location.replace("/");
     }, 1100);
-  }, [navigate]);
+  }, []);
 
   // The timer must not fire into a component that has gone away.
   useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
