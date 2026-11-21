@@ -80,27 +80,33 @@ export default async function handler(req, res) {
     settle(runQuery(base, apiKey, ordered("news", "createdAt", "DESCENDING", 3))),
     settle(runQuery(base, apiKey, featured("courses"))),
     settle(runQuery(base, apiKey, featured("equipment"))),
-    settle(runQuery(base, apiKey, {
-      from: [{ collectionId: "works" }],
-      orderBy: [
-        { field: { fieldPath: "featured" }, direction: "DESCENDING" },
-        { field: { fieldPath: "createdAt" }, direction: "DESCENDING" },
-      ],
-      limit: 12,
-    })),
+    // Featured first, newest next — as the page orders them. Read by date
+    // and sorted here, which needs no composite index.
+    settle(runQuery(base, apiKey, ordered("works", "createdAt", "DESCENDING", 50)).then((w) =>
+      w.sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))).slice(0, 12)
+    )),
   ]);
 
   const byNewest = (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0);
+  // The cards show titles and a line of text; long bodies stay out of a
+  // response every visitor downloads.
+  const slim = (list, cut = []) => list && list.map((d) => {
+    const out = { ...d };
+    for (const k of cut) delete out[k];
+    if (typeof out.body === "string") out.body = out.body.slice(0, 280);
+    return out;
+  });
   const body = {
     ok: true,
     // Same filtering and order the page applies to its live data.
-    jobs: jobs && jobs.filter(approved).sort(byNewest).slice(0, 8),
-    competitions: comps && comps.filter(approved)
+    jobs: slim(jobs && jobs.filter(approved).sort(byNewest).slice(0, 8), ["description", "companyDescription"]),
+    competitions: slim(comps && comps.filter(approved)
       .sort((a, b) => String(a.startDate ?? "").localeCompare(String(b.startDate ?? ""))).slice(0, 8),
-    news,
-    courses: courses && courses.filter(approved).sort(byNewest),
-    equipment: equipment && equipment.filter(approved).sort(byNewest).slice(0, 3),
-    works,
+      ["content", "organizerDescription"]),
+    news: slim(news),
+    courses: slim(courses && courses.filter(approved).sort(byNewest), ["description", "content"]),
+    equipment: slim(equipment && equipment.filter(approved).sort(byNewest).slice(0, 3), ["description"]),
+    works: slim(works, ["description"]),
   };
 
   // Public data only. A minute is fresh enough for a front page, and the
