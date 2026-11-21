@@ -187,6 +187,11 @@
 .b-service__arrow { margin-inline-start: auto; color: var(--b-text-3); transition: color 0.15s var(--b-ease); }
 .b-service:hover .b-service__arrow { color: var(--b-green-hi); }
 
+/* The hero picture is as tall as the screen whatever the hero holds, so it
+   never re-scales when content loads. svh where supported (it does not move
+   when a mobile address bar slides away), vh before that. */
+.b-hero-bg { height: 100vh; height: 100svh; }
+
 /* ── On-air board: the home hero's one rich moment ───────────────────── */
 .b-board {
   background: var(--b-surface);
