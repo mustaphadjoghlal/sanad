@@ -41,7 +41,8 @@ function OnAirBoard({ jobs, loaded }: { jobs: Job[]; loaded: boolean }) {
           ? Array.from({ length: 3 }).map((_, i) => (
               <li key={i} className="b-board__row" aria-hidden="true">
                 <div className="flex-1 space-y-2 animate-pulse">
-                  <div style={{ height: "14px", width: "70%", borderRadius: "4px", background: "rgba(255,255,255,0.06)" }} />
+                  <div style={{ height: "14px", width: "90%", borderRadius: "4px", background: "rgba(255,255,255,0.06)" }} />
+                  <div style={{ height: "14px", width: "60%", borderRadius: "4px", background: "rgba(255,255,255,0.06)" }} />
                   <div style={{ height: "12px", width: "40%", borderRadius: "4px", background: "rgba(255,255,255,0.04)" }} />
                 </div>
               </li>
@@ -284,12 +285,17 @@ export default function Home() {
     <div className="brand" style={{ background: "var(--b-ink)", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
 
       {/* ══ HERO ═══════════════════════════════════════════════════════ */}
-      <section style={{ position: "relative", isolation: "isolate" }}>
+      <section style={{ position: "relative", isolation: "isolate", overflow: "hidden" }}>
+        {/* Sized by the screen, not by the hero's content. Stretched over the
+            section, the picture was re-scaled and re-centred every time the
+            content below it changed height — the jobs board arriving made the
+            monument visibly jump. */}
         <div
           aria-hidden="true"
+          className="b-hero-bg"
           style={{
-            position: "absolute", inset: 0, zIndex: -2, pointerEvents: "none",
-            backgroundImage: `url(${heroImage})`, backgroundSize: "cover", backgroundPosition: "center",
+            position: "absolute", top: 0, left: 0, right: 0, zIndex: -2, pointerEvents: "none",
+            backgroundImage: `url(${heroImage})`, backgroundSize: "cover", backgroundPosition: "center top",
             opacity: 0.32,
             WebkitMaskImage: "linear-gradient(to bottom, #000 30%, transparent 95%)",
             maskImage: "linear-gradient(to bottom, #000 30%, transparent 95%)",
