@@ -31,3 +31,10 @@ ffmpeg -i ../sanad-reel-raw.mp4 -f lavfi -i anullsrc=channel_layout=stereo:sampl
 - المسار منفصلاً لبرامج المونتاج: `sanad-reel-sfx.wav` و`sanad-portfolio-reel-sfx.wav`.
 - لإعادة بنائه بعد تعديل التوقيت:
   `python3 <motion-studio>/tools/audio/sfx-pipeline/build_track.py reel-source/sfx-cues.json OUT --video sanad-reel.mp4 --mix`
+
+# فيديو توعوي: لا تعلّق «مهتم»… تواصل
+
+- `sanad-apply-reel.mp4` — 1080×1920، 45.5 ثانية، مع مؤثرات صوتية من motion-studio.
+  الرسالة: بدل التعليق «مهتم» على إعلان التوظيف، تواصل مع الجهة المنظّمة: رسالة رسمية منظّمة، سيرة ذاتية، رابط معرض الأعمال، ثم أرسل.
+- `sanad-apply-reel-cover.jpg` — الغلاف. `sanad-apply-reel-sfx.wav` — المؤثرات وحدها.
+- `apply-reel/` — المصدر وجدول المؤثرات `sfx-cues.json`.

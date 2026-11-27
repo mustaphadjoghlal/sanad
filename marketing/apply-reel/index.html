@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>Sanad Apply Reel</title>
+<style>
+  @font-face { font-family: "Cairo"; font-weight: 700; src: url(fonts/cairo-arabic-700-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Cairo"; font-weight: 800; src: url(fonts/cairo-arabic-800-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Cairo"; font-weight: 900; src: url(fonts/cairo-arabic-900-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Cairo"; font-weight: 700; src: url(fonts/cairo-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF; }
+  @font-face { font-family: "Cairo"; font-weight: 800; src: url(fonts/cairo-latin-800-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF; }
+  @font-face { font-family: "Cairo"; font-weight: 900; src: url(fonts/cairo-latin-800-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF; }
+  @font-face { font-family: "Tajawal"; font-weight: 500; src: url(fonts/tajawal-arabic-500-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+  @font-face { font-family: "Tajawal"; font-weight: 700; src: url(fonts/tajawal-arabic-700-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC; }
+
+  html, body { margin: 0; padding: 0; background: #000; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden;
+    background: radial-gradient(120% 80% at 50% 40%, #0b1d13 0%, #06110b 55%, #030805 100%);
+    font-family: "Cairo", sans-serif; color: #fff; direction: rtl; }
+  .a { position: absolute; left: 0; top: 0; will-change: transform, opacity; white-space: nowrap; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  #grid { background-image: radial-gradient(rgba(255,255,255,0.07) 1.6px, transparent 1.8px); background-size: 54px 54px; }
+  .glow { position: absolute; width: 1400px; height: 1400px; border-radius: 50%; left: -160px; }
+  #glowG { background: radial-gradient(circle, rgba(0,196,106,0.35) 0%, rgba(0,163,85,0.12) 35%, transparent 65%); }
+  #glowR { background: radial-gradient(circle, rgba(239,68,68,0.2) 0%, rgba(120,30,30,0.08) 35%, transparent 65%); }
+  #vignette { background: radial-gradient(75% 60% at 50% 50%, transparent 55%, rgba(0,0,0,0.65) 100%); }
+  .dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #2ee6a0; }
+  .abs { position: absolute; }
+  .t { font-family: "Tajawal", "Cairo"; }
+
+  .h { font-weight: 900; text-align: center; line-height: 1.3; white-space: normal; width: 980px; }
+  .h .w { display: inline-block; }
+  .acc { background: linear-gradient(90deg, #2ee6a0, #00c46a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .red { color: #f87171; }
+
+  /* the social post */
+  .post { width: 900px; border-radius: 40px; background: #161c18; border: 2px solid rgba(255,255,255,0.08); box-shadow: 0 30px 90px rgba(0,0,0,0.6); overflow: hidden; }
+  .ph { display: flex; align-items: center; gap: 20px; padding: 28px 32px 10px; }
+  .pav { width: 84px; height: 84px; border-radius: 50%; background: #0e1611; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(46,230,160,0.4); }
+  .pn { font-size: 32px; font-weight: 800; }
+  .pt { font-family: "Tajawal","Cairo"; font-weight: 500; font-size: 24px; color: #7f8a84; }
+  .pbody { padding: 14px 32px 22px; }
+  .ptag { display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 20px; background: rgba(46,230,160,0.12); color: #2ee6a0; font-weight: 800; font-size: 26px; }
+  .ptitle { font-size: 52px; font-weight: 900; margin: 14px 0 6px; }
+  .pline { font-family: "Tajawal","Cairo"; font-weight: 700; font-size: 30px; color: #b9c2bc; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .mailline { direction: ltr; font-family: "Cairo"; font-weight: 800; color: #9fe3c0; }
+  .pfoot { display: flex; justify-content: space-between; padding: 18px 32px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 26px; font-weight: 700; color: #8b958f; }
+
+  .feed { width: 900px; height: 560px; overflow: hidden; position: relative; }
+  .cm { position: absolute; right: 0; left: 0; display: flex; align-items: flex-start; gap: 16px; }
+  .cav { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; flex-shrink: 0; }
+  .cb { background: #222a25; border-radius: 30px; padding: 12px 26px 14px; }
+  .cn { font-size: 24px; font-weight: 800; color: #cfd8d2; }
+  .ct { font-family: "Tajawal","Cairo"; font-weight: 700; font-size: 36px; color: #fff; }
+
+  .card { border-radius: 40px; background: #141b17; border: 2px solid rgba(255,255,255,0.09); box-shadow: 0 30px 90px rgba(0,0,0,0.6); }
+  .inbox { width: 820px; padding: 34px 40px; box-sizing: border-box; }
+  .ihead { display: flex; align-items: center; gap: 16px; font-size: 36px; font-weight: 900; }
+  .icount { margin-right: auto; padding: 8px 22px; border-radius: 22px; font-size: 28px; font-weight: 900; }
+  .irow { margin-top: 26px; height: 110px; border-radius: 26px; display: flex; align-items: center; gap: 18px; padding: 0 24px; box-sizing: border-box; }
+
+  .step { display: inline-flex; align-items: center; gap: 16px; padding: 12px 30px 12px 16px; border-radius: 40px; background: rgba(46,230,160,0.1); border: 2px solid rgba(46,230,160,0.35);
+    font-size: 36px; font-weight: 900; color: #c9f5dd; }
+  .snum { width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg,#00a355,#2ee6a0); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 900; }
+
+  /* e-mail window */
+  .win { width: 940px; border-radius: 36px; overflow: hidden; background: #f4f7f5; color: #17231c; box-shadow: 0 40px 120px rgba(0,0,0,0.7); }
+  .wbar { height: 70px; background: #e3ebe6; display: flex; align-items: center; gap: 12px; padding: 0 28px; direction: ltr; }
+  .wbar i { width: 18px; height: 18px; border-radius: 50%; display: block; }
+  .wbar b { margin-left: auto; font-size: 26px; font-weight: 800; color: #4a5a51; direction: rtl; }
+  .wrow { display: flex; align-items: center; gap: 18px; padding: 0 34px; height: 76px; border-bottom: 1.5px solid #dfe6e2; font-size: 28px; }
+  .wrow .k { font-weight: 800; color: #6b7b72; width: 110px; flex-shrink: 0; }
+  .wrow .v { font-weight: 800; color: #17231c; }
+  .wbody { position: relative; display: flex; gap: 20px; padding: 26px 34px 30px; }
+  .wtext { width: 600px; font-family: "Tajawal","Cairo"; font-weight: 500; font-size: 30px; line-height: 1.62; color: #1b2a21; white-space: normal; }
+  .wtext p { margin: 0 0 4px; min-height: 48px; }
+  .wcol { flex: 1; position: relative; }
+  .cursor { display: inline-block; width: 3px; height: 34px; background: #00a355; vertical-align: middle; margin-right: 2px; }
+  .ck { position: absolute; left: 0; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px; background: #dcfce7; color: #0b6b3a;
+    font-weight: 800; font-size: 22px; border: 1.5px solid #86efac; }
+  .att { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 18px; background: #e7efe9; border: 1.5px solid #cfdcd3; font-size: 24px; font-weight: 800; color: #1f3a2a; }
+  .sendb { display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; border-radius: 24px; background: linear-gradient(135deg,#00a355,#00c46a); color: #fff; font-size: 34px; font-weight: 900; }
+
+  /* CV */
+  .cv { width: 620px; height: 860px; border-radius: 20px; background: #fbfdfc; color: #17231c; box-shadow: 0 40px 120px rgba(0,0,0,0.7); position: relative; overflow: hidden; padding: 44px 46px; box-sizing: border-box; }
+  .cv .nm { font-size: 46px; font-weight: 900; }
+  .cv .ti { font-size: 28px; font-weight: 800; color: #00a355; margin-top: 2px; }
+  .cv .ctc { font-family: "Tajawal","Cairo"; font-weight: 700; font-size: 20px; color: #55665c; display: flex; gap: 18px; margin-top: 12px; }
+  .cv .sec { margin-top: 30px; }
+  .cv .st { font-size: 26px; font-weight: 900; color: #0b3d24; border-bottom: 3px solid #2ee6a0; display: inline-block; padding-bottom: 2px; }
+  .ln { height: 14px; border-radius: 7px; background: #dfe7e2; margin-top: 14px; }
+  .sk { display: inline-block; padding: 6px 16px; border-radius: 14px; background: #e3f5ea; color: #0b6b3a; font-weight: 800; font-size: 20px; margin: 12px 0 0 8px; }
+  .pdf { position: absolute; left: 0; top: 0; padding: 14px 26px; border-radius: 0 0 22px 0; background: #ef4444; color: #fff; font-weight: 900; font-size: 30px; direction: ltr; }
+  .pill { display: inline-flex; align-items: center; gap: 12px; padding: 16px 28px; border-radius: 30px; background: #0f2a1b; border: 2px solid rgba(46,230,160,0.55); color: #d6f7e4; font-weight: 800; font-size: 32px;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.6); }
+
+  /* portfolio link */
+  .bro { width: 900px; border-radius: 36px; overflow: hidden; background: #0e0e0e; border: 2px solid rgba(46,230,160,0.25); box-shadow: 0 40px 120px rgba(0,0,0,0.7); }
+  .url { direction: ltr; margin: 20px 24px; padding: 16px 26px; border-radius: 22px; background: #1a221d; font-size: 30px; font-weight: 800; color: #b6f0d2; display: flex; align-items: center; gap: 12px; }
+  .mw { height: 170px; border-radius: 22px; display: flex; align-items: center; justify-content: center; }
+
+  .ring { width: 420px; height: 420px; border-radius: 50%; border: 4px solid rgba(46,230,160,0.8); }
+  .tap { width: 74px; height: 74px; border-radius: 50%; background: rgba(255,255,255,0.85); box-shadow: 0 0 0 10px rgba(255,255,255,0.18), 0 10px 30px rgba(0,0,0,0.5); }
+  .ripple { width: 74px; height: 74px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.9); }
+  .toast { padding: 22px 38px; border-radius: 30px; background: #0f2a1b; border: 2px solid rgba(46,230,160,0.55); color: #c9f5dd; font-weight: 900; font-size: 38px; display: inline-flex; align-items: center; gap: 14px; }
+  .vs { width: 900px; padding: 34px 40px; box-sizing: border-box; border-radius: 40px; display: flex; align-items: center; gap: 26px; }
+  .urlpill { padding: 18px 54px; border-radius: 50px; border: 3px solid rgba(46,230,160,0.6); background: rgba(46,230,160,0.08); font-size: 52px; font-weight: 800; color: #e9fff3; direction: ltr; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="bg"><div class="glow" id="glowG"></div><div class="glow" id="glowR"></div><div class="layer" id="grid"></div><div class="layer" id="dots"></div></div>
+  <div class="layer" id="fx"></div>
+  <div class="layer" id="vignette"></div>
+</div>
+<script src="icons.js"></script>
+<script>
+const stage = document.getElementById("stage"), fx = document.getElementById("fx");
+const W = 1080, H = 1920, CX = 540;
+const cl = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const p = (t, s, d) => cl((t - s) / d);
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const back = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 + 2.4 * Math.pow(x - 1, 3) + 1.4 * Math.pow(x - 1, 2));
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const ic = (n, size, color = "#fff", sw = 2.2, fill = "none") =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg>`;
+
+const anims = [], subs = [];
+function A(html, fn, cls = "") {
+  const d = document.createElement("div");
+  d.className = "a " + cls; d.innerHTML = html; fx.appendChild(d);
+  anims.push({ d, fn });
+  return d;
+}
+function apply(d, s) {
+  if (!s || s.o <= 0.002) { d.style.display = "none"; return; }
+  d.style.display = "";
+  d.style.opacity = s.o;
+  d.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -50%) rotate(${s.r || 0}deg) scale(${s.s ?? 1})`;
+  d.style.filter = s.b > 0.05 ? `blur(${s.b}px)` : "none";
+}
+function put(el, { o = 1, x = 0, y = 0, s = 1, r = 0 } = {}) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+}
+function headline(text, o) {
+  const { y, size = 88, start, end, hl = [], red = [], out = 0.35, x = CX } = o;
+  const html = text.split(" ").map((w) => (w === "|" ? "<br>" : `<span class="w ${hl.includes(w) ? "acc" : red.includes(w) ? "red" : ""}">${w}</span>`)).join(" ");
+  const d = A(`<div class="h" style="font-size:${size}px">${html}</div>`, (t) => {
+    if (t < start - 0.05 || t > end + out) return null;
+    const k = eio(p(t, end, out));
+    return { x, y: y - k * 50, o: 1 - k, b: k * 14, s: 1 - k * 0.04 };
+  });
+  const spans = [...d.querySelectorAll(".w")];
+  subs.push((t) => spans.forEach((sp, i) => {
+    const k = eo(p(t, start + i * 0.09, 0.5));
+    sp.style.opacity = k;
+    sp.style.transform = `translateY(${(1 - k) * 60}px)`;
+    sp.style.filter = k < 0.98 ? `blur(${(1 - k) * 12}px)` : "none";
+  }));
+  return d;
+}
+/** A centred element that pops in at `a` and leaves at `b`. */
+function card(html, { y, x = CX, a, b, s = 1, dy = 60 }, extra) {
+  return A(html, (t) => {
+    if (t < a || t > b + 0.4) return null;
+    const k = back(p(t, a, 0.6)), out = eio(p(t, b, 0.4));
+    const base = { x, y: y + (1 - cl(k)) * dy - out * 40, o: cl(k * 1.4) * (1 - out), s: s * (0.85 + 0.15 * k), b: out * 10 };
+    return extra ? extra(t, base) : base;
+  });
+}
+
+// ── background ─────────────────────────────────────────────────────
+const dotsEl = document.getElementById("dots"), R = rng(5);
+const dots = Array.from({ length: 40 }, () => { const d = document.createElement("div"); d.className = "dot"; dotsEl.appendChild(d);
+  return { d, x: R() * W, y: R() * H, v: 20 + R() * 50, s: 0.4 + R() * 1.2, ph: R() * 6.28 }; });
+const glowG = document.getElementById("glowG"), glowR = document.getElementById("glowR"), grid = document.getElementById("grid");
+function bg(t) {
+  // The "مهتم" part of the story is the dull, reddish one; everything after it is green.
+  const dull = p(t, 0.3, 0.8) * (1 - p(t, 10.2, 0.8));
+  glowG.style.opacity = (1 - dull * 0.75) * (0.85 + 0.15 * Math.sin(t * 1.3));
+  glowG.style.transform = `translate(${Math.sin(t * 0.4) * 60}px, ${180 + Math.cos(t * 0.33) * 80}px)`;
+  glowR.style.opacity = dull * 0.9;
+  glowR.style.transform = `translate(${Math.cos(t * 0.5) * 80}px, ${300 + Math.sin(t * 0.45) * 100}px)`;
+  grid.style.backgroundPosition = `0px ${(t * 22) % 54}px`;
+  for (const q of dots) {
+    const y = ((q.y - t * q.v) % H + H) % H;
+    q.d.style.transform = `translate(${q.x + Math.sin(t * 0.8 + q.ph) * 14}px, ${y}px) scale(${q.s})`;
+    q.d.style.opacity = (0.15 + 0.35 * (0.5 + 0.5 * Math.sin(t * 2 + q.ph))) * (1 - dull * 0.7);
+  }
+}
+
+// ═══ Scene 1 — the job post, and the comments (0 – 4.2) ══════════════
+headline("مهتم… مهتم… مهتم…", { y: 250, start: 0.5, end: 2.3, size: 84, red: ["مهتم…"] });
+headline("مئات التعليقات… | ولا طلبٌ واحد.", { y: 260, start: 2.45, end: 4.05, size: 88, red: ["طلبٌ", "واحد."] });
+
+const POST = `<div class="post">
+  <div class="ph"><div class="pav"><img src="icon-512.png" style="width:62px" /></div>
+    <div><div class="pn">منصة سند الإعلامية</div><div class="pt">منذ ساعتين</div></div></div>
+  <div class="pbody"><div class="ptag">${ic("megaphone", 26, "#2ee6a0")} فرصة عمل</div>
+    <div class="ptitle">مطلوب: محرّر أخبار</div>
+    <div class="pline">${ic("briefcase", 28, "#8b958f")} قناة تلفزيونية — الجزائر العاصمة</div>
+    <div class="pline" id="mailLine">${ic("mail", 28, "#8b958f")} للتواصل: <span class="mailline">recruitment@example.com</span></div></div>
+  <div class="pfoot"><span>${ic("message-circle", 26, "#8b958f")} <b id="cc">0</b> تعليق</span><span>${ic("thumbs-up", 26, "#8b958f")} 64</span></div></div>`;
+const post = A(POST, (t) => {
+  if (t > 8.2) return null;
+  const k = back(p(t, 0.15, 0.6));
+  // scene 2: steps back and goes grey, to make room for the inbox
+  const m = eio(p(t, 4.2, 0.6)), out = eio(p(t, 7.8, 0.4));
+  return { x: CX, y: lerp(690, 640, m) + (1 - cl(k)) * 60, o: cl(k * 1.4) * lerp(1, 0.55, m) * (1 - out), s: (0.85 + 0.15 * k) * lerp(1, 0.68, m), b: out * 8 };
+});
+const NAMES = [["أمين", "#3b82f6"], ["سارة", "#a855f7"], ["يوسف", "#f59e0b"], ["ليلى", "#ec4899"], ["كريم", "#14b8a6"], ["نور الهدى", "#ef4444"], ["رياض", "#6366f1"], ["مريم", "#84cc16"], ["إسلام", "#f97316"]];
+const SAY = ["مهتم", "مهتمة", "مهتم", "مهتمة", "مهتم", "مهتمة", "مهتم", "مهتمة", "مهتم"];
+const ROW = 150, CT = [0.9, 1.2, 1.45, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7];
+const feed = A(`<div class="feed"><div id="list">${NAMES.map(([n, c], i) => `<div class="cm" id="cm${i}" style="top:${i * ROW}px">
+   <div class="cav" style="background:${c}">${n[0]}</div><div class="cb"><div class="cn">${n}</div><div class="ct">${SAY[i]}</div></div></div>`).join("")}</div></div>`, (t) => {
+  if (t < 0.8 || t > 8.2) return null;
+  const m = eio(p(t, 4.2, 0.6)), out = eio(p(t, 7.8, 0.4));
+  return { x: CX, y: lerp(1300, 1080, m), o: lerp(1, 0.45, m) * (1 - out), s: lerp(1, 0.68, m), b: out * 8 };
+});
+const list = feed.querySelector("#list");
+subs.push((t) => {
+  let shown = 0;
+  CT.forEach((ct, i) => {
+    const k = back(p(t, ct, 0.35));
+    if (t >= ct) shown = i + 1;
+    put(document.getElementById("cm" + i), { o: cl(k * 1.5), x: (1 - cl(k)) * -80, s: 0.8 + 0.2 * k });
+  });
+  // the newest comment pushes the older ones up
+  const target = Math.max(0, shown - 3) * ROW;
+  list.style.transform = `translateY(${-target}px)`;
+  list.style.transition = "none";
+  document.getElementById("cc").textContent = Math.round(248 * eo(p(t, 0.9, 3.0)));
+});
+
+// ═══ Scene 2 — the inbox that stays empty (4.2 – 8.0) ════════════════
+headline("لأنّ «مهتم» | لا تصل إلى صندوق الوارد.", { y: 260, start: 4.3, end: 7.8, size: 84, red: ["«مهتم»"] });
+card(`<div class="card inbox"><div class="ihead">${ic("inbox", 46, "#9fd8b9", 2)} صندوق الوارد — جهة التوظيف<div class="icount" style="background:rgba(255,255,255,0.08);color:#9aa59f">0</div></div>
+  <div class="irow" style="background:rgba(255,255,255,0.03);border:2px dashed rgba(255,255,255,0.12);justify-content:center" ><span class="t" style="font-weight:700;font-size:32px;color:#7f8a84">لا توجد طلبات ترشّح بعد</span></div></div>`,
+  { y: 1460, a: 4.9, b: 7.8 });
+// a dashed line from the comments to the inbox, cut in the middle
+A(`<svg width="40" height="200" viewBox="0 0 40 200"><path d="M20 0 V200" stroke="rgba(248,113,113,0.7)" stroke-width="5" stroke-dasharray="14 12"/></svg>`, (t) => {
+  if (t < 5.3 || t > 8.2) return null;
+  const k = eo(p(t, 5.3, 0.5)), out = eio(p(t, 7.8, 0.4));
+  return { x: CX, y: 1290, o: k * (1 - out) };
+});
+card(`<div style="width:92px;height:92px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(239,68,68,0.6)">${ic("x", 58, "#fff", 3.2)}</div>`,
+  { y: 1290, a: 5.7, b: 7.8, dy: 0 });
+
+// ═══ Scene 3 — don't stop at the comment (8.0 – 11.0) ═════════════════
+headline("لا تكتفِ بالتعليق.", { y: 560, start: 8.1, end: 10.85, size: 110 });
+const crossed = card(`<div style="position:relative;display:inline-flex;align-items:center;gap:16px">
+   <div class="cav" style="background:#3b82f6;width:90px;height:90px;font-size:42px">أ</div>
+   <div class="cb" style="padding:18px 36px"><div class="cn" style="font-size:28px">أمين</div><div class="ct" style="font-size:52px">مهتم</div></div>
+   <div id="strike" style="position:absolute;right:-20px;top:50%;height:12px;border-radius:6px;background:#ef4444;width:0;transform:rotate(-8deg);box-shadow:0 0 20px rgba(239,68,68,0.6)"></div></div>`,
+  { y: 900, a: 8.3, b: 10.85, s: 1.15 });
+subs.push((t) => { document.getElementById("strike").style.width = `${eo(p(t, 8.95, 0.35)) * 420}px`; });
+headline("تواصل مع الجهة | المنظّمة مباشرةً.", { y: 1230, start: 9.35, end: 10.85, size: 92, hl: ["تواصل"] });
+card(`<div class="pill" style="font-size:34px">${ic("mail", 34, "#2ee6a0")} العنوان موجود في الإعلان نفسه</div>`, { y: 1460, a: 9.9, b: 10.85 });
+
+// ═══ Scene 4 — three steps (11.0 – 12.6) ═════════════════════════════
+headline("في ثلاث خطوات:", { y: 760, start: 11.0, end: 12.35, size: 116, hl: ["ثلاث"] });
+[0, 1, 2].forEach((i) => card(`<div class="snum" style="width:150px;height:150px;font-size:84px">${i + 1}</div>`,
+  { x: [760, 540, 320][i], y: 1060, a: 11.4 + i * 0.18, b: 12.35, dy: 40 }));
+
+// ═══ Step 1 — the message (12.6 – 20.4) ══════════════════════════════
+const stepChip = (n, label, a, b) => card(`<div class="step"><div class="snum">${n}</div>${label}</div>`, { y: 250, a, b, dy: 30 });
+stepChip(1, "رسالة رسمية", 12.6, 20.1);
+headline("اكتب رسالةً رسميةً ومنظّمة", { y: 380, start: 12.75, end: 20.1, size: 74, hl: ["رسميةً", "ومنظّمة"] });
+const SUBJ = "طلب ترشّح لمنصب محرّر أخبار";
+const BODY = [
+  ["السيد المسؤول عن التوظيف المحترم،", "تحية رسمية"],
+  ["تحية طيبة وبعد،", null],
+  ["أتقدّم بطلب الترشّح لمنصب محرّر أخبار المعلن عنه على منصة سند.", "سبب التواصل"],
+  ["لديّ خبرة ثلاث سنوات في تحرير الأخبار وإعداد التقارير الميدانية.", "خبرتك باختصار"],
+  ["تجدون مرفقاً سيرتي الذاتية ورابط معرض أعمالي.", "المرفقات"],
+  ["مع فائق الاحترام، أمين بن علي — 0550 12 34 56", "توقيع ورقم هاتف"],
+];
+// when each line starts and ends typing
+const LT = []; { let s = 14.15; BODY.forEach(([l]) => { const d = 0.32 + l.length * 0.0098; LT.push([s, s + d]); s += d + 0.12; }); }
+const mailWin = card(`<div class="win">
+  <div class="wbar"><i style="background:#ef4444"></i><i style="background:#f59e0b"></i><i style="background:#22c55e"></i><b>رسالة جديدة</b></div>
+  <div class="wrow"><span class="k">إلى:</span><span class="v" style="direction:ltr">recruitment@example.com</span></div>
+  <div class="wrow"><span class="k">الموضوع:</span><span class="v"><span id="subj"></span><span class="cursor" id="subjC"></span></span>
+     <span class="ck" id="ckS" style="position:static;margin-right:auto">${ic("check", 22, "#0b6b3a", 3)} موضوع واضح</span></div>
+  <div class="wbody"><div class="wtext">${BODY.map((_, i) => `<p id="bl${i}"></p>`).join("")}</div>
+     <div class="wcol">${BODY.map(([, c], i) => (c ? `<span class="ck" id="ck${i}">${ic("check", 22, "#0b6b3a", 3)} ${c}</span>` : "")).join("")}</div></div></div>`,
+  { y: 1070, a: 12.85, b: 20.1 });
+const caret = '<span class="cursor"></span>';
+subs.push((t) => {
+  const n = Math.round(SUBJ.length * cl((t - 13.25) / 0.75));
+  document.getElementById("subj").textContent = SUBJ.slice(0, n);
+  document.getElementById("subjC").style.display = t > 13.1 && t < 14.15 ? "inline-block" : "none";
+  const cks = document.getElementById("ckS"), kS = back(p(t, 14.0, 0.4));
+  put(cks, { o: cl(kS * 1.5), s: 0.6 + 0.4 * kS });
+  // the checks sit beside the lines they describe
+  const paras = BODY.map((_, i) => document.getElementById("bl" + i));
+  BODY.forEach(([line, c], i) => {
+    const [a, b] = LT[i];
+    const m = Math.round(line.length * cl((t - a) / (b - a)));
+    paras[i].innerHTML = line.slice(0, m) + (t >= a && t < b + 0.12 ? caret : "");
+    if (c) {
+      const el = document.getElementById("ck" + i);
+      el.style.top = `${paras[i].offsetTop - 22}px`;
+      const k = back(p(t, b, 0.4));
+      put(el, { o: cl(k * 1.5), s: 0.6 + 0.4 * k });
+    }
+  });
+});
+
+// ═══ Step 2 — the CV (20.4 – 26.0) ═══════════════════════════════════
+stepChip(2, "سيرة ذاتية", 20.4, 25.75);
+headline("جهّز سيرةً ذاتيةً واضحة", { y: 380, start: 20.55, end: 25.75, size: 78, hl: ["واضحة"] });
+const lines = (ws) => ws.map((w) => `<div class="ln" style="width:${w}%"></div>`).join("");
+card(`<div class="cv"><div class="pdf">PDF</div>
+   <div class="nm">أمين بن علي</div><div class="ti">محرّر أخبار</div>
+   <div class="ctc"><span>${ic("phone", 20, "#55665c")} 0550 12 34 56</span><span>${ic("map-pin", 20, "#55665c")} الجزائر العاصمة</span></div>
+   <div class="sec"><div class="st">الخبرة المهنية</div>${lines([92, 80, 86, 60])}</div>
+   <div class="sec"><div class="st">التكوين</div>${lines([84, 58])}</div>
+   <div class="sec"><div class="st">المهارات</div><div><span class="sk">تحرير الأخبار</span><span class="sk">التقارير الميدانية</span><span class="sk">المونتاج</span><span class="sk">التقديم</span></div></div>
+   <div class="sec"><div class="st">اللغات</div>${lines([70])}</div></div>`,
+  { x: 640, y: 1080, a: 20.75, b: 25.75 }, (t, s) => ({ ...s, r: -2 + Math.sin(t * 0.9) * 0.6 }));
+[["صفحة واحدة أو اثنتان", 21.6, 820], ["معلومات صحيحة ومحدّثة", 22.4, 1060], ["بصيغة PDF", 23.2, 1300], ["باسمك: CV_اسمك.pdf", 24.0, 1540]]
+  .forEach(([txt, a, y]) => card(`<div class="pill">${ic("check", 32, "#2ee6a0", 3)} ${txt}</div>`, { x: 290, y, a, b: 25.75, dy: 0 },
+    (t, s) => ({ ...s, x: s.x - (1 - eo(p(t, a, 0.5))) * 120 })));
+
+// ═══ Step 3 — the portfolio (26.0 – 31.2) ════════════════════════════
+stepChip(3, "معرض الأعمال", 26.0, 30.95);
+headline("وأرفق رابط | معرض أعمالك", { y: 410, start: 26.15, end: 30.95, size: 82, hl: ["معرض", "أعمالك"] });
+const minis = [["linear-gradient(135deg,#0b3d24,#00a355)", "play"], ["linear-gradient(135deg,#5c3a06,#d69e2e)", "camera"], ["linear-gradient(135deg,#123a5c,#1f8a70)", "mic"], ["linear-gradient(135deg,#2a1748,#6b46c1)", "file-text"]];
+const bro = card(`<div class="bro"><div class="url">${ic("link", 30, "#2ee6a0")} sanadz.media/profile/amine</div>
+  <div style="display:flex;align-items:center;gap:22px;padding:6px 36px 18px">
+    <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#00a355,#2ee6a0);display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:900">أ</div>
+    <div><div style="font-size:42px;font-weight:900">أمين بن علي</div><div class="t" style="font-weight:700;font-size:26px;color:#81c784">محرّر أخبار · <b id="wn">0</b> عملاً منشوراً</div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0 30px 30px">${minis.map(([g, i], k) => `<div class="mw" id="mw${k}" style="background:${g}">${ic(i, 70, "#fff", 1.8)}</div>`).join("")}</div></div>`,
+  { y: 1080, a: 26.35, b: 30.95 });
+subs.push((t) => {
+  document.getElementById("wn").textContent = Math.round(12 * eo(p(t, 26.8, 1.2)));
+  minis.forEach((_, k) => { const e = back(p(t, 26.9 + k * 0.15, 0.45)); put(document.getElementById("mw" + k), { o: cl(e * 1.5), s: 0.7 + 0.3 * e }); });
+});
+card(`<div class="pill" style="font-size:34px">${ic("sparkles", 34, "#2ee6a0")} أعمالك تتحدّث عنك… قبل المقابلة</div>`, { y: 1600, a: 28.4, b: 30.95, dy: 30 });
+
+// ═══ Step 4 — send (31.2 – 36.4) ═════════════════════════════════════
+headline("ثمّ… أرسل.", { y: 330, start: 31.3, end: 36.15, size: 120, hl: ["أرسل."] });
+const sendWin = card(`<div class="win" style="width:900px">
+  <div class="wbar"><i style="background:#ef4444"></i><i style="background:#f59e0b"></i><i style="background:#22c55e"></i><b>رسالة جديدة</b></div>
+  <div class="wrow"><span class="k">إلى:</span><span class="v" style="direction:ltr">recruitment@example.com</span></div>
+  <div class="wrow"><span class="k">الموضوع:</span><span class="v">${SUBJ}</span></div>
+  <div style="padding:26px 34px 10px;display:flex;flex-direction:column;align-items:flex-start;gap:14px">
+    <div class="t" style="font-weight:500;font-size:28px;color:#55665c">السيد المسؤول عن التوظيف المحترم، تحية طيبة وبعد…</div>
+    <span class="att" id="at1">${ic("paperclip", 26, "#1f3a2a")} <span style="direction:ltr">CV_Amine_BenAli.pdf</span></span>
+    <span class="att" id="at2">${ic("link", 26, "#1f3a2a")} <span style="direction:ltr">sanadz.media/profile/amine</span></span></div>
+  <div style="padding:16px 34px 30px;display:flex"><span class="sendb" id="sendB">${ic("send", 34, "#fff", 2.4)} إرسال</span></div></div>`,
+  { y: 1000, a: 31.45, b: 33.35 }, (t, s) => {
+    // folds away into the plane
+    const f = eio(p(t, 33.3, 0.4));
+    return { ...s, s: s.s * (1 - f * 0.6), o: s.o, y: s.y - f * 60 };
+  });
+subs.push((t) => {
+  [["at1", 31.95], ["at2", 32.25]].forEach(([id, a]) => { const k = back(p(t, a, 0.4)); put(document.getElementById(id), { o: cl(k * 1.5), x: (1 - cl(k)) * 60, s: 0.8 + 0.2 * k }); });
+  put(document.getElementById("sendB"), { s: t > 32.95 && t < 33.15 ? 0.93 : 1 });
+});
+A(ic("send", 120, "#2ee6a0", 2, "rgba(46,230,160,0.25)"), (t) => {
+  if (t < 33.4 || t > 34.6) return null;
+  const k = eio(p(t, 33.4, 1.1));
+  return { x: lerp(CX, 1000, k), y: lerp(1000, 260, k) - Math.sin(k * Math.PI) * 120, o: 1 - p(t, 34.3, 0.3), s: 1 - 0.5 * k, r: -20 * k };
+});
+card(`<div class="toast">${ic("check", 38, "#2ee6a0", 3)} تم الإرسال</div>`, { y: 900, a: 34.0, b: 34.9, dy: 30 });
+card(`<div class="card inbox" style="border-color:rgba(46,230,160,0.4)"><div class="ihead">${ic("inbox", 46, "#9fd8b9", 2)} صندوق الوارد — جهة التوظيف<div class="icount" style="background:#2ee6a0;color:#04210f">1 جديد</div></div>
+  <div class="irow" style="background:rgba(46,230,160,0.1);border:2px solid rgba(46,230,160,0.45)">
+    <div class="cav" style="background:#3b82f6">أ</div>
+    <div><div style="font-size:30px;font-weight:900">أمين بن علي</div><div class="t" style="font-weight:700;font-size:24px;color:#9fd8b9">${SUBJ}</div></div>
+    <div style="margin-right:auto;display:flex;gap:8px">${ic("paperclip", 30, "#9fd8b9")}${ic("link", 30, "#9fd8b9")}</div></div></div>`,
+  { y: 1200, a: 34.75, b: 36.15 });
+
+// ═══ The difference (36.4 – 40.6) ════════════════════════════════════
+headline("الفرصة لا تأتي بتعليق… | بل برسالة.", { y: 380, start: 36.5, end: 40.35, size: 84, hl: ["برسالة."] });
+card(`<div class="vs" style="background:#161b18;border:2px solid rgba(255,255,255,0.08)">
+   <div style="width:100px;height:100px;border-radius:30px;background:#2a302c;display:flex;align-items:center;justify-content:center">${ic("message-circle", 56, "#7f8a84")}</div>
+   <div><div style="font-size:44px;font-weight:900;color:#9aa59f">تعليق «مهتم»</div><div class="t" style="font-weight:700;font-size:28px;color:#6b746f">يضيع بين مئات التعليقات</div></div>
+   <div style="margin-right:auto">${ic("x", 60, "#ef4444", 3)}</div></div>`,
+  { y: 850, a: 36.8, b: 40.35 }, (t, s) => ({ ...s, o: s.o * lerp(1, 0.6, eo(p(t, 37.8, 0.5))), s: s.s * lerp(1, 0.94, eo(p(t, 37.8, 0.5))) }));
+card(`<div class="vs" style="background:linear-gradient(135deg,rgba(0,163,85,0.22),rgba(46,230,160,0.08));border:2px solid rgba(46,230,160,0.55);box-shadow:0 0 70px rgba(46,230,160,0.2)">
+   <div style="width:100px;height:100px;border-radius:30px;background:linear-gradient(135deg,#00a355,#2ee6a0);display:flex;align-items:center;justify-content:center">${ic("send", 54, "#fff", 2.2)}</div>
+   <div><div style="font-size:40px;font-weight:900">رسالة + سيرة ذاتية + معرض أعمال</div><div class="t" style="font-weight:700;font-size:28px;color:#9fe3c0">طلبٌ يُقرأ… ويُتذكَّر</div></div>
+   <div style="margin-right:auto">${ic("check", 60, "#2ee6a0", 3)}</div></div>`,
+  { y: 1110, a: 37.6, b: 40.35 });
+
+// ═══ Sign-off (40.6 – end) ═══════════════════════════════════════════
+[0, 1].forEach((i) => A(`<div class="ring"></div>`, (t) => {
+  const st = 40.75 + i * 0.35;
+  if (t < st || t > st + 1.6) return null;
+  const k = eo(p(t, st, 1.6));
+  return { x: CX, y: 640, o: (1 - k) * 0.8, s: 0.45 + k * 1.5 };
+}));
+// The wordmark carries the icon already: it is the only logo here.
+const wm = A(`<img src="logo.png" style="width:640px;display:block;filter:drop-shadow(0 0 36px rgba(46,230,160,0.5))" />`, (t) => {
+  if (t < 40.72) return null;
+  const k = back(p(t, 40.75, 0.65));
+  return { x: CX, y: 640 + Math.sin(t * 2.2) * 5, o: cl(k * 1.6), s: 0.6 + 0.4 * k };
+});
+subs.push((t) => { wm.firstChild.style.clipPath = `inset(0 0 0 ${(1 - eo(p(t, 40.8, 0.7))) * 100}%)`; });
+headline("جهّز معرض أعمالك على سند | وكن جاهزاً للفرصة القادمة.", { y: 930, start: 41.35, end: 99, size: 70, hl: ["جاهزاً"] });
+A(`<div class="urlpill">sanadz.media</div>`, (t) => {
+  if (t < 42.3) return null;
+  const k = back(p(t, 42.35, 0.55));
+  const pulse = 1 + 0.025 * Math.sin((t - 43) * 3.2) * p(t, 43.2, 0.5);
+  return { x: CX, y: 1170, o: cl(k * 1.5), s: (0.6 + 0.4 * k) * pulse };
+});
+
+// ── a finger on the send button ────────────────────────────────────
+const TAPS = [[33.05, 815, 1238]];
+A(`<div class="tap"></div>`, (t) => {
+  const tap = TAPS.find(([tt]) => t > tt - 0.4 && t < tt + 0.35);
+  if (!tap) return null;
+  const [tt, x, y] = tap;
+  const into = eo(p(t, tt - 0.4, 0.35)), press = Math.sin(Math.PI * p(t, tt - 0.05, 0.2)), away = p(t, tt + 0.15, 0.2);
+  return { x: x + (1 - into) * 60, y: y + (1 - into) * 90, o: into * (1 - away) * 0.95, s: 1 - press * 0.22 };
+});
+A(`<div class="ripple"></div>`, (t) => {
+  const tap = TAPS.find(([tt]) => t > tt && t < tt + 0.5);
+  if (!tap) return null;
+  const k = eo(p(t, tap[0], 0.5));
+  return { x: tap[1], y: tap[2], o: 1 - k, s: 1 + k * 1.6 };
+});
+
+window.DURATION = 45.5;
+window.render = (t) => {
+  bg(t);
+  for (const { d, fn } of anims) apply(d, fn(t));
+  for (const s of subs) s(t);
+  stage.style.opacity = Math.min(p(t, 0, 0.25), 1 - p(t, window.DURATION - 0.35, 0.35));
+};
+window.ready = (async () => {
+  const faces = ["700 40px Cairo", "800 40px Cairo", "900 40px Cairo", "500 40px Tajawal", "700 40px Tajawal"];
+  await Promise.all(faces.flatMap((f) => [document.fonts.load(f, "سند الإعلام"), document.fonts.load(f, "sanadz.media 123…←")]));
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((im) => (im.complete ? 0 : new Promise((r) => (im.onload = r)))));
+  window.render(0);
+  return true;
+})();
+</script>
+</body>
+</html>

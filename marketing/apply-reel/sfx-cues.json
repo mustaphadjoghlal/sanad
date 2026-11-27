@@ -1,0 +1,499 @@
+[
+ {
+  "name": "01_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 0.2,
+  "gain": -15,
+  "what": "منشور الإعلان"
+ },
+ {
+  "name": "02_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 0.55,
+  "gain": -18,
+  "what": "مهتم… مهتم…"
+ },
+ {
+  "name": "03_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 0.98,
+  "gain": -20,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "04_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 1.28,
+  "gain": -21,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "05_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 1.53,
+  "gain": -20,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "06_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 1.78,
+  "gain": -21,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "07_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 1.98,
+  "gain": -20,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "08_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 2.18,
+  "gain": -21,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "09_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 2.38,
+  "gain": -20,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "10_typing-run-tick",
+  "src": "lib:sfx-typing-run-tick",
+  "sync": 2.4,
+  "gain": -24,
+  "what": "عدّاد التعليقات"
+ },
+ {
+  "name": "11_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 2.5,
+  "gain": -18,
+  "what": "مئات التعليقات"
+ },
+ {
+  "name": "12_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 2.58,
+  "gain": -21,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "13_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 2.7800000000000002,
+  "gain": -20,
+  "what": "تعليق «مهتم»"
+ },
+ {
+  "name": "14_swipe-glide",
+  "src": "lib:sfx-swipe-glide",
+  "sync": 4.3,
+  "gain": -15,
+  "what": "المنشور يتراجع"
+ },
+ {
+  "name": "15_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 4.4,
+  "gain": -18,
+  "what": "لا تصل إلى صندوق الوارد"
+ },
+ {
+  "name": "16_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 5.05,
+  "gain": -14,
+  "what": "صندوق الوارد"
+ },
+ {
+  "name": "17_impact-short",
+  "src": "lib:sfx-impact-short",
+  "sync": 5.8,
+  "gain": -8,
+  "what": "علامة ×"
+ },
+ {
+  "name": "18_whoosh-whip",
+  "src": "lib:sfx-whoosh-whip",
+  "sync": 7.85,
+  "gain": -12,
+  "what": "انتقال"
+ },
+ {
+  "name": "19_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 8.15,
+  "gain": -16,
+  "what": "لا تكتفِ بالتعليق"
+ },
+ {
+  "name": "20_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 8.4,
+  "gain": -15,
+  "what": "تعليق مهتم"
+ },
+ {
+  "name": "21_swish-zing",
+  "src": "lib:sfx-swish-zing",
+  "sync": 9.0,
+  "gain": -10,
+  "what": "شطب التعليق"
+ },
+ {
+  "name": "22_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 9.4,
+  "gain": -18,
+  "what": "تواصل مع الجهة"
+ },
+ {
+  "name": "23_notify-ding",
+  "src": "lib:sfx-notify-ding",
+  "sync": 9.95,
+  "gain": -14,
+  "what": "العنوان في الإعلان"
+ },
+ {
+  "name": "24_whoosh-tight",
+  "src": "lib:sfx-whoosh-tight",
+  "sync": 10.9,
+  "gain": -13,
+  "what": "انتقال"
+ },
+ {
+  "name": "25_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 11.05,
+  "gain": -16,
+  "what": "في ثلاث خطوات"
+ },
+ {
+  "name": "26_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 11.5,
+  "gain": -14,
+  "what": "1"
+ },
+ {
+  "name": "27_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 11.68,
+  "gain": -15,
+  "what": "2"
+ },
+ {
+  "name": "28_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 11.86,
+  "gain": -14,
+  "what": "3"
+ },
+ {
+  "name": "29_whoosh-crisp",
+  "src": "lib:sfx-whoosh-crisp",
+  "sync": 12.4,
+  "gain": -12,
+  "what": "الخطوة 1"
+ },
+ {
+  "name": "30_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 12.65,
+  "gain": -18,
+  "what": "شارة الخطوة"
+ },
+ {
+  "name": "31_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 12.95,
+  "gain": -14,
+  "what": "نافذة الرسالة"
+ },
+ {
+  "name": "32_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 13.6,
+  "gain": -17,
+  "what": "كتابة الموضوع"
+ },
+ {
+  "name": "33_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 14.05,
+  "gain": -16,
+  "what": "موضوع واضح"
+ },
+ {
+  "name": "34_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 14.9,
+  "gain": -18,
+  "what": "كتابة الرسالة"
+ },
+ {
+  "name": "35_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 16.4,
+  "gain": -18,
+  "what": "كتابة الرسالة"
+ },
+ {
+  "name": "36_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 17.9,
+  "gain": -18,
+  "what": "كتابة الرسالة"
+ },
+ {
+  "name": "37_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 19.3,
+  "gain": -18,
+  "what": "كتابة الرسالة"
+ },
+ {
+  "name": "38_whoosh-tight",
+  "src": "lib:sfx-whoosh-tight",
+  "sync": 20.35,
+  "gain": -13,
+  "what": "الخطوة 2"
+ },
+ {
+  "name": "39_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 20.5,
+  "gain": -18,
+  "what": "شارة الخطوة"
+ },
+ {
+  "name": "40_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 20.9,
+  "gain": -13,
+  "what": "السيرة الذاتية"
+ },
+ {
+  "name": "41_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 21.7,
+  "gain": -15,
+  "what": "صفحة واحدة"
+ },
+ {
+  "name": "42_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 22.5,
+  "gain": -15,
+  "what": "معلومات محدّثة"
+ },
+ {
+  "name": "43_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 23.3,
+  "gain": -15,
+  "what": "PDF"
+ },
+ {
+  "name": "44_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 24.1,
+  "gain": -15,
+  "what": "اسم الملف"
+ },
+ {
+  "name": "45_whoosh-whip",
+  "src": "lib:sfx-whoosh-whip",
+  "sync": 25.8,
+  "gain": -13,
+  "what": "الخطوة 3"
+ },
+ {
+  "name": "46_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 26.1,
+  "gain": -18,
+  "what": "شارة الخطوة"
+ },
+ {
+  "name": "47_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 26.5,
+  "gain": -13,
+  "what": "رابط المعرض"
+ },
+ {
+  "name": "48_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 27.0,
+  "gain": -20,
+  "what": "عمل"
+ },
+ {
+  "name": "49_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 27.15,
+  "gain": -21,
+  "what": "عمل"
+ },
+ {
+  "name": "50_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 27.3,
+  "gain": -20,
+  "what": "عمل"
+ },
+ {
+  "name": "51_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 27.45,
+  "gain": -21,
+  "what": "عمل"
+ },
+ {
+  "name": "52_mallet-celesta",
+  "src": "lib:sfx-mallet-celesta",
+  "sync": 28.5,
+  "gain": -15,
+  "what": "أعمالك تتحدّث عنك"
+ },
+ {
+  "name": "53_whoosh-crisp",
+  "src": "lib:sfx-whoosh-crisp",
+  "sync": 31.0,
+  "gain": -12,
+  "what": "الإرسال"
+ },
+ {
+  "name": "54_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 31.35,
+  "gain": -15,
+  "what": "ثمّ أرسل"
+ },
+ {
+  "name": "55_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 31.55,
+  "gain": -14,
+  "what": "النافذة"
+ },
+ {
+  "name": "56_pop-bloop",
+  "src": "lib:sfx-pop-bloop",
+  "sync": 32.05,
+  "gain": -15,
+  "what": "المرفق"
+ },
+ {
+  "name": "57_pop-bloop",
+  "src": "lib:sfx-pop-bloop",
+  "sync": 32.35,
+  "gain": -15,
+  "what": "الرابط"
+ },
+ {
+  "name": "58_click-mouse",
+  "src": "lib:sfx-click-mouse",
+  "sync": 33.05,
+  "gain": -8,
+  "what": "زر إرسال"
+ },
+ {
+  "name": "59_whoosh-big",
+  "src": "lib:sfx-whoosh-big",
+  "sync": 33.55,
+  "gain": -9,
+  "what": "الطائرة الورقية"
+ },
+ {
+  "name": "60_notify-ding",
+  "src": "lib:sfx-notify-ding",
+  "sync": 34.1,
+  "gain": -10,
+  "what": "تم الإرسال"
+ },
+ {
+  "name": "61_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 34.85,
+  "gain": -13,
+  "what": "صندوق الوارد"
+ },
+ {
+  "name": "62_mallet-celesta",
+  "src": "lib:sfx-mallet-celesta",
+  "sync": 35.05,
+  "gain": -14,
+  "what": "طلب جديد"
+ },
+ {
+  "name": "63_whoosh-tight",
+  "src": "lib:sfx-whoosh-tight",
+  "sync": 36.2,
+  "gain": -13,
+  "what": "انتقال"
+ },
+ {
+  "name": "64_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 36.55,
+  "gain": -16,
+  "what": "الفرصة لا تأتي بتعليق"
+ },
+ {
+  "name": "65_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 36.9,
+  "gain": -15,
+  "what": "تعليق مهتم"
+ },
+ {
+  "name": "66_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 37.7,
+  "gain": -13,
+  "what": "رسالة + سيرة + معرض"
+ },
+ {
+  "name": "67_shimmer-soft",
+  "src": "lib:sfx-shimmer-soft",
+  "sync": 37.8,
+  "gain": -14,
+  "what": "رسالة + سيرة + معرض"
+ },
+ {
+  "name": "68_reverse-swell",
+  "src": "lib:sfx-reverse-swell",
+  "sync": 40.75,
+  "gain": -10,
+  "what": "إلى الختام"
+ },
+ {
+  "name": "69_logo-bloom",
+  "src": "lib:sfx-logo-bloom",
+  "sync": 40.85,
+  "gain": -7,
+  "what": "الشعار"
+ },
+ {
+  "name": "70_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 41.4,
+  "gain": -17,
+  "what": "جهّز معرض أعمالك"
+ },
+ {
+  "name": "71_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 42.45,
+  "gain": -14,
+  "what": "sanadz.media"
+ }
+]
