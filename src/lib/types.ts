@@ -426,6 +426,18 @@ export interface UserProfile {
    * are the member's own to declare.
    */
   secondaryTypes?: string[];
+  /**
+   * Record of the consents given at registration. Law 18-07 (amended by
+   * 25-11) lets personal data leave Algeria on the person's explicit consent,
+   * and that consent must be provable — so the version of the policy they
+   * agreed to and when are kept with the account.
+   */
+  consent?: {
+    policyVersion: string;
+    acceptedAt: number;
+    termsAndPrivacy: boolean;
+    crossBorderStorage: boolean;
+  };
   otherType?: string;
   bio: string;
   photo?: string;

@@ -11,6 +11,7 @@ import { INTERESTS } from "../../../lib/types";
 
 import { WILAYAS } from "../../../lib/wilayas";
 import { usePageTitle } from "../../../lib/usePageTitle";
+import { PRIVACY_POLICY_VERSION } from "../../../lib/privacyPolicy";
 const wilayas = WILAYAS;
 
 type MainType = "individual" | "store" | "trainer" | null;
@@ -81,6 +82,10 @@ export default function Register() {
   const [interests, setInterests] = useState<string[]>([]);
   const [emailStatus, setEmailStatus] = useState<"idle" | "checking" | "taken" | "ok">("idle");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  // Kept apart from the terms box on purpose: consent to data leaving Algeria
+  // has to be explicit and specific, not folded into a general "I agree".
+  const [acceptedCrossBorder, setAcceptedCrossBorder] = useState(false);
+  const allConsentsGiven = acceptedTerms && acceptedCrossBorder;
 
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -187,6 +192,10 @@ export default function Register() {
       setError("يرجى الموافقة على شروط الاستخدام وسياسة الخصوصية");
       return;
     }
+    if (!acceptedCrossBorder) {
+      setError("يرجى الموافقة على تخزين بياناتك على خوادم خارج الجزائر، فالمنصة لا تعمل بدونه");
+      return;
+    }
 
     setSaving(true);
     let createdUser = null;
@@ -216,6 +225,12 @@ export default function Register() {
         specialty: mainType === "trainer" ? (form.trainerSpecialty || undefined) : (form.specialty || undefined),
         location: form.location || undefined,
         phone: form.phone || undefined,
+        consent: {
+          policyVersion: PRIVACY_POLICY_VERSION,
+          acceptedAt: Date.now(),
+          termsAndPrivacy: true,
+          crossBorderStorage: true,
+        },
       };
 
       if (mainType === "individual") {
@@ -1069,6 +1084,27 @@ export default function Register() {
                   </span>
                 </label>
 
+                {/* Cross-border storage. Law 18-07 (amended by 25-11) treats
+                    storing data on Firebase/Vercel as a transfer abroad; the
+                    person's explicit consent is one of its lawful bases. */}
+                <label
+                  className="flex items-start gap-3 mt-3 p-3 rounded-xl cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${acceptedCrossBorder ? "var(--p-35)" : "var(--p-20)"}` }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={acceptedCrossBorder}
+                    onChange={(e) => setAcceptedCrossBorder(e.target.checked)}
+                    style={{ marginTop: "0.2rem", width: 16, height: 16, accentColor: "var(--theme-accent, #00a355)", flexShrink: 0 }}
+                  />
+                  <span style={{ color: "var(--theme-text-secondary, #a5d6a7)", fontSize: "0.82rem", lineHeight: 1.8 }}>
+                    أوافق صراحةً على تخزين بياناتي الشخصية ومعالجتها على خوادم خارج الجزائر
+                    (Google Firebase وVercel) لغرض تشغيل حسابي وعرض ملفي، وفق القانون 18-07 المعدّل والمتمّم بالقانون 25-11.
+                    يمكنني سحب موافقتي في أي وقت بحذف حسابي.{" "}
+                    <Link to="/privacy#cross-border" target="_blank" style={{ color: "var(--theme-accent, #00a355)" }}>التفاصيل</Link>
+                  </span>
+                </label>
+
                 <div className="flex justify-between items-center mt-6">
                   <button
                     onClick={() => { setStep(2); setError(""); }}
@@ -1095,7 +1131,7 @@ export default function Register() {
                     )}
                     <button
                       onClick={handleRegister}
-                      disabled={saving || !acceptedTerms}
+                      disabled={saving || !allConsentsGiven}
                       className="btn-dz px-8 py-2.5 rounded-xl text-sm disabled:opacity-50"
                     >
                       <span>{saving ? (photoFile && uploadProgress > 0 && uploadProgress < 100 ? `${uploadProgress}%` : "جاري التسجيل...") : "إنشاء الحساب"}</span>
