@@ -17,3 +17,9 @@ ffmpeg -i ../sanad-reel-raw.mp4 -f lavfi -i anullsrc=channel_layout=stereo:sampl
 ```
 
 يحتاج Playwright و Chromium و ffmpeg. الخطوط (Cairo و Tajawal) مرخّصة بـ SIL Open Font License.
+
+# فيديو البورتفوليو (معرض الأعمال)
+
+- `sanad-portfolio-reel.mp4` — 1080×1920، 52 ثانية، بلا صوت. يشرح النشر في المعرض، وكيف يظهر العمل في المعرض وفي صفحته وعلى الملف الشخصي، ونصائح الاستغلال.
+- `sanad-portfolio-reel-cover.jpg` — صورة الغلاف.
+- `portfolio-reel/` — مصدر التحريك. يُصدَّر بنفس الطريقة: `node capture.cjs "$PWD" video ../out.mp4`.
