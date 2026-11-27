@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 import { usePageTitle } from "../../lib/usePageTitle";
+import { PRIVACY_POLICY_UPDATED_LABEL } from "../../lib/privacyPolicy";
 
-const sections = [
+const sections: { title: string; content: string; id?: string }[] = [
+  {
+    title: "الإطار القانوني",
+    content: "تخضع معالجة بياناتك الشخصية في منصة سند للقانون رقم 18-07 المؤرخ في 10 جوان 2018 المتعلق بحماية الأشخاص الطبيعيين في مجال معالجة المعطيات ذات الطابع الشخصي، المعدّل والمتمّم بالقانون رقم 25-11 المؤرخ في 24 جويلية 2025. نجمع من البيانات ما يلزم لتشغيل حسابك فقط، ولا نجمع معطيات حساسة كالصحة أو الدين أو الآراء السياسية.",
+  },
   {
     title: "البيانات التي نجمعها",
     content: "عند إنشاء حساب نجمع: الاسم، البريد الإلكتروني، رقم الهاتف، الولاية، التخصص، النبذة، والصور والملفات الصوتية التي ترفعها لملفك. عند إرسال طلب شراء من متجر نجمع: الاسم واللقب، رقم الهاتف، الولاية والبلدية — دون الحاجة إلى حساب. وعند التسجيل في دورة تدريبية نجمع الاسم ورقم الهاتف والبريد الإلكتروني إن أدخلته.",
@@ -23,12 +28,17 @@ const sections = [
     content: "تعمل المنصة على خدمات Firebase من Google (قاعدة البيانات، المصادقة، تخزين الملفات والإشعارات) وتُستضاف على Vercel، وتُحمّل الخطوط العربية من Google Fonts. تخضع معالجة البيانات لدى هذه الخدمات لسياسات الخصوصية الخاصة بها. لا نستخدم أي أدوات تتبع إعلانية أو تحليلات سلوكية.",
   },
   {
+    id: "cross-border",
+    title: "تخزين البيانات خارج الجزائر",
+    content: "تُخزَّن بياناتك وتُعالَج على خوادم Google (Firebase) وVercel الواقعة خارج الجزائر، وهو ما يُعدّ نقلاً للمعطيات إلى دولة أجنبية بمفهوم القانون 18-07. يتم هذا النقل بناءً على موافقتك الصريحة التي نطلبها منك في خانة مستقلة عند التسجيل، ونحتفظ بتاريخ موافقتك ونسخة السياسة التي وافقت عليها. لا يستعمل هؤلاء المزوّدون بياناتك إلا لتقديم خدماتهم للمنصة. يمكنك سحب موافقتك في أي وقت بحذف حسابك، فتُحذف بياناتك من هذه الخوادم.",
+  },
+  {
     title: "حفظ البيانات ومدتها",
     content: "تُخزَّن بياناتك على خوادم Google Cloud مع تشفير أثناء النقل وأثناء التخزين. كلمة المرور محفوظة لدى Firebase Authentication ولا نملك صلاحية الاطلاع عليها. تبقى بيانات حسابك ما دام الحساب قائماً؛ وتُحفظ بيانات الطلبات وتسجيلات الدورات لدى المتجر أو المدرب المعني لمتابعة الطلب.",
   },
   {
     title: "حقوقك",
-    content: "يحق لك في أي وقت: الاطلاع على بياناتك وتعديلها من لوحة التحكم، إخفاء ملفك أو حذف حسابك بالكامل مع بياناتك، أو طلب نسخة من بياناتك. للاستفسار أو تقديم طلب، تواصل معنا عبر صفحتنا الرسمية على فيسبوك.",
+    content: "يحق لك في أي وقت: الاطلاع على بياناتك وتعديلها من لوحة التحكم، إخفاء ملفك أو حذف حسابك بالكامل مع بياناتك، أو طلب نسخة من بياناتك، والاعتراض على معالجتها أو سحب موافقتك. كما يحق لك تقديم شكوى إلى السلطة الوطنية لحماية المعطيات ذات الطابع الشخصي. للاستفسار أو تقديم طلب، تواصل معنا عبر صفحتنا الرسمية على فيسبوك.",
   },
   {
     title: "الأطفال",
@@ -47,13 +57,13 @@ export default function Privacy() {
       <div className="relative py-12 px-4" style={{ background: "linear-gradient(180deg, #080808 0%, #0e0e0e 100%)", borderBottom: "1px solid var(--p-20)" }}>
         <div className="container mx-auto max-w-2xl">
           <h1 className="text-3xl font-semibold mb-2" style={{ color: "var(--theme-text)" }}>سياسة الخصوصية</h1>
-          <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>آخر تحديث: سبتمبر 2026</p>
+          <p className="text-sm" style={{ color: "var(--theme-text-muted)" }}>آخر تحديث: {PRIVACY_POLICY_UPDATED_LABEL}</p>
         </div>
       </div>
       <div className="container mx-auto px-4 py-10 max-w-2xl">
         <div className="space-y-6">
           {sections.map((s) => (
-            <div key={s.title} className="rounded-xl p-6" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}>
+            <div key={s.title} id={s.id} className="rounded-xl p-6 scroll-mt-24" style={{ background: "linear-gradient(145deg, #141414, #101010)", border: "1px solid var(--p-20)" }}>
               <h2 className="font-bold mb-3" style={{ color: "var(--theme-accent)" }}>{s.title}</h2>
               <p className="text-sm leading-relaxed" style={{ color: "var(--theme-text-muted)", lineHeight: 1.9 }}>{s.content}</p>
             </div>
