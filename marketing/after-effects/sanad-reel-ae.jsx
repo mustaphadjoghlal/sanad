@@ -450,16 +450,8 @@
     keys(O(r), [[start, op], [start + 1.6, 0]], 30);
     life(r, start, start + 1.6);
   }
-  for (i = 0; i < 3; i++) ring("S4 Ring " + (i + 1), 840, 10.15 + i * 0.28, 55, 245, 90);
-  var ic1 = icon("S4 Sanad Icon", "icon-512.png", 420);
-  P(ic1).setValue([CX, 840]);
-  var b1 = 420 / 512 * 100;
-  keys(S(ic1), [[10.12, sc(b1 * 0.3)], [10.55, sc(b1 * 1.06)], [10.82, sc(b1)], [12.25, sc(b1)], [12.75, sc(b1 * 0.6)]]);
-  keys(O(ic1), [[10.12, 0], [10.35, 100], [12.25, 100], [12.75, 0]]);
-  keys(R(ic1), [[10.12, -25], [10.82, 0]]);
-  keys(P(ic1), [[12.25, [CX, 840]], [12.75, [CX, 680]]]);
-  expr(P(ic1), "add(value, [0, Math.sin(time * 2.4) * 8])");
-  life(ic1, 10.1, 12.9);
+  for (i = 0; i < 3; i++) ring("S4 Ring " + (i + 1), 960, 10.15 + i * 0.28, 55, 245, 90);
+  // The wordmark already carries the icon, so it appears alone.
 
   function wordmark(name, px, y, wipeAt) {
     var l = icon(name, "logo.png", px);
@@ -473,12 +465,12 @@
     glow(l, 40, 0.6);
     return l;
   }
-  var wm = wordmark("S4 Sanad Wordmark", 680, 1150, 10.65);
-  var wmS = 680 / 543 * 100;
-  keys(P(wm), [[12.3, [CX, 1150]], [12.85, [CX, 290]]]);
-  keys(S(wm), [[12.3, sc(wmS)], [12.85, sc(wmS * 0.52)]]);
-  keys(O(wm), [[23.3, 100], [23.65, 0]]);
-  life(wm, 10.6, 23.7);
+  var wm = wordmark("S4 Sanad Wordmark", 760, 960, 10.2);
+  var wmS = 760 / 543 * 100;
+  keys(P(wm), [[12.3, [CX, 960]], [12.85, [CX, 290]]]);
+  keys(S(wm), [[10.15, sc(wmS * 0.6)], [10.6, sc(wmS * 1.04)], [10.85, sc(wmS)], [12.3, sc(wmS)], [12.85, sc(wmS * 0.465)]]);
+  keys(O(wm), [[10.15, 0], [10.4, 100], [23.3, 100], [23.65, 0]]);
+  life(wm, 10.12, 23.7);
 
   // ═══ Scene 5 — one platform (12.6 – 16.8) ════════════════════════════
   headline("S5 Line One Platform", "منصةٌ واحدة تجمع لك", 520, 90, 12.7, 16.45, [1, 2]);
@@ -592,20 +584,16 @@
   life(sw, 22.5, 23.7);
 
   // ═══ Scene 8 — sign-off (23.6 – end) ═════════════════════════════════
-  for (i = 0; i < 2; i++) ring("S8 Ring " + (i + 1), 720, 23.7 + i * 0.35, 50, 210, 80);
-  var ic2 = icon("S8 Sanad Icon", "icon-512.png", 330);
-  P(ic2).setValue([CX, 720]);
-  var b2 = 330 / 512 * 100;
-  keys(S(ic2), [[23.7, sc(b2 * 0.3)], [24.1, sc(b2 * 1.06)], [24.35, sc(b2)]]);
-  keys(O(ic2), [[23.7, 0], [23.95, 100]]);
-  expr(P(ic2), "add(value, [0, Math.sin(time * 2.2) * 6])");
-  life(ic2, 23.65, DUR);
-  var wm2 = wordmark("S8 Sanad Wordmark", 600, 975, 24.0);
-  life(wm2, 24.0, DUR);
-  headline("S8 Tagline 1", "المنصة الإعلامية", 1175, 80, 24.55, 99);
-  headline("S8 Tagline 2", "الجزائرية الشاملة", 1280, 80, 24.9, 99, [0, 2]);
+  for (i = 0; i < 2; i++) ring("S8 Ring " + (i + 1), 800, 23.7 + i * 0.35, 50, 210, 80);
+  var wm2 = wordmark("S8 Sanad Wordmark", 700, 800, 23.8);
+  var wm2S = 700 / 543 * 100;
+  keys(S(wm2), [[23.75, sc(wm2S * 0.6)], [24.2, sc(wm2S * 1.04)], [24.4, sc(wm2S)]]);
+  keys(O(wm2), [[23.75, 0], [24.0, 100]]);
+  life(wm2, 23.72, DUR);
+  headline("S8 Tagline 1", "المنصة الإعلامية", 1030, 80, 24.4, 99);
+  headline("S8 Tagline 2", "الجزائرية الشاملة", 1135, 80, 24.75, 99, [0, 2]);
   var url = rect("S8 URL Pill", 460, 100, 50, { fill: C.g2, fo: 8, stroke: C.g2, sw: 3, so: 60 });
-  P(url).setValue([CX, 1450]);
+  P(url).setValue([CX, 1310]);
   var urlT = text("S8 URL", "sanadz.media", F.xbold, 52, hex("#e9fff3"), "c");
   try {
     var ud = urlT.property("ADBE Text Properties").property("ADBE Text Document");
@@ -629,6 +617,17 @@
     while (top.parent) top = top.parent;
     if (top !== L) { L.inPoint = top.inPoint; L.outPoint = top.outPoint; }
   }
+
+  // Sound effects from the motion-studio library, already placed on their hits.
+  try {
+    var sfxFile = new File(assets.fsName + "/sanad-reel-sfx.wav");
+    if (sfxFile.exists) {
+      var sfxLayer = comp.layers.add(app.project.importFile(new ImportOptions(sfxFile)));
+      sfxLayer.name = "SFX (motion-studio)";
+      sfxLayer.startTime = 0;
+      sfxLayer.moveToEnd();
+    }
+  } catch (e) {}
 
   var fade = comp.layers.addSolid([0, 0, 0], "Fade In-Out", W, H, 1, DUR);
   keys(O(fade), [[0, 100], [0.25, 0], [DUR - 0.35, 0], [DUR, 100]]);

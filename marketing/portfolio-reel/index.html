@@ -545,26 +545,26 @@ A(`<div class="path" style="font-size:32px;color:#fde68a;border-color:rgba(251,1
   const st = 47.75 + i * 0.35;
   if (t < st || t > st + 1.6) return null;
   const k = eo(p(t, st, 1.6));
-  return { x: CX, y: 600, o: (1 - k) * 0.8, s: 0.45 + k * 1.5 };
+  return { x: CX, y: 720, o: (1 - k) * 0.8, s: 0.45 + k * 1.5 };
 }));
-A(`<img src="icon-512.png" style="width:280px;height:280px;display:block" />`, (t) => {
-  if (t < 47.7) return null;
-  const k = back(p(t, 47.75, 0.6));
-  return { x: CX, y: 600 + Math.sin(t * 2.2) * 6, o: cl(k * 1.6), s: 0.3 + 0.7 * k };
+// The wordmark already carries the icon, so it stands alone here.
+const wm = A(`<img src="logo.png" style="width:660px;display:block;filter:drop-shadow(0 0 36px rgba(46,230,160,0.5))" />`, (t) => {
+  if (t < 47.72) return null;
+  const k = back(p(t, 47.75, 0.65));
+  return { x: CX, y: 720 + Math.sin(t * 2.2) * 5, o: cl(k * 1.6), s: 0.6 + 0.4 * k };
 });
-const wm = A(`<img src="logo.png" style="width:520px;display:block;filter:drop-shadow(0 0 36px rgba(46,230,160,0.5))" />`, (t) => (t < 48.0 ? null : { x: CX, y: 830, o: 1 }));
-subs.push((t) => { wm.firstChild.style.clipPath = `inset(0 0 0 ${(1 - eo(p(t, 48.0, 0.65))) * 100}%)`; });
-headline("انشر عملك الأول | اليوم", { y: 1040, start: 48.5, end: 99, size: 92, hl: ["اليوم"] });
+subs.push((t) => { wm.firstChild.style.clipPath = `inset(0 0 0 ${(1 - eo(p(t, 47.8, 0.7))) * 100}%)`; });
+headline("انشر عملك الأول | اليوم", { y: 990, start: 48.35, end: 99, size: 92, hl: ["اليوم"] });
 A(`<div class="path">لوحة التحكم ← أعمالي في المعرض ← نشر عمل</div>`, (t) => {
-  if (t < 49.2) return null;
-  const k = eo(p(t, 49.25, 0.5));
-  return { x: CX, y: 1250 + (1 - k) * 30, o: k };
+  if (t < 49.0) return null;
+  const k = eo(p(t, 49.05, 0.5));
+  return { x: CX, y: 1200 + (1 - k) * 30, o: k };
 });
 A(`<div class="url">sanadz.media</div>`, (t) => {
-  if (t < 49.7) return null;
-  const k = back(p(t, 49.75, 0.55));
+  if (t < 49.5) return null;
+  const k = back(p(t, 49.55, 0.55));
   const pulse = 1 + 0.025 * Math.sin((t - 50) * 3.2) * p(t, 50.4, 0.5);
-  return { x: CX, y: 1410, o: cl(k * 1.5), s: (0.6 + 0.4 * k) * pulse };
+  return { x: CX, y: 1360, o: cl(k * 1.5), s: (0.6 + 0.4 * k) * pulse };
 });
 
 // ── render ─────────────────────────────────────────────────────────

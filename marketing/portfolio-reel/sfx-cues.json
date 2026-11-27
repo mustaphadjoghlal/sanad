@@ -1,0 +1,373 @@
+[
+ {
+  "name": "01_shimmer-soft",
+  "src": "lib:sfx-shimmer-soft",
+  "sync": 0.6,
+  "gain": -14,
+  "what": "الضوء على العبارة"
+ },
+ {
+  "name": "02_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 3.5,
+  "gain": -18,
+  "what": "تقريرٌ في هاتفك"
+ },
+ {
+  "name": "03_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 3.7,
+  "gain": -16,
+  "what": "الهاتف"
+ },
+ {
+  "name": "04_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 4.9,
+  "gain": -18,
+  "what": "تسجيلٌ في حاسوبك"
+ },
+ {
+  "name": "05_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 5.1,
+  "gain": -16,
+  "what": "الحاسوب"
+ },
+ {
+  "name": "06_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 6.2,
+  "gain": -18,
+  "what": "ورابطٌ ضائع"
+ },
+ {
+  "name": "07_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 6.4,
+  "gain": -16,
+  "what": "المجموعة"
+ },
+ {
+  "name": "08_reverse-swell",
+  "src": "lib:sfx-reverse-swell",
+  "sync": 8.2,
+  "gain": -10,
+  "what": "التجميع"
+ },
+ {
+  "name": "09_impact-short",
+  "src": "lib:sfx-impact-short",
+  "sync": 8.5,
+  "gain": -8,
+  "what": "معرض الأعمال"
+ },
+ {
+  "name": "10_shimmer-soft",
+  "src": "lib:sfx-shimmer-soft",
+  "sync": 8.6,
+  "gain": -13,
+  "what": "معرض الأعمال"
+ },
+ {
+  "name": "11_whoosh-crisp",
+  "src": "lib:sfx-whoosh-crisp",
+  "sync": 10.4,
+  "gain": -11,
+  "what": "دخول الهاتف"
+ },
+ {
+  "name": "12_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 10.85,
+  "gain": -9,
+  "what": "نشر عمل"
+ },
+ {
+  "name": "13_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 11.4,
+  "gain": -9,
+  "what": "فيديو"
+ },
+ {
+  "name": "14_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 11.75,
+  "gain": -10,
+  "what": "حقل العنوان"
+ },
+ {
+  "name": "15_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 12.4,
+  "gain": -16,
+  "what": "كتابة العنوان"
+ },
+ {
+  "name": "16_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 13.6,
+  "gain": -17,
+  "what": "كتابة الوصف"
+ },
+ {
+  "name": "17_typing-run-tick",
+  "src": "lib:sfx-typing-run-tick",
+  "sync": 14.5,
+  "gain": -17,
+  "what": "كتابة الرابط"
+ },
+ {
+  "name": "18_click-mouse",
+  "src": "lib:sfx-click-mouse",
+  "sync": 15.05,
+  "gain": -8,
+  "what": "زر نشر"
+ },
+ {
+  "name": "19_notify-ding",
+  "src": "lib:sfx-notify-ding",
+  "sync": 15.3,
+  "gain": -10,
+  "what": "نُشر في معرض الأعمال"
+ },
+ {
+  "name": "20_swipe-glide",
+  "src": "lib:sfx-swipe-glide",
+  "sync": 16.05,
+  "gain": -14,
+  "what": "شاشة المعرض"
+ },
+ {
+  "name": "21_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 16.45,
+  "gain": -19,
+  "what": "بطاقة"
+ },
+ {
+  "name": "22_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 16.6,
+  "gain": -20,
+  "what": "بطاقة"
+ },
+ {
+  "name": "23_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 16.75,
+  "gain": -19,
+  "what": "بطاقة"
+ },
+ {
+  "name": "24_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 16.9,
+  "gain": -20,
+  "what": "بطاقة"
+ },
+ {
+  "name": "25_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 19.3,
+  "gain": -9,
+  "what": "الأكثر إعجاباً"
+ },
+ {
+  "name": "26_swipe-flick",
+  "src": "lib:sfx-swipe-flick",
+  "sync": 19.55,
+  "gain": -16,
+  "what": "إعادة الترتيب"
+ },
+ {
+  "name": "27_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 21.05,
+  "gain": -9,
+  "what": "فتح العمل"
+ },
+ {
+  "name": "28_swipe-glide",
+  "src": "lib:sfx-swipe-glide",
+  "sync": 21.85,
+  "gain": -14,
+  "what": "صفحة العمل"
+ },
+ {
+  "name": "29_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 22.65,
+  "gain": -9,
+  "what": "تشغيل"
+ },
+ {
+  "name": "30_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 24.5,
+  "gain": -10,
+  "what": "إعجاب"
+ },
+ {
+  "name": "31_pop-bloop",
+  "src": "lib:sfx-pop-bloop",
+  "sync": 24.6,
+  "gain": -11,
+  "what": "إعجاب"
+ },
+ {
+  "name": "32_mallet-celesta",
+  "src": "lib:sfx-mallet-celesta",
+  "sync": 24.7,
+  "gain": -17,
+  "what": "إعجاب"
+ },
+ {
+  "name": "33_swipe-glide",
+  "src": "lib:sfx-swipe-glide",
+  "sync": 25.5,
+  "gain": -18,
+  "what": "تمرير"
+ },
+ {
+  "name": "34_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 26.65,
+  "gain": -9,
+  "what": "صاحب العمل"
+ },
+ {
+  "name": "35_swipe-glide",
+  "src": "lib:sfx-swipe-glide",
+  "sync": 27.25,
+  "gain": -14,
+  "what": "الملف الشخصي"
+ },
+ {
+  "name": "36_click-soft",
+  "src": "lib:sfx-click-soft",
+  "sync": 29.65,
+  "gain": -9,
+  "what": "مشاركة الملف"
+ },
+ {
+  "name": "37_notify-ding",
+  "src": "lib:sfx-notify-ding",
+  "sync": 29.8,
+  "gain": -11,
+  "what": "تم نسخ الرابط"
+ },
+ {
+  "name": "38_whoosh-whip",
+  "src": "lib:sfx-whoosh-whip",
+  "sync": 31.55,
+  "gain": -12,
+  "what": "خروج الهاتف"
+ },
+ {
+  "name": "39_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 31.85,
+  "gain": -16,
+  "what": "كيف تستغلّه"
+ },
+ {
+  "name": "40_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 33.2,
+  "gain": -14,
+  "what": "نصيحة 1"
+ },
+ {
+  "name": "41_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 35.2,
+  "gain": -14,
+  "what": "نصيحة 2"
+ },
+ {
+  "name": "42_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 37.2,
+  "gain": -14,
+  "what": "نصيحة 3"
+ },
+ {
+  "name": "43_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 39.2,
+  "gain": -14,
+  "what": "نصيحة 4"
+ },
+ {
+  "name": "44_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 41.2,
+  "gain": -14,
+  "what": "نصيحة 5"
+ },
+ {
+  "name": "45_whoosh-big",
+  "src": "lib:sfx-whoosh-big",
+  "sync": 43.5,
+  "gain": -11,
+  "what": "انتقال"
+ },
+ {
+  "name": "46_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 44.45,
+  "gain": -13,
+  "what": "البطاقة المختارة"
+ },
+ {
+  "name": "47_impact-short",
+  "src": "lib:sfx-impact-short",
+  "sync": 45.05,
+  "gain": -5,
+  "what": "ختم «مختار»"
+ },
+ {
+  "name": "48_shimmer-soft",
+  "src": "lib:sfx-shimmer-soft",
+  "sync": 45.15,
+  "gain": -11,
+  "what": "شرارات"
+ },
+ {
+  "name": "49_whoosh-crisp",
+  "src": "lib:sfx-whoosh-crisp",
+  "sync": 47.35,
+  "gain": -12,
+  "what": "انتقال للختام"
+ },
+ {
+  "name": "50_logo-bloom",
+  "src": "lib:sfx-logo-bloom",
+  "sync": 47.95,
+  "gain": -7,
+  "what": "الشعار"
+ },
+ {
+  "name": "51_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 48.45,
+  "gain": -17,
+  "what": "انشر عملك الأول"
+ },
+ {
+  "name": "52_mallet-celesta",
+  "src": "lib:sfx-mallet-celesta",
+  "sync": 49.1,
+  "gain": -15,
+  "what": "المسار"
+ },
+ {
+  "name": "53_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 49.7,
+  "gain": -14,
+  "what": "sanadz.media"
+ }
+]

@@ -341,22 +341,16 @@ function buildScene(stage) {
     const st = 10.15 + i * 0.28;
     if (t < st || t > st + 1.6) return null;
     const k = eo(p(t, st, 1.6));
-    return { x: CX, y: 840, o: (1 - k) * 0.9, s: 0.55 + k * 1.9 };
+    return { x: CX, y: 960, o: (1 - k) * 0.9, s: 0.55 + k * 1.9 };
   }));
-  A(`<img class="logoimg" src="${ICON_SRC}" style="width:420px;height:420px" />`, (t) => {
-    if (t < 10.1 || t > 12.9) return null;
-    const k = back(p(t, 10.12, 0.7)), out = eio(p(t, 12.25, 0.5));
-    const bob = Math.sin(t * 2.4) * 8;
-    return { x: CX, y: 840 + bob - out * 160, o: cl(k * 1.6) * (1 - out), s: (0.3 + 0.7 * k) * (1 - out * 0.4), r: (1 - cl(k)) * -25 };
-  });
-  const wm = A(`<img class="logoimg" src="${LOGO_SRC}" style="width:680px;filter:drop-shadow(0 0 40px rgba(46,230,160,0.45))" />`, (t) => {
-    if (t < 10.6 || t > 23.7) return null;
-    const mv = eio(p(t, 12.3, 0.55)), out = eio(p(t, 23.3, 0.35));
-    return { x: CX, y: lerp(1150, 290, mv), o: 1 - out, s: lerp(1, 0.52, mv), b: out * 10 };
+  const wm = A(`<img class="logoimg" src="${LOGO_SRC}" style="width:760px;filter:drop-shadow(0 0 40px rgba(46,230,160,0.45))" />`, (t) => {
+    if (t < 10.12 || t > 23.7) return null;
+    const k = back(p(t, 10.15, 0.7)), mv = eio(p(t, 12.3, 0.55)), out = eio(p(t, 23.3, 0.35));
+    return { x: CX, y: lerp(960, 290, mv), o: cl(k * 1.6) * (1 - out), s: (0.6 + 0.4 * k) * lerp(1, 0.465, mv), b: out * 10 };
   });
   const wmImg = wm.querySelector("img");
   subs.push((t) => {
-    const k = eo(p(t, 10.65, 0.7));
+    const k = eo(p(t, 10.2, 0.75));
     wmImg.style.clipPath = `inset(0 0 0 ${(1 - k) * 100}%)`;
   });
 
@@ -437,26 +431,22 @@ function buildScene(stage) {
     const st = 23.7 + i * 0.35;
     if (t < st || t > st + 1.6) return null;
     const k = eo(p(t, st, 1.6));
-    return { x: CX, y: 720, o: (1 - k) * 0.8, s: 0.5 + k * 1.6 };
+    return { x: CX, y: 800, o: (1 - k) * 0.8, s: 0.5 + k * 1.6 };
   }));
-  A(`<img class="logoimg" src="${ICON_SRC}" style="width:330px;height:330px" />`, (t) => {
-    if (t < 23.65) return null;
-    const k = back(p(t, 23.7, 0.65));
-    return { x: CX, y: 720 + Math.sin(t * 2.2) * 6, o: cl(k * 1.6), s: 0.3 + 0.7 * k };
-  });
-  const wm2 = A(`<img class="logoimg" src="${LOGO_SRC}" style="width:600px;filter:drop-shadow(0 0 36px rgba(46,230,160,0.5))" />`, (t) => {
-    if (t < 24.0) return null;
-    return { x: CX, y: 975, o: 1 };
+  const wm2 = A(`<img class="logoimg" src="${LOGO_SRC}" style="width:700px;filter:drop-shadow(0 0 36px rgba(46,230,160,0.5))" />`, (t) => {
+    if (t < 23.72) return null;
+    const k = back(p(t, 23.75, 0.65));
+    return { x: CX, y: 800 + Math.sin(t * 2.2) * 5, o: cl(k * 1.6), s: 0.6 + 0.4 * k };
   });
   const wm2Img = wm2.querySelector("img");
-  subs.push((t) => { wm2Img.style.clipPath = `inset(0 0 0 ${(1 - eo(p(t, 24.0, 0.7))) * 100}%)`; });
-  headline("المنصة الإعلامية", { y: 1175, start: 24.55, end: 99, size: 80 });
-  headline("الجزائرية الشاملة", { y: 1280, start: 24.9, end: 99, size: 80, hl: ["الجزائرية", "الشاملة"] });
+  subs.push((t) => { wm2Img.style.clipPath = `inset(0 0 0 ${(1 - eo(p(t, 23.8, 0.7))) * 100}%)`; });
+  headline("المنصة الإعلامية", { y: 1030, start: 24.4, end: 99, size: 80 });
+  headline("الجزائرية الشاملة", { y: 1135, start: 24.75, end: 99, size: 80, hl: ["الجزائرية", "الشاملة"] });
   A(`<div class="url">sanadz.media</div>`, (t) => {
     if (t < 25.5) return null;
     const k = back(p(t, 25.55, 0.55));
     const pulse = 1 + 0.025 * Math.sin((t - 26) * 3.2) * p(t, 26.2, 0.5);
-    return { x: CX, y: 1450, o: cl(k * 1.5), s: (0.6 + 0.4 * k) * pulse };
+    return { x: CX, y: 1310, o: cl(k * 1.5), s: (0.6 + 0.4 * k) * pulse };
   });
 
   // ── render ─────────────────────────────────────────────────────────

@@ -1,0 +1,289 @@
+[
+ {
+  "name": "01_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 0.35,
+  "gain": -14,
+  "what": "ظهور شريط البحث"
+ },
+ {
+  "name": "02_typing-run-soft",
+  "src": "lib:sfx-typing-run-soft",
+  "sync": 1.3,
+  "gain": -16,
+  "what": "كتابة السؤال"
+ },
+ {
+  "name": "03_glitch-sparse",
+  "src": "lib:sfx-glitch-sparse",
+  "sync": 2.6,
+  "gain": -14,
+  "what": "اهتزاز الشريط بلا نتيجة"
+ },
+ {
+  "name": "04_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 3.45,
+  "gain": -18,
+  "what": "صفحاتٌ مهجورة"
+ },
+ {
+  "name": "05_pop-in-deep",
+  "src": "lib:sfx-pop-in-deep",
+  "sync": 3.6,
+  "gain": -16,
+  "what": "بطاقة الصفحة المهجورة"
+ },
+ {
+  "name": "06_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 4.8,
+  "gain": -18,
+  "what": "إعلاناتٌ منتهية"
+ },
+ {
+  "name": "07_impact-short",
+  "src": "lib:sfx-impact-short",
+  "sync": 5.33,
+  "gain": -6,
+  "what": "ختم «انتهى»"
+ },
+ {
+  "name": "08_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 6.2,
+  "gain": -18,
+  "what": "ومجموعاتٌ لا تنتهي"
+ },
+ {
+  "name": "09_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 6.3,
+  "gain": -20,
+  "what": "مجموعة"
+ },
+ {
+  "name": "10_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 6.55,
+  "gain": -21,
+  "what": "مجموعة"
+ },
+ {
+  "name": "11_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 6.8,
+  "gain": -20,
+  "what": "مجموعة"
+ },
+ {
+  "name": "12_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 7.05,
+  "gain": -21,
+  "what": "مجموعة"
+ },
+ {
+  "name": "13_pop-tink",
+  "src": "lib:sfx-pop-tink",
+  "sync": 7.3,
+  "gain": -20,
+  "what": "مجموعة"
+ },
+ {
+  "name": "14_swish-flick",
+  "src": "lib:sfx-swish-flick",
+  "sync": 7.75,
+  "gain": -18,
+  "what": "والفرصة ضائعة"
+ },
+ {
+  "name": "15_notify-ding",
+  "src": "lib:sfx-notify-ding",
+  "sync": 8.05,
+  "gain": -13,
+  "what": "بطاقة الفرصة"
+ },
+ {
+  "name": "16_pop-bloop",
+  "src": "lib:sfx-pop-bloop",
+  "sync": 8.55,
+  "gain": -20,
+  "what": "زحام"
+ },
+ {
+  "name": "17_pop-bloop",
+  "src": "lib:sfx-pop-bloop",
+  "sync": 8.75,
+  "gain": -21,
+  "what": "زحام"
+ },
+ {
+  "name": "18_pop-bloop",
+  "src": "lib:sfx-pop-bloop",
+  "sync": 8.95,
+  "gain": -20,
+  "what": "زحام"
+ },
+ {
+  "name": "19_reverse-swell",
+  "src": "lib:sfx-reverse-swell",
+  "sync": 10.0,
+  "gain": -9,
+  "what": "الانهيار نحو الوسط"
+ },
+ {
+  "name": "20_impact-deep",
+  "src": "lib:sfx-impact-deep",
+  "sync": 10.08,
+  "gain": -4,
+  "what": "الومضة"
+ },
+ {
+  "name": "21_logo-bloom",
+  "src": "lib:sfx-logo-bloom",
+  "sync": 10.5,
+  "gain": -7,
+  "what": "ظهور الشعار"
+ },
+ {
+  "name": "22_whoosh-crisp",
+  "src": "lib:sfx-whoosh-crisp",
+  "sync": 12.45,
+  "gain": -13,
+  "what": "الشعار يصعد"
+ },
+ {
+  "name": "23_swipe-flick",
+  "src": "lib:sfx-swipe-flick",
+  "sync": 13.4,
+  "gain": -15,
+  "what": "عروض التوظيف"
+ },
+ {
+  "name": "24_swipe-flick",
+  "src": "lib:sfx-swipe-flick",
+  "sync": 13.85,
+  "gain": -15,
+  "what": "الدورات"
+ },
+ {
+  "name": "25_swipe-flick",
+  "src": "lib:sfx-swipe-flick",
+  "sync": 14.3,
+  "gain": -15,
+  "what": "المسابقات"
+ },
+ {
+  "name": "26_whoosh-whip",
+  "src": "lib:sfx-whoosh-whip",
+  "sync": 16.45,
+  "gain": -13,
+  "what": "خروج البطاقات"
+ },
+ {
+  "name": "27_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 17.25,
+  "gain": -18,
+  "what": "عمل"
+ },
+ {
+  "name": "28_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 17.45,
+  "gain": -19,
+  "what": "عمل"
+ },
+ {
+  "name": "29_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 17.65,
+  "gain": -18,
+  "what": "عمل"
+ },
+ {
+  "name": "30_pop-in-airy",
+  "src": "lib:sfx-pop-in-airy",
+  "sync": 17.85,
+  "gain": -19,
+  "what": "عمل"
+ },
+ {
+  "name": "31_whoosh-tight",
+  "src": "lib:sfx-whoosh-tight",
+  "sync": 19.4,
+  "gain": -13,
+  "what": "انتقال"
+ },
+ {
+  "name": "32_swish-zing",
+  "src": "lib:sfx-swish-zing",
+  "sync": 19.8,
+  "gain": -15,
+  "what": "فرصٌ أكثر"
+ },
+ {
+  "name": "33_swish-zing",
+  "src": "lib:sfx-swish-zing",
+  "sync": 20.65,
+  "gain": -15,
+  "what": "تدريبٌ أكثر"
+ },
+ {
+  "name": "34_swish-zing",
+  "src": "lib:sfx-swish-zing",
+  "sync": 21.5,
+  "gain": -15,
+  "what": "تواصلٌ أكثر"
+ },
+ {
+  "name": "35_impact-short",
+  "src": "lib:sfx-impact-short",
+  "sync": 22.4,
+  "gain": -8,
+  "what": "وسندٌ لك"
+ },
+ {
+  "name": "36_swish-soft",
+  "src": "lib:sfx-swish-soft",
+  "sync": 22.75,
+  "gain": -17,
+  "what": "الخط تحت العبارة"
+ },
+ {
+  "name": "37_whoosh-big",
+  "src": "lib:sfx-whoosh-big",
+  "sync": 23.45,
+  "gain": -11,
+  "what": "انتقال للختام"
+ },
+ {
+  "name": "38_logo-bloom",
+  "src": "lib:sfx-logo-bloom",
+  "sync": 23.95,
+  "gain": -7,
+  "what": "الشعار الختامي"
+ },
+ {
+  "name": "39_mallet-celesta",
+  "src": "lib:sfx-mallet-celesta",
+  "sync": 24.5,
+  "gain": -15,
+  "what": "المنصة الإعلامية"
+ },
+ {
+  "name": "40_mallet-celesta",
+  "src": "lib:sfx-mallet-celesta",
+  "sync": 24.85,
+  "gain": -16,
+  "what": "الجزائرية الشاملة"
+ },
+ {
+  "name": "41_pop-in-round",
+  "src": "lib:sfx-pop-in-round",
+  "sync": 25.75,
+  "gain": -14,
+  "what": "sanadz.media"
+ }
+]
